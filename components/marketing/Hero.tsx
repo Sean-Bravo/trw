@@ -10,16 +10,15 @@ export function Hero() {
           <div className="inline-block mb-6 px-4 py-2 bg-[#f3f4f6] text-[#4b5563] rounded-full text-xs font-medium uppercase tracking-wider">
             New: CSV Repair Tool
           </div>
-          
+
           <h1 className="font-poppins text-4xl sm:text-5xl md:text-6xl font-bold text-[#1a365d] leading-tight tracking-tight mb-6">
-            Crypto taxes, <span className="italic font-normal">refined.</span>
-            <br />
-            Complex data made simple.
+            Universal translation engine for crypto financial data
           </h1>
-          
+
           <p className="text-lg text-[#4b5563] max-w-2xl mx-auto mb-10 leading-relaxed">
-            Repair your crypto CSV files in 30 seconds. Export to Koinly, TurboTax, CoinLedger, and more. No more tax software lock-in.
+            We fix crypto CSVs for tax software
           </p>
+
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
             <Button variant="primary" href="#start" showArrow>
