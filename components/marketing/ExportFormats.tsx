@@ -26,7 +26,7 @@ const positionMap: Record<string, string> = {
 
 export function ExportFormats() {
   return (
-    <section className="bg-slate-50 py-24 sm:py-32 overflow-hidden">
+    <section className="bg-white py-24 sm:py-32 overflow-hidden">
       <Container>
         <div className="text-center mb-20">
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
