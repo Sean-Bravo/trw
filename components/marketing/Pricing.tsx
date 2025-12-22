@@ -155,25 +155,27 @@ export function Pricing() {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
           {plans.map((plan, index) => {
             const isPro = plan.popular;
             return (
               <div
                 key={`${billingCycle}-${index}`}
-                className={`relative ${isPro ? 'md:scale-105 z-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}
+                className={`relative ${isPro ? 'md:scale-110 z-20' : 'z-10'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {isPro && (
-                  <div className="absolute -top-4 right-4 z-20">
-                    <Badge variant="tag">POPULAR</Badge>
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
+                    <div className="rounded-full bg-[#3b82f6] px-4 py-1 text-sm font-semibold text-white shadow-md">
+                      Most Popular
+                    </div>
                   </div>
                 )}
                 <Card
                   className={`h-full flex flex-col ${
                     isPro
-                      ? 'bg-[#0c1929] text-white border-[#0c1929] shadow-[0_12px_32px_rgba(0,0,0,0.3)]'
-                      : ''
+                      ? 'bg-[#0c1929] text-white border-2 border-[#3b82f6] shadow-2xl'
+                      : 'border border-[#e5e7eb] shadow-sm'
                   }`}
                 >
                   <div className="mb-6">
