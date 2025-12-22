@@ -8,6 +8,15 @@ export function FinalCTA() {
     <section className="bg-[#0c1929] py-24 sm:py-32">
       <Container>
         <div className="max-w-3xl mx-auto text-center">
+          {/* Logo Icon */}
+          <div className="inline-flex items-center justify-center mb-6">
+            <div className="w-16 h-16 bg-[#3b82f6] rounded-xl flex items-center justify-center shadow-2xl">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+                <path d="M14 7l5 5-5 5M9 7l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </div>
+
           <h2 className="font-poppins text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
             Ready to escape tax software lock-in?
           </h2>
