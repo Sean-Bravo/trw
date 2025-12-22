@@ -27,7 +27,7 @@ const faqItems = [
 
 export function FAQ() {
   return (
-    <section className="bg-[#f9fafb] py-24 sm:py-32">
+    <section className="bg-white py-24 sm:py-32">
       <Container>
         <div className="text-center mb-16">
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
