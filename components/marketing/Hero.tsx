@@ -7,7 +7,7 @@ export function Hero() {
     <section className="bg-white py-24 sm:py-32 relative overflow-hidden">
       <Container>
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block mb-6 px-4 py-2 bg-[#f3f4f6] text-[#4b5563] rounded-full text-xs font-medium uppercase tracking-wider">
+          <div className="inline-block mb-6 px-4 py-2 bg-[#f3f4f6] text-[#4b5563] rounded-full text-xs font-normal uppercase tracking-wider">
             New: CSV Repair Tool
           </div>
 
@@ -16,7 +16,7 @@ export function Hero() {
           </h1>
 
           <p className="text-lg text-[#4b5563] max-w-2xl mx-auto mb-10 leading-relaxed">
-            We fix crypto CSVs for tax software
+            Fix your crypto CSVs for tax software
           </p>
 
 
