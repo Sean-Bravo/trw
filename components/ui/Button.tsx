@@ -2,11 +2,14 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'tertiary';
   href?: string;
   children: React.ReactNode;
   showArrow?: boolean;
+  className?: string;
+  disabled?: boolean;
+  onClick?: () => void;
 }
 
 export function Button({
@@ -16,14 +19,14 @@ export function Button({
   showArrow = false,
   className = '',
   disabled,
-  ...props
+  onClick,
 }: ButtonProps) {
   const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-300 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60';
   
   const variants = {
-    primary: `h-12 px-8 rounded-full text-white bg-[#059669] hover:bg-[#047857] active:bg-[#065f46] shadow-[0_4px_12px_rgba(5,150,105,0.15)] hover:shadow-[0_8px_16px_rgba(5,150,105,0.2)] focus-visible:outline-[#059669] disabled:bg-[#d1d5db] disabled:text-[#6b7280] disabled:shadow-none font-poppins text-base`,
-    secondary: `h-12 px-8 rounded-full text-[#1a365d] border-2 border-[#1a365d] bg-transparent hover:bg-[#1a365d] hover:text-white hover:shadow-[0_4px_12px_rgba(26,54,93,0.15)] active:bg-[#1e3a8a] focus-visible:outline-[#1a365d] disabled:border-[#d1d5db] disabled:text-[#9ca3af] font-semibold text-base`,
-    tertiary: `inline text-[#059669] underline font-semibold text-sm hover:text-[#047857] active:text-[#065f46] focus-visible:outline-dotted focus-visible:outline-2 focus-visible:outline-[#059669] disabled:text-[#9ca3af]`,
+    primary: `h-12 px-8 rounded-full text-white bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-dark)] active:bg-[var(--color-brand-blue-darker)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-hover)] focus-visible:outline-[var(--color-brand-blue)] disabled:bg-[var(--color-gray-300)] disabled:text-[var(--color-gray-500)] disabled:shadow-none font-poppins text-base`,
+    secondary: `h-12 px-8 rounded-full text-[var(--color-brand-navy)] border-2 border-[var(--color-brand-navy)] bg-transparent hover:bg-[var(--color-brand-navy)] hover:text-white hover:shadow-[var(--shadow-card)] active:bg-[var(--color-brand-blue-darker)] focus-visible:outline-[var(--color-brand-navy)] disabled:border-[var(--color-gray-300)] disabled:text-[var(--color-gray-400)] font-semibold text-base`,
+    tertiary: `inline text-[var(--color-brand-blue)] underline font-semibold text-sm hover:text-[var(--color-brand-blue-dark)] active:text-[var(--color-brand-blue-darker)] focus-visible:outline-dotted focus-visible:outline-2 focus-visible:outline-[var(--color-brand-blue)] disabled:text-[var(--color-gray-400)]`,
   };
 
   const buttonContent = (
@@ -43,7 +46,6 @@ export function Button({
       <Link
         href={href}
         className={`${baseStyles} ${variants[variant]} ${className}`}
-        {...(props as any)}
       >
         {buttonContent}
       </Link>
@@ -54,7 +56,7 @@ export function Button({
     <button
       className={`${baseStyles} ${variants[variant]} ${className}`}
       disabled={disabled}
-      {...props}
+      onClick={onClick}
     >
       {buttonContent}
     </button>
