@@ -69,3 +69,168 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ============================================================================
+   ANIMATION KEYFRAMES
+   ============================================================================ */
+
+/* Gauge/Circular Progress Animation
+   Smoothly animates the SVG stroke-dashoffset for circular progress indicators
+   Uses cubic-bezier easing for natural deceleration */
+@keyframes gauge-fill {
+  0% {
+    stroke-dashoffset: 150.796;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* Progress Bar Fill Animation
+   Animates width with spring-like easing (cubic-bezier(0.34, 1.56, 0.64, 1))
+   This creates a subtle "overshoot" effect that feels responsive and bouncy
+   Pair with a slight delay for staggered effect with gauge */
+@keyframes progress-bar-fill {
+  0% {
+    width: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    width: 5%;
+    opacity: 1;
+  }
+}
+
+/* Pulse Animation
+   Used for attention-grabbing elements like badges or status indicators
+   Smooth opacity oscillation */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Shimmer/Loading Animation
+   Creates a left-to-right shimmer effect on loading states
+   Useful for skeleton screens or loading placeholders */
+@keyframes shimmer {
+  -100% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Slide In Animation (for card appearances)
+   Combines fade-in with subtle upward movement for visual interest */
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Float Animation
+   Gentle vertical bobbing motion for hero elements or floating decorations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ============================================================================
+   ANIMATION UTILITIES (Available via Tailwind)
+   ============================================================================ */
+
+@layer utilities {
+  /* Apply gauge animation - use on animated circle elements */
+  .animate-gauge {
+    animation: gauge-fill 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* Apply progress bar animation - use on progress bar divs */
+  .animate-progress-bar {
+    animation: progress-bar-fill 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+  }
+
+  /* Subtle pulsing effect */
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Shimmer loading effect */
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  /* Slide up with fade */
+  .animate-slide-up {
+    animation: slide-up-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Floating animation */
+  .animate-float {
+    animation: float 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Stagger animation delays for multiple elements */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  /* Smooth transitions for state changes */
+  .transition-smooth {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-smooth-fast {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* ============================================================================
+   COMPONENT-SPECIFIC ANIMATIONS
+   ============================================================================ */
+
+/* Gauge SVG Animation
+   Apply directly to SVG circle elements in gauge components */
+svg circle[data-animated="true"] {
+  animation: gauge-fill 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Progress Bar Animation
+   Apply to the inner progress bar element */
+.progress-bar-inner {
+  transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
+}
