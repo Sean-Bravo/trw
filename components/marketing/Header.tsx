@@ -23,12 +23,12 @@ export function Header() {
           <div className="flex items-center justify-center gap-6 text-xs font-medium">
             <div className="flex items-center gap-1.5">
               <Shield className="h-3 w-3" />
-              <span>Bank-level Security</span>
+              <span>256-bit Encryption</span>
             </div>
             <span className="hidden sm:inline text-white/60">•</span>
-            <span className="hidden sm:inline">SOC 2 Type II Certified</span>
+            <span className="hidden sm:inline">Enterprise-Grade Security</span>
             <span className="hidden md:inline text-white/60">•</span>
-            <span className="hidden md:inline">GDPR Compliant</span>
+            <span className="hidden md:inline">Privacy Focused</span>
           </div>
         </div>
       </div>
