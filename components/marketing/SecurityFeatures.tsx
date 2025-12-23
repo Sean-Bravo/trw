@@ -25,8 +25,8 @@ const securityFeatures = [
   },
   {
     icon: CloudOff,
-    title: 'Zero Data Retention',
-    description: 'Files automatically deleted after processing. We never store your data permanently.',
+    title: 'Zero Data Sharing',
+    description: 'We never sell, share, or access your financial data. Period.',
     status: 'active',
   },
   {
@@ -37,8 +37,8 @@ const securityFeatures = [
   },
   {
     icon: CheckCircle2,
-    title: 'Privacy Compliant',
-    description: 'Built with GDPR and CCPA compliance. Your data, your rights.',
+    title: 'Privacy Focused',
+    description: 'Built with privacy first. No third-party tracking or data sales.',
     status: 'active',
   },
 ];
@@ -80,7 +80,7 @@ export function SecurityFeatures() {
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
               <CheckCircle2 className="h-4 w-4 text-[#059669]" />
-              <span className="text-sm font-semibold text-white">Privacy Compliant</span>
+              <span className="text-sm font-semibold text-white">Privacy First</span>
             </div>
           </div>
         </div>
@@ -125,24 +125,24 @@ export function SecurityFeatures() {
                   <div className="text-sm text-white/80">Data Breaches</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">24hrs</div>
-                  <div className="text-sm text-white/80">Max Data Retention</div>
-                </div>
-                <div className="text-center">
                   <div className="text-4xl font-bold mb-2">100%</div>
                   <div className="text-sm text-white/80">Encrypted Traffic</div>
                 </div>
+                <div className="text-center">
+                  <div className="text-4xl font-bold mb-2">0</div>
+                  <div className="text-sm text-white/80">Third-Party Access</div>
+                </div>
               </div>
               <p className="text-white/90 mt-8 leading-relaxed">
-                Built with the same security tools trusted by Fortune 500 companies.
-                Rate limiting, DDoS protection, encrypted storage, and automatic file deletion keep your data safe.
+                We don't sell your data, share it with third parties, or store it longer than necessary.
+                Your financial information is encrypted in transit and at rest, protected by the same infrastructure trusted by major platforms.
               </p>
               <div className="mt-8">
                 <a
-                  href="#security"
+                  href="#docs"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#3b82f6] rounded-full font-semibold hover:bg-white/90 transition-colors duration-300"
                 >
-                  Read Our Security White Paper
+                  View Privacy Policy
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
