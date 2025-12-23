@@ -1,65 +1,37 @@
 'use client'; // Required for scroll detection
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
 import { Shield, CheckCircle2, Users, TrendingUp, Clock } from 'lucide-react';
 import { InteractiveDemo } from './InteractiveDemo';
-
-// Simple hook to detect when an element enters the viewport
-function useInView(options = { threshold: 0.1 }): [React.RefObject<HTMLDivElement>, boolean] {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(false);
-
-  useEffect(() => {
-    const currentRef = ref.current;
-    if (!currentRef) return;
-
-    const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          // Optional: Disconnect after triggering once so it doesn't reset
-          observer.disconnect();
-        }
-      });
-    }, options);
-
-    observer.observe(currentRef);
-
-    return () => {
-      if (currentRef) observer.unobserve(currentRef);
-    };
-  }, [options]);
-
-  return [ref, isInView];
-}
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 export function Hero() {
   // We track two separate elements for scroll triggering
-  const [gaugeRef, gaugeVisible] = useInView();
-  const [barRef, barVisible] = useInView();
+  const { ref: gaugeRef, isVisible: gaugeVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { ref: barRef, isVisible: barVisible } = useScrollAnimation({ threshold: 0.1 });
 
   return (
     <section className="bg-gradient-to-b from-white to-[#f9fafb] py-24 sm:py-32 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         {/* Main gradient orbs */}
         <div className="absolute top-20 right-0 w-96 h-96 bg-[#3b82f6] rounded-full opacity-8 blur-3xl animate-float"></div>
         <div className="absolute bottom-20 left-0 w-96 h-96 bg-[#1a365d] rounded-full opacity-8 blur-3xl animate-float animation-delay-300"></div>
-        
+
         {/* Accent orbs for visual interest */}
         <div className="absolute top-40 left-1/4 w-72 h-72 bg-[#059669] rounded-full opacity-5 blur-3xl animate-float animation-delay-500"></div>
         <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-[#3b82f6] rounded-full opacity-6 blur-2xl animate-float animation-delay-200"></div>
-        
+
         {/* Decorative grid pattern */}
-        <div 
-          className="absolute inset-0 opacity-40" 
+        <div
+          className="absolute inset-0 opacity-40"
           style={{
             backgroundImage: `url('data:image/svg+xml;utf8,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(59,130,246,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>')`
           }}
         ></div>
-        
+
         {/* Top accent line */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#3b82f6] to-transparent opacity-20"></div>
       </div>

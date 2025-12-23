@@ -7,7 +7,21 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Check } from 'lucide-react';
 
-const pricingData = {
+interface PricingPlan {
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+  cta: string;
+  variant: 'primary' | 'secondary';
+  subtitle: string;
+  popular?: boolean;
+  originalPrice?: string;
+  savings?: string;
+}
+
+const pricingData: Record<'monthly' | 'annual', PricingPlan[]> = {
   monthly: [
     {
       name: 'Free',
@@ -130,6 +144,7 @@ export function Pricing() {
           {/* Billing Toggle */}
           <div className="inline-flex items-center gap-3 p-1.5 bg-[#f3f4f6] rounded-full">
             <button
+              type="button"
               onClick={() => setBillingCycle('monthly')}
               className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                 billingCycle === 'monthly'
@@ -140,6 +155,7 @@ export function Pricing() {
               Monthly
             </button>
             <button
+              type="button"
               onClick={() => setBillingCycle('annual')}
               className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
                 billingCycle === 'annual'
@@ -187,13 +203,13 @@ export function Pricing() {
                       {plan.name}
                     </h3>
                     <div className="flex items-baseline mb-2">
-                      {(plan as any).originalPrice && billingCycle === 'annual' && (
+                      {plan.originalPrice && billingCycle === 'annual' && (
                         <span
                           className={`text-2xl font-semibold line-through mr-2 ${
                             isPro ? 'text-[#9ca3af]' : 'text-[#9ca3af]'
                           }`}
                         >
-                          {(plan as any).originalPrice}
+                          {plan.originalPrice}
                         </span>
                       )}
                       <span
@@ -213,10 +229,10 @@ export function Pricing() {
                         </span>
                       )}
                     </div>
-                    {(plan as any).savings && billingCycle === 'annual' && (
+                    {plan.savings && billingCycle === 'annual' && (
                       <div className="mb-2">
                         <span className="inline-flex items-center px-2 py-1 bg-[#059669]/20 text-[#059669] text-xs font-bold rounded-full">
-                          {(plan as any).savings}
+                          {plan.savings}
                         </span>
                       </div>
                     )}
