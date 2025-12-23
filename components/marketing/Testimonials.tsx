@@ -3,44 +3,30 @@
 import React, { useState, useEffect } from 'react';
 import { Container } from '../layout/Container';
 import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
-import { StarRating } from '../ui/StarRating';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const testimonials = [
   {
     rating: 5,
-    quote: 'Finally, a tool that actually works. Fixed my Coinbase CSV in seconds and exported directly to Koinly. Worth every penny.',
+    quote: 'Fixed my CSV in seconds and exported to Koinly. Worth every penny.',
     author: 'Alex Chen',
     role: 'Crypto Trader',
-    company: 'Independent',
-    verified: true,
-    date: '2 weeks ago',
-    source: 'ProductHunt',
     avatar: 'AC',
     avatarColor: 'bg-gradient-to-br from-[#3b82f6] to-[#2563eb]',
   },
   {
     rating: 5,
-    quote: 'I was stuck with broken CSV files from multiple exchanges. TaxReadyWallet saved me hours of manual work. Highly recommend!',
+    quote: 'Saved me hours of manual work. Exactly what the crypto community needed.',
     author: 'Sarah Martinez',
     role: 'Day Trader',
-    company: 'Trading Firm',
-    verified: true,
-    date: '1 month ago',
-    source: 'Twitter',
     avatar: 'SM',
     avatarColor: 'bg-gradient-to-br from-[#8b5cf6] to-[#6366f1]',
   },
   {
     rating: 5,
-    quote: 'Simple, fast, and reliable. No more fighting with tax software formats. This is exactly what the crypto community needed.',
+    quote: 'Simple, fast, and reliable. No more fighting with tax software formats.',
     author: 'Michael Park',
     role: 'DeFi Investor',
-    company: 'Crypto Fund',
-    verified: true,
-    date: '3 weeks ago',
-    source: 'ProductHunt',
     avatar: 'MP',
     avatarColor: 'bg-gradient-to-br from-[#059669] to-[#047857]',
   },
@@ -50,21 +36,17 @@ export function Testimonials() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Auto-rotate every 5 seconds
   useEffect(() => {
     if (!isAutoPlaying) return;
-
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
     setIsAutoPlaying(false);
-    // Resume auto-play after 10 seconds of manual interaction
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
 
@@ -74,45 +56,36 @@ export function Testimonials() {
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
 
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
-
   return (
-    <section className="bg-slate-50 py-24 sm:py-32">
+    <section className="bg-white py-16 sm:py-20">
       <Container>
-        <div className="text-center mb-16">
-          <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
+        <div className="text-center mb-12">
+          <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-2">
             Trusted by Crypto Traders
           </h2>
-          <p className="text-lg text-[#4b5563] max-w-2xl mx-auto">
-            Real feedback from the community
-          </p>
         </div>
 
-        {/* Carousel */}
-        <div className="max-w-6xl mx-auto mb-20">
+        {/* Mobile Carousel */}
+        <div className="max-w-4xl mx-auto mb-8 lg:hidden">
           <div className="relative">
             {/* Navigation Arrows */}
             <button
               onClick={goToPrevious}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg border border-[#e5e7eb] flex items-center justify-center hover:bg-[#3b82f6] hover:text-white hover:border-[#3b82f6] transition-all duration-300 group"
-              aria-label="Previous testimonial"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg border border-[#e5e7eb] flex items-center justify-center hover:bg-[#3b82f6] hover:text-white transition-all duration-300"
+              aria-label="Previous"
             >
-              <ChevronLeft className="h-6 w-6 text-[#1a365d] group-hover:text-white transition-colors" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
 
             <button
               onClick={goToNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg border border-[#e5e7eb] flex items-center justify-center hover:bg-[#3b82f6] hover:text-white hover:border-[#3b82f6] transition-all duration-300 group"
-              aria-label="Next testimonial"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg border border-[#e5e7eb] flex items-center justify-center hover:bg-[#3b82f6] hover:text-white transition-all duration-300"
+              aria-label="Next"
             >
-              <ChevronRight className="h-6 w-6 text-[#1a365d] group-hover:text-white transition-colors" />
+              <ChevronRight className="h-5 w-5" />
             </button>
 
-            {/* Carousel Content */}
+            {/* Carousel */}
             <div className="overflow-hidden">
               <div
                 className="flex transition-transform duration-500 ease-out"
@@ -120,41 +93,22 @@ export function Testimonials() {
               >
                 {testimonials.map((testimonial, index) => (
                   <div key={index} className="w-full flex-shrink-0 px-4">
-                    <Card className="group hover:shadow-[0_12px_48px_rgba(26,54,93,0.15)] transition-all duration-300 max-w-4xl mx-auto">
-                      <div className="flex items-start justify-between mb-4">
-                        <StarRating rating={testimonial.rating} size="lg" />
-                        <span className="text-xs text-[#9ca3af]">{testimonial.date}</span>
+                    <Card className="p-6">
+                      <div className="flex gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-lg">⭐</span>
+                        ))}
                       </div>
-                      <p className="font-sohne text-xl text-[#1a365d] italic mb-8 leading-relaxed">
+                      <p className="text-base text-[#1a365d] italic mb-6 leading-relaxed">
                         "{testimonial.quote}"
                       </p>
-                      <div className="border-t border-[#e5e7eb] pt-6">
-                        <div className="flex items-start gap-4">
-                          {/* Avatar */}
-                          <div className={`flex-shrink-0 w-16 h-16 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg`}>
-                            <span className="text-white font-bold text-lg">{testimonial.avatar}</span>
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-lg text-[#1a365d] mb-1">
-                                  {testimonial.author}
-                                </p>
-                                <p className="text-sm text-[#6b7280] mb-2">
-                                  {testimonial.role}
-                                </p>
-                                <p className="text-sm text-[#9ca3af]">
-                                  {testimonial.company} · via {testimonial.source}
-                                </p>
-                              </div>
-                              {testimonial.verified && (
-                                <Badge variant="success" showIcon className="flex-shrink-0">
-                                  Verified
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg`}>
+                          <span className="text-white font-bold text-sm">{testimonial.avatar}</span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm text-[#1a365d]">{testimonial.author}</p>
+                          <p className="text-xs text-[#6b7280]">{testimonial.role}</p>
                         </div>
                       </div>
                     </Card>
@@ -163,106 +117,63 @@ export function Testimonials() {
               </div>
             </div>
 
-            {/* Dots Navigation */}
-            <div className="flex items-center justify-center gap-2 mt-8">
+            {/* Dots */}
+            <div className="flex justify-center gap-2 mt-6">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => goToSlide(index)}
+                  onClick={() => {
+                    setCurrentIndex(index);
+                    setIsAutoPlaying(false);
+                    setTimeout(() => setIsAutoPlaying(true), 10000);
+                  }}
                   className={`transition-all duration-300 rounded-full ${
                     index === currentIndex
-                      ? 'w-8 h-2 bg-[#3b82f6]'
+                      ? 'w-6 h-2 bg-[#3b82f6]'
                       : 'w-2 h-2 bg-[#d1d5db] hover:bg-[#9ca3af]'
                   }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
+                  aria-label={`Go to ${index + 1}`}
                 />
               ))}
             </div>
           </div>
         </div>
 
-        {/* Static Grid for Desktop - Hidden on mobile with staggered heights */}
-        <div className="max-w-6xl mx-auto hidden lg:grid grid-cols-3 gap-8 mb-20">
-          {testimonials.map((testimonial, index) => {
-            // Add visual variety with staggered positioning
-            const staggerClass = index === 1 ? 'lg:mt-8' : '';
-            return (
-              <Card
-                key={index}
-                className={`group hover:shadow-[0_12px_48px_rgba(26,54,93,0.15)] hover:-translate-y-2 transition-all duration-300 border-2 border-transparent hover:border-[#3b82f6]/20 ${staggerClass}`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <StarRating rating={testimonial.rating} size="md" />
-                  {testimonial.verified && (
-                    <Badge variant="success" showIcon className="flex-shrink-0">
-                      Verified
-                    </Badge>
-                  )}
+        {/* Desktop Grid - 3 Cards */}
+        <div className="max-w-6xl mx-auto hidden lg:grid grid-cols-3 gap-6 mb-12">
+          {testimonials.map((testimonial, index) => (
+            <Card key={index} className="p-6 hover:shadow-lg transition-all duration-300">
+              <div className="flex gap-1 mb-3">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-base">⭐</span>
+                ))}
+              </div>
+              <p className="text-sm text-[#1a365d] italic mb-4 leading-relaxed">
+                "{testimonial.quote}"
+              </p>
+              <div className="flex items-center gap-3 pt-4 border-t border-[#e5e7eb]">
+                <div className={`w-10 h-10 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg`}>
+                  <span className="text-white font-bold text-xs">{testimonial.avatar}</span>
                 </div>
-                <p className="font-sohne text-base text-[#1a365d] italic mb-6 leading-relaxed min-h-[120px]">
-                  "{testimonial.quote}"
-                </p>
-                <div className="border-t border-[#e5e7eb] pt-4">
-                  <div className="flex items-start gap-3">
-                    {/* Avatar with platform badge */}
-                    <div className="relative flex-shrink-0">
-                      <div className={`w-14 h-14 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                        <span className="text-white font-bold text-base">{testimonial.avatar}</span>
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-[#3b82f6]">
-                        <span className="text-[10px]">✓</span>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-base text-[#1a365d] mb-1">
-                        {testimonial.author}
-                      </p>
-                      <p className="text-sm text-[#6b7280] mb-1">
-                        {testimonial.role}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[#9ca3af]">{testimonial.company}</span>
-                        <span className="text-xs text-[#d1d5db]">•</span>
-                        <span className="text-xs font-medium text-[#3b82f6]">{testimonial.source}</span>
-                      </div>
-                      <p className="text-xs text-[#9ca3af] mt-1">{testimonial.date}</p>
-                    </div>
-                  </div>
+                <div>
+                  <p className="font-semibold text-xs text-[#1a365d]">{testimonial.author}</p>
+                  <p className="text-xs text-[#6b7280]">{testimonial.role}</p>
                 </div>
-              </Card>
-            );
-          })}
+              </div>
+            </Card>
+          ))}
         </div>
 
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-gradient-to-br from-[#0c1929] to-[#1a365d] border-2 border-[#3b82f6]/30 rounded-2xl p-12 shadow-[0_20px_60px_rgba(59,130,246,0.2)] relative overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-
-            <div className="relative z-10 grid grid-cols-2 divide-x divide-white/10">
-              <div className="text-center pr-8">
-                <div className="font-poppins text-5xl font-bold bg-gradient-to-r from-white to-[#3b82f6] bg-clip-text text-transparent mb-3">
-                  10K+
-                </div>
-                <div className="text-sm font-semibold text-[#d1d5db] uppercase tracking-wider">
-                  Files Repaired
-                </div>
-                <div className="text-xs text-[#9ca3af] mt-1">
-                  and counting
-                </div>
-              </div>
-              <div className="text-center pl-8">
-                <div className="font-poppins text-5xl font-bold bg-gradient-to-r from-[#3b82f6] to-[#059669] bg-clip-text text-transparent mb-3">
-                  99.9%
-                </div>
-                <div className="text-sm font-semibold text-[#d1d5db] uppercase tracking-wider">
-                  Success Rate
-                </div>
-                <div className="text-xs text-[#9ca3af] mt-1">
-                  industry leading
-                </div>
-              </div>
+        {/* Stats Bar */}
+        <div className="max-w-3xl mx-auto bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-xl p-8 text-white text-center">
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <div className="text-4xl font-bold mb-1">10K+</div>
+              <div className="text-sm font-semibold text-blue-100">Files Repaired</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-1">99.9%</div>
+              <div className="text-sm font-semibold text-blue-100">Success Rate</div>
             </div>
           </div>
         </div>
@@ -270,4 +181,3 @@ export function Testimonials() {
     </section>
   );
 }
-
