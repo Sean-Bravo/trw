@@ -7,7 +7,14 @@ interface UseScrollAnimationOptions {
 
 export function useScrollAnimation(options: UseScrollAnimationOptions = {}) {
   const { threshold = 0.1, rootMargin = '0px' } = options;
-  
+
+  // Stabilize options to avoid re-creating observer on every render
+  const optionsRef = useRef({ threshold, rootMargin });
+
+  useEffect(() => {
+    optionsRef.current = { threshold, rootMargin };
+  }, [threshold, rootMargin]);
+
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -23,10 +30,7 @@ export function useScrollAnimation(options: UseScrollAnimationOptions = {}) {
           observer.unobserve(entry.target);
         }
       });
-    }, {
-      threshold,
-      rootMargin,
-    });
+    }, optionsRef.current);
 
     observer.observe(currentRef);
 
@@ -35,7 +39,7 @@ export function useScrollAnimation(options: UseScrollAnimationOptions = {}) {
         observer.unobserve(currentRef);
       }
     };
-  }, [threshold, rootMargin]);
+  }, []); // Only run once - options are stabilized via ref
 
   return { ref, isVisible };
 }

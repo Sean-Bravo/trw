@@ -33,6 +33,10 @@ export default [
         MouseEvent: "readonly",
         setTimeout: "readonly",
         clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        IntersectionObserver: "readonly",
+        IntersectionObserverEntry: "readonly",
         NodeJS: "readonly",
       },
       parserOptions: {
