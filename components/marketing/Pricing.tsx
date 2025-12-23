@@ -155,27 +155,27 @@ export function Pricing() {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {plans.map((plan, index) => {
             const isPro = plan.popular;
             return (
               <div
                 key={`${billingCycle}-${index}`}
-                className={`relative ${isPro ? 'md:scale-110 z-20' : 'z-10'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
+                className={`relative ${isPro ? 'md:scale-105 z-20' : 'z-10'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {isPro && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-30">
-                    <div className="rounded-full bg-[#3b82f6] px-4 py-1 text-sm font-semibold text-white shadow-md">
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-30">
+                    <div className="rounded-full bg-gradient-to-r from-[#3b82f6] to-[#2563eb] px-5 py-2 text-sm font-bold text-white shadow-lg border-2 border-white">
                       Most Popular
                     </div>
                   </div>
                 )}
                 <Card
-                  className={`h-full flex flex-col ${
+                  className={`h-full flex flex-col transition-all duration-300 ${
                     isPro
-                      ? 'bg-[#0c1929] text-white border-2 border-[#3b82f6] shadow-2xl'
-                      : 'border border-[#e5e7eb] shadow-sm'
+                      ? 'bg-gradient-to-br from-[#0c1929] via-[#1a365d] to-[#0c1929] text-white border-2 border-[#3b82f6] shadow-[0_20px_60px_rgba(59,130,246,0.3)] hover:shadow-[0_25px_70px_rgba(59,130,246,0.4)]'
+                      : 'border border-[#e5e7eb] shadow-sm hover:shadow-xl hover:border-[#3b82f6]/30'
                   }`}
                 >
                   <div className="mb-6">
@@ -238,17 +238,20 @@ export function Pricing() {
                     )}
                   </div>
 
-                  <ul className="space-y-3 mb-8 flex-grow">
+                  <ul className="space-y-4 mb-8 flex-grow">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <Check
-                          className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                            isPro ? 'text-[#059669]' : 'text-[#059669]'
-                          }`}
-                        />
+                        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                          isPro ? 'bg-[#059669]/20' : 'bg-[#059669]/10'
+                        }`}>
+                          <Check
+                            className="h-4 w-4 text-[#059669] font-bold"
+                            strokeWidth={3}
+                          />
+                        </div>
                         <span
-                          className={`text-sm ${
-                            isPro ? 'text-[#d1d5db]' : 'text-[#4b5563]'
+                          className={`text-sm leading-relaxed ${
+                            isPro ? 'text-[#e5e7eb]' : 'text-[#4b5563]'
                           }`}
                         >
                           {feature}

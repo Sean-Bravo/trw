@@ -181,67 +181,86 @@ export function Testimonials() {
           </div>
         </div>
 
-        {/* Static Grid for Desktop - Hidden on mobile */}
+        {/* Static Grid for Desktop - Hidden on mobile with staggered heights */}
         <div className="max-w-6xl mx-auto hidden lg:grid grid-cols-3 gap-8 mb-20">
-          {testimonials.map((testimonial, index) => (
-            <Card key={index} className="group hover:shadow-[0_12px_48px_rgba(26,54,93,0.15)] hover:-translate-y-1 transition-all duration-300">
-              <div className="flex items-start justify-between mb-4">
-                <StarRating rating={testimonial.rating} size="md" />
-                <span className="text-xs text-[#9ca3af]">{testimonial.date}</span>
-              </div>
-              <p className="font-sohne text-base text-[#1a365d] italic mb-6 leading-relaxed">
-                "{testimonial.quote}"
-              </p>
-              <div className="border-t border-[#e5e7eb] pt-4">
-                <div className="flex items-start gap-3">
-                  {/* Avatar */}
-                  <div className={`flex-shrink-0 w-12 h-12 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <span className="text-white font-bold text-sm">{testimonial.avatar}</span>
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-[#1a365d] mb-0.5 truncate">
-                          {testimonial.author}
-                        </p>
-                        <p className="text-xs text-[#6b7280] mb-1">
-                          {testimonial.role}
-                        </p>
-                        <p className="text-xs text-[#9ca3af]">
-                          {testimonial.company} · {testimonial.source}
-                        </p>
+          {testimonials.map((testimonial, index) => {
+            // Add visual variety with staggered positioning
+            const staggerClass = index === 1 ? 'lg:mt-8' : '';
+            return (
+              <Card
+                key={index}
+                className={`group hover:shadow-[0_12px_48px_rgba(26,54,93,0.15)] hover:-translate-y-2 transition-all duration-300 border-2 border-transparent hover:border-[#3b82f6]/20 ${staggerClass}`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <StarRating rating={testimonial.rating} size="md" />
+                  {testimonial.verified && (
+                    <Badge variant="success" showIcon className="flex-shrink-0">
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                <p className="font-sohne text-base text-[#1a365d] italic mb-6 leading-relaxed min-h-[120px]">
+                  "{testimonial.quote}"
+                </p>
+                <div className="border-t border-[#e5e7eb] pt-4">
+                  <div className="flex items-start gap-3">
+                    {/* Avatar with platform badge */}
+                    <div className="relative flex-shrink-0">
+                      <div className={`w-14 h-14 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                        <span className="text-white font-bold text-base">{testimonial.avatar}</span>
                       </div>
-                      {testimonial.verified && (
-                        <Badge variant="success" showIcon className="flex-shrink-0">
-                          Verified
-                        </Badge>
-                      )}
+                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-[#3b82f6]">
+                        <span className="text-[10px]">✓</span>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-base text-[#1a365d] mb-1">
+                        {testimonial.author}
+                      </p>
+                      <p className="text-sm text-[#6b7280] mb-1">
+                        {testimonial.role}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-[#9ca3af]">{testimonial.company}</span>
+                        <span className="text-xs text-[#d1d5db]">•</span>
+                        <span className="text-xs font-medium text-[#3b82f6]">{testimonial.source}</span>
+                      </div>
+                      <p className="text-xs text-[#9ca3af] mt-1">{testimonial.date}</p>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-[#f9fafb] border border-[#e5e7eb] rounded-2xl p-12">
-            <div className="grid grid-cols-2 divide-x divide-[#e5e7eb]">
-              <div className="text-center pr-6">
-                <div className="font-poppins text-4xl font-bold text-[#1a365d] mb-2">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-gradient-to-br from-[#0c1929] to-[#1a365d] border-2 border-[#3b82f6]/30 rounded-2xl p-12 shadow-[0_20px_60px_rgba(59,130,246,0.2)] relative overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+
+            <div className="relative z-10 grid grid-cols-2 divide-x divide-white/10">
+              <div className="text-center pr-8">
+                <div className="font-poppins text-5xl font-bold bg-gradient-to-r from-white to-[#3b82f6] bg-clip-text text-transparent mb-3">
                   10K+
                 </div>
-                <div className="text-sm text-[#4b5563]">
+                <div className="text-sm font-semibold text-[#d1d5db] uppercase tracking-wider">
                   Files Repaired
                 </div>
+                <div className="text-xs text-[#9ca3af] mt-1">
+                  and counting
+                </div>
               </div>
-              <div className="text-center pl-6">
-                <div className="font-poppins text-4xl font-bold text-[#1a365d] mb-2">
+              <div className="text-center pl-8">
+                <div className="font-poppins text-5xl font-bold bg-gradient-to-r from-[#3b82f6] to-[#059669] bg-clip-text text-transparent mb-3">
                   99.9%
                 </div>
-                <div className="text-sm text-[#4b5563]">
+                <div className="text-sm font-semibold text-[#d1d5db] uppercase tracking-wider">
                   Success Rate
+                </div>
+                <div className="text-xs text-[#9ca3af] mt-1">
+                  industry leading
                 </div>
               </div>
             </div>
