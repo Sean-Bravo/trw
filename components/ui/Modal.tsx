@@ -55,13 +55,39 @@ export function Modal({
   }, [isOpen, onClose, closeOnEscape]);
 
   useEffect(() => {
-    if (isOpen && modalRef.current) {
-      const focusableElements = modalRef.current.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      const firstElement = focusableElements[0] as HTMLElement;
-      firstElement?.focus();
-    }
+    if (!isOpen || !modalRef.current) return;
+
+    const modal = modalRef.current;
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0] as HTMLElement;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        // Shift + Tab: if on first element, move to last
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement?.focus();
+        }
+      } else {
+        // Tab: if on last element, move to first
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement?.focus();
+        }
+      }
+    };
+
+    modal.addEventListener('keydown', handleTabKey);
+    firstElement?.focus();
+
+    return () => {
+      modal.removeEventListener('keydown', handleTabKey);
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -109,6 +135,7 @@ export function Modal({
 
             {showCloseButton && (
               <button
+                type="button"
                 onClick={onClose}
                 className="ml-4 p-2 text-[#6b7280] hover:text-[#1a365d] hover:bg-[#f3f4f6] rounded-lg transition-colors"
                 aria-label="Close modal"
