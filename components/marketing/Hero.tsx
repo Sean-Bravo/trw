@@ -28,16 +28,22 @@ export function Hero() {
             </div>
 
             <h1 className="font-poppins text-5xl sm:text-6xl md:text-7xl font-bold text-[#1a365d] leading-tight tracking-tight mb-6">
-              Fix Your Crypto Taxes
+              Calculate Crypto Taxes
               <br />
               <span className="bg-gradient-to-r from-[#3b82f6] to-[#1a365d] bg-clip-text text-transparent">
-                in 30 Seconds
+                in Minutes
               </span>
             </h1>
 
-            <p className="text-xl text-[#4b5563] max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-xl text-[#4b5563] max-w-2xl mx-auto mb-8 leading-relaxed">
               Broken CSV from your exchange? We clean it, format it, and make it ready for any tax platform. No manual editing required.
             </p>
+
+            {/* IRS Compliance Badge */}
+            <div className="flex items-center justify-center gap-2 mb-10">
+              <CheckCircle2 className="h-5 w-5 text-[#059669]" />
+              <span className="text-sm font-semibold text-[#059669]">IRS-Compliant Reports</span>
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Button variant="primary" href="#start" showArrow className="text-base px-8 py-4 h-14">
