@@ -1,50 +1,41 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
 
-interface ScrollAnimationOptions {
-  threshold?: number;
+interface UseScrollAnimationOptions {
+  threshold?: number | number[];
   rootMargin?: string;
-  triggerOnce?: boolean;
 }
 
-export function useScrollAnimation(options: ScrollAnimationOptions = {}) {
-  const {
-    threshold = 0.1,
-    rootMargin = '0px 0px -100px 0px',
-    triggerOnce = true,
-  } = options;
-
+export function useScrollAnimation(options: UseScrollAnimationOptions = {}) {
+  const { threshold = 0.1, rootMargin = '0px' } = options;
+  
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
+    const currentRef = ref.current;
+    if (!currentRef) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
+    const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          if (triggerOnce) {
-            observer.unobserve(element);
-          }
-        } else if (!triggerOnce) {
-          setIsVisible(false);
+          // Optionally disconnect after first trigger
+          observer.unobserve(entry.target);
         }
-      },
-      {
-        threshold,
-        rootMargin,
-      }
-    );
+      });
+    }, {
+      threshold,
+      rootMargin,
+    });
 
-    observer.observe(element);
+    observer.observe(currentRef);
 
     return () => {
-      observer.disconnect();
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
     };
-  }, [threshold, rootMargin, triggerOnce]);
+  }, [threshold, rootMargin]);
 
   return { ref, isVisible };
 }

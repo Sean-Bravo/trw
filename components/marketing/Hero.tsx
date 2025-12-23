@@ -15,12 +15,14 @@ function useInView(options = { threshold: 0.1 }): [React.RefObject<HTMLDivElemen
     const currentRef = ref.current;
     if (!currentRef) return;
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsInView(true);
-        // Optional: Disconnect after triggering once so it doesn't reset
-        observer.disconnect();
-      }
+    const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          // Optional: Disconnect after triggering once so it doesn't reset
+          observer.disconnect();
+        }
+      });
     }, options);
 
     observer.observe(currentRef);
