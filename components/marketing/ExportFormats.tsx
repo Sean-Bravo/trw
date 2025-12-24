@@ -10,7 +10,7 @@ const platforms = [
   { name: 'TaxAct', color: 'bg-[#10b981]', icon: FileText },
   { name: 'H&R Block', color: 'bg-[#6366f1]', icon: Calculator },
   { name: 'Summ', color: 'bg-[#ec4899]', icon: LineChart },
-  { name: 'Accointing', color: 'bg-[#14b8a6]', icon: Receipt },
+  { name: 'Blockpit', color: 'bg-[#14b8a6]', icon: Receipt },
 ];
 
 export function ExportFormats() {

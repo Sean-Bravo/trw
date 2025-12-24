@@ -74,14 +74,14 @@ export function Hero() {
 
             {/* Trust indicators with gradient backgrounds */}
             <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-[#6b7280] mb-4 animate-slide-up animation-delay-500">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
+              {/* <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
                 <Shield className="h-5 w-5 text-[#3b82f6]" />
                 <span className="font-semibold text-[#1a365d]">256-bit Encryption</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#059669]/5 border border-[#059669]/10 hover:border-[#059669]/30 hover:bg-[#059669]/10 transition-all duration-300">
                 <CheckCircle2 className="h-5 w-5 text-[#059669]" />
                 <span className="font-semibold text-[#1a365d]">SOC 2 Compliant</span>
-              </div>
+              </div> */}
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
                 <Users className="h-5 w-5 text-[#3b82f6]" />
                 <span className="font-semibold text-[#1a365d]">10,000+ users</span>
