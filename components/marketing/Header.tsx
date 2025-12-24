@@ -18,7 +18,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#e5e7eb] shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
       {/* Top security bar */}
-      <div className="bg-gradient-to-r from-[#1a365d] to-[#3b82f6] text-white py-2">
+      {/* <div className="bg-gradient-to-r from-[#1a365d] to-[#3b82f6] text-white py-2">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex items-center justify-center gap-6 text-xs font-medium">
             <div className="flex items-center gap-1.5">
@@ -31,7 +31,7 @@ export function Header() {
             <span className="hidden md:inline">Privacy Focused</span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
         <Logo />
