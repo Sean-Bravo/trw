@@ -10,8 +10,8 @@ export const authOptions: NextAuthOptions = {
   providers: [
     // Google OAuth Provider
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env['GOOGLE_CLIENT_ID'] || "",
+      clientSecret: process.env['GOOGLE_CLIENT_SECRET'] || "",
       authorization: {
         params: {
           prompt: "consent",
@@ -84,12 +84,12 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       // Add user ID to token
       if (user) {
-        token.id = user.id;
+        token['id'] = user['id'];
       }
 
       // Add access token for OAuth providers
       if (account) {
-        token.accessToken = account.access_token;
+        token['accessToken'] = account['access_token'];
       }
 
       return token;
@@ -97,8 +97,8 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       // Add user ID to session
-      if (session.user) {
-        session.user.id = token.id as string;
+      if (session.user && token['id']) {
+        (session.user as any).id = token['id'] as string;
       }
 
       return session;
@@ -132,10 +132,10 @@ export const authOptions: NextAuthOptions = {
   },
 
   // Security
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env['NEXTAUTH_SECRET'],
 
   // Enable debug in development
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env['NODE_ENV'] === "development",
 };
 
 const handler = NextAuth(authOptions);

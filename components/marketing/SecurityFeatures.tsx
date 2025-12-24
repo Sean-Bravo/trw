@@ -4,17 +4,9 @@ import { Card } from '../ui/Card';
 import {
   Shield,
   Lock,
-  Key,
-  Eye,
-  FileCheck,
-  Server,
-  CheckCircle2,
-  AlertTriangle,
-  Database,
-  Fingerprint,
-  Smartphone,
-  CloudOff
-} from 'lucide-react';
+  CheckCircle,
+  CloudSlash
+} from '@phosphor-icons/react';
 
 const securityFeatures = [
   {
@@ -24,7 +16,7 @@ const securityFeatures = [
     status: 'active',
   },
   {
-    icon: CloudOff,
+    icon: CloudSlash,
     title: 'Zero Data Retention',
     description: 'Files automatically deleted after processing. We never store your data permanently.',
     status: 'active',
@@ -36,7 +28,7 @@ const securityFeatures = [
     status: 'active',
   },
   {
-    icon: CheckCircle2,
+    icon: CheckCircle,
     title: 'Privacy Compliant',
     description: 'Built with GDPR and CCPA compliance. Your data, your rights.',
     status: 'active',
@@ -57,7 +49,7 @@ export function SecurityFeatures() {
           {/* Logo Icon */}
           <div className="inline-flex items-center justify-center mb-6">
             <div className="w-16 h-16 bg-[#3b82f6] rounded-xl flex items-center justify-center shadow-2xl">
-              <Shield className="w-8 h-8 text-white" />
+              <Shield size={32} weight="fill" className="text-white" />
             </div>
           </div>
 
@@ -71,15 +63,15 @@ export function SecurityFeatures() {
           {/* Trust Badges */}
           <div className="flex flex-wrap items-center justify-center gap-6 mb-12">
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-              <Lock className="h-4 w-4 text-[#3b82f6]" />
+              <Lock size={16} weight="fill" className="text-[#3b82f6]" />
               <span className="text-sm font-semibold text-white">TLS 1.3 Encryption</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-              <Shield className="h-4 w-4 text-[#3b82f6]" />
+              <Shield size={16} weight="fill" className="text-[#3b82f6]" />
               <span className="text-sm font-semibold text-white">DDoS Protected</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-              <CheckCircle2 className="h-4 w-4 text-[#059669]" />
+              <CheckCircle size={16} weight="fill" className="text-[#059669]" />
               <span className="text-sm font-semibold text-white">Privacy Compliant</span>
             </div>
           </div>
@@ -96,7 +88,7 @@ export function SecurityFeatures() {
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="h-6 w-6 text-white" />
+                    <Icon size={24} weight="fill" className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-poppins text-lg font-semibold text-white mb-2">

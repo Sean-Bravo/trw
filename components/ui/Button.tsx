@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from '@phosphor-icons/react';
 import Link from 'next/link';
 
 interface ButtonProps {
@@ -33,10 +33,10 @@ export function Button({
     <>
       {children}
       {showArrow && variant !== 'tertiary' && (
-        <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
+        <ArrowRight size={16} weight="bold" className="ml-2 flex-shrink-0" />
       )}
       {showArrow && variant === 'tertiary' && (
-        <ArrowRight className="ml-1 h-4 w-4 inline" />
+        <ArrowRight size={16} weight="bold" className="ml-1 inline" />
       )}
     </>
   );

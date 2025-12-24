@@ -3,7 +3,7 @@
 import React from 'react';
 import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
-import { Shield, CheckCircle2, Users, TrendingUp, Clock } from 'lucide-react';
+import { Shield, CheckCircle, Users, TrendUp, Clock, Lightning, ArrowRight } from '@phosphor-icons/react';
 import { InteractiveDemo } from './InteractiveDemo';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
@@ -42,11 +42,7 @@ export function Hero() {
           <div className="text-center mb-12">
             <div className="mb-6 flex justify-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#3b82f6]/10 to-[#1a365d]/10 backdrop-blur-sm border border-[#3b82f6]/20 text-[#1a365d] rounded-full text-xs font-semibold uppercase tracking-wider hover:border-[#3b82f6]/40 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-300 animate-slide-up">
-                <div className="w-4 h-4 bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded flex items-center justify-center">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white animate-pulse-subtle">
-                    <path d="M14 7l5 5-5 5M9 7l5 5-5 5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
+                <Lightning size={16} weight="fill" className="text-[#3b82f6] animate-pulse-subtle" />
                 AI-Powered CSV Repair
               </div>
             </div>
@@ -75,15 +71,15 @@ export function Hero() {
             {/* Trust indicators with gradient backgrounds */}
             <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-[#6b7280] mb-4 animate-slide-up animation-delay-500">
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
-                <Shield className="h-5 w-5 text-[#3b82f6]" />
+                <Shield size={20} weight="fill" className="text-[#3b82f6]" />
                 <span className="font-semibold text-[#1a365d]">256-bit Encryption</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#059669]/5 border border-[#059669]/10 hover:border-[#059669]/30 hover:bg-[#059669]/10 transition-all duration-300">
-                <CheckCircle2 className="h-5 w-5 text-[#059669]" />
-                <span className="font-semibold text-[#1a365d]">SOC 2 Compliant</span>
+                <CheckCircle size={20} weight="fill" className="text-[#059669]" />
+                <span className="font-semibold text-[#1a365d]">Enterprise-Grade Security</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
-                <Users className="h-5 w-5 text-[#3b82f6]" />
+                <Users size={20} weight="fill" className="text-[#3b82f6]" />
                 <span className="font-semibold text-[#1a365d]">10,000+ users</span>
               </div>
             </div>
@@ -127,12 +123,12 @@ export function Hero() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Shield className="h-5 w-5 text-[#3b82f6]" />
+                      <Shield size={20} weight="fill" className="text-[#3b82f6]" />
                     </div>
                   </div>
                   
                   <span className="text-xs font-semibold text-[#059669] bg-gradient-to-r from-[#059669]/20 to-[#059669]/10 px-3 py-1.5 rounded-full flex items-center gap-1 border border-[#059669]/30">
-                    <TrendingUp className="h-3 w-3" />
+                    <TrendUp size={12} weight="bold" />
                     +15%
                   </span>
                 </div>
@@ -182,7 +178,7 @@ export function Hero() {
                     <p className="text-sm text-[#6b7280] font-medium">Time Saved</p>
                   </div>
                   <div className="w-10 h-10 bg-gradient-to-br from-[#059669]/20 to-[#059669]/10 rounded-full flex items-center justify-center text-[#059669] border border-[#059669]/20">
-                    <Clock className="h-5 w-5" />
+                    <Clock size={20} weight="bold" />
                   </div>
                 </div>
               </div>

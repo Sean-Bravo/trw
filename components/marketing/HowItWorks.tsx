@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Container } from '../layout/Container';
-import { Upload, FileCheck, Download, Check, AlertCircle } from 'lucide-react';
+import { UploadSimple, FileText, Download, Check, WarningCircle } from '@phosphor-icons/react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation';
 
 // Sample CSV data for demo
@@ -63,8 +63,8 @@ export function HowItWorks() {
           {/* Step Tabs */}
           <div className="flex gap-3 mb-12 justify-center flex-wrap">
             {[
-              { label: 'Upload', icon: Upload, step: 0 },
-              { label: 'Parsing', icon: FileCheck, step: 1 },
+              { label: 'Upload', icon: UploadSimple, step: 0 },
+              { label: 'Parsing', icon: FileText, step: 1 },
               { label: 'Export', icon: Download, step: 2 },
             ].map((tab, idx) => {
               const Icon = tab.icon;
@@ -78,7 +78,7 @@ export function HowItWorks() {
                       : 'bg-white border-2 border-[#e5e7eb] text-[#1a365d] hover:border-[#3b82f6]/50'
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon size={20} weight="bold" />
                   {tab.label}
                 </button>
               );
@@ -137,7 +137,7 @@ function DemoStep1_Upload() {
             Upload your CSV from any exchange—Coinbase, Binance, Kraken, and 15+ more. Our system instantly detects the format and begins analysis.
           </p>
           <div className="flex items-center gap-3 text-sm text-[#059669] font-semibold bg-[#059669]/10 px-4 py-3 rounded-lg border border-[#059669]/20 w-fit">
-            <Check className="h-5 w-5" />
+            <Check size={20} weight="bold" />
             Supports 18+ exchanges
           </div>
         </div>
@@ -147,7 +147,7 @@ function DemoStep1_Upload() {
           <div className="bg-gradient-to-br from-[#3b82f6]/10 to-[#2563eb]/5 rounded-2xl p-8 border-2 border-dashed border-[#3b82f6]/30 hover:border-[#3b82f6]/80 hover:bg-gradient-to-br hover:from-[#3b82f6]/15 hover:to-[#2563eb]/10 transition-all duration-300 group-hover:shadow-xl group-hover:scale-105 cursor-pointer">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-125 group-hover:rotate-6 transition-all duration-300">
-                <Upload className="h-8 w-8 text-white" />
+                <UploadSimple size={32} weight="bold" className="text-white" />
               </div>
               <div>
                 <p className="font-semibold text-[#1a365d]">Drag CSV here</p>
@@ -205,13 +205,13 @@ function DemoStep2_Parsing({ showIssues, onToggle }: any) {
             {ISSUES_FOUND.map((issue, idx) => (
               <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-[#f9fafb] to-white border border-[#e5e7eb] hover:border-[#dbeafe] hover:shadow-md hover:bg-gradient-to-r hover:from-[#f0f9ff] hover:to-white transition-all duration-300 group cursor-default">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: `${issue.color}20` }}>
-                  <AlertCircle className="h-4 w-4" style={{ color: issue.color }} />
+                  <WarningCircle size={16} weight="fill" style={{ color: issue.color }} />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-[#1a365d]">{issue.label}</p>
                 </div>
                 <div className="flex items-center gap-2 font-bold px-2.5 py-1 rounded-full bg-white group-hover:scale-110 transition-transform duration-300" style={{ color: issue.color, borderBottom: `2px solid ${issue.color}` }}>
-                  {issue.count} <Check className="h-4 w-4" />
+                  {issue.count} <Check size={16} weight="bold" />
                 </div>
               </div>
             ))}
@@ -319,7 +319,7 @@ function DemoStep3_Export({ selectedPlatform, onSelectPlatform }: any) {
           {/* Download preview */}
           <div className="bg-gradient-to-br from-white to-[#f8f9ff] rounded-2xl p-8 border-2 border-[#e5e7eb] hover:border-[#059669]/30 shadow-lg hover:shadow-2xl transition-all duration-300 text-center space-y-6 group">
             <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#059669] to-[#047857] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <Download className="h-10 w-10 text-white" />
+              <Download size={40} weight="bold" className="text-white" />
             </div>
             
             <div>
@@ -332,7 +332,7 @@ function DemoStep3_Export({ selectedPlatform, onSelectPlatform }: any) {
             </div>
 
             <button className="w-full bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white font-semibold py-3 rounded-lg hover:shadow-lg hover:-translate-y-0.5 hover:from-[#2563eb] hover:to-[#1d4ed8] transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-              <Download className="h-5 w-5 group-hover/btn:scale-110 transition-transform duration-300" />
+              <Download size={20} weight="bold" className="group-hover/btn:scale-110 transition-transform duration-300" />
               Download CSV
             </button>
 
