@@ -2,45 +2,12 @@ import React from 'react';
 import { Container } from '../layout/Container';
 import { Logo } from '../ui/Logo';
 import Link from 'next/link';
-import { Shield, Lock, CheckCircle2, FileCheck } from 'lucide-react';
 
 export function Footer() {
   return (
     <footer className="bg-[#0c1929] text-white py-16 border-t border-[#1f2937]">
       <Container>
-        {/* Compliance Badges Section */}
-        <div className="mb-12 pb-12 border-b border-[#1f2937]">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="flex flex-col items-center text-center p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/20 transition-all">
-              <div className="p-3 bg-[#059669]/10 rounded-lg mb-3">
-                <Shield className="h-6 w-6 text-[#059669]" />
-              </div>
-              <p className="text-xs font-semibold mb-1">SOC 2 Type II</p>
-              <p className="text-xs text-[#9ca3af]">Certified</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/20 transition-all">
-              <div className="p-3 bg-[#3b82f6]/10 rounded-lg mb-3">
-                <Lock className="h-6 w-6 text-[#3b82f6]" />
-              </div>
-              <p className="text-xs font-semibold mb-1">256-bit</p>
-              <p className="text-xs text-[#9ca3af]">Encryption</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/20 transition-all">
-              <div className="p-3 bg-[#3b82f6]/10 rounded-lg mb-3">
-                <CheckCircle2 className="h-6 w-6 text-[#3b82f6]" />
-              </div>
-              <p className="text-xs font-semibold mb-1">GDPR</p>
-              <p className="text-xs text-[#9ca3af]">Compliant</p>
-            </div>
-            <div className="flex flex-col items-center text-center p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/20 transition-all">
-              <div className="p-3 bg-[#3b82f6]/10 rounded-lg mb-3">
-                <FileCheck className="h-6 w-6 text-[#3b82f6]" />
-              </div>
-              <p className="text-xs font-semibold mb-1">CCPA</p>
-              <p className="text-xs text-[#9ca3af]">Compliant</p>
-            </div>
-          </div>
-        </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Branding */}
@@ -115,11 +82,13 @@ export function Footer() {
 
         <div className="border-t border-[#1f2937] pt-8 text-center">
           <p className="text-xs text-[#6b7280]">
-            © 2025 Quantum Transfer Group. All rights reserved.
+            © 2025 Quantum Transfer Group 🇺🇸 All rights reserved.
+          </p>
+          <p className="text-xs text-[#6b7280] mt-2">
+            Made in NYC 🗽
           </p>
         </div>
       </Container>
     </footer>
   );
 }
-
