@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { ArrowRight } from '@phosphor-icons/react';
 import Link from 'next/link';
