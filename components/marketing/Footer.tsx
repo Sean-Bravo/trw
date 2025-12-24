@@ -84,6 +84,9 @@ export function Footer() {
           <p className="text-xs text-[#6b7280]">
             © 2025 Quantum Transfer Group 🇺🇸 All rights reserved.
           </p>
+          <p className="text-xs text-[#6b7280]">
+             The Universal translation engine for crypto data
+          </p>
           <p className="text-xs text-[#6b7280] mt-2">
             Made in NYC 🗽
           </p>
