@@ -9,11 +9,13 @@ export function FinalCTA() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+    setError('');
+
     try {
       const response = await fetch('/api/subscribe', {
         method: 'POST',
@@ -21,13 +23,18 @@ export function FinalCTA() {
         body: JSON.stringify({ email }),
       });
 
-      if (response.ok || true) { 
+      const data = await response.json();
+
+      if (response.ok) {
         setSubmitted(true);
         setEmail('');
         setTimeout(() => setSubmitted(false), 3000);
+      } else {
+        setError(data.error || 'Failed to subscribe. Please try again.');
       }
     } catch (error) {
       console.error('Subscription error:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -88,21 +95,21 @@ export function FinalCTA() {
           </div>
 
           <form onSubmit={handleSubmit} className="relative flex items-center">
-            <input 
-              type="email" 
-              placeholder="your@email.com" 
+            <input
+              type="email"
+              placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading || submitted}
               className="w-full bg-slate-900/50 border border-slate-700 text-white rounded-full py-3 pl-5 pr-32 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-slate-600 disabled:opacity-50"
             />
-            <button 
+            <button
               type="submit"
               disabled={loading || submitted}
               className={`absolute right-1 top-1 bottom-1 px-5 text-sm font-medium rounded-full transition-all flex items-center gap-2 ${
-                submitted 
-                  ? 'bg-green-500/20 text-green-400 cursor-default' 
+                submitted
+                  ? 'bg-green-500/20 text-green-400 cursor-default'
                   : 'bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white'
               }`}
             >
@@ -118,6 +125,11 @@ export function FinalCTA() {
               )}
             </button>
           </form>
+          {error && (
+            <p className="mt-3 text-xs text-red-400">
+              {error}
+            </p>
+          )}
           <p className="mt-3 text-xs text-slate-600">
             We respect your inbox. Unsubscribe anytime.
           </p>

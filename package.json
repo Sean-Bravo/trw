@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@sentry/nextjs": "^10.32.1",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^0.562.0",
