@@ -1,156 +1,91 @@
+'use client';
+
 import React from 'react';
 import { Container } from '../layout/Container';
-import { Card } from '../ui/Card';
-import {
-  Shield,
-  Lock,
-  Key,
-  Eye,
-  FileCheck,
-  Server,
-  CheckCircle2,
-  AlertTriangle,
-  Database,
-  Fingerprint,
-  Smartphone,
-  CloudOff
-} from 'lucide-react';
-
-const securityFeatures = [
-  {
-    icon: Lock,
-    title: 'End-to-End Encryption',
-    description: 'TLS 1.3 encryption for all data in transit. Database encryption at rest.',
-    status: 'active',
-  },
-  {
-    icon: CloudOff,
-    title: 'Zero Data Sharing',
-    description: 'We never sell, share, or access your financial data. Period.',
-    status: 'active',
-  },
-  {
-    icon: Shield,
-    title: 'Enterprise-Grade Security',
-    description: 'DDoS protection, WAF, rate limiting, and comprehensive audit logging.',
-    status: 'active',
-  },
-  {
-    icon: CheckCircle2,
-    title: 'Privacy Focused',
-    description: 'Built with privacy first. No third-party tracking or data sales.',
-    status: 'active',
-  },
-];
+import { ShieldCheck, Lock, EyeOff, FileKey } from 'lucide-react';
+import Link from 'next/link';
 
 export function SecurityFeatures() {
   return (
-    <section className="bg-[#0c1929] py-24 sm:py-32 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#3b82f6] rounded-full opacity-10 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#2563eb] rounded-full opacity-10 blur-3xl"></div>
-      </div>
+    <section className="bg-[#0c1929] py-16 sm:py-20 relative overflow-hidden border-t border-white/5">
+      
+      {/* Subtle background glow - Reduced intensity */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-64 bg-[#3b82f6] rounded-full opacity-5 blur-[100px] pointer-events-none"></div>
 
       <Container>
-        <div className="text-center mb-16 relative z-10">
-          {/* Logo Icon */}
-          <div className="inline-flex items-center justify-center mb-6">
-            <div className="w-16 h-16 bg-[#3b82f6] rounded-xl flex items-center justify-center shadow-2xl">
-              <Shield className="w-8 h-8 text-white" />
-            </div>
-          </div>
-
-          <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-white mb-4 leading-tight">
-            Bank-Level Security, Built In
+        {/* Compact Header */}
+        <div className="text-center mb-12 max-w-2xl mx-auto">
+          <h2 className="font-poppins text-2xl sm:text-3xl font-bold text-white mb-3">
+            Bank-Grade Security. Zero Retention.
           </h2>
-          <p className="text-lg text-[#d1d5db] max-w-2xl mx-auto mb-8">
-            Your financial data deserves the highest level of protection. We've built security into every layer of our platform.
+          <p className="text-slate-400 text-sm sm:text-base">
+            We process your files in-memory and discard them immediately. 
+            <br className="hidden sm:block" />
+            Your financial data never touches a hard drive.
           </p>
+        </div>
 
-          {/* Trust Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mb-12">
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-              <Lock className="h-4 w-4 text-[#3b82f6]" />
-              <span className="text-sm font-semibold text-white">TLS 1.3 Encryption</span>
+        {/* 3-Column Grid (Replaces the 4-grid + Big Card) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 relative z-10">
+          
+          {/* Card 1: Encryption */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
+            <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-400">
+              <Lock className="w-5 h-5" />
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-              <Shield className="h-4 w-4 text-[#3b82f6]" />
-              <span className="text-sm font-semibold text-white">DDoS Protected</span>
+            <h3 className="text-white font-semibold mb-2">End-to-End Encrypted</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              All traffic is secured via TLS 1.3. Your data is encrypted in transit and isolated during processing.
+            </p>
+          </div>
+
+          {/* Card 2: Privacy (The "Zero" selling point) */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
+            <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-4 text-emerald-400">
+              <EyeOff className="w-5 h-5" />
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-              <CheckCircle2 className="h-4 w-4 text-[#059669]" />
-              <span className="text-sm font-semibold text-white">Privacy First</span>
+            <h3 className="text-white font-semibold mb-2">Zero Data Retention</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              We don't sell data. We don't store files. Once your export is complete, your data is wiped instantly.
+            </p>
+          </div>
+
+          {/* Card 3: Compliance */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
+            <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 text-purple-400">
+              <ShieldCheck className="w-5 h-5" />
             </div>
+            <h3 className="text-white font-semibold mb-2">Audit-Ready</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Our infrastructure is monitored 24/7 with enterprise-grade DDoS protection and automated audit logging.
+            </p>
           </div>
         </div>
 
-        {/* Security Features Grid */}
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-16 relative z-10">
-          {securityFeatures.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={index}
-                className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-white/20 hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-poppins text-lg font-semibold text-white mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-[#d1d5db] leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
+        {/* Slim Stats Bar + Link */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 border-t border-white/10 pt-8">
+            <div className="flex gap-8 text-center">
+                <div>
+                    <div className="text-xl font-bold text-white">0</div>
+                    <div className="text-xs text-slate-500 uppercase tracking-wider">Breaches</div>
                 </div>
-              </div>
-            );
-          })}
+                <div>
+                    <div className="text-xl font-bold text-white">100%</div>
+                    <div className="text-xs text-slate-500 uppercase tracking-wider">Encrypted</div>
+                </div>
+            </div>
+            
+            <div className="hidden md:block w-px h-8 bg-white/10"></div>
+            
+            <Link 
+              href="/privacy-policy" 
+              className="group flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              <FileKey className="w-4 h-4" />
+              <span>Read our Privacy Policy</span>
+            </Link>
         </div>
 
-        {/* Security Promise */}
-        <div className="max-w-4xl mx-auto">
-          <Card className="bg-gradient-to-br from-[#3b82f6] to-[#2563eb] border-none text-white p-8 md:p-12">
-            <div className="text-center">
-              <h3 className="font-poppins text-2xl sm:text-3xl font-bold mb-4">
-                Our Security Commitment
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">$0</div>
-                  <div className="text-sm text-white/80">Data Breaches</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">100%</div>
-                  <div className="text-sm text-white/80">Encrypted Traffic</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-4xl font-bold mb-2">0</div>
-                  <div className="text-sm text-white/80">Third-Party Access</div>
-                </div>
-              </div>
-              <p className="text-white/90 mt-8 leading-relaxed">
-                We don't sell your data, share it with third parties, or store it longer than necessary.
-                Your financial information is encrypted in transit and at rest, protected by the same infrastructure trusted by major platforms.
-              </p>
-              <div className="mt-8">
-                <a
-                  href="#docs"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#3b82f6] rounded-full font-semibold hover:bg-white/90 transition-colors duration-300"
-                >
-                  View Privacy Policy
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-          </Card>
-        </div>
       </Container>
     </section>
   );
