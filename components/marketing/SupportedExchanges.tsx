@@ -2,21 +2,22 @@ import React from 'react';
 import { Container } from '../layout/Container';
 
 const exchanges = [
-  'Coinbase',
-  'Binance',
-  'Kraken',
-  'Crypto.com',
-  'Gemini',
-  'Kucoin',
-  'Bybit',
-  'OKX',
-  'Bitfinex',
-  'Huobi',
-  'Gate.io',
-  'Upbit',
-  'Bittrex',
-  'Poloniex',
-  'Bitstamp',
+  'binance',
+  'bitfinex',
+  'bitstamp', 
+  'bybit',
+  'cashapp',
+  'coinbase',
+  'crypto.com',
+  'gate.io',
+  'gemini',
+  'huobi',
+  'kraken',
+  'kucoin',
+  'okx',
+  'paypal',
+  'robinhood',
+  'venmo',
 ];
 
 export function SupportedExchanges() {
