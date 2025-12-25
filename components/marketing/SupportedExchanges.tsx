@@ -26,7 +26,7 @@ export function SupportedExchanges() {
       <Container>
         <div className="text-center mb-16">
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
-            Works with 15+ Exchanges
+            Works with 16 Exchanges
           </h2>
           <p className="text-lg text-[#4b5563] max-w-2xl mx-auto">
             Import from anywhere, export to any tax platform
@@ -51,12 +51,12 @@ export function SupportedExchanges() {
 
         {/* Bottom Message */}
         <div className="text-center mt-16">
-          <p className="text-[#4b5563] text-lg">
+          {/* <p className="text-[#4b5563] text-lg">
             Don't see your exchange?{' '}
             <a href="#contact" className="text-[#3b82f6] hover:text-[#2563eb] underline font-semibold">
               We'll add it
             </a>
-          </p>
+          </p> */}
         </div>
       </Container>
     </section>
