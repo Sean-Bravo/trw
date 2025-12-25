@@ -11,6 +11,7 @@ import { FinalCTA } from '@/components/marketing/FinalCTA';
 import { Pricing } from '@/components/marketing/Pricing';
 import { Footer } from '@/components/marketing/Footer';
 
+
 export default function Home() {
   return (
     <main className="min-h-screen">
