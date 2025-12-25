@@ -1,16 +1,17 @@
 import React from 'react';
 import { Container } from '../layout/Container';
-import { FileText, Calculator, LineChart, Receipt, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight } from 'lucide-react';
 
 const platforms = [
-  { name: 'Koinly', color: 'bg-[#3b82f6]', icon: LineChart },
-  { name: 'TurboTax', color: 'bg-[#ef4444]', icon: Calculator },
-  { name: 'CoinLedger', color: 'bg-[#f59e0b]', icon: Receipt },
-  { name: 'ZenLedger', color: 'bg-[#8b5cf6]', icon: FileText },
-  { name: 'TaxAct', color: 'bg-[#10b981]', icon: FileText },
-  { name: 'H&R Block', color: 'bg-[#6366f1]', icon: Calculator },
-  { name: 'Summ', color: 'bg-[#ec4899]', icon: LineChart },
-  { name: 'Blockpit', color: 'bg-[#14b8a6]', icon: Receipt },
+  { name: 'Koinly', slug: 'koinly' },
+  { name: 'TurboTax', slug: 'turbotax' },
+  { name: 'CoinLedger', slug: 'coinledger' },
+  { name: 'ZenLedger', slug: 'zenledger' },
+  { name: 'TaxAct', slug: 'taxact' },
+  { name: 'H&R Block', slug: 'h-rblock' },
+  { name: 'Summ', slug: 'summ' },
+  { name: 'Blockpit', slug: 'blockpit' },
 ];
 
 export function ExportFormats() {
@@ -26,22 +27,30 @@ export function ExportFormats() {
           </p>
         </div>
 
-        {/* Simple Grid */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6">
-            {platforms.map((platform, index) => {
-              const Icon = platform.icon;
+        {/* Logo Grid - Changed to 3 columns on desktop for wider cards */}
+        <div className="max-w-5xl mx-auto mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {platforms.map((platform) => {
+              const extension = platform.slug === 'blockpit' ? 'svg' : 'png';
 
               return (
-                <div
-                  key={index}
-                  className="group cursor-pointer"
-                >
-                  <div className="bg-white rounded-2xl p-6 shadow-md border border-[#e5e7eb] hover:shadow-lg hover:border-[#3b82f6]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center gap-3 h-full">
-                    <div className={`w-14 h-14 ${platform.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="h-7 w-7 text-white" />
+                <div key={platform.slug} className="group cursor-pointer">
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-[#e5e7eb] hover:shadow-xl hover:border-[#3b82f6]/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-4 h-full">
+                    
+                    {/* Logo Container: Rectangular (Wide) instead of Square */}
+                    <div className="relative w-full h-16 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                      <Image
+                        src={`/logos/tax-platforms/${platform.slug}.${extension}`}
+                        alt={platform.name}
+                        // Use fill + object-contain to let the logo maximize the rectangular space
+                        fill
+                        className="object-contain px-4" 
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
                     </div>
-                    <p className="font-poppins text-sm font-semibold text-[#1a365d] text-center group-hover:text-[#3b82f6] transition-colors line-clamp-2">
+
+                    {/* Text: Larger and Darker */}
+                    <p className="font-poppins text-lg font-bold text-[#1a365d] group-hover:text-[#3b82f6] transition-colors">
                       {platform.name}
                     </p>
                   </div>
@@ -53,15 +62,12 @@ export function ExportFormats() {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <p className="text-[#4b5563] mb-4">
-            <span className="font-semibold text-[#1a365d]">8+ platforms supported</span> with more added every week
-          </p>
           <a
             href="#platforms"
-            className="inline-flex items-center gap-2 text-[#3b82f6] hover:text-[#2563eb] font-semibold transition-colors"
+            className="inline-flex items-center gap-2 text-[#3b82f6] hover:text-[#2563eb] font-semibold text-lg transition-colors"
           >
             See all supported platforms
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-5 w-5" />
           </a>
         </div>
       </Container>
