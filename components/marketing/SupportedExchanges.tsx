@@ -1,34 +1,26 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Container } from '../layout/Container';
-import {
-  CurrencyBtc,
-  TrendUp,
-  ChartLine,
-  Coin,
-  Database,
-  Wallet,
-  ChartLineUp,
-  ArrowsLeftRight
-} from '@phosphor-icons/react';
 
 const exchanges = [
-  { name: 'Coinbase', icon: CurrencyBtc, color: '#0052FF' },
-  { name: 'Binance', icon: Coin, color: '#F0B90B' },
-  { name: 'Kraken', icon: TrendUp, color: '#5741D9' },
-  { name: 'Crypto.com', icon: ChartLine, color: '#003D7A' },
-  { name: 'Gemini', icon: ArrowsLeftRight, color: '#00DCFA' },
-  { name: 'Kucoin', icon: ChartLineUp, color: '#24AE8F' },
-  { name: 'Bybit', icon: Wallet, color: '#F7A600' },
-  { name: 'OKX', icon: Database, color: '#000000' },
-  { name: 'Bitfinex', icon: TrendUp, color: '#2ECC71' },
-  { name: 'Huobi', icon: ChartLine, color: '#2E7BD1' },
-  { name: 'Gate.io', icon: Coin, color: '#2354E6' },
-  { name: 'Upbit', icon: CurrencyBtc, color: '#003C93' },
-  { name: 'Bittrex', icon: Wallet, color: '#1F8AC0' },
-  { name: 'Poloniex', icon: ArrowsLeftRight, color: '#3D4853' },
-  { name: 'Bitstamp', icon: ChartLineUp, color: '#198754' },
+  { name: 'Coinbase', logo: '/logos/exchanges/coinbase.svg' },
+  { name: 'Binance', logo: '/logos/exchanges/binance.svg' },
+  { name: 'Kraken', logo: '/logos/exchanges/kraken.svg' },
+  { name: 'Crypto.com', logo: '/logos/exchanges/crypto.com.svg' },
+  { name: 'Gemini', logo: '/logos/exchanges/gemini.svg' },
+  { name: 'Kucoin', logo: '/logos/exchanges/kucoin.svg' },
+  { name: 'Bybit', logo: '/logos/exchanges/bybit.svg' },
+  { name: 'OKX', logo: '/logos/exchanges/okx.svg' },
+  { name: 'Bitfinex', logo: '/logos/exchanges/bitfinex.svg' },
+  { name: 'Huobi', logo: '/logos/exchanges/huobi.svg' },
+  { name: 'Gate.io', logo: '/logos/exchanges/gate.io.svg' },
+  { name: 'Bitstamp', logo: '/logos/exchanges/bitstamp.svg' },
+  { name: 'PayPal', logo: '/logos/exchanges/paypal.svg' },
+  { name: 'Robinhood', logo: '/logos/exchanges/robinhood.svg' },
+  { name: 'Venmo', logo: '/logos/exchanges/venmo.svg' },
+  { name: 'Cash App', logo: '/logos/exchanges/cashapp.svg' },
 ];
 
 export function SupportedExchanges() {
@@ -37,43 +29,35 @@ export function SupportedExchanges() {
       <Container>
         <div className="text-center mb-16">
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
-            Works with 15+ Exchanges
+            Works with 16+ Exchanges & Platforms
           </h2>
           <p className="text-lg text-[#4b5563] max-w-2xl mx-auto">
-            Import from anywhere, export to any tax platform
+            Crypto exchanges, payment apps, and trading platforms - all in one place
           </p>
         </div>
 
-        {/* Logo Cloud - Icon Grid */}
+        {/* Logo Cloud - Real Exchange Logos */}
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-8">
-            {exchanges.map((exchange) => {
-              const Icon = exchange.icon;
-              return (
-                <div
-                  key={exchange.name}
-                  className="group flex flex-col items-center gap-3 cursor-pointer transition-all duration-300 hover:scale-110"
-                >
-                  <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-2xl transition-all duration-300"
-                    style={{
-                      backgroundColor: `${exchange.color}15`,
-                      border: `2px solid ${exchange.color}30`
-                    }}
-                  >
-                    <Icon
-                      size={32}
-                      weight="fill"
-                      style={{ color: exchange.color }}
-                      className="group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <span className="font-poppins text-sm font-semibold text-[#6b7280] group-hover:text-[#1a365d] transition-colors duration-300">
-                    {exchange.name}
-                  </span>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-8">
+            {exchanges.map((exchange) => (
+              <div
+                key={exchange.name}
+                className="group flex flex-col items-center gap-3 cursor-pointer transition-all duration-300 hover:scale-105"
+              >
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-white shadow-md group-hover:shadow-xl transition-all duration-300 border border-gray-100 p-3">
+                  <Image
+                    src={exchange.logo}
+                    alt={`${exchange.name} logo`}
+                    width={64}
+                    height={64}
+                    className="object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
                 </div>
-              );
-            })}
+                <span className="font-poppins text-sm font-semibold text-[#6b7280] group-hover:text-[#1a365d] transition-colors duration-300 text-center">
+                  {exchange.name}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
