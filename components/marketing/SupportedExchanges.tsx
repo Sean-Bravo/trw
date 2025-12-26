@@ -4,12 +4,13 @@ import Image from 'next/image';
 
 const exchanges = [
   { name: 'Binance', slug: 'binance' },
-  { name: 'Bitfinex', slug: 'bitfinex' },
+  // { name: 'Bitfinex', slug: 'bitfinex' },
   { name: 'Bitstamp', slug: 'bitstamp' },
   { name: 'Bybit', slug: 'bybit' },
   { name: 'Cash App', slug: 'cashapp' },
   { name: 'Coinbase', slug: 'coinbase' },
   { name: 'Crypto.com', slug: 'crypto.com' },
+  { name: 'Etoro', slug: 'etoro' },
   { name: 'Gate.io', slug: 'gate.io' },
   { name: 'Gemini', slug: 'gemini' },
   { name: 'Huobi', slug: 'huobi' },
