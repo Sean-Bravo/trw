@@ -70,7 +70,7 @@ export function validateEmail(email: string): { success: boolean; data?: string;
     return { success: true, data: validated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors?.[0];
+      const firstError = error.issues[0];
       return { success: false, error: firstError?.message || 'Invalid email' };
     }
     return { success: false, error: 'Invalid email' };
@@ -86,7 +86,7 @@ export function validatePassword(password: string): { success: boolean; error?: 
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors?.[0];
+      const firstError = error.issues[0];
       return { success: false, error: firstError?.message || 'Invalid password' };
     }
     return { success: false, error: 'Invalid password' };
@@ -103,7 +103,7 @@ export function validateName(name: string): { success: boolean; data?: string; e
     return { success: true, data: validated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors?.[0];
+      const firstError = error.issues[0];
       return { success: false, error: firstError?.message || 'Invalid name' };
     }
     return { success: false, error: 'Invalid name' };
@@ -161,7 +161,7 @@ export function validateFileUpload(file: {
     return { success: true };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors?.[0];
+      const firstError = error.issues[0];
       return { success: false, error: firstError?.message || 'Invalid file' };
     }
     return { success: false, error: 'Invalid file' };

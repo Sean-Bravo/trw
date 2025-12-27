@@ -1,0 +1,22 @@
+{
+  "title": "Getting Started",
+  "description": "Learn how to upload your CSV and get started with TaxFormatter",
+  "published": true,
+  "order": 1,
+  "body": {
+    "raw": "\nWelcome to TaxFormatter! In this section, you'll learn how to upload your cryptocurrency CSV export and get started with formatting your tax data.\n\n## Quick Steps\n\n1. **Export your CSV** from your exchange (Binance, Coinbase, Kraken, etc.)\n2. **Upload to TaxFormatter** and watch the AI analyze your data\n3. **Review the flagged issues** to understand any tax concerns\n4. **Download your formatted file** ready for tax software\n\n## What You'll Learn\n\n- How to export CSV files from major exchanges\n- File format requirements and troubleshooting\n- Supported exchanges and compatibility\n\nLet's get started!",
+    "code": "var Component=(()=>{var u=Object.create;var a=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var x=Object.getOwnPropertyNames;var g=Object.getPrototypeOf,p=Object.prototype.hasOwnProperty;var f=(n,t)=>()=>(t||n((t={exports:{}}).exports,t),t.exports),y=(n,t)=>{for(var r in t)a(n,r,{get:t[r],enumerable:!0})},l=(n,t,r,i)=>{if(t&&typeof t==\"object\"||typeof t==\"function\")for(let o of x(t))!p.call(n,o)&&o!==r&&a(n,o,{get:()=>t[o],enumerable:!(i=m(t,o))||i.enumerable});return n};var w=(n,t,r)=>(r=n!=null?u(g(n)):{},l(t||!n||!n.__esModule?a(r,\"default\",{value:n,enumerable:!0}):r,n)),C=n=>l(a({},\"__esModule\",{value:!0}),n);var d=f((F,c)=>{c.exports=_jsx_runtime});var _={};y(_,{default:()=>h,frontmatter:()=>S});var e=w(d()),S={title:\"Getting Started\",description:\"Learn how to upload your CSV and get started with TaxFormatter\",order:1};function s(n){let t={h2:\"h2\",li:\"li\",ol:\"ol\",p:\"p\",strong:\"strong\",ul:\"ul\",...n.components};return(0,e.jsxs)(e.Fragment,{children:[(0,e.jsx)(t.p,{children:\"Welcome to TaxFormatter! In this section, you'll learn how to upload your cryptocurrency CSV export and get started with formatting your tax data.\"}),`\n`,(0,e.jsx)(t.h2,{children:\"Quick Steps\"}),`\n`,(0,e.jsxs)(t.ol,{children:[`\n`,(0,e.jsxs)(t.li,{children:[(0,e.jsx)(t.strong,{children:\"Export your CSV\"}),\" from your exchange (Binance, Coinbase, Kraken, etc.)\"]}),`\n`,(0,e.jsxs)(t.li,{children:[(0,e.jsx)(t.strong,{children:\"Upload to TaxFormatter\"}),\" and watch the AI analyze your data\"]}),`\n`,(0,e.jsxs)(t.li,{children:[(0,e.jsx)(t.strong,{children:\"Review the flagged issues\"}),\" to understand any tax concerns\"]}),`\n`,(0,e.jsxs)(t.li,{children:[(0,e.jsx)(t.strong,{children:\"Download your formatted file\"}),\" ready for tax software\"]}),`\n`]}),`\n`,(0,e.jsx)(t.h2,{children:\"What You'll Learn\"}),`\n`,(0,e.jsxs)(t.ul,{children:[`\n`,(0,e.jsx)(t.li,{children:\"How to export CSV files from major exchanges\"}),`\n`,(0,e.jsx)(t.li,{children:\"File format requirements and troubleshooting\"}),`\n`,(0,e.jsx)(t.li,{children:\"Supported exchanges and compatibility\"}),`\n`]}),`\n`,(0,e.jsx)(t.p,{children:\"Let's get started!\"})]})}function h(n={}){let{wrapper:t}=n.components||{};return t?(0,e.jsx)(t,{...n,children:(0,e.jsx)(s,{...n})}):s(n)}return C(_);})();\n;return Component;"
+  },
+  "_id": "getting-started/index.md",
+  "_raw": {
+    "sourceFilePath": "getting-started/index.md",
+    "sourceFileName": "index.md",
+    "sourceFileDir": "getting-started",
+    "contentType": "markdown",
+    "flattenedPath": "getting-started"
+  },
+  "type": "Doc",
+  "url": "/docs/getting-started",
+  "slug": "getting-started",
+  "section": "getting-started"
+}

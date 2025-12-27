@@ -1,17 +1,18 @@
-import { useMDXComponent } from 'next-contentlayer2/hooks'
 import { allDocs } from '.contentlayer/generated'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
+import { MDXContent } from './mdx-content'
 
 interface DocPageProps {
-  params: {
+  params: Promise<{
     slug: string[]
-  }
+  }>
 }
 
-export default function DocPage({ params }: DocPageProps) {
-  const path = `docs/${params.slug.join('/')}`
+export default async function DocPage({ params }: DocPageProps) {
+  const { slug } = await params
+  const path = `docs/${slug.join('/')}`
   const doc = allDocs.find(
     (d) => d._raw.flattenedPath === path.replace(/^docs\//, '')
   )
@@ -19,8 +20,6 @@ export default function DocPage({ params }: DocPageProps) {
   if (!doc) {
     notFound()
   }
-
-  const MDXContent = useMDXComponent(doc.body.code)
 
   return (
     <article className="prose prose-sm max-w-none dark:prose-invert">
@@ -39,7 +38,7 @@ export default function DocPage({ params }: DocPageProps) {
       </div>
 
       <div className="prose prose-sm max-w-none">
-        <MDXContent />
+        <MDXContent code={doc.body.code} />
       </div>
 
       <div className="mt-12 pt-8 border-t border-gray-200 flex items-center justify-between">

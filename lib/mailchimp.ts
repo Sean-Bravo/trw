@@ -2,13 +2,13 @@ import mailchimp from '@mailchimp/mailchimp_marketing';
 
 // Initialize Mailchimp configuration
 export function initializeMailchimp() {
-  if (!process.env.MAILCHIMP_API_KEY || !process.env.MAILCHIMP_SERVER_PREFIX) {
+  if (!process.env['MAILCHIMP_API_KEY'] || !process.env['MAILCHIMP_SERVER_PREFIX']) {
     throw new Error('Mailchimp API key and server prefix are required');
   }
 
   mailchimp.setConfig({
-    apiKey: process.env.MAILCHIMP_API_KEY,
-    server: process.env.MAILCHIMP_SERVER_PREFIX,
+    apiKey: process.env['MAILCHIMP_API_KEY'],
+    server: process.env['MAILCHIMP_SERVER_PREFIX'],
   });
 
   return mailchimp;
@@ -17,9 +17,9 @@ export function initializeMailchimp() {
 // Check if Mailchimp is properly configured
 export function isMailchimpConfigured(): boolean {
   return !!(
-    process.env.MAILCHIMP_API_KEY &&
-    process.env.MAILCHIMP_SERVER_PREFIX &&
-    process.env.MAILCHIMP_AUDIENCE_ID
+    process.env['MAILCHIMP_API_KEY'] &&
+    process.env['MAILCHIMP_SERVER_PREFIX'] &&
+    process.env['MAILCHIMP_AUDIENCE_ID']
   );
 }
 
@@ -35,26 +35,26 @@ export async function addSubscriber(
 ) {
   const mc = initializeMailchimp();
 
-  if (!process.env.MAILCHIMP_AUDIENCE_ID) {
+  if (!process.env['MAILCHIMP_AUDIENCE_ID']) {
     throw new Error('Mailchimp audience ID is required');
   }
 
   const mergeFields: Record<string, string> = {
     SOURCE: 'TaxFormatter Website',
-    SIGNUP_DATE: new Date().toISOString().split('T')[0],
+    SIGNUP_DATE: new Date().toISOString().split('T')[0] ?? '',
     ...options?.mergeFields,
   };
 
   if (options?.firstName) {
-    mergeFields.FNAME = options.firstName;
+    mergeFields['FNAME'] = options.firstName;
   }
 
   if (options?.lastName) {
-    mergeFields.LNAME = options.lastName;
+    mergeFields['LNAME'] = options.lastName;
   }
 
   try {
-    const response = await mc.lists.addListMember(process.env.MAILCHIMP_AUDIENCE_ID, {
+    const response = await mc.lists.addListMember(process.env['MAILCHIMP_AUDIENCE_ID'], {
       email_address: email,
       status: 'subscribed',
       tags: options?.tags || ['website-signup'],
@@ -84,13 +84,13 @@ export async function addSubscriber(
 export async function getSubscriber(email: string) {
   const mc = initializeMailchimp();
 
-  if (!process.env.MAILCHIMP_AUDIENCE_ID) {
+  if (!process.env['MAILCHIMP_AUDIENCE_ID']) {
     throw new Error('Mailchimp audience ID is required');
   }
 
   try {
     const response = await mc.lists.getListMember(
-      process.env.MAILCHIMP_AUDIENCE_ID,
+      process.env['MAILCHIMP_AUDIENCE_ID'],
       email
     );
 
@@ -120,13 +120,13 @@ export async function updateSubscriberTags(
 ) {
   const mc = initializeMailchimp();
 
-  if (!process.env.MAILCHIMP_AUDIENCE_ID) {
+  if (!process.env['MAILCHIMP_AUDIENCE_ID']) {
     throw new Error('Mailchimp audience ID is required');
   }
 
   try {
     await mc.lists.updateListMemberTags(
-      process.env.MAILCHIMP_AUDIENCE_ID,
+      process.env['MAILCHIMP_AUDIENCE_ID'],
       email,
       { tags }
     );

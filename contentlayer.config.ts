@@ -1,10 +1,10 @@
-import { defineDocumentType, makeSource } from 'contentlayer/source-files'
-import { rehypeHighlight } from 'rehype-highlight'
+import { defineDocumentType, makeSource } from 'contentlayer2/source-files'
+import rehypeHighlight from 'rehype-highlight'
 
 export const Doc = defineDocumentType(() => ({
   name: 'Doc',
-  filePathPattern: `docs/**/*.md`,
-  contentType: 'markdown',
+  filePathPattern: `**/*.md`,
+  contentType: 'mdx',
   fields: {
     title: {
       type: 'string',
