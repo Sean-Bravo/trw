@@ -1,45 +1,67 @@
-'use client'; // Required for scroll detection
+'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
-import { Shield, CheckCircle2, Users, TrendingUp, Clock } from 'lucide-react';
-import { InteractiveDemo } from './InteractiveDemo';
-import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { 
+  Users, 
+  UploadCloud, 
+  FileText, 
+  Loader2, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Sparkles, 
+  BrainCircuit,
+  ArrowRight
+} from 'lucide-react';
 
 export function Hero() {
-  // We track two separate elements for scroll triggering
-  const { ref: gaugeRef, isVisible: gaugeVisible } = useScrollAnimation({ threshold: 0.1 });
-  const { ref: barRef, isVisible: barVisible } = useScrollAnimation({ threshold: 0.1 });
+  // State to simulate the app flow: 'idle' | 'analyzing' | 'complete'
+  const [status, setStatus] = useState('idle');
+  const [progress, setProgress] = useState(0);
+
+  // Simulation Logic
+  const handleUpload = () => {
+    if (status !== 'idle') return;
+    setStatus('analyzing');
+    setProgress(0);
+    
+    // Simulate progress bar (2.5 seconds)
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setStatus('complete');
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 50);
+  };
+
+  const reset = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStatus('idle');
+    setProgress(0);
+  };
 
   return (
     <section className="bg-gradient-to-b from-white to-[#f9fafb] py-24 sm:py-32 relative overflow-hidden">
-      {/* Background decorative elements */}
+      {/* --- BACKGROUND DECORATION --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {/* Main gradient orbs */}
         <div className="absolute top-20 right-0 w-96 h-96 bg-[#3b82f6] rounded-full opacity-8 blur-3xl animate-float"></div>
         <div className="absolute bottom-20 left-0 w-96 h-96 bg-[#1a365d] rounded-full opacity-8 blur-3xl animate-float animation-delay-300"></div>
-
-        {/* Accent orbs for visual interest */}
         <div className="absolute top-40 left-1/4 w-72 h-72 bg-[#059669] rounded-full opacity-5 blur-3xl animate-float animation-delay-500"></div>
         <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-[#3b82f6] rounded-full opacity-6 blur-2xl animate-float animation-delay-200"></div>
-
-        {/* Decorative grid pattern */}
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `url('data:image/svg+xml;utf8,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(59,130,246,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>')`
-          }}
-        ></div>
-
-        {/* Top accent line */}
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(59,130,246,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>')` }}></div>
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#3b82f6] to-transparent opacity-20"></div>
       </div>
 
       <Container>
         <div className="max-w-7xl mx-auto">
-          {/* Header section */}
-          <div className="text-center mb-12">
+          
+          {/* --- HEADER SECTION --- */}
+          <div className="text-center mb-16">
             <div className="mb-6 flex justify-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#3b82f6]/10 to-[#1a365d]/10 backdrop-blur-sm border border-[#3b82f6]/20 text-[#1a365d] rounded-full text-xs font-semibold uppercase tracking-wider hover:border-[#3b82f6]/40 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-300 animate-slide-up">
                 <div className="w-4 h-4 bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded flex items-center justify-center">
@@ -72,16 +94,7 @@ export function Hero() {
               </Button>
             </div>
 
-            {/* Trust indicators with gradient backgrounds */}
             <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-[#6b7280] mb-4 animate-slide-up animation-delay-500">
-              {/* <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
-                <Shield className="h-5 w-5 text-[#3b82f6]" />
-                <span className="font-semibold text-[#1a365d]">256-bit Encryption</span>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#059669]/5 border border-[#059669]/10 hover:border-[#059669]/30 hover:bg-[#059669]/10 transition-all duration-300">
-                <CheckCircle2 className="h-5 w-5 text-[#059669]" />
-                <span className="font-semibold text-[#1a365d]">SOC 2 Compliant</span>
-              </div> */}
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
                 <Users className="h-5 w-5 text-[#3b82f6]" />
                 <span className="font-semibold text-[#1a365d]">10,000+ users</span>
@@ -89,104 +102,184 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Bento Grid with INTERACTIVE DEMO */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-16">
-            {/* Main dashboard demo - takes 2 columns */}
-            <div className="lg:col-span-2 group min-h-[400px]">
-               <InteractiveDemo />
-            </div>
-
-            {/* Side feature cards */}
-            <div className="flex flex-col gap-6 h-full">
-              
-              {/* CARD 1: Success Rate (With Live Gauge Asset) */}
-              <div ref={gaugeRef} className="group flex-1 bg-gradient-to-br from-[#3b82f6]/5 via-white to-[#dbeafe]/20 backdrop-blur-xl rounded-2xl p-6 border border-[#3b82f6]/20 shadow-[0_8px_32px_rgba(59,130,246,0.08)] hover:shadow-[0_12px_48px_rgba(59,130,246,0.15)] hover:border-[#3b82f6]/40 transition-all duration-300 flex flex-col justify-center relative overflow-hidden">
-                {/* Decorative accent */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#3b82f6]/10 rounded-full blur-2xl -mr-12 -mt-12 group-hover:scale-125 transition-transform duration-500"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#3b82f6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-                
-                <div className="flex items-center justify-between mb-4 relative z-10">
-                  {/* ASSET: Animated Gauge */}
-                  <div className="relative w-14 h-14 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 56 56">
-                      {/* Background Circle */}
-                      <circle cx="28" cy="28" r="24" stroke="#e5e7eb" strokeWidth="4" fill="none" />
-                      {/* Progress Circle (99.9%) - Only animates when visible */}
-                      <circle 
-                        cx="28" cy="28" r="24" 
-                        stroke="#3b82f6" 
-                        strokeWidth="4" 
-                        fill="none" 
-                        strokeDasharray="150.796" 
-                        strokeDashoffset={gaugeVisible ? "0" : "150.796"}
-                        strokeLinecap="round"
-                        className="transition-all duration-1500 ease-out"
-                        style={{
-                          transitionProperty: 'stroke-dashoffset'
-                        }}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Shield className="h-5 w-5 text-[#3b82f6]" />
+          {/* --- HERO INTERACTIVE SECTION (Command Center) --- */}
+          <div className="mt-16 grid lg:grid-cols-12 gap-8 items-stretch max-w-6xl mx-auto">
+            
+            {/* LEFT COLUMN: Input Reactor (Drag & Drop) */}
+            <div className="lg:col-span-7 flex flex-col h-full min-h-[400px]">
+              <div 
+                onClick={handleUpload}
+                className={`
+                  relative flex-1 rounded-3xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden flex flex-col items-center justify-center p-8 sm:p-12
+                  ${status === 'idle' 
+                    ? 'border-slate-300 bg-white hover:border-blue-500 hover:bg-blue-50/30 hover:shadow-xl shadow-sm' 
+                    : 'border-blue-500/30 bg-blue-50/20'
+                  }
+                `}
+              >
+                {/* IDLE STATE */}
+                {status === 'idle' && (
+                  <div className="text-center space-y-6 animate-in fade-in zoom-in duration-300">
+                    <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                      <UploadCloud className="w-10 h-10" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-800 font-poppins mb-2">Drop your CSV file here</h3>
+                      <p className="text-slate-500 text-lg">or click to browse</p>
+                    </div>
+                    <div className="flex gap-2 justify-center pt-4 opacity-60">
+                      {['Coinbase', 'Binance', 'Kraken', 'KuCoin'].map(ex => (
+                        <span key={ex} className="px-3 py-1 bg-slate-100 rounded-md text-xs font-medium text-slate-500 border border-slate-200">
+                          {ex}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                  
-                  <span className="text-xs font-semibold text-[#059669] bg-gradient-to-r from-[#059669]/20 to-[#059669]/10 px-3 py-1.5 rounded-full flex items-center gap-1 border border-[#059669]/30">
-                    <TrendingUp className="h-3 w-3" />
-                    +15%
-                  </span>
-                </div>
-                
-                <div className="relative z-10">
-                  <h3 className="font-poppins text-3xl font-bold text-[#1a365d] mb-1">99.9%</h3>
-                  <p className="text-sm text-[#6b7280] font-medium">Success Rate</p>
-                  <p className="text-xs text-[#9ca3af] mt-1">10k+ files processed</p>
-                </div>
-              </div>
+                )}
 
-              {/* CARD 2: Time Saved (With Comparison Bars Asset) */}
-              <div ref={barRef} className="group flex-1 bg-gradient-to-br from-[#059669]/5 via-white to-[#d1fae5]/20 backdrop-blur-xl rounded-2xl p-6 border border-[#059669]/20 shadow-[0_8px_32px_rgba(5,150,105,0.08)] hover:shadow-[0_12px_48px_rgba(5,150,105,0.15)] hover:border-[#059669]/40 transition-all duration-300 flex flex-col justify-center relative overflow-hidden">
-                {/* Decorative accent */}
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#059669]/10 rounded-full blur-2xl -ml-12 -mb-12 group-hover:scale-125 transition-transform duration-500"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#059669]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-                
-                <div className="mb-4 relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#6b7280]">Manual</span>
-                    <span className="text-xs font-bold text-[#ef4444] bg-[#ef4444]/10 px-2 py-1 rounded-full">8hrs</span>
+                {/* PROCESSING STATE (Replaces the drag drop UI) */}
+                {(status === 'analyzing' || status === 'complete') && (
+                  <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-xl border border-blue-100 animate-in slide-in-from-bottom-4 duration-500 relative overflow-hidden">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-7 h-7" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 truncate">binance_trade_history.csv</p>
+                        <p className="text-sm text-slate-500 flex items-center gap-2">
+                          {status === 'analyzing' ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
+                              Processing...
+                            </>
+                          ) : (
+                            <span className="text-green-600 font-medium">Ready for export</span>
+                          )}
+                        </p>
+                      </div>
+                      {status === 'complete' && (
+                         <button onClick={reset} className="text-sm text-blue-600 font-medium hover:underline">
+                           Reset
+                         </button>
+                      )}
+                    </div>
+                    
+                    {/* Fake Progress Bar inside the card */}
+                    {status === 'analyzing' && (
+                       <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                         <div 
+                           className="h-full bg-blue-500 transition-all duration-300 ease-out"
+                           style={{ width: `${progress}%` }}
+                         />
+                       </div>
+                    )}
                   </div>
-                  {/* ASSET: Slow Bar */}
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full mb-3 overflow-hidden border border-gray-200">
-                    <div className="h-full bg-gradient-to-r from-[#ef4444] to-[#dc2626] w-[85%] rounded-full shadow-[0_0_8px_rgba(239,68,68,0.3)]"></div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#1a365d]">AI Engine</span>
-                    <span className="text-xs font-bold text-[#3b82f6] bg-[#3b82f6]/10 px-2 py-1 rounded-full">30s</span>
-                  </div>
-                  {/* ASSET: Fast Bar - Only animates when visible */}
-                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
-                    <div 
-                      className="h-full bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-full shadow-[0_0_8px_rgba(59,130,246,0.4)]"
-                      style={{
-                        width: barVisible ? '5%' : '0%',
-                        transition: 'width 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s'
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                <div className="flex items-end justify-between relative z-10">
-                  <div>
-                    <h3 className="font-poppins text-3xl font-bold text-[#1a365d] mb-1">8.5h</h3>
-                    <p className="text-sm text-[#6b7280] font-medium">Time Saved</p>
-                  </div>
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#059669]/20 to-[#059669]/10 rounded-full flex items-center justify-center text-[#059669] border border-[#059669]/20">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                </div>
+                )}
               </div>
             </div>
+
+            {/* RIGHT COLUMN: Nano Banana AI Panel (Dark Mode) */}
+            <div className="lg:col-span-5 h-full min-h-[400px]">
+              <div className="bg-[#1a365d] p-6 rounded-[2rem] shadow-2xl relative overflow-hidden font-poppins h-full flex flex-col">
+                
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
+
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8 relative z-10">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                    <h2 className="text-white text-lg font-bold tracking-wide">AI Insights</h2>
+                  </div>
+                  <div className={`
+                    bg-blue-800/50 text-blue-200 text-xs font-medium px-3 py-1 rounded-full border border-blue-700/50 transition-opacity duration-300
+                    ${status === 'analyzing' ? 'opacity-100 animate-pulse' : 'opacity-0'}
+                  `}>
+                    Live Analysis...
+                  </div>
+                </div>
+
+                {/* Cards Container */}
+                <div className="flex-1 space-y-4 relative z-10 flex flex-col justify-center">
+
+                  {/* 1. SUCCESS CARD (Binance) - FIXED ALIGNMENT */}
+                  <div className={`
+                    bg-white rounded-2xl p-4 shadow-lg transition-all duration-500 transform
+                    ${status !== 'idle' 
+                      ? 'translate-y-0 opacity-100' 
+                      : 'translate-y-0 opacity-40 blur-[1px]' /* Removed translate-x-4 here */} 
+                  `}>
+                    <div className="flex items-start gap-4">
+                      <div className="bg-green-100 p-2.5 rounded-xl flex-shrink-0">
+                        <CheckCircle2 className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="font-bold text-slate-800 text-sm">Exchange Detected</h3>
+                          <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">CONFIRMED</span>
+                        </div>
+                        <p className="text-xl font-extrabold text-slate-900">Binance</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. ACTIVE CARD (Analyzing) */}
+                  <div className={`
+                    bg-white rounded-2xl p-5 shadow-[0_0_30px_rgba(250,204,21,0.2)] transition-all duration-500 delay-100 transform border-2
+                    ${status === 'analyzing' ? 'border-yellow-400 scale-105 z-20 opacity-100' : 'border-transparent scale-100'}
+                    ${status === 'idle' ? 'opacity-40 blur-[1px]' : ''} 
+                    ${status === 'complete' ? 'opacity-100' : ''}
+                  `}>
+                    <div className="flex items-start gap-4 mb-3">
+                      <div className={`p-2.5 rounded-xl flex-shrink-0 ${status === 'analyzing' ? 'bg-yellow-100' : 'bg-slate-100'}`}>
+                        <BrainCircuit className={`w-6 h-6 ${status === 'analyzing' ? 'text-yellow-600 animate-pulse' : 'text-slate-400'}`} />
+                      </div>
+                      <div className="w-full">
+                        <h3 className="font-bold text-slate-800 text-sm mb-1">Analyzing Transactions...</h3>
+                        <p className="text-2xl font-extrabold text-slate-900">
+                          {status === 'idle' ? '0' : Math.floor(progress * 8.47)} 
+                          <span className="text-sm font-semibold text-slate-400 ml-1">found</span>
+                        </p>
+                      </div>
+                    </div>
+                    {/* Chunky Gradient Bar */}
+                    <div className="h-4 bg-slate-100 rounded-full overflow-hidden relative">
+                      <div 
+                        className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-blue-500 transition-all duration-100"
+                        style={{ width: `${status === 'idle' ? 0 : progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* 3. ALERT CARD (Wash Sales) - FIXED ALIGNMENT */}
+                  <div className={`
+                    bg-[#ffedd5] rounded-2xl p-4 shadow-lg transition-all duration-500 delay-200 transform border border-orange-200
+                    ${status === 'complete' 
+                      ? 'translate-y-0 opacity-100' 
+                      : 'translate-y-0 opacity-40 blur-[1px]' /* Removed translate-y-4 here */} 
+                  `}>
+                    <div className="flex items-center gap-4">
+                      <div className="bg-orange-100 p-2.5 rounded-xl flex-shrink-0">
+                        <AlertTriangle className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-orange-900 text-sm">Tax Flag</h3>
+                        <p className="text-lg font-extrabold text-orange-950">Wash Sales Detected</p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Footer text */}
+                <div className="mt-8 text-center">
+                  <p className="text-blue-200/60 text-xs font-mono">AI ENGINE V2.4 ONLINE</p>
+                </div>
+                
+              </div>
+            </div>
+
           </div>
         </div>
       </Container>
