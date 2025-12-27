@@ -10,8 +10,8 @@ export const authOptions: NextAuthOptions = {
   providers: [
     // Google OAuth Provider
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env['GOOGLE_CLIENT_ID'] ?? "",
+      clientSecret: process.env['GOOGLE_CLIENT_SECRET'] ?? "",
       authorization: {
         params: {
           prompt: "consent",
@@ -97,8 +97,8 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       // Add user ID to session
-      if (session.user) {
-        session.user.id = token.id as string;
+      if (session.user && token.id) {
+        session.user.id = token.id;
       }
 
       return session;
@@ -117,22 +117,22 @@ export const authOptions: NextAuthOptions = {
 
   // Events for logging
   events: {
-    async signIn({ user, account, profile, isNewUser }) {
+    async signIn({ user }) {
       // TODO: Log successful sign-in
-      console.log(`User signed in: ${user.email}`);
+      console.log(`User signed in: ${user.email ?? 'unknown'}`);
     },
-    async signOut({ session, token }) {
+    async signOut() {
       // TODO: Log sign-out
       console.log("User signed out");
     },
     async createUser({ user }) {
       // TODO: Log new user creation
-      console.log(`New user created: ${user.email}`);
+      console.log(`New user created: ${user.email ?? 'unknown'}`);
     }
   },
 
   // Security
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env['NEXTAUTH_SECRET'],
 
   // Enable debug in development
   debug: process.env.NODE_ENV === "development",

@@ -4,8 +4,8 @@ import { validateEmail } from '@/lib/validation';
 
 // Configure Mailchimp
 mailchimp.setConfig({
-  apiKey: process.env.MAILCHIMP_API_KEY,
-  server: process.env.MAILCHIMP_SERVER_PREFIX, // e.g., 'us1', 'us6', etc.
+  apiKey: process.env['MAILCHIMP_API_KEY'],
+  server: process.env['MAILCHIMP_SERVER_PREFIX'], // e.g., 'us1', 'us6', etc.
 });
 
 export async function POST(request: NextRequest) {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const validatedEmail = validation.data as string;
 
     // Check for required environment variables
-    if (!process.env.MAILCHIMP_API_KEY || !process.env.MAILCHIMP_AUDIENCE_ID) {
+    if (!process.env['MAILCHIMP_API_KEY'] || !process.env['MAILCHIMP_AUDIENCE_ID']) {
       console.error('Missing Mailchimp configuration');
       return NextResponse.json(
         { error: 'Email service is not configured' },
@@ -43,14 +43,14 @@ export async function POST(request: NextRequest) {
 
     // Add subscriber to Mailchimp audience
     const response = await mailchimp.lists.addListMember(
-      process.env.MAILCHIMP_AUDIENCE_ID,
+      process.env['MAILCHIMP_AUDIENCE_ID'],
       {
         email_address: validatedEmail,
         status: 'subscribed',
         tags: ['website-signup'],
         merge_fields: {
           SOURCE: 'TaxFormatter Website',
-          SIGNUP_DATE: new Date().toISOString().split('T')[0],
+          SIGNUP_DATE: new Date().toISOString().split('T')[0] ?? '',
         },
       }
     );
