@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withContentlayer } from 'next-contentlayer2'
 
 const nextConfig: NextConfig = {
   // Enable React strict mode for better debugging
@@ -9,6 +10,9 @@ const nextConfig: NextConfig = {
 
   // Compression for better performance
   compress: true,
+
+  // Enable Turbopack
+  turbopack: {},
 
   // Security headers
   async headers() {
@@ -62,4 +66,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withContentlayer(nextConfig);
