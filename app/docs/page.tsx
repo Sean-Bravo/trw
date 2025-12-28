@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Rocket, BarChart3, AlertTriangle, Upload, HelpCircle, MessageCircle } from 'lucide-react'
 
 export default function DocsHome() {
   const sections = [
@@ -9,37 +9,37 @@ export default function DocsHome() {
       title: 'Getting Started',
       description: 'Learn how to upload your CSV and get started with TaxFormatter',
       link: '/docs/getting-started/upload-your-first-csv',
-      icon: '🚀',
+      icon: Rocket,
     },
     {
       title: 'Understanding Results',
       description: 'Understand what the AI insights mean and how to read your formatted data',
       link: '/docs/understanding-your-results',
-      icon: '📊',
+      icon: BarChart3,
     },
     {
       title: 'Tax Issues & Flags',
       description: 'Deep dive into wash sales, staking income, airdrops, and other tax issues',
       link: '/docs/tax-issues-flags/wash-sales',
-      icon: '⚠️',
+      icon: AlertTriangle,
     },
     {
       title: 'Exporting Your Data',
       description: 'Export your formatted CSV and integrate with TurboTax, Koinly, and more',
       link: '/docs/exporting-your-data',
-      icon: '📤',
+      icon: Upload,
     },
     {
       title: 'FAQ',
       description: 'Common questions and answers about TaxFormatter',
       link: '/docs/faq',
-      icon: '❓',
+      icon: HelpCircle,
     },
     {
       title: 'Support',
       description: 'Get help or contact us with questions',
       link: '/docs/support/contact',
-      icon: '💬',
+      icon: MessageCircle,
     },
   ]
 
@@ -58,27 +58,30 @@ export default function DocsHome() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sections.map((section) => (
-            <Link
-              key={section.title}
-              href={section.link}
-              className="group block p-6 border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg hover:bg-blue-50/30 transition-all duration-300"
-            >
-              <div className="flex items-start gap-4">
-                <span className="text-4xl">{section.icon}</span>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    {section.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-2">{section.description}</p>
-                  <div className="flex items-center gap-2 mt-4 text-blue-600 font-semibold text-sm group-hover:gap-3 transition-all">
-                    Read more
-                    <ArrowRight className="w-4 h-4" />
+          {sections.map((section) => {
+            const Icon = section.icon
+            return (
+              <Link
+                key={section.title}
+                href={section.link}
+                className="group block p-6 border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg hover:bg-blue-50/30 transition-all duration-300"
+              >
+                <div className="flex items-start gap-4">
+                  <Icon className="w-10 h-10 text-gray-900" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {section.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-2">{section.description}</p>
+                    <div className="flex items-center gap-2 mt-4 text-blue-600 font-semibold text-sm group-hover:gap-3 transition-all">
+                      Read more
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
 
         {/* Search Suggestion */}
