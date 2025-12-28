@@ -4,35 +4,19 @@ import React, { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
 import Link from 'next/link';
-import { Menu, X, Shield } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: '#features', label: 'Features' },
-    { href: '#pricing', label: 'Pricing' },
-    { href: '#docs', label: 'Docs' },
+    { href: '/#features', label: 'Features' },
+    { href: '/#pricing', label: 'Pricing' },
+    { href: '/docs', label: 'Docs' },
   ];
 
   return (
     <header className="sticky top-0 z-50 bg-gradient-to-r from-white to-blue-50/30 backdrop-blur-md border-b border-[#e5e7eb] shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
-      {/* Top security bar */}
-      {/* <div className="bg-gradient-to-r from-[#1a365d] to-[#3b82f6] text-white py-2">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-center gap-6 text-xs font-medium">
-            <div className="flex items-center gap-1.5">
-              <Shield className="h-3 w-3" />
-              <span>256-bit Encryption</span>
-            </div>
-            <span className="hidden sm:inline text-white/60">•</span>
-            <span className="hidden sm:inline">Enterprise-Grade Security</span>
-            <span className="hidden md:inline text-white/60">•</span>
-            <span className="hidden md:inline">Privacy Focused</span>
-          </div>
-        </div>
-      </div> */}
-
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
         <Logo />
 
@@ -51,10 +35,10 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link href="#signin" className="hidden md:block text-[#1a365d] hover:text-[#3b82f6] transition-colors text-sm font-semibold">
+          <Link href="/#signin" className="hidden md:block text-[#1a365d] hover:text-[#3b82f6] transition-colors text-sm font-semibold">
             Sign In
           </Link>
-          <Button variant="primary" href="#start" className="hidden sm:inline-flex shadow-lg shadow-[#3b82f6]/20">
+          <Button variant="primary" href="/#start" className="hidden sm:inline-flex shadow-lg shadow-[#3b82f6]/20">
             Start Free
           </Button>
 
@@ -89,13 +73,13 @@ export function Header() {
               </Link>
             ))}
             <Link
-              href="#signin"
+              href="/#signin"
               onClick={() => setMobileMenuOpen(false)}
               className="text-[#1a365d] hover:text-[#3b82f6] transition-colors text-base font-medium py-2"
             >
               Sign In
             </Link>
-            <Button variant="primary" href="#start" className="w-full justify-center" onClick={() => setMobileMenuOpen(false)}>
+            <Button variant="primary" href="/#start" className="w-full justify-center" onClick={() => setMobileMenuOpen(false)}>
               Start Free
             </Button>
           </nav>
