@@ -16,11 +16,34 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
   const slugPath = slug.join('/')
   const doc = allDocs.find((doc) => doc.url === `/docs/${slugPath}`)
 
-  if (!doc) return {}
+  if (!doc) {
+    return {
+      title: 'Page Not Found - TaxFormatter Docs',
+      description: 'The requested documentation page could not be found.',
+    }
+  }
+
+  const title = `${doc.title} - TaxFormatter Docs`
+  const description = doc.description || `Learn about ${doc.title} in TaxFormatter documentation`
 
   return {
-    title: `${doc.title} - TaxFormatter Docs`,
-    description: doc.description,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      url: `https://taxformatter.com${doc.url}`,
+      siteName: 'TaxFormatter',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `https://taxformatter.com${doc.url}`,
+    },
   }
 }
 
@@ -53,18 +76,12 @@ export default async function DocPage({ params }: DocPageProps) {
         <MDXContent code={doc.body.code} />
       </div>
 
-      <div className="mt-12 pt-8 border-t border-gray-200 flex items-center justify-between">
+      <div className="mt-12 pt-8 border-t border-gray-200">
         <Link
           href="/docs"
           className="text-blue-600 hover:underline font-semibold flex items-center gap-2"
         >
           ← View all docs
-        </Link>
-        <Link
-          href="/docs/support/contact"
-          className="text-gray-600 hover:text-gray-900 text-sm"
-        >
-          Have a question? Contact us
         </Link>
       </div>
     </article>
