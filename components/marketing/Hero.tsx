@@ -63,12 +63,14 @@ export function Hero() {
           {/* --- HEADER SECTION --- */}
           <div className="text-center mb-16">
             <div className="mb-6 flex justify-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#3b82f6]/10 to-[#1a365d]/10 backdrop-blur-sm border border-[#3b82f6]/20 text-[#1a365d] rounded-full text-xs font-semibold uppercase tracking-wider hover:border-[#3b82f6]/40 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-300 animate-slide-up">
-                <div className="w-4 h-4 bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded flex items-center justify-center">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white animate-pulse-subtle">
-                    <path d="M14 7l5 5-5 5M9 7l5 5-5 5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-[#3b82f6]/10 to-[#1a365d]/10 backdrop-blur-sm border border-[#3b82f6]/20 text-[#1a365d] rounded-full text-xs font-semibold uppercase tracking-wider hover:border-[#3b82f6]/40 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-300 animate-slide-up">
+                
+                {/* REPLACED SVG WITH GLOWING GREEN DOT */}
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                </span>
+                
                 AI-Powered CSV Repair
               </div>
             </div>
@@ -203,12 +205,13 @@ export function Hero() {
                 {/* Cards Container */}
                 <div className="flex-1 space-y-4 relative z-10 flex flex-col justify-center">
 
-                  {/* 1. SUCCESS CARD (Binance) - FIXED ALIGNMENT */}
+                  {/* 1. SUCCESS CARD (Binance) */}
                   <div className={`
                     bg-white rounded-2xl p-4 shadow-lg transition-all duration-500 transform
                     ${status !== 'idle' 
                       ? 'translate-y-0 opacity-100' 
-                      : 'translate-y-0 opacity-40 blur-[1px]' /* Removed translate-x-4 here */} 
+                      : 'translate-y-0 opacity-40 blur-[1px]'
+                    } 
                   `}>
                     <div className="flex items-start gap-4">
                       <div className="bg-green-100 p-2.5 rounded-xl flex-shrink-0">
@@ -252,12 +255,13 @@ export function Hero() {
                     </div>
                   </div>
 
-                  {/* 3. ALERT CARD (Wash Sales) - FIXED ALIGNMENT */}
+                  {/* 3. ALERT CARD (Wash Sales) */}
                   <div className={`
                     bg-[#ffedd5] rounded-2xl p-4 shadow-lg transition-all duration-500 delay-200 transform border border-orange-200
                     ${status === 'complete' 
                       ? 'translate-y-0 opacity-100' 
-                      : 'translate-y-0 opacity-40 blur-[1px]' /* Removed translate-y-4 here */} 
+                      : 'translate-y-0 opacity-40 blur-[1px]'
+                    } 
                   `}>
                     <div className="flex items-center gap-4">
                       <div className="bg-orange-100 p-2.5 rounded-xl flex-shrink-0">

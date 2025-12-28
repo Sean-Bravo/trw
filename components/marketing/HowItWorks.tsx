@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container } from '../layout/Container';
 import { Upload, FileCheck, Download, Check, AlertCircle } from 'lucide-react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation';
@@ -324,7 +324,7 @@ function DemoStep3_Export({ selectedPlatform, onSelectPlatform }: any) {
             
             <div>
               <p className="font-poppins font-semibold text-[#1a365d] mb-2">
-                taxreadywallet_export.csv
+                taxformatter_export.csv
               </p>
               <p className="text-sm text-[#6b7280]">
                 Formatted for <span className="font-semibold text-[#1a365d]">{PLATFORMS.find(p => p.id === selectedPlatform)?.name}</span>
