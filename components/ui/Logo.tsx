@@ -15,7 +15,7 @@ export function Logo({ className = '', iconOnly = false, variant = 'dark' }: Log
       href="/"
       className={`inline-flex items-center gap-3 group ${className}`}
     >
-      {/* Logo Icon - Custom SVG matching the blue swap image with adjusted spacing */}
+      {/* Logo Icon */}
       <div className="relative w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
         <svg
           width="48"
@@ -25,37 +25,39 @@ export function Logo({ className = '', iconOnly = false, variant = 'dark' }: Log
           xmlns="http://www.w3.org/2000/svg"
           className="drop-shadow-sm"
         >
-          {/* Blue Background with Rounded Corners (Squircle) */}
+          {/* Blue Background with Rounded Corners */}
           <rect width="48" height="48" rx="12" fill="#3b82f6" />
           
-          {/* Top Arrow: Pointing LEFT (Moved up slightly to Y=16 center) */}
+          {/* Top Arrow: Points RIGHT (Shifted UP by 2px) */}
           <path
-            d="M36 16H12" 
+            d="M11 18.5 C16 16.5 28 15 37 17.5"
             stroke="white"
-            strokeWidth="3"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+          {/* Top Arrowhead (Shifted UP by 2px) */}
           <path
-            d="M18 10L12 16L18 22"
+            d="M31 13.5L37 17.5L32 22.5"
             stroke="white"
-            strokeWidth="3"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
 
-          {/* Bottom Arrow: Pointing RIGHT (Moved down slightly to Y=32 center) */}
+          {/* Bottom Arrow: Points LEFT (Shifted DOWN by 2px) */}
           <path
-            d="M12 32H36"
+            d="M37 29.5 C32 31.5 20 33 11 30.5"
             stroke="white"
-            strokeWidth="3"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+          {/* Bottom Arrowhead (Shifted DOWN by 2px) */}
           <path
-            d="M30 26L36 32L30 38"
+            d="M17 34.5L11 30.5L16 25.5"
             stroke="white"
-            strokeWidth="3"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
