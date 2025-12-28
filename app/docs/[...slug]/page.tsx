@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { MDXContent } from './mdx-content'
+import { Metadata } from 'next'
 
 interface DocPageProps {
   params: Promise<{
@@ -10,12 +11,23 @@ interface DocPageProps {
   }>
 }
 
+export async function generateMetadata({ params }: DocPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const slugPath = slug.join('/')
+  const doc = allDocs.find((doc) => doc.url === `/docs/${slugPath}`)
+
+  if (!doc) return {}
+
+  return {
+    title: `${doc.title} - TaxFormatter Docs`,
+    description: doc.description,
+  }
+}
+
 export default async function DocPage({ params }: DocPageProps) {
   const { slug } = await params
-  const path = `docs/${slug.join('/')}`
-  const doc = allDocs.find(
-    (d) => d._raw.flattenedPath === path.replace(/^docs\//, '')
-  )
+  const slugPath = slug.join('/')
+  const doc = allDocs.find((doc) => doc.url === `/docs/${slugPath}`)
 
   if (!doc) {
     notFound()
@@ -61,6 +73,6 @@ export default async function DocPage({ params }: DocPageProps) {
 
 export async function generateStaticParams() {
   return allDocs.map((doc) => ({
-    slug: doc._raw.flattenedPath.split('/'),
+    slug: doc.url.replace('/docs/', '').split('/'),
   }))
 }

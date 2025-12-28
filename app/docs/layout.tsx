@@ -3,6 +3,7 @@
 import React from 'react'
 import { Container } from '@/components/layout/Container'
 import Link from 'next/link'
+import { Home } from 'lucide-react'
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   const sections = [
@@ -13,7 +14,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         { title: 'Upload Your First CSV', slug: 'upload-your-first-csv' },
         { title: 'Supported Exchanges', slug: 'supported-exchanges' },
         { title: 'File Format Requirements', slug: 'file-format-requirements' },
-        { title: 'Troubleshooting', slug: 'troubleshooting-upload-errors' },
+        { title: 'Troubleshooting Upload Errors', slug: 'troubleshooting-upload-errors' },
       ],
     },
     {
@@ -21,8 +22,8 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       slug: 'understanding-your-results',
       pages: [
         { title: 'What the Insight Panels Mean', slug: 'what-the-insight-panels-mean' },
-        { title: 'Reading Your CSV', slug: 'reading-your-formatted-csv' },
-        { title: 'Free vs Pro', slug: 'free-vs-pro-differences' },
+        { title: 'Reading Your Formatted CSV', slug: 'reading-your-formatted-csv' },
+        { title: 'Free vs Pro Differences', slug: 'free-vs-pro-differences' },
       ],
     },
     {
@@ -40,8 +41,8 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       title: 'Exporting Your Data',
       slug: 'exporting-your-data',
       pages: [
-        { title: 'Free Tier Export', slug: 'free-tier-export-format' },
-        { title: 'Pro Tier Export', slug: 'pro-tier-flagged-csv' },
+        { title: 'Free Tier Export Format', slug: 'free-tier-export-format' },
+        { title: 'Pro Tier Flagged CSV', slug: 'pro-tier-flagged-csv' },
         { title: 'TurboTax Integration', slug: 'turbotax-integration' },
         { title: 'Koinly Integration', slug: 'koinly-integration' },
         { title: 'CoinLedger Integration', slug: 'coinledger-integration' },
@@ -52,14 +53,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       title: 'FAQ',
       slug: 'faq',
       pages: [
-        { title: 'Common Questions', slug: 'faq' },
-      ],
-    },
-    {
-      title: 'Support',
-      slug: 'support',
-      pages: [
-        { title: 'Contact Us', slug: 'contact' },
+        { title: 'FAQ', slug: 'faq' },
       ],
     },
   ]
@@ -70,8 +64,9 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       <div className="border-b border-gray-200 bg-white sticky top-0 z-40">
         <Container>
           <div className="py-4">
-            <Link href="/" className="text-lg font-bold text-gray-900 hover:text-blue-600">
-              ← Back to Home
+            <Link href="/" className="flex items-center gap-2 text-lg font-bold text-gray-900 hover:text-blue-600">
+              <Home className="w-5 h-5" />
+              Back to Home
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 mt-2">Documentation</h1>
             <p className="text-gray-600 mt-1">Learn how to use TaxFormatter</p>
