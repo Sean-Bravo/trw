@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Container } from '../layout/Container';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
 import { Check } from 'lucide-react';
 
 interface PricingPlan {
@@ -17,166 +16,83 @@ interface PricingPlan {
   variant: 'primary' | 'secondary';
   subtitle: string;
   popular?: boolean;
-  originalPrice?: string;
-  savings?: string;
 }
 
-const pricingData: Record<'monthly' | 'annual', PricingPlan[]> = {
-  monthly: [
-    {
-      name: 'Free',
-      price: '$0',
-      period: '/month',
-      description: 'Perfect for trying out the tool',
-      features: [
-        '1 CSV file per month',
-        'Basic repair features',
-        'Export to 1 platform',
-        'Community support',
-      ],
-      cta: 'Get Started Free',
-      variant: 'secondary' as const,
-      subtitle: 'No credit card required',
-    },
-    {
-      name: 'Pro',
-      price: '$9',
-      period: '/month',
-      description: 'For serious crypto traders',
-      features: [
-        'Unlimited CSV files',
-        'Advanced repair features',
-        'Export to all platforms',
-        'Priority email support',
-        'Batch processing',
-        'API access',
-      ],
-      cta: 'Start 14-Day Free Trial',
-      variant: 'primary' as const,
-      popular: true,
-      subtitle: 'Billed monthly',
-    },
-    {
-      name: 'Enterprise',
-      price: 'Custom',
-      period: '',
-      description: 'For teams and institutions',
-      features: [
-        'Everything in Pro',
-        'Custom integrations',
-        'Dedicated account manager',
-        '99.9% SLA guarantee',
-        'On-premise deployment option',
-      ],
-      cta: 'Contact Sales',
-      variant: 'secondary' as const,
-      subtitle: 'Volume discounts available',
-    },
-  ],
-  annual: [
-    {
-      name: 'Free',
-      price: '$0',
-      period: '/month',
-      description: 'Perfect for trying out the tool',
-      features: [
-        '1 CSV file per month',
-        'Basic repair features',
-        'Export to 1 platform',
-        'Community support',
-      ],
-      cta: 'Get Started Free',
-      variant: 'secondary' as const,
-      subtitle: 'No credit card required',
-    },
-    {
-      name: 'Pro',
-      price: '$49',
-      period: '/year',
-      originalPrice: '$108',
-      description: 'For serious crypto traders',
-      features: [
-        'Unlimited CSV files',
-        'Advanced repair features',
-        'Export to all platforms',
-        'Priority email support',
-        'Batch processing',
-        'API access',
-      ],
-      cta: 'Start 14-Day Free Trial',
-      variant: 'primary' as const,
-      popular: true,
-      subtitle: 'Only $4.08/month, billed annually',
-      savings: 'Save $59/year',
-    },
-    {
-      name: 'Enterprise',
-      price: 'Custom',
-      period: '',
-      description: 'For teams and institutions',
-      features: [
-        'Everything in Pro',
-        'Custom integrations',
-        'Dedicated account manager',
-        '99.9% SLA guarantee',
-        'On-premise deployment option',
-      ],
-      cta: 'Contact Sales',
-      variant: 'secondary' as const,
-      subtitle: 'Volume discounts available',
-    },
-  ],
-};
+const pricingData: PricingPlan[] = [
+  {
+    name: 'Free',
+    price: '$0',
+    period: '',
+    description: "Understand what's broken before you fix it.",
+    features: [
+      'Upload and analyze CSV files',
+      'AI insight panels explaining all issues',
+      'Wash sale, duplicate, and data integrity detection',
+      'No export',
+    ],
+    cta: 'Analyze My CSV',
+    variant: 'secondary',
+    subtitle: 'No credit card required',
+  },
+  {
+    name: 'Pro',
+    price: '$89',
+    period: '/tax year',
+    description: 'Get a corrected CSV you can upload directly to tax software.',
+    features: [
+      'Tax-compliant corrected CSV',
+      'Cost basis adjustments applied',
+      'Wash sale handling reflected in output',
+      'Timestamp and currency normalization',
+      'Upload to TurboTax, Koinly, CoinLedger, ZenLedger',
+      'Unlimited re-runs for the same tax year',
+      'Email support',
+    ],
+    cta: 'Download Fixed CSV',
+    variant: 'primary',
+    popular: true,
+    subtitle: 'One-time purchase per tax year',
+  },
+  {
+    name: 'Premium',
+    price: '$189',
+    period: '/tax year',
+    description: 'Audit-ready documentation and full AI explanations.',
+    features: [
+      'Everything in Pro',
+      'AI-generated PDF tax report',
+      'Line-by-line explanations for accountants',
+      'Audit-ready notes and transaction lineage',
+      'Priority support',
+    ],
+    cta: 'Get Audit-Ready Output',
+    variant: 'secondary',
+    subtitle: 'Best for complex or high-volume traders',
+  },
+];
 
 export function Pricing() {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
-  const plans = pricingData[billingCycle];
-
   return (
     <section id="pricing" className="bg-slate-50 py-24 sm:py-32">
       <Container>
         <div className="text-center mb-16">
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
-            Fair pricing, scalable power
+            Simple pricing, powerful results
           </h2>
-          <p className="text-lg text-[#6b7280] mb-8">Choose the plan that fits your needs</p>
-
-          {/* Billing Toggle */}
-          <div className="inline-flex items-center gap-3 p-1.5 bg-[#f3f4f6] rounded-full">
-            <button
-              type="button"
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                billingCycle === 'monthly'
-                  ? 'bg-white text-[#1a365d] shadow-md'
-                  : 'text-[#6b7280] hover:text-[#1a365d]'
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle('annual')}
-              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                billingCycle === 'annual'
-                  ? 'bg-white text-[#1a365d] shadow-md'
-                  : 'text-[#6b7280] hover:text-[#1a365d]'
-              }`}
-            >
-              Annual
-              <span className="inline-flex items-center px-2 py-0.5 bg-gradient-to-r from-[#059669] to-[#047857] text-white text-xs font-bold rounded-full">
-                Save 54%
-              </span>
-            </button>
-          </div>
+          <p className="text-lg text-[#6b7280] mb-2">
+            One-time purchase per tax year. No subscriptions.
+          </p>
+          <p className="text-sm text-[#9ca3af]">
+            Fix your crypto CSV files and ensure tax compliance
+          </p>
         </div>
 
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {plans.map((plan, index) => {
+          {pricingData.map((plan, index) => {
             const isPro = plan.popular;
             return (
               <div
-                key={`${billingCycle}-${index}`}
+                key={index}
                 className={`relative ${isPro ? 'md:scale-105 z-20' : 'z-10'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -203,15 +119,6 @@ export function Pricing() {
                       {plan.name}
                     </h3>
                     <div className="flex items-baseline mb-2">
-                      {plan.originalPrice && billingCycle === 'annual' && (
-                        <span
-                          className={`text-2xl font-semibold line-through mr-2 ${
-                            isPro ? 'text-[#9ca3af]' : 'text-[#9ca3af]'
-                          }`}
-                        >
-                          {plan.originalPrice}
-                        </span>
-                      )}
                       <span
                         className={`text-4xl font-bold ${
                           isPro ? 'text-white' : 'text-[#1a365d]'
@@ -229,13 +136,6 @@ export function Pricing() {
                         </span>
                       )}
                     </div>
-                    {plan.savings && billingCycle === 'annual' && (
-                      <div className="mb-2">
-                        <span className="inline-flex items-center px-2 py-1 bg-[#059669]/20 text-[#059669] text-xs font-bold rounded-full">
-                          {plan.savings}
-                        </span>
-                      </div>
-                    )}
                     <p
                       className={`text-sm ${
                         isPro ? 'text-[#d1d5db]' : 'text-[#4b5563]'
@@ -257,9 +157,11 @@ export function Pricing() {
                   <ul className="space-y-4 mb-8 flex-grow">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                          isPro ? 'bg-[#059669]/20' : 'bg-[#059669]/10'
-                        }`}>
+                        <div
+                          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                            isPro ? 'bg-[#059669]/20' : 'bg-[#059669]/10'
+                          }`}
+                        >
                           <Check
                             className="h-4 w-4 text-[#059669] font-bold"
                             strokeWidth={3}
@@ -296,4 +198,3 @@ export function Pricing() {
     </section>
   );
 }
-
