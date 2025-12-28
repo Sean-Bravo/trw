@@ -1,47 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Rocket, BarChart3, AlertTriangle, Upload, HelpCircle, MessageCircle } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { DOCS_SECTIONS } from '@/lib/docs-config'
+
+// Extract to constant outside component to prevent recreation on every render
+const HOME_SECTIONS = DOCS_SECTIONS.map(section => ({
+  title: section.title,
+  description: section.description,
+  link: `/docs/${section.slug}`,
+  icon: section.icon,
+}))
 
 export default function DocsHome() {
-  const sections = [
-    {
-      title: 'Getting Started',
-      description: 'Learn how to upload your CSV and get started with TaxFormatter',
-      link: '/docs/getting-started/upload-your-first-csv',
-      icon: Rocket,
-    },
-    {
-      title: 'Understanding Results',
-      description: 'Understand what the AI insights mean and how to read your formatted data',
-      link: '/docs/understanding-your-results',
-      icon: BarChart3,
-    },
-    {
-      title: 'Tax Issues & Flags',
-      description: 'Deep dive into wash sales, staking income, airdrops, and other tax issues',
-      link: '/docs/tax-issues-flags/wash-sales',
-      icon: AlertTriangle,
-    },
-    {
-      title: 'Exporting Your Data',
-      description: 'Export your formatted CSV and integrate with TurboTax, Koinly, and more',
-      link: '/docs/exporting-your-data',
-      icon: Upload,
-    },
-    {
-      title: 'FAQ',
-      description: 'Common questions and answers about TaxFormatter',
-      link: '/docs/faq',
-      icon: HelpCircle,
-    },
-    {
-      title: 'Support',
-      description: 'Get help or contact us with questions',
-      link: '/docs/support/contact',
-      icon: MessageCircle,
-    },
-  ]
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -58,7 +29,7 @@ export default function DocsHome() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sections.map((section) => {
+          {HOME_SECTIONS.map((section) => {
             const Icon = section.icon
             return (
               <Link
@@ -84,15 +55,12 @@ export default function DocsHome() {
           })}
         </div>
 
-        {/* Search Suggestion */}
+        {/* Help Section */}
         <div className="mt-16 p-8 bg-blue-50 border border-blue-200 rounded-xl">
           <h3 className="text-lg font-bold text-gray-900 mb-2">Can't find what you're looking for?</h3>
-          <p className="text-gray-600 mb-4">
-            Use the sidebar navigation or search above to find the answer. Still stuck?
+          <p className="text-gray-600">
+            Use the sidebar navigation to browse all documentation topics, or check out our FAQ section for common questions.
           </p>
-          <a href="/docs/support/contact" className="text-blue-600 hover:underline font-semibold">
-            Contact us →
-          </a>
         </div>
       </div>
     </div>
