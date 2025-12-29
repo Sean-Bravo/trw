@@ -92,8 +92,8 @@ export function Testimonials() {
 
         {/* Testimonial Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-          {testimonials.map((t, index) => (
-            <TestimonialCard key={index} testimonial={t} />
+          {testimonials.map((t) => (
+            <TestimonialCard key={t.name} testimonial={t} />
           ))}
         </div>
 
