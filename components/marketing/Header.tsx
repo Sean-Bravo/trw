@@ -35,12 +35,12 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/#signin" className="hidden md:block text-[#1a365d] dark:text-gray-200 hover:text-[#3b82f6] dark:hover:text-blue-400 transition-colors text-sm font-semibold">
             Sign In
           </Link>
           <ThemeToggle />
-          <Button variant="primary" href="/#start" className="hidden sm:inline-flex shadow-lg shadow-[#3b82f6]/20">
+          <Button variant="primary" href="/#start" className="hidden md:inline-flex shadow-lg shadow-[#3b82f6]/20">
             Start Free
           </Button>
 
