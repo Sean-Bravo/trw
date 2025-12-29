@@ -1,0 +1,146 @@
+---
+title: "How to Fix Common CSV Errors from Crypto Exchanges"
+description: "Learn how to identify and fix the most common CSV errors from Coinbase, Binance, Kraken, and other exchanges before importing to your tax software."
+date: 2025-01-10
+author: "TaxFormatter Team"
+category: "guides"
+tags: ["CSV", "errors", "exchanges", "troubleshooting", "data cleaning"]
+image: "/blog/csv-errors.jpg"
+published: true
+featured: false
+---
+
+## Common CSV Errors and How to Fix Them
+
+Crypto exchanges often export CSV files with errors that prevent import into tax software. Here's how to identify and fix them.
+
+### 1. Missing Dates
+
+**Problem**: Some rows have blank date fields
+
+```csv
+Date,Amount,Type
+2025-01-01,0.5,Buy
+,1.2,Sell  ← Missing date
+```
+
+**Solution**: TaxFormatter automatically detects missing dates and either fills them from context or flags them for review.
+
+### 2. Inconsistent Date Formats
+
+**Problem**: Mixed date formats in the same file
+
+```csv
+01/15/2025  ← MM/DD/YYYY
+2025-01-16  ← ISO format
+15-Jan-25   ← Custom format
+```
+
+**Solution**: Our AI engine recognizes 20+ date formats and standardizes them automatically.
+
+### 3. Missing Transaction Types
+
+**Problem**: Exchange doesn't specify buy/sell/trade
+
+```csv
+Date,Amount,Currency
+2025-01-01,0.5,BTC
+2025-01-02,-0.3,BTC  ← Is this a sell or transfer?
+```
+
+**Solution**: We infer transaction types from amount signs and historical patterns.
+
+### 4. Duplicate Transactions
+
+**Problem**: Same transaction appears multiple times
+
+This happens when:
+- Downloading monthly reports that overlap
+- Partial refunds create duplicate entries
+- Exchange API glitches
+
+**Solution**: TaxFormatter detects duplicates by matching timestamp, amount, and currency within a 1-second window.
+
+### 5. Special Characters in Headers
+
+**Problem**: Non-ASCII characters in column names
+
+```csv
+Dáte,Ámount,Çurrency  ← Non-standard characters
+```
+
+**Solution**: We normalize all headers to ASCII equivalents.
+
+### 6. Extra Columns
+
+**Problem**: CSVs contain internal exchange IDs, metadata, or notes
+
+```csv
+Date,Amount,InternalID,Notes,Status,ProcessingFee
+```
+
+**Solution**: Our parser extracts only the columns needed for tax reporting and discards the rest.
+
+### 7. Inconsistent Decimal Separators
+
+**Problem**: European vs US decimal formats
+
+```csv
+1.234,56  ← European (comma as decimal)
+1,234.56  ← US (comma as thousands)
+```
+
+**Solution**: Context-aware detection determines which format is being used.
+
+### 8. Missing Exchange Information
+
+**Problem**: CSV doesn't specify which exchange it's from
+
+Tax software needs to know the source exchange for accurate reporting.
+
+**Solution**: TaxFormatter's AI fingerprints the CSV structure to identify the source exchange automatically.
+
+### DIY vs Automated Fixing
+
+#### Manual Approach (8+ hours)
+1. Open CSV in Excel
+2. Find all errors manually
+3. Fix each one individually
+4. Re-export and test
+5. Repeat until clean
+
+#### TaxFormatter Approach (30 seconds)
+1. Upload your CSV
+2. AI automatically detects and fixes all issues
+3. Download clean, formatted file
+4. Import directly to your tax software
+
+### Best Practices
+
+✅ **Download directly from exchange** - Don't edit in Excel first
+
+✅ **Include all transactions** - Even failed or cancelled ones
+
+✅ **Keep original files** - Save a backup before processing
+
+✅ **Verify totals** - Check that transaction counts match
+
+### When to Get Help
+
+Contact support if you have:
+- Custom or proprietary exchange formats
+- Transactions spanning multiple exchanges
+- DeFi or smart contract transactions
+- NFT trades mixed with crypto
+
+### Try It Free
+
+Upload your CSV to **TaxFormatter** and get a free audit showing exactly what errors we found and how we'll fix them.
+
+No credit card required. No risk.
+
+---
+
+**Related Articles:**
+- [Complete Crypto Tax Guide for 2025](/blog/crypto-tax-guide-2025)
+- [Best Crypto Tax Software Comparison](/blog/crypto-tax-software-comparison)

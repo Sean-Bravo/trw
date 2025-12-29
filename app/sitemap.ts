@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { allDocs } from '.contentlayer/generated';
+import { allDocs, allPosts } from '.contentlayer/generated';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://taxformatter.com';
@@ -11,6 +11,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
+    },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/docs`,
@@ -34,5 +40,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...routes, ...docPages];
+  // Add all blog posts
+  const blogPosts = allPosts
+    .filter((post) => post.published)
+    .map((post) => ({
+      url: `${baseUrl}${post.url}`,
+      lastModified: new Date(post.date),
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    }));
+
+  return [...routes, ...docPages, ...blogPosts];
 }

@@ -25,6 +25,7 @@
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "contentlayer2": "^0.5.8",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.0",
     "next-auth": "^4.24.13",
