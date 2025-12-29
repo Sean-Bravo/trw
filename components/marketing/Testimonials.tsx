@@ -1,183 +1,135 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Container } from '../layout/Container';
-import { Card } from '../ui/Card';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React from 'react';
+import { 
+  FileText, 
+  CheckCircle, 
+  Star 
+} from 'lucide-react';
 
-const testimonials = [
-  {
-    rating: 5,
-    quote: 'Fixed my CSV in seconds and exported to Koinly. Worth every penny.',
-    author: 'Alex Chen',
-    role: 'Crypto Trader',
-    avatar: 'AC',
-    avatarColor: 'bg-gradient-to-br from-[#3b82f6] to-[#2563eb]',
-  },
-  {
-    rating: 5,
-    quote: 'Saved me hours of manual work. Exactly what the crypto community needed.',
-    author: 'Sarah Martinez',
-    role: 'Day Trader',
-    avatar: 'SM',
-    avatarColor: 'bg-gradient-to-br from-[#8b5cf6] to-[#6366f1]',
-  },
-  {
-    rating: 5,
-    quote: 'Simple, fast, and reliable. No more fighting with tax software formats.',
-    author: 'Michael Park',
-    role: 'DeFi Investor',
-    avatar: 'MP',
-    avatarColor: 'bg-gradient-to-br from-[#059669] to-[#047857]',
-  },
-];
+// Define the structure for our testimonial data
+interface Testimonial {
+  name: string;
+  role: string;
+  quote: string;
+  avatarInitials: string;
+}
+
+const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => {
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full">
+      {/* 5 Stars */}
+      <div className="flex gap-1 mb-6">
+        {[...Array(5)].map((_, i) => (
+          <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+        ))}
+      </div>
+
+      {/* Quote */}
+      <p className="text-slate-700 italic mb-8 leading-relaxed text-lg flex-grow">
+        "{testimonial.quote}"
+      </p>
+
+      {/* Author Info */}
+      <div className="flex items-center pt-6 border-t border-slate-50">
+        {/* Avatar - Uniform Brand Blue */}
+        <div className="w-12 h-12 rounded-full bg-[#2563EB] flex items-center justify-center text-white font-bold text-sm shadow-sm mr-4 shrink-0">
+          {testimonial.avatarInitials}
+        </div>
+        <div>
+          <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
+          <p className="text-sm text-slate-500">{testimonial.role}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export function Testimonials() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isAutoPlaying]);
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
-
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 10000);
-  };
+  const testimonials: Testimonial[] = [
+    {
+      name: "Alex Chen",
+      role: "Crypto Trader",
+      quote: "Fixed my CSV in seconds and exported to Koinly. Worth every penny.",
+      avatarInitials: "AC",
+    },
+    {
+      name: "Sarah Martinez",
+      role: "Day Trader",
+      quote: "Saved me hours of manual work. Exactly what the crypto community needed.",
+      avatarInitials: "SM",
+    },
+    {
+      name: "Michael Park",
+      role: "DeFi Investor",
+      quote: "Simple, fast, and reliable. No more fighting with tax software formats.",
+      avatarInitials: "MP",
+    },
+  ];
 
   return (
-    <section className="bg-white py-16 sm:py-20">
-      <Container>
-        <div className="text-center mb-12">
-          <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-2">
+    <section className="py-24 bg-white relative overflow-hidden font-sans">
+      {/* Subtle Grid Background Pattern */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none">
+         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid-pattern" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+         </svg>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">
             Trusted by Crypto Traders
           </h2>
         </div>
 
-        {/* Mobile Carousel */}
-        <div className="max-w-4xl mx-auto mb-8 lg:hidden">
-          <div className="relative">
-            {/* Navigation Arrows */}
-            <button
-              onClick={goToPrevious}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg border border-[#e5e7eb] flex items-center justify-center hover:bg-[#3b82f6] hover:text-white transition-all duration-300"
-              aria-label="Previous"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-
-            <button
-              onClick={goToNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg border border-[#e5e7eb] flex items-center justify-center hover:bg-[#3b82f6] hover:text-white transition-all duration-300"
-              aria-label="Next"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-
-            {/* Carousel */}
-            <div className="overflow-hidden">
-              <div
-                className="flex transition-transform duration-500 ease-out"
-                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-              >
-                {testimonials.map((testimonial, index) => (
-                  <div key={index} className="w-full flex-shrink-0 px-4">
-                    <Card className="p-6">
-                      <div className="flex gap-1 mb-4">
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i} className="text-lg">⭐</span>
-                        ))}
-                      </div>
-                      <p className="text-base text-[#1a365d] italic mb-6 leading-relaxed">
-                        "{testimonial.quote}"
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg`}>
-                          <span className="text-white font-bold text-sm">{testimonial.avatar}</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-sm text-[#1a365d]">{testimonial.author}</p>
-                          <p className="text-xs text-[#6b7280]">{testimonial.role}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Dots */}
-            <div className="flex justify-center gap-2 mt-6">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setCurrentIndex(index);
-                    setIsAutoPlaying(false);
-                    setTimeout(() => setIsAutoPlaying(true), 10000);
-                  }}
-                  className={`transition-all duration-300 rounded-full ${
-                    index === currentIndex
-                      ? 'w-6 h-2 bg-[#3b82f6]'
-                      : 'w-2 h-2 bg-[#d1d5db] hover:bg-[#9ca3af]'
-                  }`}
-                  aria-label={`Go to ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop Grid - 3 Cards */}
-        <div className="max-w-6xl mx-auto hidden lg:grid grid-cols-3 gap-6 mb-12">
-          {testimonials.map((testimonial, index) => (
-            <Card key={index} className="p-6 hover:shadow-lg transition-all duration-300">
-              <div className="flex gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-base">⭐</span>
-                ))}
-              </div>
-              <p className="text-sm text-[#1a365d] italic mb-4 leading-relaxed">
-                "{testimonial.quote}"
-              </p>
-              <div className="flex items-center gap-3 pt-4 border-t border-[#e5e7eb]">
-                <div className={`w-10 h-10 rounded-full ${testimonial.avatarColor} flex items-center justify-center shadow-lg`}>
-                  <span className="text-white font-bold text-xs">{testimonial.avatar}</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-xs text-[#1a365d]">{testimonial.author}</p>
-                  <p className="text-xs text-[#6b7280]">{testimonial.role}</p>
-                </div>
-              </div>
-            </Card>
+        {/* Testimonial Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          {testimonials.map((t, index) => (
+            <TestimonialCard key={index} testimonial={t} />
           ))}
         </div>
 
-        {/* Stats Bar */}
-        <div className="max-w-3xl mx-auto bg-gradient-to-r from-[#3b82f6] to-[#2563eb] rounded-xl p-8 text-white text-center">
-          <div className="grid grid-cols-2 gap-8">
-            <div>
-              <div className="text-4xl font-bold mb-1">10K+</div>
-              <div className="text-sm font-semibold text-blue-100">Files Repaired</div>
+        {/* Blue Stats Bar */}
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-[#2563EB] rounded-2xl shadow-xl p-8 md:p-10 text-white flex flex-col md:flex-row items-center justify-around text-center md:text-left">
+            
+            {/* Stat 1 */}
+            <div className="flex items-center mb-8 md:mb-0">
+              <div className="p-3 bg-white/10 rounded-lg mr-5">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <span className="block text-4xl font-bold">10K+</span>
+                <span className="block text-blue-100 font-medium text-sm">Files Repaired</span>
+              </div>
             </div>
-            <div>
-              <div className="text-4xl font-bold mb-1">99.9%</div>
-              <div className="text-sm font-semibold text-blue-100">Success Rate</div>
+
+            {/* Vertical Divider (Hidden on mobile) */}
+            <div className="hidden md:block w-px h-16 bg-white/20"></div>
+
+            {/* Stat 2 */}
+            <div className="flex items-center">
+              <div className="p-3 bg-white/10 rounded-lg mr-5">
+                <CheckCircle className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <span className="block text-4xl font-bold">99.9%</span>
+                <span className="block text-blue-100 font-medium text-sm">Success Rate</span>
+              </div>
             </div>
+
           </div>
         </div>
-      </Container>
+
+      </div>
     </section>
   );
 }
