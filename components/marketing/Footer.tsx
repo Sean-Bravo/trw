@@ -12,7 +12,7 @@ export function Footer() {
           <div>
             <Logo variant="light" className="mb-4" />
             <p className="text-sm text-[#d1d5db] leading-relaxed">
-              Crypto taxes, refined. Repair your CSV files and export to any tax platform.
+              Cloud-based software that validates, cleans, and formats cryptocurrency transaction CSV files for compatibility with tax and accounting software.
             </p>
           </div>
 
@@ -80,13 +80,13 @@ export function Footer() {
 
         <div className="border-t border-[#1f2937] pt-8 text-center">
           <p className="text-xs text-[#6b7280]">
-            © 2025 TaxFormatter. All rights reserved.
+            © 2025 TaxFormatter. All rights reserved. 🇺🇸
           </p>
           <p className="text-xs text-[#6b7280]">
              The universal translation engine for crypto data
           </p>
           <p className="text-xs text-[#6b7280] mt-2">
-            Made in NYC 🗽
+            Made in NYC 
           </p>
         </div>
       </Container>
