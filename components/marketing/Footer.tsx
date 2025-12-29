@@ -96,7 +96,7 @@ export function Footer() {
 
           {/* Product */}
           <div>
-            <h4 className="font-poppins text-base font-semibold mb-4">Product</h4>
+            <h3 className="font-poppins text-base font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/#features" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
@@ -116,41 +116,34 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Support */}
           <div>
-            <h4 className="font-poppins text-base font-semibold mb-4">Company</h4>
+            <h3 className="font-poppins text-base font-semibold mb-4">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  About
-                </Link>
+                <a href="mailto:support@taxformatter.com" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
+                  Contact Support
+                </a>
               </li>
               <li>
-                <Link href="/blog" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/#contact" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Contact
-                </Link>
+                <a href="https://twitter.com/taxformatter" target="_blank" rel="noopener noreferrer" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
+                  Twitter
+                </a>
               </li>
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h4 className="font-poppins text-base font-semibold mb-4">Legal</h4>
+            <h3 className="font-poppins text-base font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/privacy" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
+                <Link href="/privacy-policy" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Terms of Service
-                </Link>
+                <span className="text-sm text-[#6b7280]">Terms Coming Soon</span>
               </li>
             </ul>
           </div>

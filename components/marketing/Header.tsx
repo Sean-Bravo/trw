@@ -49,12 +49,14 @@ export function Header() {
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 text-[#1a365d] dark:text-gray-200 hover:text-[#3b82f6] dark:hover:text-blue-400 transition-colors"
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
+              <X className="h-6 w-6" aria-hidden="true" />
             ) : (
-              <Menu className="h-6 w-6" />
+              <Menu className="h-6 w-6" aria-hidden="true" />
             )}
           </button>
         </div>
@@ -62,8 +64,8 @@ export function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#e5e7eb] dark:border-gray-800 bg-white dark:bg-gray-950">
-          <nav className="flex flex-col px-4 py-4 space-y-4">
+        <div id="mobile-menu" className="md:hidden border-t border-[#e5e7eb] dark:border-gray-800 bg-white dark:bg-gray-950">
+          <nav className="flex flex-col px-4 py-4 space-y-4" aria-label="Mobile navigation">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
