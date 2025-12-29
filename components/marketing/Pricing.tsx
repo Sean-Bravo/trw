@@ -76,6 +76,14 @@ export function Pricing() {
     <section id="pricing" className="bg-slate-50 dark:bg-slate-900 py-24 sm:py-32">
       <Container>
         <div className="text-center mb-16">
+          {/* Coming Soon Banner */}
+          <div className="mb-8 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-full">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">
+              Coming Soon - Platform launching Q1 2026
+            </span>
+          </div>
+
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] dark:text-slate-100 mb-4 leading-tight">
             Simple pricing, powerful results
           </h2>
@@ -181,9 +189,10 @@ export function Pricing() {
                   <Button
                     variant={plan.variant}
                     href="#start"
-                    className={`w-full ${
+                    disabled
+                    className={`w-full opacity-60 cursor-not-allowed ${
                       isPro
-                        ? 'bg-[#3b82f6] hover:bg-[#2563eb] text-white border-none'
+                        ? 'bg-[#3b82f6] text-white border-none'
                         : ''
                     }`}
                   >
