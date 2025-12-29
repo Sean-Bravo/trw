@@ -1,6 +1,7 @@
 import React from 'react';
 import { Container } from '../layout/Container';
 import { Accordion } from '../ui/Accordion';
+import { FAQSchema } from '../seo/FAQSchema';
 
 const faqItems = [
   {
@@ -27,31 +28,34 @@ const faqItems = [
 
 export function FAQ() {
   return (
-    <section className="bg-white py-24 sm:py-32">
-      <Container>
-        <div className="text-center mb-16">
-          <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-lg text-[#4b5563] max-w-2xl mx-auto">
-            Everything you need to know about TaxReadyWallet
-          </p>
-        </div>
+    <>
+      <FAQSchema items={faqItems} />
+      <section className="bg-white py-24 sm:py-32">
+        <Container>
+          <div className="text-center mb-16">
+            <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] mb-4 leading-tight">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-[#4b5563] max-w-2xl mx-auto">
+              Everything you need to know about TaxReadyWallet
+            </p>
+          </div>
 
-        <div className="max-w-4xl mx-auto">
-          <Accordion items={faqItems} />
-        </div>
+          <div className="max-w-4xl mx-auto">
+            <Accordion items={faqItems} />
+          </div>
 
-        <div className="text-center mt-10">
-          <p className="text-[#4b5563]">
-            Have more questions?{' '}
-            <a href="#contact" className="text-[#059669] hover:text-[#047857] underline font-semibold">
-              Contact Support
-            </a>
-          </p>
-        </div>
-      </Container>
-    </section>
+          <div className="text-center mt-10">
+            <p className="text-[#4b5563]">
+              Have more questions?{' '}
+              <a href="#contact" className="text-[#059669] hover:text-[#047857] underline font-semibold">
+                Contact Support
+              </a>
+            </p>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }
 

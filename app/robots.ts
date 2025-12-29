@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/private/'],
     },
-    sitemap: 'https://taxreadywallet.com/sitemap.xml',
+    sitemap: 'https://taxformatter.com/sitemap.xml',
   };
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { OrganizationSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 
 // Optimized font loading with next/font
 const inter = Inter({
@@ -91,6 +92,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
+      <head>
+        <OrganizationSchema />
+        <WebSiteSchema />
+      </head>
       <body className="antialiased">
         <ThemeProvider
           attribute="class"

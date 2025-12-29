@@ -13,6 +13,7 @@ import { DOCS_SECTIONS } from '@/lib/docs-config'
 import { getPrevNextDocs, getReadingTime } from '@/lib/docs-utils'
 import { MDXContent } from './mdx-content'
 import type { BreadcrumbItem } from '@/types/docs'
+import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema'
 
 interface DocPageProps {
   params: Promise<{
@@ -33,7 +34,9 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
   }
 
   const title = `${doc.title} - TaxFormatter Docs`
-  const description = doc.description || `Learn about ${doc.title} in TaxFormatter documentation`
+
+  // Generate better meta description - use doc description or create contextual fallback
+  const description = doc.description || `Learn about ${doc.title} in TaxFormatter documentation - comprehensive guide for crypto tax CSV repair and formatting.`
 
   return {
     title,
@@ -90,10 +93,12 @@ export default async function DocPage({ params }: DocPageProps) {
   const readingTime = getReadingTime(doc.body.raw)
 
   return (
-    <div className="flex gap-8">
-      <article className="flex-1 prose prose-sm max-w-none dark:prose-invert">
-        <div className="mb-8 pb-8 border-b border-gray-200">
-          <Breadcrumbs items={breadcrumbItems} />
+    <>
+      <BreadcrumbSchema items={breadcrumbItems} />
+      <div className="flex gap-8">
+        <article className="flex-1 prose prose-sm max-w-none dark:prose-invert">
+          <div className="mb-8 pb-8 border-b border-gray-200">
+            <Breadcrumbs items={breadcrumbItems} />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">{doc.title}</h1>
           {doc.description && (
             <p className="text-lg text-gray-600">{doc.description}</p>
@@ -126,7 +131,8 @@ export default async function DocPage({ params }: DocPageProps) {
       </article>
 
       <TableOfContents content={doc.body.raw} />
-    </div>
+      </div>
+    </>
   )
 }
 
