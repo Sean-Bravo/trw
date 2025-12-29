@@ -109,12 +109,11 @@ export function Hero() {
             
             {/* LEFT COLUMN: Input Reactor (Drag & Drop) */}
             <div className="lg:col-span-7 flex flex-col h-full min-h-[400px]">
-              <div 
-                onClick={handleUpload}
+              <div
                 className={`
-                  relative flex-1 rounded-3xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden flex flex-col items-center justify-center p-8 sm:p-12
+                  relative flex-1 rounded-3xl border-2 border-dashed transition-all duration-300 cursor-not-allowed overflow-hidden flex flex-col items-center justify-center p-8 sm:p-12 opacity-75
                   ${status === 'idle'
-                    ? 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-slate-700/50 hover:shadow-xl shadow-sm'
+                    ? 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50'
                     : 'border-blue-500/30 dark:border-blue-400/30 bg-blue-50/20 dark:bg-slate-700/30'
                   }
                 `}
@@ -122,12 +121,20 @@ export function Hero() {
                 {/* IDLE STATE */}
                 {status === 'idle' && (
                   <div className="text-center space-y-6 animate-in fade-in zoom-in duration-300">
-                    <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                    {/* Coming Soon Badge */}
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-blue-300 dark:border-blue-600 rounded-full mb-4">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-bold text-blue-900 dark:text-blue-300">
+                        Coming Q1 2026
+                      </span>
+                    </div>
+
+                    <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto transition-transform duration-300 shadow-inner">
                       <UploadCloud className="w-10 h-10" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 font-poppins mb-2">Drop your CSV file here</h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-lg">or click to browse</p>
+                      <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 font-poppins mb-2">CSV Upload Feature</h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-lg">Platform launching soon</p>
                     </div>
                     <div className="flex gap-2 justify-center pt-4 opacity-60">
                       {['Coinbase', 'Binance', 'Kraken', 'KuCoin'].map(ex => (

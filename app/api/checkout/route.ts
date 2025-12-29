@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, STRIPE_PLANS } from '@/lib/stripe'
 import { getServerSession } from 'next-auth'
+import { captureException, setContext } from '@/lib/sentry'
 
 export async function POST(request: NextRequest) {
+  let plan: string | undefined
+  let session: any
+
   try {
-    const session = await getServerSession()
+    session = await getServerSession()
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -14,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { plan } = body
+    plan = body.plan
 
     // Validate plan
     if (!plan || !STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
@@ -48,6 +52,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: checkoutSession.url })
   } catch (error: any) {
     console.error('Checkout error:', error)
+
+    // Send error to Sentry with context
+    setContext('checkout', {
+      plan,
+      userEmail: session?.user?.email,
+    })
+    captureException(error)
+
     return NextResponse.json(
       { error: error.message || 'Failed to create checkout session' },
       { status: 500 }
