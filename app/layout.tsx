@@ -3,6 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo/StructuredData";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 
 // Optimized font loading with next/font
 const inter = Inter({
@@ -95,6 +96,7 @@ export default function RootLayout({
       <head>
         <OrganizationSchema />
         <WebSiteSchema />
+        <GoogleAnalytics />
       </head>
       <body className="antialiased">
         <ThemeProvider
