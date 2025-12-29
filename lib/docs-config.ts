@@ -4,22 +4,13 @@ import {
   AlertTriangle,
   Upload,
   HelpCircle,
-  type LucideIcon
 } from 'lucide-react'
+import type { DocSection } from '@/types/docs'
 
-export interface DocPage {
-  title: string
-  slug: string
-}
-
-export interface DocSection {
-  title: string
-  slug: string
-  description: string
-  icon: LucideIcon
-  pages: DocPage[]
-}
-
+/**
+ * Centralized documentation structure
+ * Defines all doc sections and pages for the application
+ */
 export const DOCS_SECTIONS: DocSection[] = [
   {
     title: 'Getting Started',

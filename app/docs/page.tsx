@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import { DOCS_SECTIONS } from '@/lib/docs-config'
+import { DocCard } from '@/components/docs/DocCard'
 
 // Extract to constant outside component to prevent recreation on every render
 const HOME_SECTIONS = DOCS_SECTIONS.map(section => ({
@@ -12,8 +11,11 @@ const HOME_SECTIONS = DOCS_SECTIONS.map(section => ({
   icon: section.icon,
 }))
 
+/**
+ * Documentation home page showing all available doc sections
+ * Displays cards linking to major documentation categories
+ */
 export default function DocsHome() {
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Header */}
@@ -29,30 +31,15 @@ export default function DocsHome() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {HOME_SECTIONS.map((section) => {
-            const Icon = section.icon
-            return (
-              <Link
-                key={section.title}
-                href={section.link}
-                className="group block p-6 border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg hover:bg-blue-50/30 transition-all duration-300"
-              >
-                <div className="flex items-start gap-4">
-                  <Icon className="w-10 h-10 text-gray-900" />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {section.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-2">{section.description}</p>
-                    <div className="flex items-center gap-2 mt-4 text-blue-600 font-semibold text-sm group-hover:gap-3 transition-all">
-                      Read more
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+          {HOME_SECTIONS.map((section) => (
+            <DocCard
+              key={section.title}
+              title={section.title}
+              description={section.description}
+              link={section.link}
+              icon={section.icon}
+            />
+          ))}
         </div>
 
         {/* Help Section */}

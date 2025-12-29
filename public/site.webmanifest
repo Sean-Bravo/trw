@@ -1,0 +1,16 @@
+{
+  "name": "TaxFormatter",
+  "short_name": "TaxFormatter",
+  "description": "AI-powered cryptocurrency tax CSV formatter",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
