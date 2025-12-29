@@ -10,23 +10,27 @@ import { FAQ } from '@/components/marketing/FAQ';
 import { FinalCTA } from '@/components/marketing/FinalCTA';
 import { Pricing } from '@/components/marketing/Pricing';
 import { Footer } from '@/components/marketing/Footer';
+import { SoftwareApplicationSchema } from '@/components/seo/SoftwareApplicationSchema';
 
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <Header />
-      <Hero />
-      <HowItWorks />
-      <CostOfClarity />
-      <SecurityFeatures />
-      <Testimonials />
-      <SupportedExchanges />
-      <ExportFormats />
-      <FAQ />
-      <Pricing />
-      <FinalCTA />
-      <Footer />
-    </main>
+    <>
+      <SoftwareApplicationSchema />
+      <main className="min-h-screen">
+        <Header />
+        <Hero />
+        <HowItWorks />
+        <CostOfClarity />
+        <SecurityFeatures />
+        <Testimonials />
+        <SupportedExchanges />
+        <ExportFormats />
+        <FAQ />
+        <Pricing />
+        <FinalCTA />
+        <Footer />
+      </main>
+    </>
   );
 }
