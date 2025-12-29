@@ -22,7 +22,7 @@ export function CostOfClarity() {
         </div>
 
         <div className="max-w-5xl mx-auto overflow-visible rounded-2xl border-2 border-[#e5e7eb] shadow-2xl bg-white relative z-10">
-          <div className="grid grid-cols-3">
+          <div className="hidden md:grid md:grid-cols-3">
             
             {/* Column 1: Feature Labels */}
             <div className="bg-gradient-to-b from-[#f9fafb] to-[#f3f4f6] p-8 flex flex-col justify-center gap-8 border-r border-[#e5e7eb]">
@@ -133,8 +133,72 @@ export function CostOfClarity() {
             </div>
           </div>
 
+          {/* Mobile Version - Show only TaxReadyWallet */}
+          <div className="md:hidden p-8 bg-gradient-to-br from-[#1a365d] to-[#0f172a] text-white relative">
+            {/* "Best Choice" Badge */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg z-20 whitespace-nowrap">
+              ⭐ BEST VALUE
+            </div>
+
+            <div className="mt-4 mb-8 text-center">
+              <span className="font-poppins font-bold text-white uppercase tracking-wider text-lg">TaxReadyWallet</span>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center justify-between p-4 bg-white/10 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#3b82f6]/20 rounded-lg">
+                    <Clock className="h-5 w-5 text-[#60A5FA]" />
+                  </div>
+                  <span className="text-sm font-medium">Time per file</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-[#60A5FA]">30s</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-white/10 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#059669]/20 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-[#4ADE80]" />
+                  </div>
+                  <span className="text-sm font-medium">Cost per year</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-[#4ADE80]">$49</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-white/10 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#8B5CF6]/20 rounded-lg">
+                    <Shield className="h-5 w-5 text-[#93C5FD]" />
+                  </div>
+                  <span className="text-sm font-medium">Accuracy</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-[#93C5FD]">99.9%</div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-white/10 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#F59E0B]/20 rounded-lg">
+                    <Zap className="h-5 w-5 text-[#F59E0B]" />
+                  </div>
+                  <span className="text-sm font-medium">Auto-Formatting</span>
+                </div>
+                <div className="flex justify-center">
+                  <div className="p-2 bg-gradient-to-br from-[#4ADE80] to-[#22C55E] rounded-full shadow-lg">
+                    <Check className="h-5 w-5 text-white font-bold" strokeWidth={3} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Bottom trust bar */}
-          <div className="grid grid-cols-3 border-t border-[#e5e7eb] bg-gradient-to-r from-[#f9fafb] via-white to-[#f9fafb]">
+          <div className="hidden md:grid md:grid-cols-3 border-t border-[#e5e7eb] bg-gradient-to-r from-[#f9fafb] via-white to-[#f9fafb]">
             <div className="p-4 text-center border-r border-[#e5e7eb]">
               <p className="text-xs text-[#6b7280]">No credit card</p>
             </div>
@@ -143,6 +207,19 @@ export function CostOfClarity() {
             </div>
             <div className="p-4 text-center">
               <p className="text-xs text-[#6b7280]">Export anywhere</p>
+            </div>
+          </div>
+
+          {/* Mobile trust bar */}
+          <div className="md:hidden grid grid-cols-3 border-t border-[#1a365d]/30 bg-[#0f172a]">
+            <div className="p-4 text-center border-r border-[#1a365d]/30">
+              <p className="text-xs text-[#93C5FD]">No credit card</p>
+            </div>
+            <div className="p-4 text-center border-r border-[#1a365d]/30">
+              <p className="text-xs text-[#93C5FD]">No lock-in</p>
+            </div>
+            <div className="p-4 text-center">
+              <p className="text-xs text-[#93C5FD]">Export anywhere</p>
             </div>
           </div>
         </div>
