@@ -21,7 +21,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
       <nav aria-label="Docs sidebar" className="space-y-8">
         {sections.map((section) => (
           <div key={section.slug}>
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide mb-3">
               {section.title}
             </h3>
             <ul className="space-y-2">
@@ -36,8 +36,8 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
                       className={cn(
                         'text-sm transition-colors',
                         isActive
-                          ? 'text-blue-600 font-semibold'
-                          : 'text-gray-600 hover:text-blue-600 hover:underline'
+                          ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:underline'
                       )}
                       aria-current={isActive ? 'page' : undefined}
                     >

@@ -18,8 +18,8 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     const matches = [...content.matchAll(headingRegex)]
 
     const tocItems: TocItem[] = matches.map((match) => {
-      const level = match[1].length
-      const text = match[2].replace(/[`*_]/g, '') // Remove markdown formatting
+      const level = match[1]?.length || 2
+      const text = match[2]?.replace(/[`*_]/g, '') || '' // Remove markdown formatting
       const id = text
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     let customerId: string
 
-    if (customers.data.length > 0) {
+    if (customers.data.length > 0 && customers.data[0]) {
       customerId = customers.data[0].id
     } else {
       const customer = await stripe.customers.create({
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Create portal session
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/account`,
+      return_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/account`,
     })
 
     return NextResponse.json({ url: portalSession.url })

@@ -46,7 +46,7 @@ export function Hero() {
   };
 
   return (
-    <section className="bg-gradient-to-b from-white to-[#f9fafb] py-24 sm:py-32 relative overflow-hidden">
+    <section className="bg-gradient-to-b from-white to-[#f9fafb] dark:from-slate-900 dark:to-slate-800 py-24 sm:py-32 relative overflow-hidden">
       {/* --- BACKGROUND DECORATION --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute top-20 right-0 w-96 h-96 bg-[#3b82f6] rounded-full opacity-8 blur-3xl animate-float"></div>
@@ -63,7 +63,7 @@ export function Hero() {
           {/* --- HEADER SECTION --- */}
           <div className="text-center mb-16">
             <div className="mb-6 flex justify-center">
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-[#3b82f6]/10 to-[#1a365d]/10 backdrop-blur-sm border border-[#3b82f6]/20 text-[#1a365d] rounded-full text-xs font-semibold uppercase tracking-wider hover:border-[#3b82f6]/40 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-300 animate-slide-up">
+              <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-[#3b82f6]/10 to-[#1a365d]/10 dark:from-blue-500/10 dark:to-blue-700/10 backdrop-blur-sm border border-[#3b82f6]/20 dark:border-slate-600 text-[#1a365d] dark:text-slate-200 rounded-full text-xs font-semibold uppercase tracking-wider hover:border-[#3b82f6]/40 dark:hover:border-slate-500 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-300 animate-slide-up">
                 
                 {/* REPLACED SVG WITH GLOWING GREEN DOT */}
                 <span className="relative flex h-2.5 w-2.5">
@@ -75,15 +75,15 @@ export function Hero() {
               </div>
             </div>
 
-            <h1 className="font-poppins text-5xl sm:text-6xl md:text-7xl font-bold text-[#1a365d] leading-tight tracking-tight mb-6 animate-slide-up animation-delay-100">
+            <h1 className="font-poppins text-5xl sm:text-6xl md:text-7xl font-bold text-[#1a365d] dark:text-slate-100 leading-tight tracking-tight mb-6 animate-slide-up animation-delay-100">
               Fix Your Crypto Taxes
               <br />
-              <span className="bg-gradient-to-r from-[#3b82f6] via-[#2563eb] to-[#1a365d] bg-clip-text text-transparent animate-pulse-subtle">
+              <span className="bg-gradient-to-r from-[#3b82f6] via-[#2563eb] to-[#1a365d] dark:from-blue-300 dark:via-blue-400 dark:to-blue-500 bg-clip-text text-transparent animate-pulse-subtle">
                 in 30 Seconds
               </span>
             </h1>
 
-            <p className="text-xl text-[#4b5563] max-w-2xl mx-auto mb-10 leading-relaxed animate-slide-up animation-delay-200">
+            <p className="text-xl text-[#4b5563] dark:text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed animate-slide-up animation-delay-200">
               Broken CSV from your exchange? We clean it, format it, and make it ready for any tax platform. No manual editing required.
             </p>
 
@@ -96,10 +96,10 @@ export function Hero() {
               </Button>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-[#6b7280] mb-4 animate-slide-up animation-delay-500">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 border border-[#3b82f6]/10 hover:border-[#3b82f6]/30 hover:bg-[#3b82f6]/10 transition-all duration-300">
-                <Users className="h-5 w-5 text-[#3b82f6]" />
-                <span className="font-semibold text-[#1a365d]">10,000+ users</span>
+            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-[#6b7280] dark:text-slate-400 mb-4 animate-slide-up animation-delay-500">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 dark:bg-slate-700/50 border border-[#3b82f6]/10 dark:border-slate-600 hover:border-[#3b82f6]/30 dark:hover:border-slate-500 hover:bg-[#3b82f6]/10 dark:hover:bg-slate-700 transition-all duration-300">
+                <Users className="h-5 w-5 text-[#3b82f6] dark:text-blue-400" />
+                <span className="font-semibold text-[#1a365d] dark:text-slate-200">10,000+ users</span>
               </div>
             </div>
           </div>
@@ -113,25 +113,25 @@ export function Hero() {
                 onClick={handleUpload}
                 className={`
                   relative flex-1 rounded-3xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden flex flex-col items-center justify-center p-8 sm:p-12
-                  ${status === 'idle' 
-                    ? 'border-slate-300 bg-white hover:border-blue-500 hover:bg-blue-50/30 hover:shadow-xl shadow-sm' 
-                    : 'border-blue-500/30 bg-blue-50/20'
+                  ${status === 'idle'
+                    ? 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/30 dark:hover:bg-slate-700/50 hover:shadow-xl shadow-sm'
+                    : 'border-blue-500/30 dark:border-blue-400/30 bg-blue-50/20 dark:bg-slate-700/30'
                   }
                 `}
               >
                 {/* IDLE STATE */}
                 {status === 'idle' && (
                   <div className="text-center space-y-6 animate-in fade-in zoom-in duration-300">
-                    <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                    <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-inner">
                       <UploadCloud className="w-10 h-10" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-slate-800 font-poppins mb-2">Drop your CSV file here</h3>
-                      <p className="text-slate-500 text-lg">or click to browse</p>
+                      <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 font-poppins mb-2">Drop your CSV file here</h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-lg">or click to browse</p>
                     </div>
                     <div className="flex gap-2 justify-center pt-4 opacity-60">
                       {['Coinbase', 'Binance', 'Kraken', 'KuCoin'].map(ex => (
-                        <span key={ex} className="px-3 py-1 bg-slate-100 rounded-md text-xs font-medium text-slate-500 border border-slate-200">
+                        <span key={ex} className="px-3 py-1 bg-slate-100 dark:bg-slate-700/50 rounded-md text-xs font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
                           {ex}
                         </span>
                       ))}
@@ -141,36 +141,36 @@ export function Hero() {
 
                 {/* PROCESSING STATE (Replaces the drag drop UI) */}
                 {(status === 'analyzing' || status === 'complete') && (
-                  <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-xl border border-blue-100 animate-in slide-in-from-bottom-4 duration-500 relative overflow-hidden">
+                  <div className="w-full max-w-md bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border border-blue-100 dark:border-slate-600 animate-in slide-in-from-bottom-4 duration-500 relative overflow-hidden">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-14 h-14 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-center flex-shrink-0">
                         <FileText className="w-7 h-7" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-slate-900 truncate">binance_trade_history.csv</p>
-                        <p className="text-sm text-slate-500 flex items-center gap-2">
+                        <p className="font-bold text-slate-900 dark:text-slate-100 truncate">binance_trade_history.csv</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
                           {status === 'analyzing' ? (
                             <>
                               <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
                               Processing...
                             </>
                           ) : (
-                            <span className="text-green-600 font-medium">Ready for export</span>
+                            <span className="text-green-600 dark:text-green-400 font-medium">Ready for export</span>
                           )}
                         </p>
                       </div>
                       {status === 'complete' && (
-                         <button onClick={reset} className="text-sm text-blue-600 font-medium hover:underline">
+                         <button onClick={reset} className="text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline">
                            Reset
                          </button>
                       )}
                     </div>
-                    
+
                     {/* Fake Progress Bar inside the card */}
                     {status === 'analyzing' && (
-                       <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                         <div 
-                           className="h-full bg-blue-500 transition-all duration-300 ease-out"
+                       <div className="mt-4 h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                         <div
+                           className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-300 ease-out"
                            style={{ width: `${progress}%` }}
                          />
                        </div>

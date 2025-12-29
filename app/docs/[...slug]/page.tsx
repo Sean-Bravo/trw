@@ -12,6 +12,7 @@ import { FeedbackWidget } from '@/components/docs/FeedbackWidget'
 import { DOCS_SECTIONS } from '@/lib/docs-config'
 import { getPrevNextDocs, getReadingTime } from '@/lib/docs-utils'
 import { MDXContent } from './mdx-content'
+import type { BreadcrumbItem } from '@/types/docs'
 
 interface DocPageProps {
   params: Promise<{
@@ -69,7 +70,7 @@ export default async function DocPage({ params }: DocPageProps) {
     doc.url.includes(`/docs/${s.slug}`)
   )
 
-  const breadcrumbItems = [
+  const breadcrumbItems: BreadcrumbItem[] = [
     { label: 'Documentation', href: '/docs' },
   ]
 
