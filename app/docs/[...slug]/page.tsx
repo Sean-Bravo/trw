@@ -14,6 +14,7 @@ import { getPrevNextDocs, getReadingTime } from '@/lib/docs-utils'
 import { MDXContent } from './mdx-content'
 import type { BreadcrumbItem } from '@/types/docs'
 import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema'
+import { HowToSchema } from '@/components/seo/HowToSchema'
 
 interface DocPageProps {
   params: Promise<{
@@ -92,9 +93,55 @@ export default async function DocPage({ params }: DocPageProps) {
   // Calculate reading time
   const readingTime = getReadingTime(doc.body.raw)
 
+  // Define HowTo schemas for step-by-step guides
+  const howToSchemas: Record<string, { name: string; description: string; steps: Array<{name: string; text: string; url?: string}>; totalTime?: string }> = {
+    '/docs/getting-started/upload-your-first-csv': {
+      name: 'How to Upload Your First Crypto CSV to TaxFormatter',
+      description: 'Step-by-step guide to exporting your cryptocurrency transaction data from exchanges and uploading it to TaxFormatter for tax preparation',
+      totalTime: 'PT5M',
+      steps: [
+        {
+          name: 'Export CSV from your exchange',
+          text: 'Log in to your cryptocurrency exchange (Binance, Coinbase, Kraken, KuCoin, or Bybit) and navigate to your trade history or transaction history section. Download your transaction data as a CSV file.',
+          url: 'https://taxformatter.com/docs/getting-started/upload-your-first-csv#how-to-export-from-your-exchange'
+        },
+        {
+          name: 'Visit TaxFormatter',
+          text: 'Go to taxformatter.com in your web browser to access the CSV upload tool.',
+          url: 'https://taxformatter.com'
+        },
+        {
+          name: 'Upload your CSV file',
+          text: 'Click or drag your CSV file into the upload area on the TaxFormatter homepage. The AI will automatically detect your exchange and begin analyzing your data.',
+          url: 'https://taxformatter.com/docs/getting-started/upload-your-first-csv#upload-to-taxformatter'
+        },
+        {
+          name: 'Review AI insights',
+          text: 'Watch the AI Insights panels appear as TaxFormatter analyzes your data. The system will flag potential tax issues like wash sales, staking income, and other reportable events.',
+          url: 'https://taxformatter.com/docs/understanding-your-results'
+        },
+        {
+          name: 'Download formatted CSV',
+          text: 'Once processing is complete, download your formatted CSV file. The file will be named with your exchange and date (e.g., binance_formatted_2025-12-27.csv) and will be ready for import into tax software.',
+          url: 'https://taxformatter.com/docs/exporting-your-data'
+        }
+      ]
+    }
+  }
+
+  const howToSchema = howToSchemas[doc.url]
+
   return (
     <>
       <BreadcrumbSchema items={breadcrumbItems} />
+      {howToSchema && (
+        <HowToSchema
+          name={howToSchema.name}
+          description={howToSchema.description}
+          steps={howToSchema.steps}
+          totalTime={howToSchema.totalTime}
+        />
+      )}
       <div className="flex gap-8">
         <article className="flex-1 prose prose-sm max-w-none dark:prose-invert">
           <div className="mb-8 pb-8 border-b border-gray-200">

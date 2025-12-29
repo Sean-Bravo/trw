@@ -143,12 +143,10 @@ export function Footer() {
             <h3 className="font-poppins text-base font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/privacy-policy" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Privacy Policy
-                </Link>
+                <span className="text-sm text-[#6b7280]">Privacy Policy - Coming Soon</span>
               </li>
               <li>
-                <span className="text-sm text-[#6b7280]">Terms Coming Soon</span>
+                <span className="text-sm text-[#6b7280]">Terms of Service - Coming Soon</span>
               </li>
             </ul>
           </div>

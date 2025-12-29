@@ -72,3 +72,11 @@ Once uploaded, TaxFormatter will:
 - Generate a downloadable CSV
 
 That's it! You're ready to use your formatted data with tax software like TurboTax, Koinly, or CoinLedger.
+
+## Related Guides
+
+- [Supported Exchanges](/docs/getting-started/supported-exchanges) - Full list of compatible exchanges
+- [File Format Requirements](/docs/getting-started/file-format-requirements) - Required columns and data formats
+- [Troubleshooting Upload Errors](/docs/getting-started/troubleshooting-upload-errors) - Fix common upload problems
+- [Understanding Your Results](/docs/understanding-your-results) - Interpret the AI insights and flags
+- [Exporting Your Data](/docs/exporting-your-data) - Export options for tax software

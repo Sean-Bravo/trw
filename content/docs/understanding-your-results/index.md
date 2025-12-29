@@ -69,4 +69,16 @@ Ready to import directly into your tax software.
 4. **Import to tax software** - Follow platform-specific guides
 5. **Verify numbers** - Double-check against exchange records
 
+## Learn More
+
+- [What the Insight Panels Mean](/docs/understanding-your-results/what-the-insight-panels-mean) - Detailed breakdown of each panel
+- [Reading Your Formatted CSV](/docs/understanding-your-results/reading-your-formatted-csv) - Understanding the output format
+- [Free vs Pro Differences](/docs/understanding-your-results/free-vs-pro-differences) - Compare tier features
+
+## Related Topics
+
+- [Tax Issues & Flags](/docs/tax-issues-flags) - Deep dive into specific tax scenarios
+- [Exporting Your Data](/docs/exporting-your-data) - Choose the right export format
+- [Getting Started](/docs/getting-started) - Back to basics
+
 Let's dive deeper into each section!

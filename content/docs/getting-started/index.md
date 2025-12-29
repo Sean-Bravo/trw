@@ -15,8 +15,14 @@ Welcome to TaxFormatter! In this section, you'll learn how to upload your crypto
 
 ## What You'll Learn
 
-- How to export CSV files from major exchanges
-- File format requirements and troubleshooting
-- Supported exchanges and compatibility
+- [How to export CSV files from major exchanges](/docs/getting-started/upload-your-first-csv)
+- [File format requirements and troubleshooting](/docs/getting-started/file-format-requirements)
+- [Supported exchanges and compatibility](/docs/getting-started/supported-exchanges)
+
+## Next Steps
+
+1. [Upload Your First CSV](/docs/getting-started/upload-your-first-csv) - Step-by-step guide to exporting and uploading
+2. [Check Supported Exchanges](/docs/getting-started/supported-exchanges) - See if your exchange is compatible
+3. [Troubleshooting Upload Errors](/docs/getting-started/troubleshooting-upload-errors) - Fix common upload issues
 
 Let's get started!
