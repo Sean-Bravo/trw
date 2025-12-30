@@ -3,14 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
-import { 
-  Users, 
-  UploadCloud, 
-  FileText, 
-  Loader2, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Sparkles, 
+import { trackSignUp } from '@/lib/analytics';
+import {
+  Users,
+  UploadCloud,
+  FileText,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  Sparkles,
   BrainCircuit,
   ArrowRight
 } from 'lucide-react';
@@ -88,7 +89,13 @@ export function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-slide-up animation-delay-300">
-              <Button variant="primary" href="#start" showArrow className="text-base px-8 py-4 h-14 hover:shadow-[0_12px_32px_rgba(59,130,246,0.3)] hover:-translate-y-0.5 transition-all duration-300">
+              <Button
+                variant="primary"
+                href="#start"
+                showArrow
+                onClick={() => trackSignUp()}
+                className="text-base px-8 py-4 h-14 hover:shadow-[0_12px_32px_rgba(59,130,246,0.3)] hover:-translate-y-0.5 transition-all duration-300"
+              >
                 Start Free Audit
               </Button>
               <Button variant="secondary" href="#pricing" className="text-base px-8 py-4 h-14 hover:shadow-[0_12px_32px_rgba(26,54,93,0.2)] hover:-translate-y-0.5 transition-all duration-300">

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { GoogleAds } from "@/components/analytics/GoogleAds";
 
 // Optimized font loading with next/font
 const inter = Inter({
@@ -97,6 +98,7 @@ export default function RootLayout({
         <OrganizationSchema />
         <WebSiteSchema />
         <GoogleAnalytics />
+        <GoogleAds />
       </head>
       <body className="antialiased">
         <ThemeProvider
