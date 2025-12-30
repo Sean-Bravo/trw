@@ -1,8 +1,27 @@
+'use client'
+
 import Link from 'next/link'
+import { Suspense, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
 import { Container } from '@/components/layout/Container'
+import { trackPurchase } from '@/lib/analytics'
 
-export default function SuccessPage() {
+function SuccessContent() {
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    // Get session_id from URL (Stripe redirects with this)
+    const sessionId = searchParams.get('session_id')
+
+    if (sessionId) {
+      // Track the purchase conversion
+      // You can get the actual amount from Stripe webhook or session data
+      // For now, we'll track with a default value
+      trackPurchase(sessionId, 89) // Default to Pro plan price
+    }
+  }, [searchParams])
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center py-12">
       <Container>
@@ -50,5 +69,22 @@ export default function SuccessPage() {
         </div>
       </Container>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="rounded-full bg-green-100 p-6 inline-block mb-4">
+            <CheckCircle className="w-16 h-16 text-green-600" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900">Loading...</h1>
+        </div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   )
 }

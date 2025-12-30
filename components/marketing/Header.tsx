@@ -6,6 +6,7 @@ import { Logo } from '../ui/Logo';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../docs/ThemeToggle';
+import { trackSignUp } from '@/lib/analytics';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,7 +42,12 @@ export function Header() {
             Sign In
           </Link>
           <ThemeToggle />
-          <Button variant="primary" href="/#start" className="hidden md:inline-flex shadow-lg shadow-[#3b82f6]/20">
+          <Button
+            variant="primary"
+            href="/#start"
+            onClick={() => trackSignUp()}
+            className="hidden md:inline-flex shadow-lg shadow-[#3b82f6]/20"
+          >
             Start Free
           </Button>
 
@@ -84,7 +90,15 @@ export function Header() {
             >
               Sign In
             </Link>
-            <Button variant="primary" href="/#start" className="w-full justify-center" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              variant="primary"
+              href="/#start"
+              className="w-full justify-center"
+              onClick={() => {
+                trackSignUp()
+                setMobileMenuOpen(false)
+              }}
+            >
               Start Free
             </Button>
           </nav>
