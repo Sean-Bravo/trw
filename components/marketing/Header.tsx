@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../docs/ThemeToggle';
 import { trackSignUp } from '@/lib/analytics';
+import { signIn } from 'next-auth/react';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,9 +39,12 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <Link href="/#signin" className="hidden md:block text-[#1a365d] dark:text-gray-200 hover:text-[#3b82f6] dark:hover:text-blue-400 transition-colors text-sm font-semibold">
+          <button
+            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+            className="hidden md:block text-[#1a365d] dark:text-gray-200 hover:text-[#3b82f6] dark:hover:text-blue-400 transition-colors text-sm font-semibold"
+          >
             Sign In
-          </Link>
+          </button>
           <ThemeToggle />
           <Button
             variant="primary"
@@ -83,13 +87,15 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/#signin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-[#1a365d] dark:text-gray-200 hover:text-[#3b82f6] dark:hover:text-blue-400 transition-colors text-base font-medium py-2"
+            <button
+              onClick={() => {
+                signIn('google', { callbackUrl: '/dashboard' });
+                setMobileMenuOpen(false);
+              }}
+              className="text-[#1a365d] dark:text-gray-200 hover:text-[#3b82f6] dark:hover:text-blue-400 transition-colors text-base font-medium py-2 text-left"
             >
               Sign In
-            </Link>
+            </button>
             <Button
               variant="primary"
               href="/#start"
