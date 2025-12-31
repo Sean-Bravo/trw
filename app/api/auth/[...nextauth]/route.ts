@@ -81,10 +81,11 @@ export const authOptions: NextAuthOptions = {
 
   // Callbacks
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       // Add user ID to token
       if (user) {
-        token.id = user.id;
+        // For OAuth providers, use the sub claim or user.id
+        token.id = user.id || (profile?.sub as string);
       }
 
       // Add access token for OAuth providers
@@ -97,8 +98,14 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       // Add user ID to session
-      if (session.user && token.id) {
-        session.user.id = token.id;
+      if (session.user) {
+        // Use token.sub (from OAuth) or token.id
+        session.user.id = (token.id as string) || (token.sub as string);
+
+        // Add subscription tier (default to free if not set)
+        if (!session.user.subscriptionTier) {
+          session.user.subscriptionTier = 'free';
+        }
       }
 
       return session;
