@@ -48,7 +48,7 @@ export function Header() {
           <ThemeToggle />
           <Button
             variant="primary"
-            href="/#start"
+            href="/signup"
             onClick={() => trackSignUp()}
             className="hidden md:inline-flex shadow-lg shadow-[#3b82f6]/20"
           >
@@ -98,7 +98,7 @@ export function Header() {
             </button>
             <Button
               variant="primary"
-              href="/#start"
+              href="/signup"
               className="w-full justify-center"
               onClick={() => {
                 trackSignUp()
