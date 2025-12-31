@@ -37,7 +37,8 @@ export function WebSiteSchema() {
     potentialAction: {
       '@type': 'SearchAction',
       target: 'https://taxformatter.com/docs?search={search_term_string}',
-    },
+      'query-input': 'required name=search_term_string',
+    } as any,
   };
 
   return (
