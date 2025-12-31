@@ -1,12 +1,13 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { validateEmail, validatePassword } from "@/lib/validation";
-
-// This is a template - you'll need to implement actual database operations
-// For now, this shows the structure and security considerations
+import prisma from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma) as any,
   providers: [
     // Google OAuth Provider
     GoogleProvider({
@@ -45,15 +46,27 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid password");
         }
 
-        // TODO: Implement actual database lookup
-        // const user = await getUserByEmail(emailValidation.data);
-        // if (!user || !await verifyPassword(credentials.password, user.hashedPassword)) {
-        //   throw new Error("Invalid credentials");
-        // }
-        // return { id: user.id, email: user.email, name: user.name };
+        // Database lookup
+        const user = await prisma.user.findUnique({
+          where: { email: emailValidation.data }
+        });
 
-        // Placeholder return - replace with actual DB logic
-        return null;
+        if (!user || !user.hashedPassword) {
+          throw new Error("Invalid credentials");
+        }
+
+        // Verify password
+        const isValid = await bcrypt.compare(credentials.password, user.hashedPassword);
+        if (!isValid) {
+          throw new Error("Invalid credentials");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          subscriptionTier: user.subscriptionTier
+        };
       }
     })
   ],
