@@ -20,6 +20,12 @@ export default async function DashboardPage() {
     redirect('/api/auth/signin?callbackUrl=/dashboard');
   }
 
+  // If session exists but user.id is missing, force re-authentication
+  if (!session.user.id) {
+    console.error('[Dashboard] Session missing user.id, forcing re-auth');
+    redirect('/api/auth/signout?callbackUrl=/api/auth/signin');
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Dashboard Header */}
