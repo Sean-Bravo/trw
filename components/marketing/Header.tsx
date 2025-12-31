@@ -52,7 +52,7 @@ export function Header() {
             onClick={() => trackSignUp()}
             className="hidden md:inline-flex shadow-lg shadow-[#3b82f6]/20"
           >
-            Start Free
+            Sign Up
           </Button>
 
           {/* Mobile Menu Button */}
@@ -105,7 +105,7 @@ export function Header() {
                 setMobileMenuOpen(false)
               }}
             >
-              Start Free
+              Sign Up
             </Button>
           </nav>
         </div>

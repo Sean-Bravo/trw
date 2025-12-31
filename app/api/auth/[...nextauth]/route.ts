@@ -1,13 +1,13 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  // Note: Adapter disabled to use JWT strategy with both OAuth and credentials
+  // We manually handle user creation in the signIn callback
   providers: [
     // Google OAuth Provider
     GoogleProvider({
@@ -94,11 +94,126 @@ export const authOptions: NextAuthOptions = {
 
   // Callbacks
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // For OAuth providers, create user and subscription if doesn't exist
+      if (account?.provider === 'google' && user.email) {
+        // Check if user exists
+        let existingUser = await prisma.user.findUnique({
+          where: { email: user.email }
+        });
+
+        // Create user if doesn't exist
+        if (!existingUser) {
+          existingUser = await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name || null,
+              image: user.image || null,
+              emailVerified: new Date(),
+              subscriptionTier: 'free'
+            }
+          });
+
+          // Create free tier subscription for new user
+          await prisma.subscription.create({
+            data: {
+              userId: existingUser.id,
+              tier: 'free',
+              status: 'active'
+            }
+          });
+        } else {
+          // For existing users, check if subscription exists
+          const existingSubscription = await prisma.subscription.findUnique({
+            where: { userId: existingUser.id }
+          });
+
+          // Create free tier subscription if doesn't exist
+          if (!existingSubscription) {
+            await prisma.subscription.create({
+              data: {
+                userId: existingUser.id,
+                tier: 'free',
+                status: 'active'
+              }
+            });
+          }
+        }
+
+        // Create or update Account record for OAuth connection
+        await prisma.account.upsert({
+          where: {
+            provider_providerAccountId: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId
+            }
+          },
+          create: {
+            userId: existingUser.id,
+            type: account.type,
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+            refresh_token: account.refresh_token,
+            access_token: account.access_token,
+            expires_at: account.expires_at,
+            token_type: account.token_type,
+            scope: account.scope,
+            id_token: account.id_token,
+            session_state: account.session_state
+          },
+          update: {
+            refresh_token: account.refresh_token,
+            access_token: account.access_token,
+            expires_at: account.expires_at,
+            token_type: account.token_type,
+            scope: account.scope,
+            id_token: account.id_token,
+            session_state: account.session_state
+          }
+        });
+
+        return true;
+      }
+
+      // For credentials provider
+      if (account?.provider === 'credentials') {
+        return true;
+      }
+
+      return true;
+    },
+
     async jwt({ token, user, account, profile, trigger }) {
-      // Add user ID to token on initial sign-in
-      if (user) {
-        // For OAuth providers, use the sub claim or user.id
-        token.id = user.id || (profile?.sub as string);
+      // Initial sign-in
+      if (user && user.email) {
+        // For OAuth, look up the user by email to get our database ID
+        // For credentials, user.id is already the database ID
+        if (account?.provider === 'google') {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            select: { id: true, subscriptionTier: true }
+          });
+
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.email = user.email;
+            token.name = user.name;
+            token.subscriptionTier = dbUser.subscriptionTier;
+          }
+        } else {
+          // Credentials provider - user.id is already the database ID
+          token.id = user.id;
+          token.email = user.email;
+          token.name = user.name;
+
+          // Fetch subscription tier from database
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { subscriptionTier: true }
+          });
+
+          token.subscriptionTier = dbUser?.subscriptionTier || 'free';
+        }
       }
 
       // Add access token for OAuth providers
@@ -106,24 +221,28 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
 
-      // Handle session refresh - ensure token.id persists
-      if (trigger === "update" && !token.id && token.sub) {
-        token.id = token.sub;
+      // Handle session refresh
+      if (trigger === "update" && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { subscriptionTier: true }
+        });
+
+        if (dbUser) {
+          token.subscriptionTier = dbUser.subscriptionTier;
+        }
       }
 
       return token;
     },
 
     async session({ session, token }) {
-      // Add user ID to session
-      if (session.user) {
-        // Use token.id (from initial sign-in) or token.sub (from JWT)
-        session.user.id = (token.id as string) || (token.sub as string);
-
-        // Add subscription tier (default to free if not set)
-        if (!session.user.subscriptionTier) {
-          session.user.subscriptionTier = 'free';
-        }
+      // Add user data to session
+      if (session.user && token) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        session.user.subscriptionTier = (token.subscriptionTier as string) || 'free';
       }
 
       return session;
