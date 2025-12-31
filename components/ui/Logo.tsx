@@ -5,16 +5,14 @@ interface LogoProps {
   className?: string;
   iconOnly?: boolean;
   variant?: 'light' | 'dark';
+  asChild?: boolean;
 }
 
-export function Logo({ className = '', iconOnly = false, variant = 'dark' }: LogoProps) {
+export function Logo({ className = '', iconOnly = false, variant = 'dark', asChild = false }: LogoProps) {
   const textColor = variant === 'light' ? 'text-white' : 'text-[#1a365d]';
 
-  return (
-    <Link
-      href="/"
-      className={`inline-flex items-center gap-3 group ${className}`}
-    >
+  const content = (
+    <>
       {/* Logo Icon */}
       <div className="relative w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
         <svg
@@ -72,6 +70,19 @@ export function Logo({ className = '', iconOnly = false, variant = 'dark' }: Log
           TaxFormatter
         </span>
       )}
+    </>
+  );
+
+  if (asChild) {
+    return <div className={`inline-flex items-center gap-3 group ${className}`}>{content}</div>;
+  }
+
+  return (
+    <Link
+      href="/"
+      className={`inline-flex items-center gap-3 group ${className}`}
+    >
+      {content}
     </Link>
   );
 }
