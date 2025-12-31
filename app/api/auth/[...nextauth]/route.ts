@@ -70,19 +70,19 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
-  // Pages configuration
-  pages: {
-    signIn: "/auth/signin",
-    signOut: "/auth/signout",
-    error: "/auth/error",
-    verifyRequest: "/auth/verify",
-    newUser: "/auth/new-user"
-  },
+  // Pages configuration - use NextAuth default pages for now
+  // pages: {
+  //   signIn: "/auth/signin",
+  //   signOut: "/auth/signout",
+  //   error: "/auth/error",
+  //   verifyRequest: "/auth/verify",
+  //   newUser: "/auth/new-user"
+  // },
 
   // Callbacks
   callbacks: {
-    async jwt({ token, user, account, profile }) {
-      // Add user ID to token
+    async jwt({ token, user, account, profile, trigger }) {
+      // Add user ID to token on initial sign-in
       if (user) {
         // For OAuth providers, use the sub claim or user.id
         token.id = user.id || (profile?.sub as string);
@@ -93,13 +93,18 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
 
+      // Handle session refresh - ensure token.id persists
+      if (trigger === "update" && !token.id && token.sub) {
+        token.id = token.sub;
+      }
+
       return token;
     },
 
     async session({ session, token }) {
       // Add user ID to session
       if (session.user) {
-        // Use token.sub (from OAuth) or token.id
+        // Use token.id (from initial sign-in) or token.sub (from JWT)
         session.user.id = (token.id as string) || (token.sub as string);
 
         // Add subscription tier (default to free if not set)
