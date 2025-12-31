@@ -19,6 +19,9 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
+    "@aws-sdk/client-s3": "^3.958.0",
+    "@aws-sdk/client-sqs": "^3.960.0",
+    "@aws-sdk/s3-presigned-post": "^3.958.0",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@sentry/nextjs": "^10.32.1",
     "@stripe/stripe-js": "^8.6.0",
@@ -33,6 +36,7 @@
     "next-themes": "^0.4.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-dropzone": "^14.3.8",
     "rehype-highlight": "^7.0.2",
     "stripe": "^20.1.0",
     "tailwind-merge": "^3.4.0",
