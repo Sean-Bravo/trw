@@ -8,7 +8,7 @@ const exchanges = [
   { name: 'Bitstamp', slug: 'bitstamp' },
   { name: 'Bybit', slug: 'bybit' },
   { name: 'Cash App', slug: 'cashapp' },
-  { name: 'Coinbase', slug: 'coinbase' },
+  { name: 'Coinbase', slug: 'coinbase-icon' },
   { name: 'Crypto.com', slug: 'crypto.com' },
   { name: 'Etoro', slug: 'etoro' },
   { name: 'Gate.io', slug: 'gate.io' },
