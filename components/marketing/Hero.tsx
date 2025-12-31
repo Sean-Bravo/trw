@@ -91,7 +91,7 @@ export function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-slide-up animation-delay-300">
               <Button
                 variant="primary"
-                href="#start"
+                href="/signup"
                 showArrow
                 onClick={() => trackSignUp()}
                 className="text-base px-8 py-4 h-14 hover:shadow-[0_12px_32px_rgba(59,130,246,0.3)] hover:-translate-y-0.5 transition-all duration-300"
