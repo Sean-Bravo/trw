@@ -65,7 +65,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          subscriptionTier: user.subscriptionTier
+          subscriptionTier: user.subscriptionTier as "free" | "pro" | "premium"
         };
       }
     })
