@@ -1,15 +1,16 @@
 /**
- * Upload Client - Handles CSV file uploads to S3 via presigned POST URLs
- * Integrates with backend architecture (Phase 2 & 3 from BACKEND_ARCHITECTURE.md)
+ * Upload Client - Handles CSV file uploads to S3 via presigned URLs
+ * Integrates with AWS Lambda backend
  */
 
-export interface PresignedPostResponse {
+export interface PresignedUrlResponse {
   presignedPost: {
     url: string;
     fields: Record<string, string>;
   };
   uploadId: string;
   maxSize: number;
+  s3Key?: string;
 }
 
 export interface UploadConfirmResponse {
@@ -25,12 +26,12 @@ export interface UploadError {
 }
 
 /**
- * Step 1: Request a presigned POST URL from the API
+ * Step 1: Request a presigned URL from the API
  */
 export async function requestPresignedUrl(
   filename: string,
   fileSize: number
-): Promise<PresignedPostResponse> {
+): Promise<PresignedUrlResponse> {
   const response = await fetch('/api/uploads/presigned-url', {
     method: 'POST',
     headers: {
@@ -66,23 +67,13 @@ export async function requestPresignedUrl(
 }
 
 /**
- * Step 2: Upload file directly to S3 using presigned POST
+ * Step 2: Upload file directly to S3 using presigned PUT URL
  */
 export async function uploadToS3(
   file: File,
-  presignedPost: PresignedPostResponse['presignedPost'],
+  presignedData: PresignedUrlResponse['presignedPost'],
   onProgress?: (percent: number) => void
 ): Promise<{ etag: string }> {
-  const formData = new FormData();
-
-  // Append all presigned POST fields (required by S3)
-  Object.entries(presignedPost.fields).forEach(([key, value]) => {
-    formData.append(key, value);
-  });
-
-  // Append the file LAST (S3 requirement)
-  formData.append('file', file);
-
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
@@ -105,7 +96,7 @@ export async function uploadToS3(
       } else {
         reject({
           code: 'NETWORK_ERROR',
-          message: `S3 upload failed: ${xhr.statusText}`,
+          message: `S3 upload failed: ${xhr.statusText || 'Unknown error'}`,
         } as UploadError);
       }
     });
@@ -125,9 +116,25 @@ export async function uploadToS3(
       } as UploadError);
     });
 
-    // Send request
-    xhr.open('POST', presignedPost.url);
-    xhr.send(formData);
+    // Check if we have fields (POST) or just a URL (PUT)
+    const hasFields = presignedData.fields && Object.keys(presignedData.fields).length > 0;
+
+    if (hasFields) {
+      // S3 POST upload (using presigned POST)
+      const formData = new FormData();
+      Object.entries(presignedData.fields).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+      formData.append('file', file);
+
+      xhr.open('POST', presignedData.url);
+      xhr.send(formData);
+    } else {
+      // S3 PUT upload (using presigned PUT URL)
+      xhr.open('PUT', presignedData.url);
+      xhr.setRequestHeader('Content-Type', 'text/csv');
+      xhr.send(file);
+    }
   });
 }
 
@@ -141,7 +148,10 @@ export async function confirmUpload(
   // Generate idempotency key (allows safe retries)
   const idempotencyKey = crypto.randomUUID();
 
-  const response = await fetch(`/api/uploads/${uploadId}/confirm`, {
+  // URL encode the uploadId since it's an S3 key with slashes
+  const encodedUploadId = encodeURIComponent(uploadId);
+
+  const response = await fetch(`/api/uploads/${encodedUploadId}/confirm`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -214,6 +224,56 @@ export async function uploadCSVFile(
 }
 
 /**
+ * Get job status
+ */
+export async function getJobStatus(jobId: string): Promise<{
+  jobId: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  progressStage?: string;
+  exchangeDetected?: string;
+  transactionCount?: number;
+  aiSummary?: string;
+  completedAt?: string;
+  errorMessage?: string;
+}> {
+  const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`);
+
+  if (!response.ok) {
+    throw {
+      code: 'SERVER_ERROR',
+      message: 'Failed to get job status',
+    } as UploadError;
+  }
+
+  return response.json();
+}
+
+/**
+ * Get download URL for completed job
+ */
+export async function getDownloadUrl(
+  jobId: string,
+  type: 'formatted' | 'flagged' = 'formatted'
+): Promise<{
+  downloadUrl: string;
+  fileType: string;
+  expiresIn: number;
+}> {
+  const response = await fetch(
+    `/api/jobs/${encodeURIComponent(jobId)}/download?type=${type}`
+  );
+
+  if (!response.ok) {
+    throw {
+      code: 'SERVER_ERROR',
+      message: 'Failed to get download URL',
+    } as UploadError;
+  }
+
+  return response.json();
+}
+
+/**
  * Validate file before upload
  */
 export function validateFile(
@@ -260,3 +320,6 @@ export function formatFileSize(bytes: number): string {
 
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
+
+// Re-export for backwards compatibility
+export type PresignedPostResponse = PresignedUrlResponse;
