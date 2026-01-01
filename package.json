@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
@@ -41,14 +42,15 @@
     "rehype-highlight": "^7.0.2",
     "stripe": "^20.1.0",
     "tailwind-merge": "^3.4.0",
-    "zod": "^4.2.1"
+    "zod": "^4.2.1",
+    "@prisma/client": "^7.1.0",
+    "prisma": "^7.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
     "@faker-js/faker": "^10.1.0",
     "@playwright/test": "^1.57.0",
-    "@prisma/client": "^7.1.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
@@ -70,7 +72,6 @@
     "jest-environment-jsdom": "^30.2.0",
     "msw": "^2.12.4",
     "pg": "^8.16.3",
-    "prisma": "^7.1.0",
     "schema-dts": "^1.1.5",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
