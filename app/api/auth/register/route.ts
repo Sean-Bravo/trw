@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
-          email: emailValidation.data,
+          email: emailValidation.data!,
           name: name || null,
           hashedPassword,
           subscriptionTier: 'free'
