@@ -198,7 +198,7 @@ export const authOptions: NextAuthOptions = {
             token.id = dbUser.id;
             token.email = user.email;
             token.name = user.name;
-            token.subscriptionTier = dbUser.subscriptionTier;
+            token.subscriptionTier = dbUser['subscriptionTier'];
           }
         } else {
           // Credentials provider - user.id is already the database ID
@@ -212,7 +212,7 @@ export const authOptions: NextAuthOptions = {
             select: { subscriptionTier: true }
           });
 
-          token.subscriptionTier = dbUser?.subscriptionTier || 'free';
+          token.subscriptionTier = dbUser?.['subscriptionTier'] || 'free';
         }
       }
 
@@ -229,7 +229,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (dbUser) {
-          token.subscriptionTier = dbUser.subscriptionTier;
+          token.subscriptionTier = dbUser['subscriptionTier'];
         }
       }
 
