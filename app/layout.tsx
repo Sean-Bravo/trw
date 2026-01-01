@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     default: "TaxFormatter - Crypto Taxes, Simplified",
     template: "%s | TaxFormatter",
   },
-  description: "Fix broken crypto CSV files in 30 seconds. Export to any tax platform. No manual editing required. Perfect for TurboTax, Koinly, CoinLedger & ZenLedger.",
+  description: "Fix broken crypto CSV files in 30 seconds with AI-powered repair. Clean, format, and export to any tax platform including TurboTax, Koinly, CoinLedger & ZenLedger. No manual editing required.",
   keywords: ["crypto tax", "CSV repair", "tax software", "cryptocurrency", "tax filing", "TurboTax", "tax platform", "crypto accounting", "tax formatter"],
   authors: [{ name: "TaxFormatter" }],
   creator: "TaxFormatter",
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://taxformatter.com",
-    title: "TaxFormatter - Crypto Taxes, Simplified",
-    description: "Fix broken crypto CSV files in 30 seconds. Export to TurboTax, Koinly, CoinLedger & ZenLedger.",
+    title: "TaxFormatter - AI-Powered Crypto Tax CSV Repair in 30 Seconds",
+    description: "Fix broken crypto CSV files in 30 seconds with AI-powered repair. Clean, format, and export to any tax platform including TurboTax, Koinly, CoinLedger & ZenLedger. No manual editing required.",
     siteName: "TaxFormatter",
     images: [
       {
@@ -53,8 +53,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TaxFormatter - Crypto Taxes, Simplified",
-    description: "Fix your crypto CSV files for any tax platform in 30 seconds.",
+    title: "TaxFormatter - AI-Powered Crypto Tax CSV Repair in 30 Seconds",
+    description: "Fix broken crypto CSV files in 30 seconds with AI-powered repair. Clean, format, and export to any tax platform including TurboTax, Koinly, CoinLedger & ZenLedger.",
     images: ["/og-image.png"],
     creator: "@taxformatter",
   },
