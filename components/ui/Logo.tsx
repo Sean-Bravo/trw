@@ -14,10 +14,10 @@ export function Logo({ className = '', iconOnly = false, variant = 'dark', asChi
   const content = (
     <>
       {/* Logo Icon */}
-      <div className="relative w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
+      <div className="relative w-9 h-9 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
         <svg
-          width="48"
-          height="48"
+          width="36"
+          height="36"
           viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -66,7 +66,7 @@ export function Logo({ className = '', iconOnly = false, variant = 'dark', asChi
 
       {/* Logo Text */}
       {!iconOnly && (
-        <span className={`font-poppins text-xl font-bold ${textColor} group-hover:text-[#3b82f6] transition-colors duration-300`}>
+        <span className={`font-poppins text-lg font-bold ${textColor} group-hover:text-[#3b82f6] transition-colors duration-300`}>
           TaxFormatter
         </span>
       )}

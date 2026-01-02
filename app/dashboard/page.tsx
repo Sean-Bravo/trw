@@ -27,7 +27,13 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+      {/* Gradient mesh background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[var(--color-primary-500)]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[var(--color-accent-500)]/10 rounded-full blur-[100px]" />
+      </div>
+
       {/* Dashboard Header */}
       <DashboardHeader user={session.user} />
 
@@ -35,10 +41,10 @@ export default async function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             Welcome back, {session.user.name || 'User'}
           </h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-slate-400">
             Upload your CSV files to get AI-powered tax categorization
           </p>
         </div>
@@ -50,12 +56,12 @@ export default async function DashboardPage() {
 
         {/* Upload Section */}
         <div className="mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 border border-white/20 dark:border-slate-700/50 p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
                 Upload CSV File
               </h2>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 Drag and drop your CSV file or click to browse. Supports exchanges like Binance, Coinbase, Kraken, and more.
               </p>
             </div>
@@ -64,12 +70,12 @@ export default async function DashboardPage() {
         </div>
 
         {/* Job History */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 border border-white/20 dark:border-slate-700/50 p-6">
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
               Processing History
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Track your uploaded files and download processed results
             </p>
           </div>
@@ -89,11 +95,11 @@ function StatsCardsSkeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 animate-pulse"
+          className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 border border-white/20 dark:border-slate-700/50 p-6 animate-pulse"
         >
-          <div className="h-4 bg-slate-200 rounded w-24 mb-3"></div>
-          <div className="h-8 bg-slate-200 rounded w-16 mb-2"></div>
-          <div className="h-3 bg-slate-200 rounded w-32"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24 mb-3"></div>
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16 mb-2"></div>
+          <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-32"></div>
         </div>
       ))}
     </div>
@@ -106,13 +112,13 @@ function JobHistoryTableSkeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="flex items-center justify-between p-4 bg-slate-50 rounded-lg animate-pulse"
+          className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl animate-pulse"
         >
           <div className="flex-1">
-            <div className="h-4 bg-slate-200 rounded w-48 mb-2"></div>
-            <div className="h-3 bg-slate-200 rounded w-32"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-48 mb-2"></div>
+            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-32"></div>
           </div>
-          <div className="h-8 bg-slate-200 rounded w-24"></div>
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
         </div>
       ))}
     </div>

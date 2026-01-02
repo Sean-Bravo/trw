@@ -1,14 +1,11 @@
 import { Header } from '@/components/marketing/Header';
 import { Hero } from '@/components/marketing/Hero';
 import { HowItWorks } from '@/components/marketing/HowItWorks';
-import { CostOfClarity } from '@/components/marketing/CostOfClarity';
+import { SocialProof } from '@/components/marketing/SocialProof';
+import { Integrations } from '@/components/marketing/Integrations';
 import { SecurityFeatures } from '@/components/marketing/SecurityFeatures';
-import { Testimonials } from '@/components/marketing/Testimonials';
-import { SupportedExchanges } from '@/components/marketing/SupportedExchanges';
-import { ExportFormats } from '@/components/marketing/ExportFormats';
-import { FAQ } from '@/components/marketing/FAQ';
-import { FinalCTA } from '@/components/marketing/FinalCTA';
 import { Pricing } from '@/components/marketing/Pricing';
+import { FAQ } from '@/components/marketing/FAQ';
 import { Footer } from '@/components/marketing/Footer';
 import { SoftwareApplicationSchema } from '@/components/seo/SoftwareApplicationSchema';
 
@@ -21,14 +18,11 @@ export default function Home() {
         <Header />
         <Hero />
         <HowItWorks />
-        <CostOfClarity />
+        <SocialProof />
+        <Integrations />
         <SecurityFeatures />
-        <Testimonials />
-        <SupportedExchanges />
-        <ExportFormats />
-        <FAQ />
         <Pricing />
-        <FinalCTA />
+        <FAQ />
         <Footer />
       </main>
     </>

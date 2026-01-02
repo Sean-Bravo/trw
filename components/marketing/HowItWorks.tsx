@@ -2,356 +2,287 @@
 
 import React, { useState } from 'react';
 import { Container } from '../layout/Container';
-import { Upload, FileCheck, Download, Check, AlertCircle } from 'lucide-react';
-import { useScrollAnimation } from '../../hooks/useScrollAnimation';
+import { Upload, Sparkles, Download, Check, ArrowRight } from 'lucide-react';
 
-// Sample CSV data for demo
-const SAMPLE_CSV_BEFORE = `Date,Amount,Type,Exchange
-2025-01-15,0.5,BTC,Coinbase
-,1.2,ETH,Binance
-2025-01-14,1.2,ETH,
-2025-01-13,0.5,BTC,Coinbase
-2025-01-12,1.2,ETH,Binance
-2025-01-13,0.5,BTC,Coinbase`;
-
-const SAMPLE_CSV_AFTER = `Date,Amount,Currency,Type,Exchange
-2025-01-15,0.5,BTC,Trade,Coinbase
-2025-01-15,1.2,ETH,Trade,Binance
-2025-01-14,1.2,ETH,Trade,Binance
-2025-01-13,0.5,BTC,Trade,Coinbase
-2025-01-12,1.2,ETH,Trade,Binance
-2025-01-13,0.5,BTC,Trade,Coinbase`;
-
-const PLATFORMS = [
-  { name: 'Koinly', id: 'koinly', color: '#FF6B9D' },
-  { name: 'TurboTax', id: 'turbotax', color: '#FF9F43' },
-  { name: 'CoinLedger', id: 'coinledger', color: '#00B894' },
-  { name: 'ZenLedger', id: 'zenledger', color: '#0984E3' },
-];
-
-const ISSUES_FOUND = [
-  { type: 'missing_date', label: 'Missing dates', count: 1, color: '#EF4444' },
-  { type: 'missing_exchange', label: 'Missing exchange', count: 2, color: '#F59E0B' },
-  { type: 'duplicates', label: 'Duplicates found', count: 1, color: '#8B5CF6' },
+const steps = [
+  {
+    id: 1,
+    label: 'Upload',
+    icon: Upload,
+    title: 'Drop Your CSV',
+    description: 'Upload your export from Coinbase, Binance, Kraken, or any of 12 supported exchanges.',
+    demo: 'upload',
+  },
+  {
+    id: 2,
+    label: 'Process',
+    icon: Sparkles,
+    title: 'AI Fixes Issues',
+    description: 'Our AI detects and repairs missing dates, duplicates, format errors, and inconsistent data.',
+    demo: 'process',
+  },
+  {
+    id: 3,
+    label: 'Export',
+    icon: Download,
+    title: 'Download Ready File',
+    description: 'Get your cleaned CSV formatted perfectly for Koinly, TurboTax, CoinLedger, or any tax platform.',
+    demo: 'export',
+  },
 ];
 
 export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0);
-  const [selectedPlatform, setSelectedPlatform] = useState('koinly');
-  const [showIssues, setShowIssues] = useState(false);
 
   return (
-    <section id="features" className="bg-gradient-to-b from-white via-[#f8f9ff] to-white py-24 sm:py-32 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#3b82f6]/8 rounded-full blur-3xl animate-float animation-delay-500"></div>
-        <div className="absolute bottom-1/4 left-0 w-80 h-80 bg-[#059669]/5 rounded-full blur-3xl animate-float animation-delay-300"></div>
-      </div>
+    <section id="features" className="py-24 sm:py-32 bg-white dark:bg-slate-900 relative overflow-hidden">
+      {/* Subtle background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white dark:from-slate-900 dark:to-slate-900" />
 
       <Container>
-        <div className="text-center mb-16 relative z-10">
-          <h2 className="font-poppins text-4xl sm:text-5xl font-bold text-[#1a365d] mb-4 leading-tight">
-            Watch Your Data Transform
-          </h2>
-          <p className="text-xl text-[#4b5563] max-w-2xl mx-auto">
-            See exactly what happens at each step—from broken CSV to tax-ready data
-          </p>
-        </div>
-
-        {/* Main Demo Area */}
-        <div className="max-w-6xl mx-auto relative z-10">
-          {/* Step Tabs */}
-          <div className="flex gap-3 mb-12 justify-center flex-wrap">
-            {[
-              { label: 'Upload', icon: Upload, step: 0 },
-              { label: 'Parsing', icon: FileCheck, step: 1 },
-              { label: 'Export', icon: Download, step: 2 },
-            ].map((tab, idx) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => setActiveStep(idx)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                    activeStep === idx
-                      ? 'bg-[#3b82f6] text-white shadow-lg'
-                      : 'bg-white border-2 border-[#e5e7eb] text-[#1a365d] hover:border-[#3b82f6]/50'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  {tab.label}
-                </button>
-              );
-            })}
+        <div className="relative z-10">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              How It Works
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Three simple steps to tax-ready data
+            </p>
           </div>
 
-          {/* Demo Content - Step 1: Upload */}
-          {activeStep === 0 && (
-            <DemoStep1_Upload />
-          )}
+          {/* Horizontal Stepper */}
+          <div className="flex items-center justify-center mb-16">
+            <div className="flex items-center gap-0">
+              {steps.map((step, idx) => {
+                const Icon = step.icon;
+                const isActive = activeStep === idx;
+                const isCompleted = activeStep > idx;
 
-          {/* Demo Content - Step 2: Parsing */}
-          {activeStep === 1 && (
-            <DemoStep2_Parsing 
-              showIssues={showIssues}
-              onToggle={() => setShowIssues(!showIssues)}
-            />
-          )}
+                return (
+                  <React.Fragment key={step.id}>
+                    <button
+                      onClick={() => setActiveStep(idx)}
+                      className={`relative flex flex-col items-center gap-3 px-6 sm:px-10 py-4 rounded-xl transition-all duration-300 ${
+                        isActive
+                          ? 'bg-[var(--color-primary-500)]/10 dark:bg-[var(--color-primary-500)]/20'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <div
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          isActive
+                            ? 'bg-[var(--color-primary-500)] text-white shadow-lg shadow-[var(--color-primary-500)]/30'
+                            : isCompleted
+                            ? 'bg-[var(--color-accent-500)] text-white'
+                            : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <Check className="w-5 h-5" />
+                        ) : (
+                          <Icon className="w-5 h-5" />
+                        )}
+                      </div>
+                      <span
+                        className={`text-sm font-semibold transition-colors ${
+                          isActive
+                            ? 'text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)]'
+                            : 'text-slate-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {step.label}
+                      </span>
+                    </button>
 
-          {/* Demo Content - Step 3: Export */}
-          {activeStep === 2 && (
-            <DemoStep3_Export 
-              selectedPlatform={selectedPlatform}
-              onSelectPlatform={setSelectedPlatform}
-            />
-          )}
+                    {/* Connector line */}
+                    {idx < steps.length - 1 && (
+                      <div className="hidden sm:flex items-center">
+                        <div
+                          className={`w-12 lg:w-20 h-0.5 transition-colors duration-300 ${
+                            activeStep > idx
+                              ? 'bg-[var(--color-accent-500)]'
+                              : 'bg-slate-200 dark:bg-slate-700'
+                          }`}
+                        />
+                        <ArrowRight
+                          className={`w-4 h-4 -ml-1 transition-colors duration-300 ${
+                            activeStep > idx
+                              ? 'text-[var(--color-accent-500)]'
+                              : 'text-slate-300 dark:text-slate-600'
+                          }`}
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div className="max-w-5xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left: Description */}
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)]">
+                  <span className="font-bold">Step {activeStep + 1}</span>
+                  <span className="text-slate-400 dark:text-slate-500">/</span>
+                  <span className="text-slate-500 dark:text-slate-400">3</span>
+                </div>
+
+                <h3 className="font-poppins text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+                  {steps[activeStep]?.title}
+                </h3>
+
+                <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {steps[activeStep]?.description}
+                </p>
+
+                {/* Step-specific badges */}
+                {activeStep === 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {['Coinbase', 'Binance', 'Kraken', 'KuCoin'].map((ex) => (
+                      <span
+                        key={ex}
+                        className="px-3 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full"
+                      >
+                        {ex}
+                      </span>
+                    ))}
+                    <span className="px-3 py-1 text-sm font-medium bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)] rounded-full">
+                      +12 more
+                    </span>
+                  </div>
+                )}
+
+                {activeStep === 1 && (
+                  <div className="space-y-2">
+                    {[
+                      { label: 'Missing dates filled', color: 'text-[var(--color-accent-500)]' },
+                      { label: 'Duplicates removed', color: 'text-[var(--color-accent-500)]' },
+                      { label: 'Formats standardized', color: 'text-[var(--color-accent-500)]' },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-2">
+                        <Check className={`w-4 h-4 ${item.color}`} />
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {activeStep === 2 && (
+                  <div className="flex flex-wrap gap-2">
+                    {['Koinly', 'TurboTax', 'CoinLedger', 'ZenLedger'].map((pl) => (
+                      <span
+                        key={pl}
+                        className="px-3 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full"
+                      >
+                        {pl}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Demo Visual */}
+              <div className="relative">
+                {/* Glow behind card */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-[var(--color-primary-500)]/10 to-[var(--color-accent-500)]/10 rounded-3xl blur-2xl opacity-50" />
+
+                <div className="relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
+                  {/* Card Header */}
+                  <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-400/80" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-400/80" />
+                      <div className="w-3 h-3 rounded-full bg-green-400/80" />
+                    </div>
+                  </div>
+
+                  {/* Demo Content */}
+                  <div className="p-6">
+                    {activeStep === 0 && <UploadDemo />}
+                    {activeStep === 1 && <ProcessDemo />}
+                    {activeStep === 2 && <ExportDemo />}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Container>
     </section>
   );
 }
 
-// STEP 1: Upload Demo
-function DemoStep1_Upload() {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 });
-
+function UploadDemo() {
   return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left: Description */}
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#2563eb] flex items-center justify-center text-white font-bold text-lg">
-              1
-            </div>
-          </div>
-          <h3 className="font-poppins text-3xl font-bold text-[#1a365d]">
-            Drag Your Broken CSV
-          </h3>
-          <p className="text-lg text-[#4b5563] leading-relaxed">
-            Upload your CSV from any exchange—Coinbase, Binance, Kraken, and 15+ more. Our system instantly detects the format and begins analysis.
-          </p>
-          <div className="flex items-center gap-3 text-sm text-[#059669] font-semibold bg-[#059669]/10 px-4 py-3 rounded-lg border border-[#059669]/20 w-fit">
-            <Check className="h-5 w-5" />
-            Supports 18+ exchanges
-          </div>
+    <div className="text-center space-y-4">
+      <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 hover:border-[var(--color-primary-500)] hover:bg-[var(--color-primary-500)]/5 transition-all cursor-pointer">
+        <div className="w-16 h-16 mx-auto bg-[var(--color-primary-500)]/10 rounded-xl flex items-center justify-center mb-4">
+          <Upload className="w-8 h-8 text-[var(--color-primary-500)]" />
         </div>
+        <p className="font-semibold text-slate-900 dark:text-white">Drop your CSV here</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">or click to browse</p>
+      </div>
+      <div className="text-xs text-slate-400 dark:text-slate-500">
+        Supports CSV, XLS, XLSX up to 50MB
+      </div>
+    </div>
+  );
+}
 
-        {/* Right: Interactive Upload Demo */}
-        <div className="relative group">
-          <div className="bg-gradient-to-br from-[#3b82f6]/10 to-[#2563eb]/5 rounded-2xl p-8 border-2 border-dashed border-[#3b82f6]/30 hover:border-[#3b82f6]/80 hover:bg-gradient-to-br hover:from-[#3b82f6]/15 hover:to-[#2563eb]/10 transition-all duration-300 group-hover:shadow-xl group-hover:scale-105 cursor-pointer">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-125 group-hover:rotate-6 transition-all duration-300">
-                <Upload className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <p className="font-semibold text-[#1a365d]">Drag CSV here</p>
-                <p className="text-sm text-[#6b7280]">or click to browse</p>
-              </div>
-              <div className="text-xs text-[#9ca3af] space-y-1">
-                <p>📁 Supports CSV, XLS, XLSX</p>
-                <p>📊 Up to 50MB files</p>
-              </div>
-            </div>
-          </div>
+function ProcessDemo() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Processing...</span>
+        <span className="text-sm font-bold text-[var(--color-accent-500)]">4 issues fixed</span>
+      </div>
 
-          {/* File preview */}
-          <div className="mt-6 bg-white rounded-lg border border-[#e5e7eb] p-4 shadow-sm hover:shadow-md hover:border-[#3b82f6]/30 transition-all duration-300">
-            <p className="text-xs font-semibold text-[#6b7280] mb-3 uppercase tracking-wider">Sample file detected</p>
-            <div className="bg-[#f9fafb] rounded p-3 font-mono text-xs text-[#4b5563] overflow-x-auto max-h-32 overflow-y-auto border border-[#e5e7eb]">
-              <pre>{SAMPLE_CSV_BEFORE}</pre>
-            </div>
-          </div>
+      {/* Progress animation */}
+      <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="h-full w-full bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-accent-500)] animate-pulse" />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 mt-6">
+        <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+          <p className="text-2xl font-bold text-[var(--color-accent-500)]">4</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Fixed</p>
+        </div>
+        <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+          <p className="text-2xl font-bold text-[var(--color-primary-500)]">847</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Rows</p>
+        </div>
+        <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+          <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">0.8s</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Time</p>
         </div>
       </div>
     </div>
   );
 }
 
-// STEP 2: Parsing Demo
-function DemoStep2_Parsing({ showIssues, onToggle }: any) {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 });
-
+function ExportDemo() {
   return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left: Description */}
-        <div className="space-y-6 lg:order-2">
-          <div className="inline-flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#2563eb] flex items-center justify-center text-white font-bold text-lg">
-              2
-            </div>
-          </div>
-          <h3 className="font-poppins text-3xl font-bold text-[#1a365d]">
-            We Find & Fix Issues
-          </h3>
-          <p className="text-lg text-[#4b5563] leading-relaxed">
-            Our AI-powered engine automatically detects and repairs missing dates, incorrect formats, duplicates, and inconsistent data.
-          </p>
-          
-          {/* Issues Found */}
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-[#6b7280] uppercase tracking-wider">Issues detected & fixed</p>
-            {ISSUES_FOUND.map((issue, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-[#f9fafb] to-white border border-[#e5e7eb] hover:border-[#dbeafe] hover:shadow-md hover:bg-gradient-to-r hover:from-[#f0f9ff] hover:to-white transition-all duration-300 group cursor-default">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300" style={{ backgroundColor: `${issue.color}20` }}>
-                  <AlertCircle className="h-4 w-4" style={{ color: issue.color }} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#1a365d]">{issue.label}</p>
-                </div>
-                <div className="flex items-center gap-2 font-bold px-2.5 py-1 rounded-full bg-white group-hover:scale-110 transition-transform duration-300" style={{ color: issue.color, borderBottom: `2px solid ${issue.color}` }}>
-                  {issue.count} <Check className="h-4 w-4" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Before/After Demo */}
-        <div className="space-y-4 lg:order-1">
-          <div className="relative group">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Before */}
-              <div className="bg-gradient-to-br from-[#FEE2E2] to-[#FECACA]/50 rounded-xl p-4 border-2 border-[#FECACA] hover:shadow-lg hover:scale-105 transition-all duration-300 group-hover:from-[#FEE2E2] group-hover:to-[#FED7D7] cursor-default">
-                <p className="text-xs font-bold text-[#991B1B] mb-3 uppercase tracking-wider flex items-center gap-2">
-                  <span className="text-lg">❌</span>
-                  Before
-                </p>
-                <div className="bg-white rounded p-3 font-mono text-xs text-[#4b5563] max-h-48 overflow-y-auto border border-[#FECACA]">
-                  <pre className="whitespace-pre-wrap break-words">{SAMPLE_CSV_BEFORE}</pre>
-                </div>
-              </div>
-
-              {/* After */}
-              <div className="bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0]/50 rounded-xl p-4 border-2 border-[#A7F3D0] hover:shadow-lg hover:scale-105 transition-all duration-300 group-hover:from-[#D1FAE5] group-hover:to-[#86EFAC] cursor-default">
-                <p className="text-xs font-bold text-[#065F46] mb-3 uppercase tracking-wider flex items-center gap-2">
-                  <span className="text-lg">✅</span>
-                  After
-                </p>
-                <div className="bg-white rounded p-3 font-mono text-xs text-[#4b5563] max-h-48 overflow-y-auto border border-[#A7F3D0]">
-                  <pre className="whitespace-pre-wrap break-words">{SAMPLE_CSV_AFTER}</pre>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-gradient-to-br from-[#D1FAE5] to-[#ECFDF5] rounded-lg p-4 border border-[#A7F3D0] text-center hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-default">
-              <p className="text-3xl font-bold text-[#059669]">4</p>
-              <p className="text-xs text-[#065F46] font-semibold mt-1">Issues Fixed</p>
-            </div>
-            <div className="bg-gradient-to-br from-[#DBEAFE] to-[#F0F9FF] rounded-lg p-4 border border-[#93C5FD] text-center hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-default">
-              <p className="text-3xl font-bold text-[#3b82f6]">6</p>
-              <p className="text-xs text-[#1e40af] font-semibold mt-1">Rows Cleaned</p>
-            </div>
-            <div className="bg-gradient-to-br from-[#EDE9FE] to-[#F5F3FF] rounded-lg p-4 border border-[#DDD6FE] text-center hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-default">
-              <p className="text-3xl font-bold text-[#7C3AED]">0.2s</p>
-              <p className="text-xs text-[#5B21B6] font-semibold mt-1">Time Taken</p>
-            </div>
-          </div>
-        </div>
+    <div className="text-center space-y-4">
+      <div className="w-16 h-16 mx-auto bg-[var(--color-accent-500)]/10 rounded-xl flex items-center justify-center">
+        <Download className="w-8 h-8 text-[var(--color-accent-500)]" />
       </div>
-    </div>
-  );
-}
-
-// STEP 3: Export Demo
-function DemoStep3_Export({ selectedPlatform, onSelectPlatform }: any) {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 });
-
-  return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}
-    >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left: Description */}
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#3b82f6] to-[#2563eb] flex items-center justify-center text-white font-bold text-lg">
-              3
-            </div>
-          </div>
-          <h3 className="font-poppins text-3xl font-bold text-[#1a365d]">
-            Download Tax-Ready Format
-          </h3>
-          <p className="text-lg text-[#4b5563] leading-relaxed">
-            Export your cleaned CSV in the exact format your tax software needs. Works with Koinly, TurboTax, CoinLedger, ZenLedger, and more.
-          </p>
-          
-          {/* Platform selector */}
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-[#6b7280] uppercase tracking-wider">Choose your platform</p>
-            <div className="grid grid-cols-2 gap-3">
-              {PLATFORMS.map((platform) => (
-                <button
-                  key={platform.id}
-                  onClick={() => onSelectPlatform(platform.id)}
-                  className={`px-4 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                    selectedPlatform === platform.id
-                      ? 'bg-[#3b82f6] text-white shadow-lg scale-105'
-                      : 'bg-white border-2 border-[#e5e7eb] text-[#1a365d] hover:border-[#3b82f6]/50'
-                  }`}
-                >
-                  {platform.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Export Preview */}
-        <div className="space-y-4">
-          {/* Download preview */}
-          <div className="bg-gradient-to-br from-white to-[#f8f9ff] rounded-2xl p-8 border-2 border-[#e5e7eb] hover:border-[#059669]/30 shadow-lg hover:shadow-2xl transition-all duration-300 text-center space-y-6 group">
-            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-[#059669] to-[#047857] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <Download className="h-10 w-10 text-white" />
-            </div>
-            
-            <div>
-              <p className="font-poppins font-semibold text-[#1a365d] mb-2">
-                taxformatter_export.csv
-              </p>
-              <p className="text-sm text-[#6b7280]">
-                Formatted for <span className="font-semibold text-[#1a365d]">{PLATFORMS.find(p => p.id === selectedPlatform)?.name}</span>
-              </p>
-            </div>
-
-            <button className="w-full bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white font-semibold py-3 rounded-lg hover:shadow-lg hover:-translate-y-0.5 hover:from-[#2563eb] hover:to-[#1d4ed8] transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-              <Download className="h-5 w-5 group-hover/btn:scale-110 transition-transform duration-300" />
-              Download CSV
-            </button>
-
-            <div className="pt-4 border-t border-[#e5e7eb]">
-              <p className="text-xs text-[#6b7280] font-medium">
-                ✓ Encrypted  •  ✓ Deleted after 24h  •  ✓ Ready to import
-              </p>
-            </div>
-          </div>
-
-          {/* Format info */}
-          <div className="bg-[#f8f9ff] rounded-lg p-4 border border-[#dbeafe]">
-            <p className="text-xs font-semibold text-[#1e40af] mb-2 uppercase">Export format</p>
-            <div className="bg-white rounded p-3 font-mono text-xs text-[#4b5563] overflow-x-auto">
-              <pre>Date | Amount | Currency | Type | Exchange</pre>
-            </div>
-          </div>
-        </div>
+      <div>
+        <p className="font-semibold text-slate-900 dark:text-white">taxformatter_export.csv</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Ready for Koinly</p>
       </div>
+      <button className="w-full bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white font-semibold py-3 rounded-lg transition-colors">
+        Download CSV
+      </button>
+      <p className="text-xs text-slate-400 dark:text-slate-500">
+        Encrypted • Auto-deleted in 24h
+      </p>
     </div>
   );
 }
