@@ -11,6 +11,7 @@ interface TableOfContentsProps {
 export function TableOfContents({ content }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<TocItem[]>([])
   const [activeId, setActiveId] = useState<string>('')
+  const [readProgress, setReadProgress] = useState(0)
 
   useEffect(() => {
     // Extract headings from markdown content
@@ -32,7 +33,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   }, [content])
 
   useEffect(() => {
-    // Track active heading on scroll
+    // Track active heading and reading progress on scroll
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
+      setReadProgress(progress)
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -47,36 +55,56 @@ export function TableOfContents({ content }: TableOfContentsProps) {
     const headingElements = document.querySelectorAll('h2, h3')
     headingElements.forEach((el) => observer.observe(el))
 
-    return () => observer.disconnect()
+    window.addEventListener('scroll', handleScroll)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [headings])
 
   if (headings.length === 0) return null
 
   return (
-    <div className="hidden xl:block sticky top-28 max-h-[calc(100vh-8rem)] overflow-auto">
-      <div className="text-sm">
-        <h4 className="font-semibold text-gray-900 mb-4">On this page</h4>
-        <nav>
-          <ul className="space-y-2">
-            {headings.map((heading) => (
-              <li
-                key={heading.id}
-                className={heading.level === 3 ? 'ml-4' : ''}
-              >
-                <a
-                  href={`#${heading.id}`}
-                  className={`block py-1 transition-colors ${
-                    activeId === heading.id
-                      ? 'text-blue-600 font-medium'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {heading.text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+    <div className="hidden xl:block sticky top-36 max-h-[calc(100vh-10rem)] overflow-auto">
+      <div className="relative">
+        {/* Progress indicator bar */}
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+          <div
+            className="w-full bg-gradient-to-b from-[var(--color-primary-500)] to-[var(--color-accent-500)] transition-all duration-150"
+            style={{ height: `${readProgress}%` }}
+          />
+        </div>
+
+        <div className="text-sm pl-4">
+          <h4 className="font-semibold text-slate-900 dark:text-white mb-4">On this page</h4>
+          <nav>
+            <ul className="space-y-2">
+              {headings.map((heading, index) => {
+                const isActive = activeId === heading.id
+                const progressToHeading = ((index + 1) / headings.length) * 100
+
+                return (
+                  <li
+                    key={heading.id}
+                    className={heading.level === 3 ? 'ml-3' : ''}
+                  >
+                    <a
+                      href={`#${heading.id}`}
+                      className={`block py-1 transition-all duration-200 ${
+                        isActive
+                          ? 'text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)] font-medium'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {heading.text}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
   )

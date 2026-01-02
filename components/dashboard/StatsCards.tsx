@@ -18,29 +18,29 @@ export async function StatsCards({ userId }: StatsCardsProps) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       {/* Total Uploads */}
       <StatCard
-        icon={<FileText className="h-6 w-6 text-blue-600" />}
+        icon={<FileText className="h-5 w-5" />}
         label="Total Uploads"
         value={stats.totalUploads.toString()}
         subtitle="All time"
-        bgColor="bg-blue-50"
+        gradient="from-[var(--color-primary-500)] to-[var(--color-primary-600)]"
       />
 
       {/* Completed */}
       <StatCard
-        icon={<CheckCircle className="h-6 w-6 text-green-600" />}
+        icon={<CheckCircle className="h-5 w-5" />}
         label="Completed"
         value={stats.completed.toString()}
         subtitle="Successfully processed"
-        bgColor="bg-green-50"
+        gradient="from-[var(--color-accent-500)] to-[var(--color-accent-600)]"
       />
 
       {/* Processing */}
       <StatCard
-        icon={<Clock className="h-6 w-6 text-amber-600" />}
+        icon={<Clock className="h-5 w-5" />}
         label="Processing"
         value={stats.processing.toString()}
         subtitle="In queue"
-        bgColor="bg-amber-50"
+        gradient="from-amber-500 to-orange-500"
       />
     </div>
   );
@@ -51,19 +51,24 @@ interface StatCardProps {
   label: string;
   value: string;
   subtitle: string;
-  bgColor: string;
+  gradient: string;
 }
 
-function StatCard({ icon, label, value, subtitle, bgColor }: StatCardProps) {
+function StatCard({ icon, label, value, subtitle, gradient }: StatCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-600">{label}</span>
-        <div className={`${bgColor} p-2 rounded-lg`}>{icon}</div>
+    <div className="group bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 border border-white/20 dark:border-slate-700/50 p-6 hover:shadow-xl hover:shadow-[var(--color-primary-500)]/10 hover:-translate-y-0.5 transition-all duration-300">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{label}</span>
+        <div className={`bg-gradient-to-r ${gradient} p-2.5 rounded-xl text-white`}>
+          {icon}
+        </div>
       </div>
       <div className="space-y-1">
-        <p className="text-3xl font-bold text-slate-900">{value}</p>
-        <p className="text-sm text-slate-500">{subtitle}</p>
+        <p className="text-3xl font-bold text-slate-900 dark:text-white">{value}</p>
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-3 w-3 text-[var(--color-accent-500)]" />
+          <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+        </div>
       </div>
     </div>
   );

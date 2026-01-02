@@ -2,23 +2,10 @@
 
 import React from 'react';
 import { Container } from '../layout/Container';
-import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Check } from 'lucide-react';
 
-interface PricingPlan {
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  cta: string;
-  variant: 'primary' | 'secondary';
-  subtitle: string;
-  popular?: boolean;
-}
-
-const pricingData: PricingPlan[] = [
+const plans = [
   {
     name: 'Free',
     price: '$0',
@@ -26,179 +13,141 @@ const pricingData: PricingPlan[] = [
     description: "Understand what's broken before you fix it.",
     features: [
       'Upload and analyze CSV files',
-      'AI insight panels explaining all issues',
-      'Wash sale, duplicate, and data integrity detection',
+      'AI insight panels',
+      'Issue detection (wash sales, duplicates)',
       'No export',
     ],
-    cta: 'Analyze My CSV',
-    variant: 'secondary',
-    subtitle: 'No credit card required',
+    cta: 'Analyze Free',
+    popular: false,
   },
   {
     name: 'Pro',
     price: '$89',
     period: '/tax year',
-    description: 'Get a corrected CSV you can upload directly to tax software.',
+    description: 'Get a corrected CSV for tax software.',
     features: [
       'Tax-compliant corrected CSV',
-      'Cost basis adjustments applied',
-      'Wash sale handling reflected in output',
-      'Timestamp and currency normalization',
-      'Upload to TurboTax, Koinly, CoinLedger, ZenLedger',
-      'Unlimited re-runs for the same tax year',
+      'Cost basis adjustments',
+      'Wash sale handling',
+      'All platform exports',
+      'Unlimited re-runs',
       'Email support',
     ],
-    cta: 'Download Fixed CSV',
-    variant: 'primary',
+    cta: 'Get Pro',
     popular: true,
-    subtitle: 'One-time purchase per tax year',
   },
   {
     name: 'Premium',
     price: '$189',
     period: '/tax year',
-    description: 'Audit-ready documentation and full AI explanations.',
+    description: 'Audit-ready documentation.',
     features: [
       'Everything in Pro',
-      'AI-generated PDF tax report',
-      'Line-by-line explanations for accountants',
-      'Audit-ready notes and transaction lineage',
+      'AI-generated PDF report',
+      'Line-by-line explanations',
+      'Audit-ready notes',
       'Priority support',
     ],
-    cta: 'Get Audit-Ready Output',
-    variant: 'secondary',
-    subtitle: 'Best for complex or high-volume traders',
+    cta: 'Get Premium',
+    popular: false,
   },
 ];
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-slate-50 dark:bg-slate-900 py-24 sm:py-32">
+    <section id="pricing" className="py-24 sm:py-32 bg-slate-50 dark:bg-slate-900">
       <Container>
         <div className="text-center mb-16">
-          {/* Coming Soon Banner */}
-          <div className="mb-8 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-full">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-              Coming Soon - Platform launching Q1 2026
+          {/* Coming Soon Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-[var(--color-primary-500)]/10 border border-[var(--color-primary-500)]/20">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-primary-500)] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-primary-500)]"></span>
+            </span>
+            <span className="text-sm font-semibold text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)]">
+              Launching Q1 2026
             </span>
           </div>
 
-          <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-[#1a365d] dark:text-slate-100 mb-4 leading-tight">
-            Simple pricing, powerful results
+          <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+            Simple, One-Time Pricing
           </h2>
-          <p className="text-lg text-[#6b7280] dark:text-slate-300 mb-2">
-            One-time purchase per tax year. No subscriptions.
-          </p>
-          <p className="text-sm text-[#9ca3af] dark:text-slate-400">
-            Fix your crypto CSV files and ensure tax compliance
+          <p className="text-lg text-slate-600 dark:text-slate-400">
+            Pay once per tax year. No subscriptions.
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {pricingData.map((plan, index) => {
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 items-stretch">
+          {plans.map((plan, idx) => {
             const isPro = plan.popular;
+
             return (
               <div
-                key={index}
-                className={`relative ${isPro ? 'md:scale-105 z-20' : 'z-10'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
-                style={{ animationDelay: `${index * 100}ms` }}
+                key={idx}
+                className={`relative ${isPro ? 'md:-mt-4 md:mb-4 z-10' : ''}`}
               >
+                {/* Glow effect for Pro */}
                 {isPro && (
-                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-30">
-                    <div className="rounded-full bg-gradient-to-r from-[#3b82f6] to-[#2563eb] px-5 py-2 text-sm font-bold text-white shadow-lg border-2 border-white">
-                      Most Popular
-                    </div>
-                  </div>
+                  <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-accent-500)] opacity-100" />
                 )}
-                <Card
-                  className={`h-full flex flex-col transition-all duration-300 ${
+
+                <div
+                  className={`relative h-full rounded-2xl p-6 sm:p-8 flex flex-col ${
                     isPro
-                      ? 'bg-gradient-to-br from-[#0c1929] via-[#1a365d] to-[#0c1929] dark:from-[#1a365d] dark:via-[#2d5a8f] dark:to-[#1a365d] text-white border-2 border-[#3b82f6] shadow-[0_20px_60px_rgba(59,130,246,0.3)] hover:shadow-[0_25px_70px_rgba(59,130,246,0.4)]'
-                      : 'border border-[#e5e7eb] dark:border-slate-600 dark:bg-slate-800 shadow-sm hover:shadow-xl hover:border-[#3b82f6]/30 dark:hover:border-blue-400/30'
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
                   }`}
                 >
+                  {/* Popular badge */}
+                  {isPro && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="px-4 py-1 bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-accent-500)] text-white text-xs font-bold rounded-full">
+                        POPULAR
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Plan header */}
                   <div className="mb-6">
-                    <h3
-                      className={`font-poppins text-lg font-semibold mb-2 ${
-                        isPro ? 'text-white' : 'text-[#1a365d] dark:text-slate-100'
-                      }`}
-                    >
+                    <h3 className={`text-lg font-semibold mb-2 ${isPro ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                       {plan.name}
                     </h3>
-                    <div className="flex items-baseline mb-2">
-                      <span
-                        className={`text-4xl font-bold ${
-                          isPro ? 'text-white' : 'text-[#1a365d] dark:text-slate-100'
-                        }`}
-                      >
+                    <div className="flex items-baseline gap-1 mb-2">
+                      <span className={`text-4xl font-bold ${isPro ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                         {plan.price}
                       </span>
                       {plan.period && (
-                        <span
-                          className={`ml-2 text-sm ${
-                            isPro ? 'text-[#d1d5db]' : 'text-[#4b5563] dark:text-slate-400'
-                          }`}
-                        >
+                        <span className={`text-sm ${isPro ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
                           {plan.period}
                         </span>
                       )}
                     </div>
-                    <p
-                      className={`text-sm ${
-                        isPro ? 'text-[#d1d5db]' : 'text-[#4b5563] dark:text-slate-300'
-                      }`}
-                    >
+                    <p className={`text-sm ${isPro ? 'text-slate-400' : 'text-slate-600 dark:text-slate-400'}`}>
                       {plan.description}
                     </p>
-                    {plan.subtitle && (
-                      <p
-                        className={`text-xs mt-2 ${
-                          isPro ? 'text-[#9ca3af]' : 'text-[#6b7280] dark:text-slate-400'
-                        }`}
-                      >
-                        {plan.subtitle}
-                      </p>
-                    )}
                   </div>
 
-                  <ul className="space-y-4 mb-8 flex-grow">
+                  {/* Features */}
+                  <ul className="space-y-3 mb-8 flex-grow">
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <div
-                          className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                            isPro ? 'bg-[#059669]/20' : 'bg-[#059669]/10 dark:bg-[#059669]/20'
-                          }`}
-                        >
-                          <Check
-                            className="h-4 w-4 text-[#059669] dark:text-green-400 font-bold"
-                            strokeWidth={3}
-                          />
-                        </div>
-                        <span
-                          className={`text-sm leading-relaxed ${
-                            isPro ? 'text-[#e5e7eb]' : 'text-[#4b5563] dark:text-slate-300'
-                          }`}
-                        >
+                        <Check className={`w-5 h-5 flex-shrink-0 ${isPro ? 'text-[var(--color-accent-400)]' : 'text-[var(--color-accent-500)]'}`} />
+                        <span className={`text-sm ${isPro ? 'text-slate-300' : 'text-slate-600 dark:text-slate-400'}`}>
                           {feature}
                         </span>
                       </li>
                     ))}
                   </ul>
 
+                  {/* CTA */}
                   <Button
-                    variant={plan.variant}
-                    href="#start"
+                    variant={isPro ? 'primary' : 'secondary'}
+                    className={`w-full ${isPro ? '' : ''}`}
                     disabled
-                    className={`w-full opacity-60 cursor-not-allowed ${
-                      isPro
-                        ? 'bg-[#3b82f6] text-white border-none'
-                        : ''
-                    }`}
                   >
                     {plan.cta}
                   </Button>
-                </Card>
+                </div>
               </div>
             );
           })}

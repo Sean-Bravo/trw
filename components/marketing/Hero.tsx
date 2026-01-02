@@ -1,303 +1,184 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
 import { trackSignUp } from '@/lib/analytics';
-import {
-  Users,
-  UploadCloud,
-  FileText,
-  Loader2,
-  CheckCircle2,
-  AlertTriangle,
-  Sparkles,
-  BrainCircuit,
-  ArrowRight
-} from 'lucide-react';
+import { ArrowRight, Sparkles, Check } from 'lucide-react';
 
 export function Hero() {
-  // State to simulate the app flow: 'idle' | 'analyzing' | 'complete'
-  const [status, setStatus] = useState('idle');
-  const [progress, setProgress] = useState(0);
-
-  // Simulation Logic
-  const handleUpload = () => {
-    if (status !== 'idle') return;
-    setStatus('analyzing');
-    setProgress(0);
-    
-    // Simulate progress bar (2.5 seconds)
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setStatus('complete');
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 50);
-  };
-
-  const reset = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setStatus('idle');
-    setProgress(0);
-  };
-
   return (
-    <section className="bg-gradient-to-b from-white to-[#f9fafb] dark:from-slate-900 dark:to-slate-800 py-24 sm:py-32 relative overflow-hidden">
-      {/* --- BACKGROUND DECORATION --- */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute top-20 right-0 w-96 h-96 bg-[#3b82f6] rounded-full opacity-8 blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 left-0 w-96 h-96 bg-[#1a365d] rounded-full opacity-8 blur-3xl animate-float animation-delay-300"></div>
-        <div className="absolute top-40 left-1/4 w-72 h-72 bg-[#059669] rounded-full opacity-5 blur-3xl animate-float animation-delay-500"></div>
-        <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-[#3b82f6] rounded-full opacity-6 blur-2xl animate-float animation-delay-200"></div>
-        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(59,130,246,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)" /></svg>')` }}></div>
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#3b82f6] to-transparent opacity-20"></div>
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-slate-50 dark:bg-slate-950">
+      {/* Gradient Mesh Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Primary gradient blob */}
+        <div
+          className="absolute -top-1/4 -right-1/4 w-[80%] h-[80%] rounded-full opacity-30 dark:opacity-20 blur-3xl animate-mesh"
+          style={{
+            background: 'radial-gradient(circle, rgba(99,91,255,0.4) 0%, rgba(99,91,255,0) 70%)',
+          }}
+        />
+        {/* Accent gradient blob */}
+        <div
+          className="absolute -bottom-1/4 -left-1/4 w-[60%] h-[60%] rounded-full opacity-25 dark:opacity-15 blur-3xl animate-mesh"
+          style={{
+            background: 'radial-gradient(circle, rgba(0,212,170,0.4) 0%, rgba(0,212,170,0) 70%)',
+            animationDelay: '-4s',
+          }}
+        />
+        {/* Subtle top-right accent */}
+        <div
+          className="absolute top-1/4 right-1/3 w-[40%] h-[40%] rounded-full opacity-20 dark:opacity-10 blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(99,91,255,0.3) 0%, transparent 70%)',
+          }}
+        />
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(99,91,255,0.5) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(99,91,255,0.5) 1px, transparent 1px)`,
+            backgroundSize: '64px 64px',
+          }}
+        />
       </div>
 
       <Container>
-        <div className="max-w-7xl mx-auto">
-          
-          {/* --- HEADER SECTION --- */}
-          <div className="text-center mb-16">
-            <div className="mb-6 flex justify-center">
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-[#3b82f6]/10 to-[#1a365d]/10 dark:from-blue-500/10 dark:to-blue-700/10 backdrop-blur-sm border border-[#3b82f6]/20 dark:border-slate-600 text-[#1a365d] dark:text-slate-200 rounded-full text-xs font-semibold uppercase tracking-wider hover:border-[#3b82f6]/40 dark:hover:border-slate-500 hover:shadow-[0_4px_12px_rgba(59,130,246,0.15)] transition-all duration-300 animate-slide-up">
-                
-                {/* REPLACED SVG WITH GLOWING GREEN DOT */}
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                </span>
-                
-                AI-Powered CSV Repair
-              </div>
-            </div>
-
-            <h1 className="font-poppins text-5xl sm:text-6xl md:text-7xl font-bold text-[#1a365d] dark:text-slate-100 leading-tight tracking-tight mb-6 animate-slide-up animation-delay-100">
-              Fix Your Crypto Taxes
-              <br />
-              <span className="bg-gradient-to-r from-[#3b82f6] via-[#2563eb] to-[#1a365d] dark:from-blue-300 dark:via-blue-400 dark:to-blue-500 bg-clip-text text-transparent animate-pulse-subtle">
-                in 30 Seconds
-              </span>
-            </h1>
-
-            <p className="text-xl text-[#4b5563] dark:text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed animate-slide-up animation-delay-200">
-              Broken CSV from your exchange? We clean it, format it, and make it ready for any tax platform. No manual editing required.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-slide-up animation-delay-300">
-              <Button
-                variant="primary"
-                href="/signup"
-                showArrow
-                onClick={() => trackSignUp()}
-                className="text-base px-8 py-4 h-14 hover:shadow-[0_12px_32px_rgba(59,130,246,0.3)] hover:-translate-y-0.5 transition-all duration-300"
-              >
-                Start Free Audit
-              </Button>
-              <Button variant="secondary" href="#pricing" className="text-base px-8 py-4 h-14 hover:shadow-[0_12px_32px_rgba(26,54,93,0.2)] hover:-translate-y-0.5 transition-all duration-300">
-                View Pricing
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-[#6b7280] dark:text-slate-400 mb-4 animate-slide-up animation-delay-500">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b82f6]/5 dark:bg-slate-700/50 border border-[#3b82f6]/10 dark:border-slate-600 hover:border-[#3b82f6]/30 dark:hover:border-slate-500 hover:bg-[#3b82f6]/10 dark:hover:bg-slate-700 transition-all duration-300">
-                <Users className="h-5 w-5 text-[#3b82f6] dark:text-blue-400" />
-                <span className="font-semibold text-[#1a365d] dark:text-slate-200">10,000+ users</span>
-              </div>
-            </div>
+        <div className="relative z-10 max-w-4xl mx-auto text-center py-20">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 shadow-sm animate-fade-in-up">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-500)] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent-500)]"></span>
+            </span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+              AI-Powered CSV Repair
+            </span>
           </div>
 
-          {/* --- HERO INTERACTIVE SECTION (Command Center) --- */}
-          <div className="mt-16 grid lg:grid-cols-12 gap-8 items-stretch max-w-6xl mx-auto">
-            
-            {/* LEFT COLUMN: Input Reactor (Drag & Drop) */}
-            <div className="lg:col-span-7 flex flex-col h-full min-h-[400px]">
-              <div
-                className={`
-                  relative flex-1 rounded-3xl border-2 border-dashed transition-all duration-300 cursor-not-allowed overflow-hidden flex flex-col items-center justify-center p-8 sm:p-12 opacity-75
-                  ${status === 'idle'
-                    ? 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50'
-                    : 'border-blue-500/30 dark:border-blue-400/30 bg-blue-50/20 dark:bg-slate-700/30'
-                  }
-                `}
-              >
-                {/* IDLE STATE */}
-                {status === 'idle' && (
-                  <div className="text-center space-y-6 animate-in fade-in zoom-in duration-300">
-                    {/* Coming Soon Badge */}
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-blue-300 dark:border-blue-600 rounded-full mb-4">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-bold text-blue-900 dark:text-blue-300">
-                        Coming Q1 2026
-                      </span>
-                    </div>
+          {/* Headline */}
+          <h1 className="font-poppins text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-[1.1] tracking-tight mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            Fix Your Crypto Taxes
+            <span className="block mt-2 bg-gradient-to-r from-[var(--color-primary-500)] via-[var(--color-primary-400)] to-[var(--color-accent-500)] bg-clip-text text-transparent">
+              in Seconds
+            </span>
+          </h1>
 
-                    <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto transition-transform duration-300 shadow-inner">
-                      <UploadCloud className="w-10 h-10" />
+          {/* Subheadline */}
+          <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            Broken CSV from your exchange? We clean it, format it, and make it
+            ready for any tax platform. No manual editing required.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <Button
+              variant="primary"
+              href="/signup"
+              showArrow
+              onClick={() => trackSignUp()}
+              className="text-base px-8 py-3 h-12"
+            >
+              Fix Now
+            </Button>
+            <Button
+              variant="secondary"
+              href="#pricing"
+              className="text-base px-8 py-3 h-12"
+            >
+              View Pricing
+            </Button>
+          </div>
+
+          {/* Trust Indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500 dark:text-slate-400 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-[var(--color-accent-500)]" />
+              <span>10,000+ files processed</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-[var(--color-accent-500)]" />
+              <span>99.9% accuracy</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-[var(--color-accent-500)]" />
+              <span>Works with 12 exchanges</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Preview Card */}
+        <div className="relative z-10 max-w-3xl mx-auto mt-8 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+          <div className="relative">
+            {/* Glow effect behind card */}
+            <div className="absolute -inset-4 bg-gradient-to-r from-[var(--color-primary-500)]/20 via-[var(--color-accent-500)]/20 to-[var(--color-primary-500)]/20 rounded-3xl blur-2xl opacity-60 dark:opacity-40" />
+
+            {/* Main card */}
+            <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xl overflow-hidden">
+              {/* Card header */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400/80" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-400/80" />
+                  <div className="w-3 h-3 rounded-full bg-green-400/80" />
+                </div>
+                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium ml-2">
+                  TaxFormatter Pro
+                </span>
+              </div>
+
+              {/* Card content */}
+              <div className="p-6 sm:p-8">
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {/* Before */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="w-2 h-2 rounded-full bg-red-400" />
+                      Before
                     </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-200 font-poppins mb-2">CSV Upload Feature</h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-lg">Platform launching soon</p>
-                    </div>
-                    <div className="flex gap-2 justify-center pt-4 opacity-60">
-                      {['Coinbase', 'Binance', 'Kraken', 'KuCoin'].map(ex => (
-                        <span key={ex} className="px-3 py-1 bg-slate-100 dark:bg-slate-700/50 rounded-md text-xs font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
-                          {ex}
-                        </span>
-                      ))}
+                    <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 font-mono text-xs text-slate-600 dark:text-slate-400 space-y-1 overflow-hidden">
+                      <div className="text-red-500">date,type,amount,currency</div>
+                      <div className="opacity-60">2024-01-15,BUY,0.5,BTC</div>
+                      <div className="text-red-500 line-through">N/A,UNKNOWN,???,ETH</div>
+                      <div className="text-amber-500">01/20/24,sell,1.2,</div>
+                      <div className="opacity-40">...</div>
                     </div>
                   </div>
-                )}
 
-                {/* PROCESSING STATE (Replaces the drag drop UI) */}
-                {(status === 'analyzing' || status === 'complete') && (
-                  <div className="w-full max-w-md bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border border-blue-100 dark:border-slate-600 animate-in slide-in-from-bottom-4 duration-500 relative overflow-hidden">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-7 h-7" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-slate-900 dark:text-slate-100 truncate">binance_trade_history.csv</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                          {status === 'analyzing' ? (
-                            <>
-                              <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
-                              Processing...
-                            </>
-                          ) : (
-                            <span className="text-green-600 dark:text-green-400 font-medium">Ready for export</span>
-                          )}
-                        </p>
-                      </div>
-                      {status === 'complete' && (
-                         <button onClick={reset} className="text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline">
-                           Reset
-                         </button>
-                      )}
+                  {/* After */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="w-2 h-2 rounded-full bg-[var(--color-accent-500)]" />
+                      After
                     </div>
-
-                    {/* Fake Progress Bar inside the card */}
-                    {status === 'analyzing' && (
-                       <div className="mt-4 h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                         <div
-                           className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-300 ease-out"
-                           style={{ width: `${progress}%` }}
-                         />
-                       </div>
-                    )}
+                    <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 font-mono text-xs text-slate-600 dark:text-slate-400 space-y-1 overflow-hidden">
+                      <div className="text-[var(--color-accent-600)] dark:text-[var(--color-accent-400)]">date,type,amount,currency</div>
+                      <div>2024-01-15,BUY,0.5,BTC</div>
+                      <div className="text-[var(--color-accent-600)] dark:text-[var(--color-accent-400)]">2024-01-18,TRANSFER,0.25,ETH</div>
+                      <div className="text-[var(--color-accent-600)] dark:text-[var(--color-accent-400)]">2024-01-20,SELL,1.2,ETH</div>
+                      <div className="opacity-40">...</div>
+                    </div>
                   </div>
-                )}
+                </div>
+
+                {/* Status bar */}
+                <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-accent-500)]/10 text-[var(--color-accent-600)] dark:text-[var(--color-accent-400)]">
+                      <Sparkles className="w-4 h-4" />
+                      <span className="text-sm font-medium">AI Enhanced</span>
+                    </div>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      4 issues fixed
+                    </span>
+                  </div>
+                  <div className="text-sm font-medium text-[var(--color-accent-600)] dark:text-[var(--color-accent-400)]">
+                    Ready for export →
+                  </div>
+                </div>
               </div>
             </div>
-
-            {/* RIGHT COLUMN: Nano Banana AI Panel (Dark Mode) */}
-            <div className="lg:col-span-5 h-full min-h-[400px]">
-              <div className="bg-[#1a365d] p-6 rounded-[2rem] shadow-2xl relative overflow-hidden font-poppins h-full flex flex-col">
-                
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
-
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8 relative z-10">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                    <h2 className="text-white text-lg font-bold tracking-wide">AI Insights</h2>
-                  </div>
-                  <div className={`
-                    bg-blue-800/50 text-blue-200 text-xs font-medium px-3 py-1 rounded-full border border-blue-700/50 transition-opacity duration-300
-                    ${status === 'analyzing' ? 'opacity-100 animate-pulse' : 'opacity-0'}
-                  `}>
-                    Live Analysis...
-                  </div>
-                </div>
-
-                {/* Cards Container */}
-                <div className="flex-1 space-y-4 relative z-10 flex flex-col justify-center">
-
-                  {/* 1. SUCCESS CARD (Binance) */}
-                  <div className={`
-                    bg-white rounded-2xl p-4 shadow-lg transition-all duration-500 transform
-                    ${status !== 'idle' 
-                      ? 'translate-y-0 opacity-100' 
-                      : 'translate-y-0 opacity-40 blur-[1px]'
-                    } 
-                  `}>
-                    <div className="flex items-start gap-4">
-                      <div className="bg-green-100 p-2.5 rounded-xl flex-shrink-0">
-                        <CheckCircle2 className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <h3 className="font-bold text-slate-800 text-sm">Exchange Detected</h3>
-                          <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">CONFIRMED</span>
-                        </div>
-                        <p className="text-xl font-extrabold text-slate-900">Binance</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2. ACTIVE CARD (Analyzing) */}
-                  <div className={`
-                    bg-white rounded-2xl p-5 shadow-[0_0_30px_rgba(250,204,21,0.2)] transition-all duration-500 delay-100 transform border-2
-                    ${status === 'analyzing' ? 'border-yellow-400 scale-105 z-20 opacity-100' : 'border-transparent scale-100'}
-                    ${status === 'idle' ? 'opacity-40 blur-[1px]' : ''} 
-                    ${status === 'complete' ? 'opacity-100' : ''}
-                  `}>
-                    <div className="flex items-start gap-4 mb-3">
-                      <div className={`p-2.5 rounded-xl flex-shrink-0 ${status === 'analyzing' ? 'bg-yellow-100' : 'bg-slate-100'}`}>
-                        <BrainCircuit className={`w-6 h-6 ${status === 'analyzing' ? 'text-yellow-600 animate-pulse' : 'text-slate-400'}`} />
-                      </div>
-                      <div className="w-full">
-                        <h3 className="font-bold text-slate-800 text-sm mb-1">Analyzing Transactions...</h3>
-                        <p className="text-2xl font-extrabold text-slate-900">
-                          {status === 'idle' ? '0' : Math.floor(progress * 8.47)} 
-                          <span className="text-sm font-semibold text-slate-400 ml-1">found</span>
-                        </p>
-                      </div>
-                    </div>
-                    {/* Chunky Gradient Bar */}
-                    <div className="h-4 bg-slate-100 rounded-full overflow-hidden relative">
-                      <div 
-                        className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-blue-500 transition-all duration-100"
-                        style={{ width: `${status === 'idle' ? 0 : progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* 3. ALERT CARD (Wash Sales) */}
-                  <div className={`
-                    bg-[#ffedd5] rounded-2xl p-4 shadow-lg transition-all duration-500 delay-200 transform border border-orange-200
-                    ${status === 'complete' 
-                      ? 'translate-y-0 opacity-100' 
-                      : 'translate-y-0 opacity-40 blur-[1px]'
-                    } 
-                  `}>
-                    <div className="flex items-center gap-4">
-                      <div className="bg-orange-100 p-2.5 rounded-xl flex-shrink-0">
-                        <AlertTriangle className="w-6 h-6 text-orange-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-orange-900 text-sm">Tax Flag</h3>
-                        <p className="text-lg font-extrabold text-orange-950">Wash Sales Detected</p>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Footer text */}
-                <div className="mt-8 text-center">
-                  <p className="text-blue-200/60 text-xs font-mono">AI ENGINE V2.4 ONLINE</p>
-                </div>
-                
-              </div>
-            </div>
-
           </div>
         </div>
       </Container>

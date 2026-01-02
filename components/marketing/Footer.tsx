@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container } from '../layout/Container';
 import { Logo } from '../ui/Logo';
+import { Button } from '../ui/Button';
 import Link from 'next/link';
-import { Mail, CheckCircle2 } from 'lucide-react';
+import { Mail, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -12,7 +13,6 @@ export function Footer() {
   const [message, setMessage] = useState('');
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -34,23 +34,21 @@ export function Footer() {
 
       if (response.ok) {
         setStatus('success');
-        setMessage('Thanks! We\'ll notify you when we launch.');
+        setMessage("Thanks! We'll notify you when we launch.");
         setEmail('');
       } else {
         setStatus('error');
         setMessage('Something went wrong. Please try again.');
       }
-    } catch (error) {
+    } catch {
       setStatus('error');
       setMessage('Something went wrong. Please try again.');
     }
 
-    // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    // Set new timeout and store reference
     timeoutRef.current = setTimeout(() => {
       setStatus('idle');
       setMessage('');
@@ -58,129 +56,148 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[#0c1929] text-white py-16 border-t border-[#1f2937]">
-      <Container>
-        {/* Waitlist Section */}
-        <div className="mb-12 p-8 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 rounded-2xl border border-blue-800/50">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="font-poppins text-2xl font-bold mb-2">Join the Waitlist</h3>
-            <p className="text-[#d1d5db] mb-6">
-              Be the first to know when we launch in Q1 2026. Get early access and exclusive launch pricing.
+    <footer className="bg-slate-900 dark:bg-slate-950 text-white">
+      {/* CTA Section */}
+      <div className="py-20 border-b border-slate-800">
+        <Container>
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="font-poppins text-3xl sm:text-4xl font-bold mb-4">
+              Ready to Fix Your CSVs?
+            </h2>
+            <p className="text-lg text-slate-400 mb-8">
+              Join thousands of crypto traders who've simplified their tax filing.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="primary" href="/signup">
+                Get Started Free
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+              <Button variant="secondary" href="#pricing" className="border-slate-700 text-white hover:bg-slate-800">
+                View Pricing
+              </Button>
+            </div>
+          </div>
+        </Container>
+      </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+      {/* Newsletter Section */}
+      <div className="py-12 border-b border-slate-800">
+        <Container>
+          <div className="max-w-md mx-auto text-center">
+            <h3 className="font-semibold text-lg mb-2">Join the Waitlist</h3>
+            <p className="text-sm text-slate-400 mb-4">
+              Get notified when we launch in Q1 2026.
+            </p>
+            <form onSubmit={handleSubmit} className="flex gap-2">
               <div className="flex-1 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9ca3af]" aria-hidden="true" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  aria-label="Email address"
                   required
                   disabled={status === 'loading' || status === 'success'}
-                  className="w-full pl-11 pr-4 py-3 bg-white/10 border border-white/20 rounded-full text-white placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-full text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent disabled:opacity-50"
                 />
               </div>
               <button
                 type="submit"
                 disabled={status === 'loading' || status === 'success'}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-colors duration-200 whitespace-nowrap"
+                className="px-5 py-2.5 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-primary-700)] text-white text-sm font-semibold rounded-full transition-colors"
               >
-                {status === 'loading' ? 'Joining...' : status === 'success' ? 'Joined!' : 'Notify Me'}
+                {status === 'loading' ? '...' : status === 'success' ? 'Done!' : 'Notify Me'}
               </button>
             </form>
-
             {message && (
-              <div className={`mt-4 flex items-center justify-center gap-2 text-sm ${
-                status === 'success' ? 'text-green-400' : 'text-red-400'
+              <div className={`mt-3 flex items-center justify-center gap-2 text-sm ${
+                status === 'success' ? 'text-[var(--color-accent-400)]' : 'text-red-400'
               }`}>
                 {status === 'success' && <CheckCircle2 className="w-4 h-4" />}
                 {message}
               </div>
             )}
           </div>
-        </div>
+        </Container>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          {/* Branding */}
-          <div>
-            <Logo variant="light" className="mb-4" />
-            <p className="text-sm text-[#d1d5db] leading-relaxed">
-              Cloud-based software that validates, cleans, and formats cryptocurrency transaction CSV files for compatibility with tax and accounting software.
+      {/* Links Section */}
+      <div className="py-12">
+        <Container>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            {/* Brand */}
+            <div className="col-span-2 md:col-span-1">
+              <Logo variant="light" className="mb-4" />
+              <p className="text-sm text-slate-400 leading-relaxed">
+                AI-powered CSV repair for crypto tax compliance.
+              </p>
+            </div>
+
+            {/* Product */}
+            <div>
+              <h4 className="font-semibold text-sm mb-4 text-slate-300">Product</h4>
+              <ul className="space-y-2">
+                {[
+                  { label: 'Features', href: '/#features' },
+                  { label: 'Pricing', href: '/#pricing' },
+                  { label: 'Blog', href: '/blog' },
+                  { label: 'Docs', href: '/docs' },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-sm text-slate-500 hover:text-white transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h4 className="font-semibold text-sm mb-4 text-slate-300">Support</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a href="mailto:support@taxformatter.com" className="text-sm text-slate-500 hover:text-white transition-colors">
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a href="https://twitter.com/taxformatter" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-500 hover:text-white transition-colors">
+                    Twitter
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="font-semibold text-sm mb-4 text-slate-300">Legal</h4>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/privacy-policy" className="text-sm text-slate-500 hover:text-white transition-colors">
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="text-sm text-slate-500 hover:text-white transition-colors">
+                    Terms
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom */}
+          <div className="pt-8 border-t border-slate-800 text-center">
+            <p className="text-xs text-slate-500">
+              © {new Date().getFullYear()} TaxFormatter. All rights reserved.
+            </p>
+            <p className="text-xs text-slate-600 mt-1">
+              Made in NYC
             </p>
           </div>
-
-          {/* Product */}
-          <div>
-            <h3 className="font-poppins text-base font-semibold mb-4">Product</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/#features" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link href="/#pricing" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/docs" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Documentation
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h3 className="font-poppins text-base font-semibold mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="mailto:support@taxformatter.com" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Contact Support
-                </a>
-              </li>
-              <li>
-                <a href="https://twitter.com/taxformatter" target="_blank" rel="noopener noreferrer" className="text-sm text-[#9ca3af] hover:text-[#e5e7eb] transition-colors">
-                  Twitter
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="font-poppins text-base font-semibold mb-4">Legal</h3>
-            <ul className="space-y-2">
-              <li>
-                <span className="text-sm text-[#6b7280]">Privacy Policy - Coming Soon</span>
-              </li>
-              <li>
-                <span className="text-sm text-[#6b7280]">Terms of Service - Coming Soon</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-[#1f2937] pt-8 text-center">
-          <p className="text-xs text-[#6b7280]">
-            © 2025 TaxFormatter. All rights reserved. 🇺🇸
-          </p>
-          <p className="text-xs text-[#6b7280]">
-             The universal translation engine for crypto data
-          </p>
-          <p className="text-xs text-[#6b7280] mt-2">
-            Made in NYC 
-          </p>
-        </div>
-      </Container>
+        </Container>
+      </div>
     </footer>
   );
 }
