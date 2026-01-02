@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateEmail, validatePassword } from '@/lib/validation';
-
-// Lambda API Gateway URL
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
+import { createUser, emailExists } from '@/lib/auth-db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,12 +9,14 @@ export async function POST(request: NextRequest) {
 
     // Validate email
     const emailValidation = validateEmail(email);
-    if (!emailValidation.success) {
+    if (!emailValidation.success || !emailValidation.data) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
       );
     }
+
+    const validatedEmail = emailValidation.data;
 
     // Validate password
     const passwordValidation = validatePassword(password);
@@ -27,33 +27,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Lambda to register user
-    const response = await fetch(`${API_GATEWAY_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: emailValidation.data,
-        password,
-        name: name || null,
-      }),
-    });
-
-    if (response.status === 409) {
+    // Check if user already exists
+    const exists = await emailExists(validatedEmail);
+    if (exists) {
       return NextResponse.json(
         { error: 'User already exists' },
         { status: 409 }
       );
     }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return NextResponse.json(
-        { error: errorData.error || 'Registration failed' },
-        { status: response.status }
-      );
-    }
-
-    const user = await response.json();
+    // Create user directly in Neon DB
+    const user = await createUser(
+      validatedEmail,
+      password,
+      name || undefined
+    );
 
     return NextResponse.json(
       {
@@ -68,7 +56,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('[Auth] Registration error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

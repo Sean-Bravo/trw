@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.execute-api.us-east-1.amazonaws.com';
+import { getJobById } from '@/lib/jobs-db';
 
 /**
  * GET /api/jobs/[jobId]
- * Get job status from AWS Lambda
+ * Get job status from Neon DB
  */
 export async function GET(
   request: NextRequest,
@@ -24,30 +23,36 @@ export async function GET(
 
     const { jobId } = await params;
 
-    // 2. Call AWS Lambda via API Gateway
-    const lambdaResponse = await fetch(
-      `${API_GATEWAY_URL}/job/status?jobId=${encodeURIComponent(jobId)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    // 2. Get job from Neon DB
+    const job = await getJobById(jobId);
 
-    if (!lambdaResponse.ok) {
-      const errorData = await lambdaResponse.json().catch(() => ({}));
-      console.error('[Job Status] Lambda error:', errorData);
+    if (!job) {
       return NextResponse.json(
-        { error: errorData.error || 'Failed to get job status' },
-        { status: lambdaResponse.status }
+        { error: 'Job not found' },
+        { status: 404 }
       );
     }
 
-    const data = await lambdaResponse.json();
+    // 3. Verify user owns this job (via upload)
+    if (job.upload.user_id !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
 
-    // 3. Return job status
-    return NextResponse.json(data);
+    // 4. Return job status
+    return NextResponse.json({
+      jobId: job.id,
+      uploadId: job.upload_id,
+      status: job.status,
+      result: job.result,
+      error: job.error,
+      createdAt: job.created_at,
+      startedAt: job.started_at,
+      finishedAt: job.finished_at,
+      filename: job.upload.filename,
+    });
 
   } catch (error) {
     console.error('[Job Status] Error:', error);

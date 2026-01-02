@@ -12,8 +12,8 @@ const nextConfig: NextConfig = {
   // Compression for better performance
   compress: true,
 
-  // Enable Turbopack
-  turbopack: {},
+  // Turbopack disabled due to cache corruption issues
+  // turbopack: {},
 
   // Security headers
   async headers() {

@@ -2,53 +2,14 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { validateEmail, validatePassword } from "@/lib/validation";
-
-// Lambda API Gateway URL
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
-
-// Helper to call Lambda auth endpoints
-async function callLambdaAuth(endpoint: string, body: Record<string, unknown>) {
-  const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.error || `Auth request failed: ${response.status}`);
-  }
-
-  return response.json();
-}
-
-async function getUserByEmail(email: string) {
-  try {
-    const response = await fetch(`${API_GATEWAY_URL}/auth/user`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    if (!response.ok) return null;
-    return response.json();
-  } catch {
-    return null;
-  }
-}
-
-async function getUserById(id: string) {
-  try {
-    const response = await fetch(`${API_GATEWAY_URL}/auth/user?userId=${encodeURIComponent(id)}`);
-    if (!response.ok) return null;
-    return response.json();
-  } catch {
-    return null;
-  }
-}
+import {
+  verifyPassword,
+  findOrCreateOAuthUser,
+  findUserByEmail,
+  findUserById,
+} from "@/lib/auth-db";
 
 export const authOptions: NextAuthOptions = {
-  // Note: Adapter disabled to use JWT strategy with both OAuth and credentials
-  // We manually handle user creation in the signIn callback
   providers: [
     // Google OAuth Provider
     GoogleProvider({
@@ -77,7 +38,7 @@ export const authOptions: NextAuthOptions = {
 
         // Validate email format
         const emailValidation = validateEmail(credentials.email);
-        if (!emailValidation.success) {
+        if (!emailValidation.success || !emailValidation.data) {
           throw new Error("Invalid email");
         }
 
@@ -87,20 +48,24 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid password");
         }
 
+        const validatedEmail = emailValidation.data;
+
         try {
-          // Call Lambda to verify credentials
-          const user = await callLambdaAuth('/auth/login', {
-            email: emailValidation.data,
-            password: credentials.password,
-          });
+          // Verify credentials directly against Neon DB
+          const user = await verifyPassword(validatedEmail, credentials.password);
+
+          if (!user) {
+            throw new Error("Invalid credentials");
+          }
 
           return {
             id: user.id,
             email: user.email,
             name: user.name,
-            subscriptionTier: user.subscriptionTier as "free" | "pro" | "premium"
+            subscriptionTier: user.subscriptionTier
           };
-        } catch {
+        } catch (error) {
+          console.error('[Auth] Login error:', error);
           throw new Error("Invalid credentials");
         }
       }
@@ -119,34 +84,24 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
-  // Pages configuration - use NextAuth default pages for now
-  // pages: {
-  //   signIn: "/auth/signin",
-  //   signOut: "/auth/signout",
-  //   error: "/auth/error",
-  //   verifyRequest: "/auth/verify",
-  //   newUser: "/auth/new-user"
-  // },
-
   // Callbacks
   callbacks: {
     async signIn({ user, account }) {
-      // For OAuth providers, create/update user via Lambda
+      // For OAuth providers, create/update user directly in Neon DB
       if (account?.provider === 'google' && user.email) {
         try {
-          await callLambdaAuth('/auth/oauth-user', {
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            provider: account.provider,
-            providerAccountId: account.providerAccountId,
-            accessToken: account.access_token,
-            refreshToken: account.refresh_token,
-            expiresAt: account.expires_at,
-          });
+          await findOrCreateOAuthUser(
+            account.provider,
+            account.providerAccountId,
+            user.email,
+            user.name || undefined,
+            account.access_token || undefined,
+            account.refresh_token || undefined,
+            account.expires_at
+          );
           return true;
         } catch (error) {
-          console.error('OAuth user creation failed:', error);
+          console.error('[Auth] OAuth user creation failed:', error);
           return false;
         }
       }
@@ -165,13 +120,16 @@ export const authOptions: NextAuthOptions = {
         // For OAuth, look up the user by email to get our database ID
         // For credentials, user.id is already the database ID
         if (account?.provider === 'google') {
-          const dbUser = await getUserByEmail(user.email);
+          const dbUser = await findUserByEmail(user.email);
 
           if (dbUser) {
             token.id = dbUser.id;
             token.email = user.email;
             token.name = user.name;
-            token['subscriptionTier'] = dbUser.subscriptionTier;
+
+            // Get full user with subscription
+            const fullUser = await findUserById(dbUser.id);
+            token['subscriptionTier'] = fullUser?.subscriptionTier || 'free';
           }
         } else {
           // Credentials provider - user.id is already the database ID
@@ -191,7 +149,7 @@ export const authOptions: NextAuthOptions = {
 
       // Handle session refresh
       if (trigger === "update" && token.id) {
-        const dbUser = await getUserById(token.id as string);
+        const dbUser = await findUserById(token.id as string);
 
         if (dbUser) {
           token['subscriptionTier'] = dbUser.subscriptionTier;
@@ -227,16 +185,13 @@ export const authOptions: NextAuthOptions = {
   // Events for logging
   events: {
     async signIn({ user }) {
-      // TODO: Log successful sign-in
-      console.log(`User signed in: ${user.email ?? 'unknown'}`);
+      console.log(`[Auth] User signed in: ${user.email ?? 'unknown'}`);
     },
     async signOut() {
-      // TODO: Log sign-out
-      console.log("User signed out");
+      console.log("[Auth] User signed out");
     },
     async createUser({ user }) {
-      // TODO: Log new user creation
-      console.log(`New user created: ${user.email ?? 'unknown'}`);
+      console.log(`[Auth] New user created: ${user.email ?? 'unknown'}`);
     }
   },
 
