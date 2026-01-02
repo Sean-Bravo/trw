@@ -129,7 +129,7 @@ export function Footer() {
             <div className="col-span-2 md:col-span-1">
               <Logo variant="light" className="mb-4" />
               <p className="text-sm text-slate-400 leading-relaxed">
-                AI-powered CSV repair for crypto tax compliance.
+                Cloud-based software that validates, cleans, and formats cryptocurrency transaction CSV files for compatibility with tax and accounting software.
               </p>
             </div>
 
@@ -190,7 +190,10 @@ export function Footer() {
           {/* Bottom */}
           <div className="pt-8 border-t border-slate-800 text-center">
             <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} TaxFormatter. All rights reserved.
+              © {new Date().getFullYear()} TaxFormatter. All rights reserved. 🇺🇸
+            </p>
+            <p className="text-xs text-slate-400 mt-2">
+              The universal translation engine for crypto data.
             </p>
             <p className="text-xs text-slate-600 mt-1">
               Made in NYC
