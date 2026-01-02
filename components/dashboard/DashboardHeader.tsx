@@ -16,9 +16,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/">
-            <Logo className="h-8 w-auto" />
-          </Link>
+          <Logo className="h-8 w-auto" />
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-6">

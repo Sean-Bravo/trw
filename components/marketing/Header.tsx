@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../docs/ThemeToggle';
 import { trackSignUp } from '@/lib/analytics';
-import { signIn } from 'next-auth/react';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,12 +50,12 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          <Link
+            href="/login"
             className="hidden md:block text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium"
           >
             Sign In
-          </button>
+          </Link>
           <span className="hidden md:block"><ThemeToggle /></span>
           <Button
             variant="primary"
