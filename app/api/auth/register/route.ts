@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 import { validateEmail, validatePassword } from '@/lib/validation';
+
+// Lambda API Gateway URL
+const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,51 +27,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: emailValidation.data }
+    // Call Lambda to register user
+    const response = await fetch(`${API_GATEWAY_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: emailValidation.data,
+        password,
+        name: name || null,
+      }),
     });
 
-    if (existingUser) {
+    if (response.status === 409) {
       return NextResponse.json(
         { error: 'User already exists' },
         { status: 409 }
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Registration failed' },
+        { status: response.status }
+      );
+    }
 
-    // Create user and subscription in a transaction
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const user = await prisma.$transaction(async (tx: any) => {
-      const newUser = await tx.user.create({
-        data: {
-          email: emailValidation.data!,
-          name: name || null,
-          hashedPassword,
-          subscriptionTier: 'free'
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          subscriptionTier: true,
-          createdAt: true
-        }
-      });
-
-      // Create free tier subscription
-      await tx.subscription.create({
-        data: {
-          userId: newUser.id,
-          tier: 'free',
-          status: 'active'
-        }
-      });
-
-      return newUser;
-    });
+    const user = await response.json();
 
     return NextResponse.json(
       {

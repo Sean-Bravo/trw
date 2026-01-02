@@ -2,8 +2,49 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { validateEmail, validatePassword } from "@/lib/validation";
-import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+
+// Lambda API Gateway URL
+const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
+
+// Helper to call Lambda auth endpoints
+async function callLambdaAuth(endpoint: string, body: Record<string, unknown>) {
+  const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || `Auth request failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function getUserByEmail(email: string) {
+  try {
+    const response = await fetch(`${API_GATEWAY_URL}/auth/user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!response.ok) return null;
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function getUserById(id: string) {
+  try {
+    const response = await fetch(`${API_GATEWAY_URL}/auth/user?userId=${encodeURIComponent(id)}`);
+    if (!response.ok) return null;
+    return response.json();
+  } catch {
+    return null;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   // Note: Adapter disabled to use JWT strategy with both OAuth and credentials
@@ -46,27 +87,22 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid password");
         }
 
-        // Database lookup
-        const user = await prisma.user.findUnique({
-          where: { email: emailValidation.data }
-        });
+        try {
+          // Call Lambda to verify credentials
+          const user = await callLambdaAuth('/auth/login', {
+            email: emailValidation.data,
+            password: credentials.password,
+          });
 
-        if (!user || !user.hashedPassword) {
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            subscriptionTier: user.subscriptionTier as "free" | "pro" | "premium"
+          };
+        } catch {
           throw new Error("Invalid credentials");
         }
-
-        // Verify password
-        const isValid = await bcrypt.compare(credentials.password, user.hashedPassword);
-        if (!isValid) {
-          throw new Error("Invalid credentials");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          subscriptionTier: user.subscriptionTier as "free" | "pro" | "premium"
-        };
       }
     })
   ],
@@ -94,85 +130,25 @@ export const authOptions: NextAuthOptions = {
 
   // Callbacks
   callbacks: {
-    async signIn({ user, account, profile }) {
-      // For OAuth providers, create user and subscription if doesn't exist
+    async signIn({ user, account }) {
+      // For OAuth providers, create/update user via Lambda
       if (account?.provider === 'google' && user.email) {
-        // Check if user exists
-        let existingUser = await prisma.user.findUnique({
-          where: { email: user.email }
-        });
-
-        // Create user if doesn't exist
-        if (!existingUser) {
-          existingUser = await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name || null,
-              image: user.image || null,
-              emailVerified: new Date(),
-              subscriptionTier: 'free'
-            }
-          });
-
-          // Create free tier subscription for new user
-          await prisma.subscription.create({
-            data: {
-              userId: existingUser.id,
-              tier: 'free',
-              status: 'active'
-            }
-          });
-        } else {
-          // For existing users, check if subscription exists
-          const existingSubscription = await prisma.subscription.findUnique({
-            where: { userId: existingUser.id }
-          });
-
-          // Create free tier subscription if doesn't exist
-          if (!existingSubscription) {
-            await prisma.subscription.create({
-              data: {
-                userId: existingUser.id,
-                tier: 'free',
-                status: 'active'
-              }
-            });
-          }
-        }
-
-        // Create or update Account record for OAuth connection
-        await prisma.account.upsert({
-          where: {
-            provider_providerAccountId: {
-              provider: account.provider,
-              providerAccountId: account.providerAccountId
-            }
-          },
-          create: {
-            userId: existingUser.id,
-            type: account.type,
+        try {
+          await callLambdaAuth('/auth/oauth-user', {
+            email: user.email,
+            name: user.name,
+            image: user.image,
             provider: account.provider,
             providerAccountId: account.providerAccountId,
-            refresh_token: account.refresh_token,
-            access_token: account.access_token,
-            expires_at: account.expires_at,
-            token_type: account.token_type,
-            scope: account.scope,
-            id_token: account.id_token,
-            session_state: account.session_state
-          },
-          update: {
-            refresh_token: account.refresh_token,
-            access_token: account.access_token,
-            expires_at: account.expires_at,
-            token_type: account.token_type,
-            scope: account.scope,
-            id_token: account.id_token,
-            session_state: account.session_state
-          }
-        });
-
-        return true;
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+            expiresAt: account.expires_at,
+          });
+          return true;
+        } catch (error) {
+          console.error('OAuth user creation failed:', error);
+          return false;
+        }
       }
 
       // For credentials provider
@@ -183,22 +159,19 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, account, profile, trigger }) {
+    async jwt({ token, user, account, trigger }) {
       // Initial sign-in
       if (user && user.email) {
         // For OAuth, look up the user by email to get our database ID
         // For credentials, user.id is already the database ID
         if (account?.provider === 'google') {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: user.email },
-            select: { id: true, subscriptionTier: true }
-          });
+          const dbUser = await getUserByEmail(user.email);
 
           if (dbUser) {
             token.id = dbUser.id;
             token.email = user.email;
             token.name = user.name;
-            token['subscriptionTier'] = dbUser['subscriptionTier'];
+            token['subscriptionTier'] = dbUser.subscriptionTier;
           }
         } else {
           // Credentials provider - user.id is already the database ID
@@ -206,13 +179,8 @@ export const authOptions: NextAuthOptions = {
           token.email = user.email;
           token.name = user.name;
 
-          // Fetch subscription tier from database
-          const dbUser = await prisma.user.findUnique({
-            where: { id: user.id },
-            select: { subscriptionTier: true }
-          });
-
-          token['subscriptionTier'] = dbUser?.['subscriptionTier'] || 'free';
+          // User already has subscriptionTier from login response
+          token['subscriptionTier'] = (user as { subscriptionTier?: string }).subscriptionTier || 'free';
         }
       }
 
@@ -223,13 +191,10 @@ export const authOptions: NextAuthOptions = {
 
       // Handle session refresh
       if (trigger === "update" && token.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { subscriptionTier: true }
-        });
+        const dbUser = await getUserById(token.id as string);
 
         if (dbUser) {
-          token['subscriptionTier'] = dbUser['subscriptionTier'];
+          token['subscriptionTier'] = dbUser.subscriptionTier;
         }
       }
 
