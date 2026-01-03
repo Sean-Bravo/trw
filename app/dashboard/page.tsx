@@ -54,8 +54,9 @@ export default async function DashboardPage() {
           <StatsCards userId={session.user.id} />
         </Suspense>
 
-        {/* Upload Section */}
-        <div className="mb-8">
+        {/* Upload Section + AI Insights - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Upload CSV - Left */}
           <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 border border-white/20 dark:border-slate-700/50 p-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
@@ -66,6 +67,53 @@ export default async function DashboardPage() {
               </p>
             </div>
             <FileUploader />
+          </div>
+
+          {/* AI Insights - Right */}
+          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 border border-white/20 dark:border-slate-700/50 p-6">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                AI-Powered Insights
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Our AI automatically categorizes your transactions for tax reporting
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-slate-900 dark:text-white">Smart Categorization</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Automatically identifies trades, transfers, staking rewards, and more</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-slate-900 dark:text-white">Cost Basis Tracking</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">FIFO, LIFO, and specific identification methods supported</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-slate-900 dark:text-white">Tax-Ready Export</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Export to TurboTax, TaxAct, Koinly, and Form 8949</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
