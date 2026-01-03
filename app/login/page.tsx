@@ -21,6 +21,32 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      // First check if 2FA is enabled
+      const checkRes = await fetch('/api/auth/2fa/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const checkData = await checkRes.json();
+
+      if (!checkRes.ok) {
+        setError(checkData.error === 'Invalid credentials' ? 'Invalid email or password' : checkData.error);
+        setIsLoading(false);
+        return;
+      }
+
+      // If 2FA is required, redirect to 2FA page
+      if (checkData.requires2FA) {
+        const token = btoa(formData.password); // Encode password for URL
+        router.push(`/login/2fa?email=${encodeURIComponent(formData.email)}&token=${encodeURIComponent(token)}`);
+        return;
+      }
+
+      // No 2FA - proceed with normal sign in
       const result = await signIn('credentials', {
         redirect: false,
         email: formData.email,

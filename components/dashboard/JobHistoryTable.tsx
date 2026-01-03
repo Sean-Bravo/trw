@@ -6,20 +6,19 @@ interface JobHistoryTableProps {
 
 export async function JobHistoryTable({ userId }: JobHistoryTableProps) {
   // TODO: Fetch real jobs from API
-  // For now, return placeholder data
   const jobs: any[] = [];
 
   if (jobs.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-          <FileText className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+      <div className="text-center py-16">
+        <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-center">
+          <FileText className="h-8 w-8 text-zinc-600" />
         </div>
-        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+        <h3 className="text-lg font-medium text-white mb-2">
           No uploads yet
         </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 max-w-sm mx-auto">
-          Upload your first CSV file to get started with AI-powered tax categorization
+        <p className="text-sm text-zinc-500 max-w-sm mx-auto">
+          Upload your first CSV file to start processing your crypto transactions
         </p>
       </div>
     );
@@ -37,55 +36,55 @@ export async function JobHistoryTable({ userId }: JobHistoryTableProps) {
 function JobRow({ job }: { job: any }) {
   const statusConfig = {
     queued: {
-      icon: <Clock className="h-5 w-5 text-slate-500 dark:text-slate-400" />,
+      icon: <Clock className="h-4 w-4 text-zinc-500" />,
       text: 'Queued',
-      bgColor: 'bg-slate-100 dark:bg-slate-700',
-      textColor: 'text-slate-700 dark:text-slate-300',
+      color: 'text-zinc-400',
+      bg: 'bg-zinc-800/50',
     },
     processing: {
-      icon: <Loader2 className="h-5 w-5 text-[var(--color-primary-500)] animate-spin" />,
+      icon: <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />,
       text: 'Processing',
-      bgColor: 'bg-[var(--color-primary-500)]/10',
-      textColor: 'text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)]',
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/10',
     },
     completed: {
-      icon: <CheckCircle className="h-5 w-5 text-[var(--color-accent-500)]" />,
+      icon: <CheckCircle className="h-4 w-4 text-emerald-400" />,
       text: 'Completed',
-      bgColor: 'bg-[var(--color-accent-500)]/10',
-      textColor: 'text-[var(--color-accent-600)] dark:text-[var(--color-accent-400)]',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-500/10',
     },
     failed: {
-      icon: <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />,
+      icon: <XCircle className="h-4 w-4 text-red-400" />,
       text: 'Failed',
-      bgColor: 'bg-red-100 dark:bg-red-900/20',
-      textColor: 'text-red-700 dark:text-red-400',
+      color: 'text-red-400',
+      bg: 'bg-red-500/10',
     },
   };
 
   const status = statusConfig[job.status as keyof typeof statusConfig] || statusConfig.queued;
 
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 border border-transparent hover:border-[var(--color-primary-500)]/20 group">
-      <div className="flex items-center space-x-4 flex-1">
+    <div className="flex items-center justify-between p-4 bg-zinc-800/30 hover:bg-zinc-800/50 rounded-xl transition-all duration-200 border border-zinc-800/50 hover:border-zinc-700/50 group">
+      <div className="flex items-center gap-4 flex-1">
         {/* Status Icon */}
-        <div className={`${status.bgColor} p-2.5 rounded-xl`}>
+        <div className={`${status.bg} p-2.5 rounded-lg border border-zinc-700/50`}>
           {status.icon}
         </div>
 
         {/* Job Details */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+          <p className="text-sm font-medium text-white truncate">
             {job.filename}
           </p>
-          <div className="flex items-center space-x-4 mt-1">
-            <span className={`text-xs font-medium ${status.textColor}`}>
+          <div className="flex items-center gap-4 mt-1">
+            <span className={`text-xs font-medium ${status.color}`}>
               {status.text}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-xs text-zinc-500">
               {new Date(job.createdAt).toLocaleDateString()}
             </span>
             {job.transactionCount && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-zinc-500">
                 {job.transactionCount} transactions
               </span>
             )}
@@ -94,15 +93,15 @@ function JobRow({ job }: { job: any }) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-2">
         {job.status === 'completed' && (
-          <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-600 hover:border-[var(--color-primary-500)]/30 transition-all duration-200 group-hover:shadow-sm">
-            <Download className="h-4 w-4 mr-1.5" />
+          <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all">
+            <Download className="h-4 w-4" />
             Download
           </button>
         )}
         {job.status === 'failed' && (
-          <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
+          <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors">
             Retry
           </button>
         )}
