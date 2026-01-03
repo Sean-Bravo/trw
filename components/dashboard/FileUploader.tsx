@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { uploadCSVFile, validateFile, formatFileSize, UploadError } from '@/lib/upload-client';
 
 export function FileUploader() {
@@ -16,10 +15,8 @@ export function FileUploader() {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
-
     if (!selectedFile) return;
 
-    // Use upload-client validation
     const validation = validateFile(selectedFile);
     if (!validation.valid) {
       setError(validation.error || 'Invalid file');
@@ -35,9 +32,7 @@ export function FileUploader() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'text/csv': ['.csv'],
-    },
+    accept: { 'text/csv': ['.csv'] },
     maxFiles: 1,
     multiple: false,
   });
@@ -50,8 +45,7 @@ export function FileUploader() {
     setUploadProgress(0);
 
     try {
-      // Execute complete upload flow using upload-client
-      const result = await uploadCSVFile(file, (stage, percent) => {
+      await uploadCSVFile(file, (stage, percent) => {
         setUploadStage(stage);
         setUploadProgress(percent);
       });
@@ -61,11 +55,7 @@ export function FileUploader() {
       setUploadProgress(100);
       setUploadStage(null);
 
-      // Auto-dismiss success message after 5 seconds
-      setTimeout(() => {
-        setSuccess(false);
-      }, 5000);
-
+      setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       const uploadError = err as UploadError;
 
@@ -91,103 +81,94 @@ export function FileUploader() {
       <div
         {...getRootProps()}
         className={`
-          relative overflow-hidden
-          border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer
+          relative overflow-hidden cursor-pointer
+          border-2 border-dashed rounded-xl p-8 text-center
           transition-all duration-300
           ${isDragActive
-            ? 'border-[var(--color-primary-500)] bg-[var(--color-primary-500)]/5'
-            : 'border-slate-300 dark:border-slate-600 hover:border-[var(--color-primary-400)] hover:bg-slate-50 dark:hover:bg-slate-800/50'
+            ? 'border-emerald-500 bg-emerald-500/5'
+            : file
+            ? 'border-emerald-500/50 bg-emerald-500/5'
+            : 'border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/30'
           }
-          ${file ? 'bg-[var(--color-accent-500)]/5 border-[var(--color-accent-500)]' : ''}
         `}
       >
         <input {...getInputProps()} />
 
-        {/* Animated shimmer on drag */}
+        {/* Drag shimmer */}
         {isDragActive && (
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--color-primary-500)]/10 to-transparent animate-shimmer" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent animate-shimmer" />
         )}
 
         <div className="relative flex flex-col items-center space-y-4">
           {file ? (
             <>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-[var(--color-accent-500)] to-[var(--color-accent-600)] flex items-center justify-center">
-                <CheckCircle className="h-7 w-7 text-white" />
+              <div className="w-14 h-14 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                <CheckCircle className="h-7 w-7 text-emerald-400" />
               </div>
               <div>
-                <p className="text-lg font-medium text-slate-900 dark:text-white">
-                  {file.name}
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {formatFileSize(file.size)}
-                </p>
+                <p className="text-lg font-medium text-white">{file.name}</p>
+                <p className="text-sm text-zinc-500">{formatFileSize(file.size)}</p>
               </div>
             </>
           ) : (
             <>
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+              <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${
                 isDragActive
-                  ? 'bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-primary-600)]'
-                  : 'bg-slate-100 dark:bg-slate-800'
+                  ? 'bg-emerald-500/20 border border-emerald-500/30'
+                  : 'bg-zinc-800/50 border border-zinc-700'
               }`}>
                 <Upload className={`h-7 w-7 transition-colors ${
-                  isDragActive ? 'text-white' : 'text-slate-400 dark:text-slate-500'
+                  isDragActive ? 'text-emerald-400' : 'text-zinc-500'
                 }`} />
               </div>
               <div>
-                <p className="text-lg font-medium text-slate-900 dark:text-white mb-1">
-                  {isDragActive
-                    ? 'Drop your CSV file here'
-                    : 'Drag and drop your CSV file here'}
+                <p className="text-lg font-medium text-white mb-1">
+                  {isDragActive ? 'Drop your file here' : 'Drag and drop your CSV'}
                 </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  or click to browse your files
-                </p>
+                <p className="text-sm text-zinc-500">or click to browse</p>
               </div>
-              <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2 text-xs text-zinc-600">
                 <FileText className="h-4 w-4" />
-                <span>CSV files only • Max 50MB (Free tier)</span>
+                <span>CSV files only • Max 50MB</span>
               </div>
             </>
           )}
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
-        <div className="flex items-center space-x-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl">
-          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-          <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
+        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+          <p className="text-sm text-red-300">{error}</p>
         </div>
       )}
 
-      {/* Success Message */}
+      {/* Success */}
       {success && (
-        <div className="flex items-center space-x-2 p-4 bg-[var(--color-accent-500)]/10 border border-[var(--color-accent-500)]/20 rounded-xl">
-          <CheckCircle className="h-5 w-5 text-[var(--color-accent-500)] flex-shrink-0" />
-          <p className="text-sm text-[var(--color-accent-600)] dark:text-[var(--color-accent-400)]">
-            Upload successful! Your file is being processed.
-          </p>
+        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+          <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+          <p className="text-sm text-emerald-300">Upload successful! Your file is being processed.</p>
         </div>
       )}
 
-      {/* Progress Bar */}
+      {/* Progress */}
       {uploading && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-700 dark:text-slate-300 font-medium">
-              {uploadStage === 'requesting' && 'Requesting upload URL...'}
-              {uploadStage === 'uploading' && 'Uploading to S3...'}
-              {uploadStage === 'confirming' && 'Confirming upload...'}
+            <span className="text-zinc-400">
+              {uploadStage === 'requesting' && 'Preparing upload...'}
+              {uploadStage === 'uploading' && 'Uploading file...'}
+              {uploadStage === 'confirming' && 'Confirming...'}
             </span>
-            <span className="text-slate-600 dark:text-slate-400">{uploadProgress}%</span>
+            <span className="text-zinc-500 font-mono">{uploadProgress}%</span>
           </div>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-accent-500)] h-full transition-all duration-300 ease-out relative"
+              className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-full transition-all duration-300 ease-out relative"
               style={{ width: `${uploadProgress}%` }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
             </div>
           </div>
         </div>
@@ -195,57 +176,33 @@ export function FileUploader() {
 
       {/* Upload Button */}
       {file && !success && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2">
           <button
-            onClick={() => {
-              setFile(null);
-              setError(null);
-            }}
-            className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+            onClick={() => { setFile(null); setError(null); }}
+            className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
             disabled={uploading}
           >
             Remove file
           </button>
-          <Button
+          <button
             onClick={handleUpload}
             disabled={uploading}
-            variant="primary"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-500/20"
           >
-            {uploading ? 'Uploading...' : 'Upload & Process'}
-          </Button>
+            {uploading ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Processing...
+              </>
+            ) : (
+              'Upload & Process'
+            )}
+          </button>
         </div>
       )}
-
-      {/* Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-        <InfoCard
-          icon={<Sparkles className="h-4 w-4" />}
-          title="Supported Exchanges"
-          description="Binance, Coinbase, Kraken, and 13+ more"
-        />
-        <InfoCard
-          icon={<Sparkles className="h-4 w-4" />}
-          title="AI-Powered"
-          description="Automatic tax categorization and insights"
-        />
-        <InfoCard
-          icon={<Sparkles className="h-4 w-4" />}
-          title="Export Ready"
-          description="Compatible with TurboTax, Koinly, and more"
-        />
-      </div>
-    </div>
-  );
-}
-
-function InfoCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
-  return (
-    <div className="text-center group">
-      <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--color-primary-500)]/10 text-[var(--color-primary-500)] mb-2 group-hover:bg-[var(--color-primary-500)] group-hover:text-white transition-colors">
-        {icon}
-      </div>
-      <p className="text-sm font-semibold text-slate-900 dark:text-white mb-1">{title}</p>
-      <p className="text-xs text-slate-600 dark:text-slate-400">{description}</p>
     </div>
   );
 }

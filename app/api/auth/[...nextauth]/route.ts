@@ -8,6 +8,8 @@ import {
   findUserByEmail,
   findUserById,
 } from "@/lib/auth-db";
+import { queryOne } from "@/lib/db";
+import { verifyToken, verifyBackupCode } from "@/lib/2fa";
 
 export const authOptions: NextAuthOptions = {
   providers: [
