@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateEmail, validatePassword } from '@/lib/validation';
 import { createUser, emailExists } from '@/lib/auth-db';
+import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,12 +37,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user directly in Neon DB
+    // Generate verification code
+    const verificationCode = generateVerificationCode();
+
+    // Create user with verification code
     const user = await createUser(
       validatedEmail,
       password,
+      name || undefined,
+      verificationCode
+    );
+
+    // Send verification email
+    const emailResult = await sendVerificationEmail(
+      validatedEmail,
+      verificationCode,
       name || undefined
     );
+
+    if (!emailResult.success) {
+      console.error('[Auth] Failed to send verification email:', emailResult.error);
+      // User is created but email failed - they can request resend
+    }
 
     return NextResponse.json(
       {
@@ -49,9 +66,11 @@ export async function POST(request: NextRequest) {
           id: user.id,
           email: user.email,
           name: user.name,
+          emailVerified: user.emailVerified,
           subscriptionTier: user.subscriptionTier
         },
-        message: 'User created successfully'
+        message: 'User created. Please check your email for verification code.',
+        requiresVerification: true
       },
       { status: 201 }
     );

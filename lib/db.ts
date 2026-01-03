@@ -76,6 +76,9 @@ export interface DbUser {
   email: string;
   password_hash: string | null;
   name: string | null;
+  email_verified: boolean;
+  verification_code: string | null;
+  verification_code_expires: Date | null;
   created_at: Date;
 }
 
