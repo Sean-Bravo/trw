@@ -46,20 +46,11 @@ export default function SignUpPage() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Auto sign-in after registration
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: formData.email,
-        password: formData.password
-      });
+      // Store password temporarily for auto-login after verification
+      sessionStorage.setItem('temp_password', formData.password);
 
-      if (result?.error) {
-        setError('Registration successful, but sign-in failed. Please try signing in manually.');
-        setTimeout(() => router.push('/login'), 2000);
-      } else {
-        // Redirect to dashboard
-        router.push('/dashboard');
-      }
+      // Redirect to verification page with email
+      router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
     } finally {

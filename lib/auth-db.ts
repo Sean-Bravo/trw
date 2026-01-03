@@ -6,6 +6,7 @@ export interface UserWithSubscription {
   id: string;
   email: string;
   name: string | null;
+  emailVerified: boolean;
   subscriptionTier: 'free' | 'pro' | 'premium';
   stripeCustomerId: string | null;
   createdAt: Date;
@@ -31,11 +32,12 @@ export async function findUserByEmailWithSubscription(email: string): Promise<Us
     id: string;
     email: string;
     name: string | null;
+    email_verified: boolean;
     created_at: Date;
     tier: 'free' | 'pro' | 'premium' | null;
     stripe_customer_id: string | null;
   }>(
-    `SELECT u.id, u.email, u.name, u.created_at,
+    `SELECT u.id, u.email, u.name, u.email_verified, u.created_at,
             s.tier, s.stripe_customer_id
      FROM users u
      LEFT JOIN subscriptions s ON s.user_id = u.id
@@ -49,6 +51,7 @@ export async function findUserByEmailWithSubscription(email: string): Promise<Us
     id: result.id,
     email: result.email,
     name: result.name,
+    emailVerified: result.email_verified ?? false,
     subscriptionTier: result.tier || 'free',
     stripeCustomerId: result.stripe_customer_id,
     createdAt: result.created_at,
@@ -63,11 +66,12 @@ export async function findUserById(id: string): Promise<UserWithSubscription | n
     id: string;
     email: string;
     name: string | null;
+    email_verified: boolean;
     created_at: Date;
     tier: 'free' | 'pro' | 'premium' | null;
     stripe_customer_id: string | null;
   }>(
-    `SELECT u.id, u.email, u.name, u.created_at,
+    `SELECT u.id, u.email, u.name, u.email_verified, u.created_at,
             s.tier, s.stripe_customer_id
      FROM users u
      LEFT JOIN subscriptions s ON s.user_id = u.id
@@ -81,6 +85,7 @@ export async function findUserById(id: string): Promise<UserWithSubscription | n
     id: result.id,
     email: result.email,
     name: result.name,
+    emailVerified: result.email_verified ?? false,
     subscriptionTier: result.tier || 'free',
     stripeCustomerId: result.stripe_customer_id,
     createdAt: result.created_at,
@@ -88,21 +93,40 @@ export async function findUserById(id: string): Promise<UserWithSubscription | n
 }
 
 /**
- * Create a new user with email/password
+ * Create a new user with email/password and verification code
  */
 export async function createUser(
   email: string,
   password: string,
-  name?: string
+  name?: string,
+  verificationCode?: string
 ): Promise<UserWithSubscription> {
   const passwordHash = await bcrypt.hash(password, 12);
 
+  // Set verification code expiry to 15 minutes from now
+  const verificationExpires = verificationCode
+    ? new Date(Date.now() + 15 * 60 * 1000)
+    : null;
+
   // Insert user
-  const user = await queryOne<{ id: string; email: string; name: string | null; created_at: Date }>(
-    `INSERT INTO users (email, password_hash, name)
-     VALUES ($1, $2, $3)
-     RETURNING id, email, name, created_at`,
-    [email.toLowerCase(), passwordHash, name || null]
+  const user = await queryOne<{
+    id: string;
+    email: string;
+    name: string | null;
+    email_verified: boolean;
+    created_at: Date;
+  }>(
+    `INSERT INTO users (email, password_hash, name, email_verified, verification_code, verification_code_expires)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, email, name, email_verified, created_at`,
+    [
+      email.toLowerCase(),
+      passwordHash,
+      name || null,
+      false,
+      verificationCode || null,
+      verificationExpires,
+    ]
   );
 
   if (!user) {
@@ -120,6 +144,7 @@ export async function createUser(
     id: user.id,
     email: user.email,
     name: user.name,
+    emailVerified: user.email_verified,
     subscriptionTier: 'free',
     stripeCustomerId: null,
     createdAt: user.created_at,
@@ -193,12 +218,13 @@ export async function findOrCreateOAuthUser(
 
   // Check if user exists with this email
   let user = await findUserByEmail(email);
+  let userId: string;
 
   if (!user) {
-    // Create new user
+    // Create new user (OAuth users are verified by default)
     const newUser = await queryOne<{ id: string; email: string; name: string | null; created_at: Date }>(
-      `INSERT INTO users (email, name)
-       VALUES ($1, $2)
+      `INSERT INTO users (email, name, email_verified)
+       VALUES ($1, $2, TRUE)
        RETURNING id, email, name, created_at`,
       [email.toLowerCase(), name || null]
     );
@@ -207,14 +233,16 @@ export async function findOrCreateOAuthUser(
       throw new Error('Failed to create user');
     }
 
+    userId = newUser.id;
+
     // Create default subscription
     await execute(
       `INSERT INTO subscriptions (user_id, tier, status)
        VALUES ($1, 'free', 'active')`,
       [newUser.id]
     );
-
-    user = { ...newUser, password_hash: null };
+  } else {
+    userId = user.id;
   }
 
   // Link OAuth account
@@ -226,7 +254,7 @@ export async function findOrCreateOAuthUser(
          refresh_token = EXCLUDED.refresh_token,
          expires_at = EXCLUDED.expires_at`,
     [
-      user.id,
+      userId,
       provider,
       providerAccountId,
       accessToken || null,
@@ -235,7 +263,7 @@ export async function findOrCreateOAuthUser(
     ]
   );
 
-  const fullUser = await findUserById(user.id);
+  const fullUser = await findUserById(userId);
   if (!fullUser) {
     throw new Error('Failed to retrieve user after OAuth link');
   }
@@ -298,4 +326,93 @@ export async function emailExists(email: string): Promise<boolean> {
     [email.toLowerCase()]
   );
   return result?.exists || false;
+}
+
+/**
+ * Verify user email with 6-digit code
+ */
+export async function verifyEmailCode(
+  email: string,
+  code: string
+): Promise<{ success: boolean; error?: string; user?: UserWithSubscription }> {
+  // Find user with this email and check code
+  const user = await queryOne<{
+    id: string;
+    verification_code: string | null;
+    verification_code_expires: Date | null;
+    email_verified: boolean;
+  }>(
+    `SELECT id, verification_code, verification_code_expires, email_verified
+     FROM users
+     WHERE email = $1`,
+    [email.toLowerCase()]
+  );
+
+  if (!user) {
+    return { success: false, error: 'User not found' };
+  }
+
+  if (user.email_verified) {
+    return { success: false, error: 'Email already verified' };
+  }
+
+  if (!user.verification_code) {
+    return { success: false, error: 'No verification code found' };
+  }
+
+  if (user.verification_code !== code) {
+    return { success: false, error: 'Invalid verification code' };
+  }
+
+  if (user.verification_code_expires && new Date() > user.verification_code_expires) {
+    return { success: false, error: 'Verification code expired' };
+  }
+
+  // Mark email as verified and clear code
+  await execute(
+    `UPDATE users
+     SET email_verified = TRUE,
+         verification_code = NULL,
+         verification_code_expires = NULL
+     WHERE id = $1`,
+    [user.id]
+  );
+
+  const fullUser = await findUserById(user.id);
+  return { success: true, user: fullUser || undefined };
+}
+
+/**
+ * Resend verification code to user
+ */
+export async function updateVerificationCode(
+  email: string,
+  newCode: string
+): Promise<{ success: boolean; error?: string }> {
+  const verificationExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+  const result = await execute(
+    `UPDATE users
+     SET verification_code = $1,
+         verification_code_expires = $2
+     WHERE email = $3 AND email_verified = FALSE`,
+    [newCode, verificationExpires, email.toLowerCase()]
+  );
+
+  if (result.rowCount === 0) {
+    return { success: false, error: 'User not found or already verified' };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Check if user's email is verified
+ */
+export async function isEmailVerified(email: string): Promise<boolean> {
+  const result = await queryOne<{ email_verified: boolean }>(
+    `SELECT email_verified FROM users WHERE email = $1`,
+    [email.toLowerCase()]
+  );
+  return result?.email_verified ?? false;
 }
