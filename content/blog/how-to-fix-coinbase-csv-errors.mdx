@@ -1,0 +1,37 @@
+---
+title: "How to Fix Coinbase CSV Errors for TurboTax (2025 Guide)"
+description: "Step-by-step guide to fixing 'Invalid Header' and timestamp errors when importing Coinbase transaction history into TurboTax."
+date: "2026-01-04"
+author: "TaxFormatter Team"
+category: "guides"
+tags: ["coinbase", "turbotax", "csv-errors", "tax-guide"]
+published: true
+featured: true
+image: "/images/blog/coinbase-error-hero.jpg"
+---
+
+If you've tried uploading your **Coinbase transaction history** to TurboTax, you've likely seen this error:
+
+> *"We couldn't upload your file. Please check the column headers and try again."*
+
+This happens because Coinbase's default export format (PDF or raw CSV) often doesn't match the specific schema TurboTax requires. In this guide, we'll show you exactly how to format your data manually, or how to fix it automatically.
+
+## The Problem: Coinbase's "Notes" Column
+TurboTax expects a strict set of headers: `Date`, `Type`, `Sent Asset`, `Received Asset`, `Fee`, etc.
+Coinbase, however, often includes a `Notes` column or merges fees into the total, which breaks the parser.
+
+## Solution 1: Manual Fix (The Spreadsheet Way)
+1. Open your CSV in Excel or Google Sheets.
+2. Rename `Timestamp` to `Date`.
+3. Ensure all dates are in `MM/DD/YYYY` format (Coinbase uses ISO `YYYY-MM-DD`).
+4. Split any "Convert" transactions into two separate rows: one "Sell" and one "Buy".
+
+## Solution 2: The Automatic Fix
+If you have hundreds of transactions, editing manually is risky. One wrong row can trigger an IRS audit flag.
+
+**TaxFormatter** was built to solve this specific mismatch. 
+1. [Upload your raw Coinbase CSV](/signup).
+2. Our engine detects the "notes" column error.
+3. Download a clean, TurboTax-compatible file in seconds.
+
+[Start Now &rarr;](/signup)

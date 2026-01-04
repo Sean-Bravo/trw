@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { captureException, setContext } from '@/lib/sentry'
-
-// Temporary storage in-memory (will be replaced with Mailchimp tonight)
-// In production, this will be replaced with Mailchimp API integration
-const waitlistEmails = new Set<string>()
+import { addSubscriber, isMailchimpConfigured } from '@/lib/mailchimp'
 
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json()
 
-    // Validate email
+    // 1. Validate Input
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
         { error: 'Email is required' },
@@ -25,50 +22,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Replace with Mailchimp API integration
-    // For now, just store in-memory and log
-    waitlistEmails.add(email.toLowerCase())
-    console.log(`✅ Waitlist signup: ${email}`)
-    console.log(`📊 Total waitlist signups: ${waitlistEmails.size}`)
-
-    // When Mailchimp is set up, replace with:
-    /*
-    const MAILCHIMP_API_KEY = process.env.MAILCHIMP_API_KEY
-    const MAILCHIMP_SERVER_PREFIX = process.env.MAILCHIMP_SERVER_PREFIX
-    const MAILCHIMP_AUDIENCE_ID = process.env.MAILCHIMP_AUDIENCE_ID
-
-    const response = await fetch(
-      `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${Buffer.from(`anystring:${MAILCHIMP_API_KEY}`).toString('base64')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email_address: email,
-          status: 'subscribed',
-          tags: ['waitlist', 'q1-2026'],
-        }),
-      }
-    )
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || 'Failed to add to Mailchimp')
+    // 2. Check Configuration (Failsafe for dev environment)
+    if (!isMailchimpConfigured()) {
+      console.warn('⚠️ Mailchimp not configured in .env. Logging to console:', email)
+      // Return success in dev so the UI doesn't break
+      return NextResponse.json({
+        success: true,
+        message: 'Joined waitlist (Dev Mode)',
+      })
     }
-    */
+
+    // 3. Send to Mailchimp
+    const result = await addSubscriber(email, {
+      tags: ['waitlist', 'pre-launch'], 
+      mergeFields: {
+        SOURCE: 'Footer Waitlist' 
+      }
+    })
+
+    // 4. Handle "Already Exists" gracefully
+    if (result.alreadySubscribed) {
+      return NextResponse.json({
+        success: true,
+        message: "You're already on the list!",
+      })
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Successfully joined the waitlist!',
     })
+
   } catch (error: any) {
     console.error('Waitlist error:', error)
 
-    // Send error to Sentry
+    // Send context to Sentry for easier debugging
     setContext('waitlist', {
       endpoint: '/api/waitlist',
+      email_attempt: 'hidden-for-privacy'
     })
     captureException(error)
 
