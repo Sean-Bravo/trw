@@ -90,7 +90,7 @@ export function Integrations() {
                   alt={platform.name}
                   width={80}
                   height={32}
-                  className="object-contain w-full h-full"
+                  className="object-contain w-full h-full grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
                 />
               </div>
             </div>
