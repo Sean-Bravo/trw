@@ -12,6 +12,7 @@ interface SettingsClientProps {
 export function SettingsClient({ user }: SettingsClientProps) {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [showRegenerateCodes, setShowRegenerateCodes] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
@@ -114,6 +115,32 @@ export function SettingsClient({ user }: SettingsClientProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const regenerateBackupCodes = async () => {
+    if (!confirm('This will invalidate all your existing backup codes. Continue?')) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/auth/2fa/regenerate-codes', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setBackupCodes(data.backupCodes);
+      setShowRegenerateCodes(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to regenerate codes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeRegenerateCodes = () => {
+    setShowRegenerateCodes(false);
+    setBackupCodes([]);
+    setSuccess('Backup codes regenerated successfully');
+    setTimeout(() => setSuccess(''), 5000);
+  };
+
   return (
     <div className="min-h-screen bg-[#030712]">
       {/* Header */}
@@ -174,16 +201,26 @@ export function SettingsClient({ user }: SettingsClientProps) {
             </div>
           </div>
 
-          {!showSetup ? (
-            <div className="flex gap-3">
+          {!showSetup && !showRegenerateCodes ? (
+            <div className="flex flex-wrap gap-3">
               {twoFactorEnabled ? (
-                <button
-                  onClick={disable2FA}
-                  disabled={loading}
-                  className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Disabling...' : 'Disable 2FA'}
-                </button>
+                <>
+                  <button
+                    onClick={regenerateBackupCodes}
+                    disabled={loading}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                  >
+                    <Key className="w-4 h-4" />
+                    {loading ? 'Generating...' : 'Regenerate Backup Codes'}
+                  </button>
+                  <button
+                    onClick={disable2FA}
+                    disabled={loading}
+                    className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? 'Disabling...' : 'Disable 2FA'}
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={startSetup}
@@ -199,7 +236,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 </button>
               )}
             </div>
-          ) : (
+          ) : showSetup ? (
             <div className="mt-6 pt-6 border-t border-zinc-800">
               {step === 'setup' && (
                 <div className="space-y-6">
@@ -335,7 +372,52 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 </div>
               )}
             </div>
-          )}
+          ) : showRegenerateCodes ? (
+            <div className="mt-6 pt-6 border-t border-zinc-800">
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                    <Key className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white mb-2">Your New Backup Codes</h3>
+                    <p className="text-zinc-500 text-sm mb-4">
+                      Your old codes have been invalidated. Save these new codes somewhere safe.
+                    </p>
+                    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        {backupCodes.map((code, i) => (
+                          <code key={i} className="px-3 py-2 bg-zinc-900 rounded-lg text-emerald-400 font-mono text-sm text-center">
+                            {code}
+                          </code>
+                        ))}
+                      </div>
+                      <button
+                        onClick={copyBackupCodes}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 rounded-lg hover:bg-zinc-600 transition-colors text-sm"
+                      >
+                        {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        {copied ? 'Copied!' : 'Copy All Codes'}
+                      </button>
+                    </div>
+                    <p className="text-amber-400 text-sm mt-4 flex items-start gap-2">
+                      <span className="text-lg">&#x26a0;&#xfe0f;</span>
+                      These codes will only be shown once. Save them now!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={closeRegenerateCodes}
+                    className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all"
+                  >
+                    I've Saved My Codes
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Account Info */}

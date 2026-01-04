@@ -416,3 +416,86 @@ export async function isEmailVerified(email: string): Promise<boolean> {
   );
   return result?.email_verified ?? false;
 }
+
+/**
+ * Create password reset token for a user
+ */
+export async function createPasswordResetToken(
+  email: string
+): Promise<{ success: boolean; token?: string; error?: string }> {
+  // Check if user exists
+  const user = await findUserByEmail(email);
+  if (!user) {
+    // Return success anyway to prevent email enumeration
+    return { success: true };
+  }
+
+  // Generate secure random token
+  const crypto = await import('crypto');
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await execute(
+    `UPDATE users
+     SET reset_token = $1, reset_token_expires = $2
+     WHERE email = $3`,
+    [token, expires, email.toLowerCase()]
+  );
+
+  return { success: true, token };
+}
+
+/**
+ * Verify password reset token and return user
+ */
+export async function verifyResetToken(
+  token: string
+): Promise<{ success: boolean; userId?: string; email?: string; error?: string }> {
+  const user = await queryOne<{
+    id: string;
+    email: string;
+    reset_token_expires: Date | null;
+  }>(
+    `SELECT id, email, reset_token_expires
+     FROM users
+     WHERE reset_token = $1`,
+    [token]
+  );
+
+  if (!user) {
+    return { success: false, error: 'Invalid or expired reset link' };
+  }
+
+  if (!user.reset_token_expires || new Date() > user.reset_token_expires) {
+    return { success: false, error: 'Reset link has expired' };
+  }
+
+  return { success: true, userId: user.id, email: user.email };
+}
+
+/**
+ * Reset user password with token
+ */
+export async function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  // Verify token first
+  const verification = await verifyResetToken(token);
+  if (!verification.success) {
+    return { success: false, error: verification.error };
+  }
+
+  // Hash new password
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+
+  // Update password and clear reset token
+  await execute(
+    `UPDATE users
+     SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL
+     WHERE id = $2`,
+    [passwordHash, verification.userId]
+  );
+
+  return { success: true };
+}

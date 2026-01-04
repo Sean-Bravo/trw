@@ -114,7 +114,7 @@ If you didn't create an account, you can safely ignore this email.
 }
 
 /**
- * Send password reset email (for future use)
+ * Send password reset email
  */
 export async function sendPasswordResetEmail(
   email: string,
@@ -126,12 +126,68 @@ export async function sendPasswordResetEmail(
     const fromEmail = process.env['EMAIL_FROM'] || 'noreply@taxformatter.com';
     const siteName = process.env['NEXT_PUBLIC_SITE_NAME'] || 'TaxFormatter';
 
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Password</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
+  <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 32px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">${siteName}</h1>
+    </div>
+    <div style="padding: 32px;">
+      <h2 style="color: #1a365d; margin: 0 0 16px; font-size: 20px;">Reset Your Password</h2>
+      <p style="color: #64748b; margin: 0 0 24px; line-height: 1.6;">
+        ${name ? `Hi ${name},` : 'Hi there,'}<br><br>
+        We received a request to reset your password. Click the button below to create a new password:
+      </p>
+      <div style="text-align: center; margin-bottom: 24px;">
+        <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Reset Password</a>
+      </div>
+      <p style="color: #94a3b8; font-size: 14px; margin: 0 0 16px; line-height: 1.5;">
+        This link expires in 1 hour.<br>
+        If you didn't request a password reset, you can safely ignore this email.
+      </p>
+      <p style="color: #94a3b8; font-size: 12px; margin: 0; line-height: 1.5; word-break: break-all;">
+        Or copy this link: ${resetUrl}
+      </p>
+    </div>
+    <div style="background: #f8fafc; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+      <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+        &copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+
+    const textContent = `
+${siteName} - Reset Your Password
+
+${name ? `Hi ${name},` : 'Hi there,'}
+
+We received a request to reset your password. Click the link below to create a new password:
+
+${resetUrl}
+
+This link expires in 1 hour.
+
+If you didn't request a password reset, you can safely ignore this email.
+
+© ${new Date().getFullYear()} ${siteName}
+    `.trim();
+
     await transporter.sendMail({
       from: `"${siteName}" <${fromEmail}>`,
       to: email,
       subject: `Reset your ${siteName} password`,
-      text: `Hi ${name || 'there'},\n\nClick here to reset your password: ${resetUrl}\n\nThis link expires in 1 hour.\n\nIf you didn't request a password reset, you can safely ignore this email.`,
-      html: `<p>Hi ${name || 'there'},</p><p>Click <a href="${resetUrl}">here</a> to reset your password.</p><p>This link expires in 1 hour.</p>`,
+      text: textContent,
+      html: htmlContent,
     });
 
     return { success: true };
