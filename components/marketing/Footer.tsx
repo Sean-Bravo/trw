@@ -98,7 +98,7 @@ export function Footer() {
                   placeholder="your@email.com"
                   required
                   disabled={status === 'loading' || status === 'success'}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-full text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent disabled:opacity-50"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-full text-white text-sm text-center placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent disabled:opacity-50"
                 />
               </div>
               <button

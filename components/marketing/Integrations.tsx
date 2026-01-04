@@ -6,21 +6,28 @@ import { ArrowDown } from 'lucide-react';
 import Image from 'next/image';
 
 const exchanges = [
-  { name: 'Coinbase', logo: '/logos/coinbase.svg' },
-  { name: 'Binance', logo: '/logos/binance.svg' },
-  { name: 'Kraken', logo: '/logos/kraken.svg' },
-  { name: 'KuCoin', logo: '/logos/kucoin.svg' },
-  { name: 'Crypto.com', logo: '/logos/cryptocom.svg' },
-  { name: 'Gemini', logo: '/logos/gemini.svg' },
-  { name: 'Bitstamp', logo: '/logos/bitstamp.svg' },
-  { name: 'Bitfinex', logo: '/logos/bitfinex.svg' },
+  { name: 'Coinbase', logo: '/logos/exchanges/coinbase-icon.svg' },
+  { name: 'Binance', logo: '/logos/exchanges/binance.svg' },
+  { name: 'Kraken', logo: '/logos/exchanges/kraken.svg' },
+  { name: 'KuCoin', logo: '/logos/exchanges/kucoin.svg' },
+  { name: 'Crypto.com', logo: '/logos/exchanges/crypto.com.svg' },
+  { name: 'Gemini', logo: '/logos/exchanges/gemini.svg' },
+  { name: 'Bitstamp', logo: '/logos/exchanges/bitstamp.svg' },
+  { name: 'Robinhood', logo: '/logos/exchanges/robinhood.svg' },
+  { name: 'eToro', logo: '/logos/exchanges/etoro.svg' },
+  { name: 'OKX', logo: '/logos/exchanges/okx.svg' },
+  { name: 'Bybit', logo: '/logos/exchanges/bybit.svg' },
+  { name: 'Gate.io', logo: '/logos/exchanges/gate.io.svg' },
 ];
 
 const platforms = [
-  { name: 'Koinly', logo: '/logos/koinly.svg' },
-  { name: 'TurboTax', logo: '/logos/turbotax.svg' },
-  { name: 'CoinLedger', logo: '/logos/coinledger.svg' },
-  { name: 'ZenLedger', logo: '/logos/zenledger.svg' },
+  { name: 'TurboTax', logo: '/logos/tax-platforms/turbotax.svg' },
+  { name: 'TaxAct', logo: '/logos/tax-platforms/taxact.png' },
+  { name: 'H&R Block', logo: '/logos/tax-platforms/h-rblock.png' },
+  { name: 'Koinly', logo: '/logos/tax-platforms/koinly.svg' },
+  { name: 'TokenTax', logo: '/logos/tax-platforms/tokentax.png' },
+  { name: 'CoinLedger', logo: '/logos/tax-platforms/coinledger.svg' },
+  { name: 'ZenLedger', logo: '/logos/tax-platforms/zenledger.svg' },
 ];
 
 export function Integrations() {
@@ -47,12 +54,16 @@ export function Integrations() {
             {[...exchanges, ...exchanges].map((exchange, i) => (
               <div
                 key={`${exchange.name}-${i}`}
-                className="flex-shrink-0 w-24 h-24 flex items-center justify-center grayscale hover:grayscale-0 opacity-50 hover:opacity-100 transition-all duration-300"
+                className="flex-shrink-0 w-24 h-24 flex items-center justify-center grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300"
               >
-                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center p-3">
-                  <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    {exchange.name}
-                  </span>
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center p-2">
+                  <Image
+                    src={exchange.logo}
+                    alt={exchange.name}
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                  />
                 </div>
               </div>
             ))}
@@ -67,20 +78,21 @@ export function Integrations() {
         </div>
 
         {/* Tax Platforms */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 max-w-5xl mx-auto">
           {platforms.map((platform) => (
             <div
               key={platform.name}
-              className="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 text-center hover:border-[var(--color-primary-500)]/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+              className="group bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 text-center hover:border-[var(--color-primary-500)]/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 aspect-[4/3] flex items-center justify-center"
             >
-              <div className="w-12 h-12 mx-auto mb-3 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center group-hover:bg-[var(--color-primary-500)]/10 transition-colors">
-                <span className="text-lg font-bold text-slate-500 dark:text-slate-400 group-hover:text-[var(--color-primary-500)]">
-                  {platform.name.charAt(0)}
-                </span>
+              <div className="w-20 h-8 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Image
+                  src={platform.logo}
+                  alt={platform.name}
+                  width={80}
+                  height={32}
+                  className="object-contain w-full h-full"
+                />
               </div>
-              <p className="font-semibold text-slate-900 dark:text-white text-sm">
-                {platform.name}
-              </p>
             </div>
           ))}
         </div>

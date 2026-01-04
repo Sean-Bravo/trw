@@ -156,7 +156,7 @@ export default function BlogPage() {
                 <input
                   type="email"
                   placeholder="your@email.com"
-                  className="flex-1 px-4 py-3 rounded-full text-[#1a365d] focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="flex-1 px-4 py-3 rounded-full bg-white/10 text-white text-center placeholder-white/50 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/15"
                   required
                 />
                 <button
