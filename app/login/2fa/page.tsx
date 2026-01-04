@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { Shield, Key, Loader2 } from 'lucide-react';
 
-export default function TwoFactorVerifyPage() {
+function TwoFactorForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [code, setCode] = useState('');
@@ -166,5 +166,17 @@ export default function TwoFactorVerifyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TwoFactorVerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#030712] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-emerald-400 animate-spin" />
+      </div>
+    }>
+      <TwoFactorForm />
+    </Suspense>
   );
 }
