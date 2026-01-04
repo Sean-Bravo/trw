@@ -5,6 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { FileUploader } from '@/components/dashboard/FileUploader';
 import { JobHistoryTable } from '@/components/dashboard/JobHistoryTable';
+import { AIInsightsPanel } from '@/components/dashboard/AIInsightsPanel';
 
 export const metadata = {
   title: 'Dashboard | TaxFormatter',
@@ -37,16 +38,16 @@ export default async function DashboardPage() {
         {/* Welcome */}
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-white">
-            Welcome back, {session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'there'}
+            Welcome back {session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'there'}
           </h1>
           <p className="text-slate-400 mt-1">Upload your CSV files to get AI-powered tax categorization</p>
         </div>
 
-        {/* Stats Row - Compact */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <StatCard number="0" label="Total Uploads" />
-          <StatCard number="0" label="Completed" accent />
-          <StatCard number="0" label="Processing" />
+        {/* Stats Row - Compact circular indicators */}
+        <div className="flex items-center gap-8 mb-8">
+          <CircleStat value={0} max={100} label="Uploads" color="blue" />
+          <CircleStat value={0} max={100} label="Completed" color="emerald" />
+          <CircleStat value={0} max={100} label="Processing" color="amber" />
         </div>
 
         {/* Main Grid: Upload + AI Insights - Side by Side */}
@@ -60,66 +61,8 @@ export default async function DashboardPage() {
             <FileUploader />
           </div>
 
-          {/* AI Insights Panel - Matching the design from docs */}
-          <div className="bg-[#0d2847]/80 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden">
-            {/* Subtle glow effects */}
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px]" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-[50px]" />
-
-            <h2 className="text-lg font-semibold text-white mb-5 relative">AI Insights Panel</h2>
-
-            <div className="space-y-3 relative">
-              {/* Exchange Detected */}
-              <div className="bg-white rounded-xl p-4 flex items-center justify-between shadow-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800">Exchange Detected:</p>
-                    <p className="text-slate-600 text-sm">Waiting for upload...</p>
-                  </div>
-                </div>
-                <span className="px-3 py-1 bg-slate-100 text-slate-500 text-xs font-medium rounded-full">
-                  Idle
-                </span>
-              </div>
-
-              {/* Analyzing Transactions */}
-              <div className="bg-white rounded-xl p-4 shadow-lg border-2 border-amber-400/50">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-semibold text-slate-800">Analyzing Transactions...</p>
-                  <span className="text-slate-500 text-sm">0 found</span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full w-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-500" />
-                </div>
-              </div>
-
-              {/* Tax Flags */}
-              <div className="bg-orange-50 rounded-xl p-4 flex items-center gap-3 shadow-lg">
-                <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-800">Tax Flags</p>
-                  <p className="text-slate-500 text-sm">No issues detected yet</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom info */}
-            <div className="mt-5 pt-4 border-t border-white/10 relative">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                <span>Panels update in real-time during processing</span>
-              </div>
-            </div>
-          </div>
+          {/* AI Insights Panel */}
+          <AIInsightsPanel />
         </div>
 
         {/* Processing History */}
@@ -139,11 +82,50 @@ export default async function DashboardPage() {
   );
 }
 
-function StatCard({ number, label, accent }: { number: string; label: string; accent?: boolean }) {
+function CircleStat({ value, max, label, color }: { value: number; max: number; label: string; color: 'blue' | 'emerald' | 'amber' }) {
+  const percentage = max > 0 ? (value / max) * 100 : 0;
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  const colors = {
+    blue: { stroke: 'stroke-blue-500', text: 'text-blue-400', bg: 'stroke-blue-500/20' },
+    emerald: { stroke: 'stroke-emerald-500', text: 'text-emerald-400', bg: 'stroke-emerald-500/20' },
+    amber: { stroke: 'stroke-amber-500', text: 'text-amber-400', bg: 'stroke-amber-500/20' },
+  };
+
   return (
-    <div className={`bg-white/[0.03] backdrop-blur-sm border rounded-xl p-4 ${accent ? 'border-emerald-500/30' : 'border-white/10'}`}>
-      <p className={`text-2xl font-bold ${accent ? 'text-emerald-400' : 'text-white'}`}>{number}</p>
-      <p className="text-slate-400 text-sm">{label}</p>
+    <div className="flex items-center gap-3">
+      <div className="relative w-16 h-16">
+        <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+          <circle
+            cx="32"
+            cy="32"
+            r={radius}
+            fill="none"
+            strokeWidth="4"
+            className={colors[color].bg}
+          />
+          <circle
+            cx="32"
+            cy="32"
+            r={radius}
+            fill="none"
+            strokeWidth="4"
+            strokeLinecap="round"
+            className={colors[color].stroke}
+            style={{
+              strokeDasharray: circumference,
+              strokeDashoffset: strokeDashoffset,
+              transition: 'stroke-dashoffset 0.5s ease',
+            }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className={`text-lg font-bold ${colors[color].text}`}>{value}</span>
+        </div>
+      </div>
+      <span className="text-slate-400 text-sm">{label}</span>
     </div>
   );
 }
