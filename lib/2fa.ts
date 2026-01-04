@@ -1,10 +1,16 @@
-import { authenticator } from 'otplib';
+import { authenticator, totp } from 'otplib';
+import { createDigest, createRandomBytes } from '@otplib/plugin-crypto';
+import { keyDecoder, keyEncoder } from '@otplib/plugin-base32-enc-dec';
 import * as QRCode from 'qrcode';
 import crypto from 'crypto';
 
-// Configure authenticator
+// Configure authenticator with modern plugins to avoid Buffer() deprecation
 authenticator.options = {
   window: 1, // Allow 1 step before/after for clock skew
+  createDigest,
+  createRandomBytes,
+  keyDecoder,
+  keyEncoder,
 };
 
 /**
