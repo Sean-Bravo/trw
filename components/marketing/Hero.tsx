@@ -59,7 +59,7 @@ export function Hero() {
 
           {/* Headline */}
           <h1 className="font-poppins text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-[1.1] tracking-tight mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            Fix Your Crypto Taxes
+            Fix Your Broken Exchange CSVs
             <span className="block mt-2 bg-gradient-to-r from-[var(--color-primary-500)] via-[var(--color-primary-400)] to-[var(--color-accent-500)] bg-clip-text text-transparent">
               in Seconds
             </span>
@@ -67,8 +67,7 @@ export function Hero() {
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            Broken CSV from your exchange? We clean it, format it, and make it
-            ready for any tax platform. No manual editing required.
+            Your exchange exported garbage. We clean it, fix the formatting errors, and make it import-ready for Koinly, TurboTax, and every other tax platform. They do the math—we fix the mess.
           </p>
 
           {/* CTA Buttons */}
@@ -105,6 +104,16 @@ export function Hero() {
               <Check className="h-4 w-4 text-[var(--color-accent-500)]" />
               <span>Works with 12 exchanges</span>
             </div>
+          </div>
+
+          {/* Sample Output Link */}
+          <div className="mt-6 animate-fade-in-up" style={{ animationDelay: '450ms' }}>
+            <a
+              href="/samples"
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-[var(--color-primary-500)] dark:hover:text-[var(--color-primary-400)] transition-colors underline underline-offset-4"
+            >
+              Not ready to upload? See sample outputs first →
+            </a>
           </div>
         </div>
 

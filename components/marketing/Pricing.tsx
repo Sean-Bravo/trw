@@ -72,8 +72,11 @@ export function Pricing() {
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
             Simple, One-Time Pricing
           </h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400">
+          <p className="text-lg text-slate-600 dark:text-slate-400 mb-3">
             Pay once per tax year. No subscriptions.
+          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-500 italic">
+            TaxFormatter cleans and formats your data. Pair it with Koinly, TurboTax, or any tax software for cost basis calculations.
           </p>
         </div>
 
