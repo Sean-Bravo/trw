@@ -187,8 +187,20 @@ export function Footer() {
             </div>
           </div>
 
+          {/* What We Are / Aren't */}
+          <div className="pt-8 border-t border-slate-800 mb-8">
+            <div className="max-w-2xl mx-auto text-center">
+              <p className="text-xs text-slate-400 mb-2">
+                <span className="font-semibold text-slate-300">What TaxFormatter Is:</span> A CSV repair and formatting tool that makes exchange exports compatible with tax software.
+              </p>
+              <p className="text-xs text-slate-500">
+                <span className="font-semibold text-slate-400">What TaxFormatter Isn't:</span> Tax advice, cost basis calculations, or a replacement for actual tax software.
+              </p>
+            </div>
+          </div>
+
           {/* Bottom */}
-          <div className="pt-8 border-t border-slate-800 text-center">
+          <div className="pt-6 border-t border-slate-800 text-center">
             <p className="text-xs text-slate-500">
               © {new Date().getFullYear()} TaxFormatter. All rights reserved. 🇺🇸
             </p>

@@ -54,6 +54,11 @@ const faqItems: FAQItem[] = [
     answer: "Use the Form 8949 export. It's the IRS standard for reporting crypto disposals in the US. Any legitimate tax software can import it directly or accept the data with minimal manual entry.",
     vibe: 'worried',
   },
+  {
+    question: "Does TaxFormatter calculate my capital gains?",
+    answer: "No. We're a formatting tool, not tax software. We take your broken exchange CSV, fix the errors, and export it in a format your tax platform can actually import. The cost basis math (FIFO, LIFO, HIFO) happens in TurboTax, Koinly, or whatever you use to file. Think of us as the translator between your exchange and your tax software.",
+    vibe: 'curious',
+  },
 ];
 
 const schemaItems = faqItems.map(item => ({

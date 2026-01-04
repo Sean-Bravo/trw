@@ -46,8 +46,11 @@ export function HowItWorks() {
             <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
               How It Works
             </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-4">
               Three simple steps to tax-ready data
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-500 max-w-2xl mx-auto">
+              TaxFormatter is a formatting tool, not tax software. We fix broken CSVs so your tax platform can actually read them. Cost basis and gain/loss calculations happen in your tax software of choice.
             </p>
           </div>
 
