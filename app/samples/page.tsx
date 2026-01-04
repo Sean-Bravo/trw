@@ -195,7 +195,7 @@ export default function SamplesPage() {
                 </div>
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Verify It Works</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  See the clean import with zero errors—then trust us with your real data
+                  See zero errors on import. We guarantee the format so you don't have to map columns manually.
                 </p>
               </div>
             </div>
