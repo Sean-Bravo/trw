@@ -1,291 +1,258 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container } from '../layout/Container';
-import { Upload, Sparkles, Download, Check, ArrowRight } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, Download, Terminal, RefreshCw, ChevronRight, Cpu } from 'lucide-react';
 
-const steps = [
-  {
-    id: 1,
-    label: 'Upload',
-    icon: Upload,
-    title: 'Drop Your CSV',
-    description: 'Upload your export from Coinbase, Binance, Kraken, or any of 12 supported exchanges.',
-    demo: 'upload',
-  },
-  {
-    id: 2,
-    label: 'Process',
-    icon: Sparkles,
-    title: 'AI Fixes Issues',
-    description: 'Our AI detects and repairs missing dates, duplicates, format errors, and inconsistent data.',
-    demo: 'process',
-  },
-  {
-    id: 3,
-    label: 'Export',
-    icon: Download,
-    title: 'Download Ready File',
-    description: 'Get your cleaned CSV formatted perfectly for Koinly, TurboTax, CoinLedger, or any tax platform.',
-    demo: 'export',
-  },
+const LOG_SEQUENCE = [
+  { type: 'info', text: 'Initializing CSV parser engine...', delay: 400 },
+  { type: 'info', text: 'Detecting headers: [Date, Type, Sent, Received, Fee]', delay: 800 },
+  { type: 'warn', text: 'Row 42: Timestamp format mismatch (ISO-8601 vs Unix)', delay: 1400 },
+  { type: 'success', text: '>> FIXED: Normalized to UTC standard', delay: 1800 },
+  { type: 'warn', text: 'Row 105: Missing "Fee Currency" value', delay: 2400 },
+  { type: 'success', text: '>> FIXED: Inferred "USD" from context', delay: 2800 },
+  { type: 'warn', text: 'Row 312: Duplicate Transaction ID detected', delay: 3400 },
+  { type: 'success', text: '>> FIXED: Deduped record', delay: 3800 },
+  { type: 'info', text: 'Validating against Koinly schema...', delay: 4500 },
+  { type: 'done', text: 'Processing Complete. File ready.', delay: 5000 },
 ];
 
+type SimulationState = 'idle' | 'uploading' | 'processing' | 'complete';
+
 export function HowItWorks() {
-  const [activeStep, setActiveStep] = useState(0);
+  const [state, setState] = useState<SimulationState>('idle');
+  const [logs, setLogs] = useState<typeof LOG_SEQUENCE>([]);
+  const [progress, setProgress] = useState(0);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll logs ONLY when logs are added (prevents jump on reset)
+  useEffect(() => {
+    if (logs.length > 0 && logsEndRef.current) {
+      logsEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [logs]);
+
+  const startSimulation = () => {
+    setState('uploading');
+    setProgress(0);
+    setLogs([]);
+
+    // 1. Simulate Upload (1.5s)
+    let uploadInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(uploadInterval);
+          startProcessing();
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 50);
+  };
+
+  const startProcessing = () => {
+    setState('processing');
+    
+    // 2. Run the Log Sequence
+    LOG_SEQUENCE.forEach((log) => {
+      setTimeout(() => {
+        setLogs((prev) => [...prev, log]);
+        if (log.type === 'done') {
+          setState('complete');
+        }
+      }, log.delay);
+    });
+  };
+
+  const reset = () => {
+    setState('idle');
+    setLogs([]);
+    setProgress(0);
+  };
 
   return (
-    <section id="features" className="py-24 sm:py-32 bg-white dark:bg-slate-900 relative overflow-hidden">
-      {/* Subtle background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white dark:from-slate-900 dark:to-slate-900" />
-
+    <section id="how-it-works" className="py-24 bg-slate-50 dark:bg-slate-950 border-y border-slate-200 dark:border-slate-900 overflow-hidden">
       <Container>
-        <div className="relative z-10">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-              How It Works
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+          <div className="max-w-2xl">
+            <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-6">
+              See the engine in action.
             </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-4">
-              Three simple steps to tax-ready data
-            </p>
-            <p className="text-sm text-slate-500 dark:text-slate-500 max-w-2xl mx-auto">
-              TaxFormatter is a formatting tool, not tax software. We fix broken CSVs so your tax platform can actually read them. Cost basis and gain/loss calculations happen in your tax software of choice.
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              We don't just "format" your file. We parse, validate, and repair every single row. Watch how TaxFormatter cleans a messy Coinbase export in real-time.
             </p>
           </div>
+          
+          {/* Controls */}
+          <div>
+            {state === 'idle' ? (
+              <button
+                onClick={startSimulation}
+                className="group flex items-center gap-3 px-6 py-3 bg-[var(--color-primary-600)] hover:bg-[var(--color-primary-700)] text-white rounded-full font-semibold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                <Upload className="w-5 h-5" />
+                Run Simulation
+              </button>
+            ) : (
+              <button
+                onClick={reset}
+                disabled={state !== 'complete'}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all ${
+                  state === 'complete' 
+                    ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm cursor-pointer' 
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                <RefreshCw className={`w-4 h-4 ${state !== 'complete' ? 'animate-spin' : ''}`} />
+                {state === 'complete' ? 'Reset Demo' : 'Running...'}
+              </button>
+            )}
+          </div>
+        </div>
 
-          {/* Horizontal Stepper */}
-          <div className="flex items-center justify-center mb-16">
-            <div className="flex items-center gap-0">
-              {steps.map((step, idx) => {
-                const Icon = step.icon;
-                const isActive = activeStep === idx;
-                const isCompleted = activeStep > idx;
-
-                return (
-                  <React.Fragment key={step.id}>
-                    <button
-                      onClick={() => setActiveStep(idx)}
-                      className={`relative flex flex-col items-center gap-3 px-6 sm:px-10 py-4 rounded-xl transition-all duration-300 ${
-                        isActive
-                          ? 'bg-[var(--color-primary-500)]/10 dark:bg-[var(--color-primary-500)]/20'
-                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                      }`}
-                    >
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-                          isActive
-                            ? 'bg-[var(--color-primary-500)] text-white shadow-lg shadow-[var(--color-primary-500)]/30'
-                            : isCompleted
-                            ? 'bg-[var(--color-accent-500)] text-white'
-                            : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <Check className="w-5 h-5" />
-                        ) : (
-                          <Icon className="w-5 h-5" />
-                        )}
-                      </div>
-                      <span
-                        className={`text-sm font-semibold transition-colors ${
-                          isActive
-                            ? 'text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)]'
-                            : 'text-slate-500 dark:text-slate-400'
-                        }`}
-                      >
-                        {step.label}
-                      </span>
-                    </button>
-
-                    {/* Connector line */}
-                    {idx < steps.length - 1 && (
-                      <div className="hidden sm:flex items-center">
-                        <div
-                          className={`w-12 lg:w-20 h-0.5 transition-colors duration-300 ${
-                            activeStep > idx
-                              ? 'bg-[var(--color-accent-500)]'
-                              : 'bg-slate-200 dark:bg-slate-700'
-                          }`}
-                        />
-                        <ArrowRight
-                          className={`w-4 h-4 -ml-1 transition-colors duration-300 ${
-                            activeStep > idx
-                              ? 'text-[var(--color-accent-500)]'
-                              : 'text-slate-300 dark:text-slate-600'
-                          }`}
-                        />
-                      </div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+        {/* The "Machine" Window */}
+        <div className="relative mx-auto max-w-5xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-slate-800">
+          
+          {/* Window Title Bar */}
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-800/50 border-b border-slate-700">
+            <div className="flex gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500/80" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+              <div className="w-3 h-3 rounded-full bg-green-500/80" />
             </div>
+            <div className="text-xs font-mono text-slate-400 flex items-center gap-2">
+              <Terminal className="w-3 h-3" />
+              taxformatter_engine_v2.0.exe
+            </div>
+            <div className="w-10" /> {/* Spacer for centering */}
           </div>
 
-          {/* Content Area */}
-          <div className="max-w-5xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left: Description */}
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)]">
-                  <span className="font-bold">Step {activeStep + 1}</span>
-                  <span className="text-slate-400 dark:text-slate-500">/</span>
-                  <span className="text-slate-500 dark:text-slate-400">3</span>
+          <div className="grid md:grid-cols-2 min-h-[420px]">
+            
+            {/* Left Panel: The "Visual" State */}
+            <div className="p-8 md:p-12 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-700 bg-slate-900/50 relative">
+              
+              {/* Background Grid */}
+              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#64748b 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+              {state === 'idle' && (
+                <div 
+                  onClick={startSimulation}
+                  className="relative z-10 w-full max-w-sm py-12 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center gap-4 hover:border-[var(--color-primary-500)] hover:bg-slate-800/50 transition-all cursor-pointer group animate-fade-in"
+                >
+                  <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Upload className="w-8 h-8 text-slate-400 group-hover:text-[var(--color-primary-400)]" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-slate-300 font-medium">Click to upload CSV</p>
+                    <p className="text-sm text-slate-500">Simulate file processing</p>
+                  </div>
                 </div>
+              )}
 
-                <h3 className="font-poppins text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
-                  {steps[activeStep]?.title}
-                </h3>
-
-                <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {steps[activeStep]?.description}
-                </p>
-
-                {/* Step-specific badges */}
-                {activeStep === 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {['Coinbase', 'Binance', 'Kraken', 'KuCoin'].map((ex) => (
-                      <span
-                        key={ex}
-                        className="px-3 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full"
-                      >
-                        {ex}
-                      </span>
-                    ))}
-                    <span className="px-3 py-1 text-sm font-medium bg-[var(--color-primary-500)]/10 text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)] rounded-full">
-                      +12 more
-                    </span>
+              {state === 'uploading' && (
+                <div className="relative z-10 w-full max-w-sm text-center">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-slate-800 flex items-center justify-center shadow-xl border border-slate-700">
+                    <FileText className="w-10 h-10 text-[var(--color-primary-400)] animate-pulse" />
                   </div>
-                )}
-
-                {activeStep === 1 && (
-                  <div className="space-y-2">
-                    {[
-                      { label: 'Missing dates filled', color: 'text-[var(--color-accent-500)]' },
-                      { label: 'Duplicates removed', color: 'text-[var(--color-accent-500)]' },
-                      { label: 'Formats standardized', color: 'text-[var(--color-accent-500)]' },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-center gap-2">
-                        <Check className={`w-4 h-4 ${item.color}`} />
-                        <span className="text-sm text-slate-600 dark:text-slate-400">
-                          {item.label}
-                        </span>
-                      </div>
-                    ))}
+                  <h3 className="text-white text-lg font-medium mb-2">Uploading coinbase_export.csv</h3>
+                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-[var(--color-primary-500)] transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
                   </div>
-                )}
+                  <p className="text-slate-400 text-sm mt-2">{progress}% Complete</p>
+                </div>
+              )}
 
-                {activeStep === 2 && (
-                  <div className="flex flex-wrap gap-2">
-                    {['Koinly', 'TurboTax', 'CoinLedger', 'ZenLedger'].map((pl) => (
-                      <span
-                        key={pl}
-                        className="px-3 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full"
-                      >
-                        {pl}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Right: Demo Visual */}
-              <div className="relative">
-                {/* Glow behind card */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-[var(--color-primary-500)]/10 to-[var(--color-accent-500)]/10 rounded-3xl blur-2xl opacity-50" />
-
-                <div className="relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden">
-                  {/* Card Header */}
-                  <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                    <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-400/80" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-400/80" />
-                      <div className="w-3 h-3 rounded-full bg-green-400/80" />
+              {state === 'processing' && (
+                <div className="relative z-10 w-full max-w-sm text-center">
+                  <div className="relative w-24 h-24 mx-auto mb-6">
+                    <div className="absolute inset-0 border-4 border-[var(--color-accent-500)]/30 rounded-full animate-ping" />
+                    <div className="absolute inset-0 border-4 border-t-[var(--color-accent-500)] border-r-[var(--color-accent-500)] border-b-transparent border-l-transparent rounded-full animate-spin" />
+                    <div className="absolute inset-2 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700 shadow-inner">
+                      <Cpu className="w-10 h-10 text-[var(--color-accent-400)]" />
                     </div>
                   </div>
-
-                  {/* Demo Content */}
-                  <div className="p-6">
-                    {activeStep === 0 && <UploadDemo />}
-                    {activeStep === 1 && <ProcessDemo />}
-                    {activeStep === 2 && <ExportDemo />}
-                  </div>
+                  <h3 className="text-white text-lg font-medium mb-1">AI Analysis Running...</h3>
+                  <p className="text-slate-400 text-sm">Detecting patterns & anomalies</p>
                 </div>
-              </div>
+              )}
+
+              {state === 'complete' && (
+                <div className="relative z-10 w-full max-w-sm text-center animate-fade-in-up">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                  </div>
+                  <h3 className="text-white text-2xl font-bold mb-2">File Ready!</h3>
+                  <p className="text-slate-400 mb-6">3 issues fixed. 100% compliant.</p>
+                  
+                  <button className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-colors shadow-lg shadow-emerald-900/20">
+                    <Download className="w-4 h-4" />
+                    Download Formatted CSV
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* Right Panel: The "Brain" (Logs) */}
+            <div className="bg-black/40 p-6 font-mono text-sm overflow-y-auto max-h-[420px] flex flex-col relative">
+              
+              {/* Scan Line Effect */}
+              {state === 'processing' && (
+                <div className="absolute top-0 left-0 right-0 h-1 bg-white/5 shadow-[0_0_20px_rgba(255,255,255,0.1)] z-10 animate-scan" />
+              )}
+
+              {state === 'idle' ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-600">
+                  <Terminal className="w-12 h-12 mb-4 opacity-20" />
+                  <p>System Idle.</p>
+                  <p className="text-xs">Waiting for input stream...</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {logs.map((log, idx) => (
+                    <div key={idx} className="animate-fade-in-left flex items-start gap-3">
+                      <span className="text-slate-600 text-xs mt-0.5">
+                        {`00:${String(idx * 2).padStart(2, '0')}`}
+                      </span>
+                      <div>
+                        {log.type === 'info' && (
+                          <span className="text-blue-400">[INFO]</span>
+                        )}
+                        {log.type === 'warn' && (
+                          <span className="text-amber-400">[WARN]</span>
+                        )}
+                        {log.type === 'success' && (
+                          <span className="text-emerald-400">[FIX]</span>
+                        )}
+                        {log.type === 'done' && (
+                          <span className="text-[var(--color-accent-400)] font-bold">[DONE]</span>
+                        )}
+                        <span className={`ml-2 ${
+                          log.type === 'warn' ? 'text-amber-100' :
+                          log.type === 'success' ? 'text-emerald-100 font-medium' :
+                          'text-slate-300'
+                        }`}>
+                          {log.text}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {state === 'processing' && (
+                    <div className="flex items-center gap-2 text-slate-500 animate-pulse mt-4">
+                      <ChevronRight className="w-3 h-3" />
+                      <span className="w-2 h-4 bg-slate-500 block" />
+                    </div>
+                  )}
+                  <div ref={logsEndRef} />
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </Container>
     </section>
-  );
-}
-
-function UploadDemo() {
-  return (
-    <div className="text-center space-y-4">
-      <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 hover:border-[var(--color-primary-500)] hover:bg-[var(--color-primary-500)]/5 transition-all cursor-pointer">
-        <div className="w-16 h-16 mx-auto bg-[var(--color-primary-500)]/10 rounded-xl flex items-center justify-center mb-4">
-          <Upload className="w-8 h-8 text-[var(--color-primary-500)]" />
-        </div>
-        <p className="font-semibold text-slate-900 dark:text-white">Drop your CSV here</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">or click to browse</p>
-      </div>
-      <div className="text-xs text-slate-400 dark:text-slate-500">
-        Supports CSV, XLS, XLSX up to 50MB
-      </div>
-    </div>
-  );
-}
-
-function ProcessDemo() {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Processing...</span>
-        <span className="text-sm font-bold text-[var(--color-accent-500)]">4 issues fixed</span>
-      </div>
-
-      {/* Progress animation */}
-      <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-        <div className="h-full w-full bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-accent-500)] animate-pulse" />
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mt-6">
-        <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-          <p className="text-2xl font-bold text-[var(--color-accent-500)]">4</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Fixed</p>
-        </div>
-        <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-          <p className="text-2xl font-bold text-[var(--color-primary-500)]">847</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Rows</p>
-        </div>
-        <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-          <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">0.8s</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Time</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ExportDemo() {
-  return (
-    <div className="text-center space-y-4">
-      <div className="w-16 h-16 mx-auto bg-[var(--color-accent-500)]/10 rounded-xl flex items-center justify-center">
-        <Download className="w-8 h-8 text-[var(--color-accent-500)]" />
-      </div>
-      <div>
-        <p className="font-semibold text-slate-900 dark:text-white">taxformatter_export.csv</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Ready for Koinly</p>
-      </div>
-      <button className="w-full bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white font-semibold py-3 rounded-lg transition-colors">
-        Download CSV
-      </button>
-      <p className="text-xs text-slate-400 dark:text-slate-500">
-        Encrypted • Auto-deleted in 24h
-      </p>
-    </div>
   );
 }
