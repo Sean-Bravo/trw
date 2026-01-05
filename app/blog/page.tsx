@@ -1,12 +1,11 @@
 import { allPosts } from '.contentlayer/generated'
-import { compareDesc } from 'date-fns'
+import { compareDesc, format } from 'date-fns'
 import Link from 'next/link'
 import { Metadata } from 'next'
 import { Header } from '@/components/marketing/Header'
 import { Footer } from '@/components/marketing/Footer'
 import { Container } from '@/components/layout/Container'
-import { Calendar, Clock, ArrowRight } from 'lucide-react'
-import { format } from 'date-fns'
+import { ArrowRight, FileText, TrendingUp, Terminal, BookOpen } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Blog - Crypto Tax Tips & Guides',
@@ -17,6 +16,16 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://taxformatter.com/blog',
   },
+}
+
+// Visual Mapping Config
+// This assigns specific colors and icons to your categories automatically
+const CATEGORY_STYLES: Record<string, { color: string; bg: string; icon: React.ComponentType<{ className?: string }> }> = {
+  'crypto-tax': { color: 'text-indigo-600', bg: 'bg-indigo-50', icon: TrendingUp },
+  'guides': { color: 'text-blue-600', bg: 'bg-blue-50', icon: BookOpen },
+  'tax-tips': { color: 'text-emerald-600', bg: 'bg-emerald-50', icon: FileText },
+  'updates': { color: 'text-slate-600', bg: 'bg-slate-50', icon: Terminal },
+  'default': { color: 'text-blue-600', bg: 'bg-blue-50', icon: FileText },
 }
 
 export default function BlogPage() {
@@ -30,144 +39,127 @@ export default function BlogPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gradient-to-b from-white via-blue-50/30 to-white">
+      <main className="min-h-screen bg-white">
         <Container>
-          {/* Hero Section */}
-          <div className="py-16 sm:py-24 text-center">
-            <h1 className="font-poppins text-4xl sm:text-5xl md:text-6xl font-bold text-[#1a365d] mb-6">
-              Crypto Tax Blog
+          {/* Minimalist Hero */}
+          <div className="py-20 sm:py-28 max-w-3xl">
+            <h1 className="font-poppins text-4xl sm:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+              Engineering <span className="text-slate-400">/</span> Blog
             </h1>
-            <p className="text-xl text-[#4b5563] max-w-2xl mx-auto mb-8">
-              Expert guides, tax tips, and industry insights to help you navigate crypto taxes with confidence.
+            <p className="text-xl text-slate-500 leading-relaxed">
+              Technical guides on fixing CSV schemas, understanding IRS formatting, and optimizing crypto tax reporting.
             </p>
-
-            {/* Category Pills */}
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
-              {['All Posts', 'Crypto Tax', 'Guides', 'Updates', 'Tax Tips'].map((category) => (
-                <button
-                  key={category}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                    category === 'All Posts'
-                      ? 'bg-[#3b82f6] text-white shadow-md'
-                      : 'bg-white border-2 border-[#e5e7eb] text-[#1a365d] hover:border-[#3b82f6]/50'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
           </div>
 
-          {/* Featured Posts */}
+          {/* Featured Posts (The "Big Cards") */}
           {featuredPosts.length > 0 && (
-            <section className="mb-20">
-              <h2 className="font-poppins text-2xl font-bold text-[#1a365d] mb-8">Featured Articles</h2>
+            <section className="mb-24">
               <div className="grid md:grid-cols-2 gap-8">
-                {featuredPosts.map((post) => (
-                  <Link
-                    key={post._id}
-                    href={post.url}
-                    className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-[#e5e7eb]"
-                  >
-                    {post.image && (
-                      <div className="relative h-64 bg-gradient-to-br from-[#3b82f6] to-[#1a365d] overflow-hidden">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-white text-6xl opacity-20">📊</div>
+                {featuredPosts.map((post) => {
+                  const style = CATEGORY_STYLES[post.category] ?? CATEGORY_STYLES['default']!
+                  const Icon = style!.icon
+
+                  return (
+                    <Link
+                      key={post._id}
+                      href={post.url}
+                      className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300"
+                    >
+                      {/* The New "Technical" Header */}
+                      <div className={`h-64 ${style.bg} relative overflow-hidden border-b border-slate-100`}>
+                        {/* Abstract Grid Pattern */}
+                        <div className="absolute inset-0 opacity-[0.03]"
+                             style={{ backgroundImage: `radial-gradient(currentColor 1px, transparent 1px)`, backgroundSize: '24px 24px' }}
+                        />
+
+                        {/* Floating Icon */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                          <div className="w-20 h-20 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+                            <Icon className={`w-10 h-10 ${style.color}`} />
+                          </div>
+                        </div>
+
+                        {/* "Code" Badge */}
+                        <div className="absolute bottom-4 left-4 font-mono text-xs font-medium px-2 py-1 bg-white/80 backdrop-blur rounded text-slate-500 border border-slate-200/50">
+                          {post.slug}.mdx
                         </div>
                       </div>
-                    )}
-                    <div className="p-6">
-                      <div className="flex items-center gap-3 text-sm text-[#6b7280] mb-3">
-                        <span className="px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] rounded-full font-semibold">
-                          {post.category}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {format(new Date(post.date), 'MMM d, yyyy')}
+
+                      <div className="p-8 flex-1 flex flex-col">
+                        <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">
+                          <span className={`${style.color}`}>{post.category}</span>
+                          <span>•</span>
+                          <span>{post.readingTime} min read</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {post.readingTime} min
+
+                        <h3 className="font-poppins text-2xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
+                          {post.title}
+                        </h3>
+
+                        <p className="text-slate-600 mb-6 line-clamp-2 leading-relaxed">
+                          {post.description}
+                        </p>
+
+                        <div className="mt-auto flex items-center text-blue-600 font-semibold group-hover:translate-x-1 transition-transform">
+                          Read Guide <ArrowRight className="ml-2 w-4 h-4" />
                         </div>
                       </div>
-                      <h3 className="font-poppins text-2xl font-bold text-[#1a365d] mb-3 group-hover:text-[#3b82f6] transition-colors">
-                        {post.title}
-                      </h3>
-                      <p className="text-[#4b5563] mb-4 line-clamp-2">
-                        {post.description}
-                      </p>
-                      <div className="flex items-center text-[#3b82f6] font-semibold">
-                        Read article
-                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  )
+                })}
               </div>
             </section>
           )}
 
-          {/* Recent Posts */}
-          <section className="pb-24">
-            <h2 className="font-poppins text-2xl font-bold text-[#1a365d] mb-8">Recent Articles</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {recentPosts.map((post) => (
-                <Link
-                  key={post._id}
-                  href={post.url}
-                  className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-[#e5e7eb]"
-                >
-                  {post.image && (
-                    <div className="relative h-48 bg-gradient-to-br from-[#3b82f6]/10 to-[#1a365d]/10">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-[#3b82f6] text-5xl opacity-30">📝</div>
-                      </div>
-                    </div>
-                  )}
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 text-xs text-[#6b7280] mb-2">
-                      <span className="px-2 py-0.5 bg-[#3b82f6]/10 text-[#3b82f6] rounded-full font-semibold">
-                        {post.category}
-                      </span>
-                      <span>{format(new Date(post.date), 'MMM d')}</span>
-                      <span>·</span>
-                      <span>{post.readingTime} min</span>
-                    </div>
-                    <h3 className="font-poppins text-lg font-bold text-[#1a365d] mb-2 group-hover:text-[#3b82f6] transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-                    <p className="text-sm text-[#4b5563] line-clamp-3">
-                      {post.description}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+          {/* Recent Posts (The "List View") */}
+          <section className="pb-24 max-w-4xl">
+            <h2 className="font-poppins text-xl font-bold text-slate-900 mb-8 pb-4 border-b border-slate-100">
+              Latest Articles
+            </h2>
+            <div className="space-y-8">
+              {recentPosts.map((post) => {
+                const style = CATEGORY_STYLES[post.category] ?? CATEGORY_STYLES['default']!
+
+                return (
+                  <Link
+                    key={post._id}
+                    href={post.url}
+                    className="group block"
+                  >
+                    <article className="flex flex-col sm:flex-row gap-6 sm:items-start">
+                       {/* Date Box */}
+                       <div className="hidden sm:flex flex-col items-center justify-center w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 shrink-0">
+                          <span className="text-xs font-bold uppercase">{format(new Date(post.date), 'MMM')}</span>
+                          <span className="text-lg font-bold text-slate-900">{format(new Date(post.date), 'dd')}</span>
+                       </div>
+
+                       <div>
+                         <div className="flex items-center gap-2 mb-2">
+                           <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${style.bg} ${style.color}`}>
+                             {post.category}
+                           </span>
+                           <span className="text-xs text-slate-400 sm:hidden">
+                             {format(new Date(post.date), 'MMM dd, yyyy')}
+                           </span>
+                         </div>
+
+                         <h3 className="font-poppins text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                           {post.title}
+                         </h3>
+                         <p className="text-slate-600 leading-relaxed mb-3">
+                           {post.description}
+                         </p>
+                         <div className="text-sm font-medium text-slate-400 group-hover:text-blue-600 transition-colors flex items-center gap-2">
+                           Read article <ArrowRight className="w-3 h-3" />
+                         </div>
+                       </div>
+                    </article>
+                  </Link>
+                )
+              })}
             </div>
           </section>
 
-          {/* Newsletter CTA */}
-          <section className="mb-24">
-            <div className="bg-gradient-to-r from-[#1a365d] to-[#0f172a] rounded-2xl p-8 md:p-12 text-center text-white">
-              <h2 className="font-poppins text-3xl font-bold mb-4">Stay Updated</h2>
-              <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-                Get the latest crypto tax tips, guides, and updates delivered to your inbox. No spam, unsubscribe anytime.
-              </p>
-              <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  className="flex-1 px-4 py-3 rounded-full bg-white/10 text-white text-center placeholder-white/50 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/15"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="px-8 py-3 bg-[#3b82f6] hover:bg-[#2563eb] text-white font-semibold rounded-full transition-colors"
-                >
-                  Subscribe
-                </button>
-              </form>
-            </div>
-          </section>
         </Container>
       </main>
       <Footer />
