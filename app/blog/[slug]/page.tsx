@@ -66,10 +66,10 @@ export default async function BlogPost({ params }: BlogPostProps) {
       />
       <Header />
 
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-white dark:bg-slate-950">
 
         {/* Article Header */}
-        <div className="bg-slate-50 border-b border-slate-200">
+        <div className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
           <Container>
             <div className="pt-24 pb-12 max-w-4xl mx-auto">
 
@@ -114,10 +114,13 @@ export default async function BlogPost({ params }: BlogPostProps) {
 
             {/* Main Content */}
             <article className="flex-1 max-w-3xl">
-              <div className="prose prose-lg prose-slate max-w-none
-                prose-headings:font-poppins prose-headings:font-bold prose-headings:text-slate-900
-                prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-                prose-code:text-blue-600 prose-code:bg-blue-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
+              <div className="prose prose-lg prose-slate dark:prose-invert max-w-none
+                prose-p:text-slate-700 dark:prose-p:text-slate-300
+                prose-li:text-slate-700 dark:prose-li:text-slate-300
+                prose-strong:text-slate-900 dark:prose-strong:text-white
+                prose-headings:font-poppins prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white
+                prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+                prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-code:bg-blue-50 dark:prose-code:bg-blue-900/30 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
                 prose-pre:bg-slate-900 prose-pre:text-slate-50
               ">
                 <MDXContent code={post.body.code} />
