@@ -76,8 +76,8 @@ export function SocialProof() {
                   key={idx}
                   className="group relative bg-slate-50 dark:bg-slate-900 rounded-xl p-8 border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
-                  <div className="absolute top-8 right-8 text-slate-200 dark:text-slate-800 group-hover:text-slate-300 dark:group-hover:text-slate-700 transition-colors">
-                    <Icon className="w-8 h-8" />
+                  <div className="absolute top-8 right-8 text-slate-400 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-500 transition-colors">
+                    <Icon className="w-6 h-6" strokeWidth={1.5} />
                   </div>
                   
                   <h3 className="font-mono text-sm font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wide">
