@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Container } from '../layout/Container';
-import { ArrowDown } from 'lucide-react';
+import { Network } from 'lucide-react';
 import Image from 'next/image';
 
 const exchanges = [
@@ -32,36 +32,41 @@ const platforms = [
 
 export function Integrations() {
   return (
-    <section className="py-24 sm:py-32 bg-white dark:bg-slate-950 overflow-hidden">
+    <section className="py-24 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-900 overflow-hidden">
       <Container>
         <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-mono font-medium mb-6">
+            <Network className="w-3 h-3" />
+            <span>UNIVERSAL_ADAPTER_PROTOCOL</span>
+          </div>
           <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
             Works With Everything
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400">
-            Import from 12 exchanges, export to any tax platform
+            We normalize data from 12+ exchanges into a format accepted by every major tax platform.
           </p>
         </div>
 
-        {/* Exchanges Marquee */}
-        <div className="relative mb-12">
-          {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white dark:from-slate-950 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white dark:from-slate-950 to-transparent z-10" />
+        {/* INPUT: Exchanges Marquee */}
+        <div className="relative mb-16 group">
+          {/* Gradient Masks */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white dark:from-slate-950 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white dark:from-slate-950 to-transparent z-10" />
 
-          {/* Scrolling logos */}
-          <div className="flex gap-12 animate-marquee">
-            {[...exchanges, ...exchanges].map((exchange, i) => (
+          {/* Scrolling Container */}
+          <div className="flex gap-12 animate-marquee w-max hover:[animation-play-state:paused]">
+            {/* We map 3 times to ensure smooth infinite loop on wide screens */}
+            {[...exchanges, ...exchanges, ...exchanges].map((exchange, i) => (
               <div
                 key={`${exchange.name}-${i}`}
-                className="flex-shrink-0 w-24 h-24 flex items-center justify-center grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300"
+                className="flex-shrink-0 w-24 h-24 flex items-center justify-center grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-500"
               >
-                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center p-2">
+                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center p-3 shadow-sm hover:shadow-md hover:scale-105 transition-all">
                   <Image
                     src={exchange.logo}
                     alt={exchange.name}
-                    width={48}
-                    height={48}
+                    width={40}
+                    height={40}
                     className="object-contain"
                   />
                 </div>
@@ -70,33 +75,37 @@ export function Integrations() {
           </div>
         </div>
 
-        {/* Arrow */}
-        <div className="flex justify-center mb-12">
-          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <ArrowDown className="w-5 h-5 text-[var(--color-primary-500)] animate-bounce" />
+        {/* PROCESSING: Pipeline Visual */}
+        <div className="flex flex-col items-center justify-center gap-2 mb-16">
+          <div className="h-12 w-px bg-gradient-to-b from-slate-200 via-blue-500 to-slate-200 dark:from-slate-800 dark:via-blue-500 dark:to-slate-800" />
+          <div className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-xs font-mono border border-slate-700 shadow-xl">
+            Processing & Formatting Engine
           </div>
+          <div className="h-12 w-px bg-gradient-to-b from-slate-200 via-blue-500 to-slate-200 dark:from-slate-800 dark:via-blue-500 dark:to-slate-800" />
         </div>
 
-        {/* Tax Platforms */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 max-w-5xl mx-auto">
-          {platforms.map((platform) => (
-            <div
-              key={platform.name}
-              className="group bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 text-center hover:border-[var(--color-primary-500)]/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 aspect-[4/3] flex items-center justify-center"
-            >
-              <div className="w-20 h-8 flex items-center justify-center group-hover:scale-105 transition-transform">
+        {/* OUTPUT: Tax Platforms (Static Grid) */}
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center opacity-70">
+            {platforms.map((platform) => (
+              <div
+                key={platform.name}
+                className="group relative w-full flex items-center justify-center p-4 grayscale hover:grayscale-0 transition-all duration-300"
+              >
                 <Image
                   src={platform.logo}
                   alt={platform.name}
-                  width={80}
-                  height={32}
-                  className="object-contain w-full h-full grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                  width={140}
+                  height={40}
+                  className="object-contain h-8 w-auto opacity-60 group-hover:opacity-100 transition-all"
                 />
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          <p className="text-center text-xs text-slate-400 mt-12 font-mono">
+            * All trademarks property of their respective owners.
+          </p>
         </div>
-
       </Container>
     </section>
   );
