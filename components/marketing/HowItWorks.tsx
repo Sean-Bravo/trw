@@ -138,9 +138,9 @@ export function HowItWorks() {
               <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#64748b 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
               {state === 'idle' && (
-                <div 
+                <div
                   onClick={startSimulation}
-                  className="relative z-10 w-full max-w-sm py-12 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center gap-4 hover:border-[var(--color-primary-500)] hover:bg-slate-800/50 transition-all cursor-pointer group animate-fade-in"
+                  className="relative z-10 w-full max-w-sm py-12 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center gap-4 hover:border-[var(--color-primary-500)] hover:bg-slate-800/50 transition-all cursor-pointer group animate-fade-in shadow-[0_0_15px_rgba(59,130,246,0.15)]"
                 >
                   <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Upload className="w-8 h-8 text-slate-400 group-hover:text-[var(--color-primary-400)]" />
