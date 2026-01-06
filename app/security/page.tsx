@@ -140,22 +140,50 @@ export default function SecurityPage() {
                     <Server className="w-32 h-32 text-slate-500" />
                   </div>
                   <h3 className="text-white font-bold text-xl mb-6">Infrastructure Specs</h3>
-                  <ul className="space-y-4">
+                  <ul className="space-y-3">
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      <span>Hosted on Vercel Secure Cloud (AWS US-East)</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>AWS WAF Application Firewall</span>
                     </li>
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      <span>SOC 2 Compliant Infrastructure Providers</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>DDoS Protection via AWS Shield</span>
                     </li>
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      <span>DDoS Protection via Cloudflare</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>SQL Injection & XSS Protection</span>
                     </li>
                     <li className="flex items-center gap-3 text-slate-300 text-sm">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      <span>Automated Dependency Scanning (Snyk)</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>Rate Limiting on Sensitive Endpoints</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>Automated Abuse & Bot Mitigation</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>Encryption In Transit (TLS 1.2+)</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>Encryption At Rest (AES-256)</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>In-Memory File Processing</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>Minimal Metadata Retention</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>Least-Privilege Access Controls (IAM)</span>
+                    </li>
+                    <li className="flex items-center gap-3 text-slate-300 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <span>Continuous Monitoring & Security Logging</span>
                     </li>
                   </ul>
                   
