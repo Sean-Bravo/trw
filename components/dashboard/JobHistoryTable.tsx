@@ -1,4 +1,5 @@
-import { Download, Clock, CheckCircle, XCircle, Loader2, FileText } from 'lucide-react';
+import Link from 'next/link';
+import { Download, Clock, CheckCircle, XCircle, Loader2, FileText, Eye } from 'lucide-react';
 
 interface JobHistoryTableProps {
   userId: string;
@@ -94,6 +95,16 @@ function JobRow({ job }: { job: any }) {
 
       {/* Actions */}
       <div className="flex items-center gap-2">
+        {/* View button - always show for completed jobs */}
+        {job.status === 'completed' && (
+          <Link
+            href={`/dashboard/jobs/${job.id}`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/30 transition-all"
+          >
+            <Eye className="h-4 w-4" />
+            View
+          </Link>
+        )}
         {job.status === 'completed' && (
           <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all">
             <Download className="h-4 w-4" />
