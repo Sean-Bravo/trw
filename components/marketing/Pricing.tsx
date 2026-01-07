@@ -33,9 +33,9 @@ const Pricing = () => {
               <h3 className="text-lg font-medium text-slate-300 mb-2">Starter</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-bold text-white">$0</span>
-                <span className="text-slate-500">/ forever</span>
+                <span className="text-slate-400">/ forever</span>
               </div>
-              <p className="text-slate-500 text-sm mt-4">
+              <p className="text-slate-400 text-sm mt-4">
                 Perfect for testing the waters and seeing if your file format is supported.
               </p>
             </div>
@@ -53,7 +53,7 @@ const Pricing = () => {
                 <Check className="w-4 h-4 text-emerald-500" />
                 <span>Basic Error Detection</span>
               </li>
-              <li className="flex items-center gap-3 text-slate-500 text-sm opacity-50">
+              <li className="flex items-center gap-3 text-slate-400 text-sm opacity-50">
                 <X className="w-4 h-4" />
                 <span>Full Export Download</span>
               </li>
@@ -124,7 +124,7 @@ const Pricing = () => {
               <div className="absolute top-0 -left-full w-full h-full bg-white/20 skew-x-12 group-hover:animate-[shimmer_1.5s_infinite]"></div>
             </Link>
 
-            <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-500">
+            <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
                <Shield className="w-3 h-3" />
                <span>30-Day Money Back Guarantee</span>
             </div>
@@ -138,32 +138,32 @@ const Pricing = () => {
               <h3 className="text-lg font-medium text-slate-300 mb-2">Premium</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-bold text-white">$189</span>
-                <span className="text-slate-500">/ tax year</span>
+                <span className="text-slate-400">/ tax year</span>
               </div>
-              <p className="text-slate-500 text-sm mt-4">
+              <p className="text-slate-400 text-sm mt-4">
                 For power users who need audit-ready documentation and priority support.
               </p>
             </div>
 
             <ul className="space-y-4 mb-8">
               <li className="flex items-center gap-3 text-slate-300 text-sm">
-                <Check className="w-4 h-4 text-slate-500" />
+                <Check className="w-4 h-4 text-slate-400" />
                 <span><strong>Everything</strong> in Pro</span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
-                <Check className="w-4 h-4 text-slate-500" />
+                <Check className="w-4 h-4 text-slate-400" />
                 <span>AI-Generated PDF Report</span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
-                <Check className="w-4 h-4 text-slate-500" />
+                <Check className="w-4 h-4 text-slate-400" />
                 <span>Line-by-Line Explanations</span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
-                <Check className="w-4 h-4 text-slate-500" />
+                <Check className="w-4 h-4 text-slate-400" />
                 <span>Audit-Ready Notes</span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
-                <Check className="w-4 h-4 text-slate-500" />
+                <Check className="w-4 h-4 text-slate-400" />
                 <span>Priority Support</span>
               </li>
             </ul>
@@ -179,7 +179,7 @@ const Pricing = () => {
 
         {/* Footer Note */}
         <div className="mt-16 text-center">
-            <p className="text-slate-500 text-sm">
+            <p className="text-slate-400 text-sm">
                 Prices are in USD. Secure payments processed by <span className="text-slate-400 font-semibold">Stripe</span>.
                 <br className="md:hidden" /> Questions? <Link href="/contact" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">Talk to us</Link>.
             </p>

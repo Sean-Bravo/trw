@@ -24,7 +24,7 @@ const CATEGORY_STYLES: Record<string, { color: string; bg: string; icon: React.C
   'crypto-tax': { color: 'text-indigo-600', bg: 'bg-indigo-50', icon: TrendingUp },
   'guides': { color: 'text-blue-600', bg: 'bg-blue-50', icon: BookOpen },
   'tax-tips': { color: 'text-emerald-600', bg: 'bg-emerald-50', icon: FileText },
-  'updates': { color: 'text-slate-600', bg: 'bg-slate-50', icon: Terminal },
+  'updates': { color: 'text-slate-400', bg: 'bg-slate-50', icon: Terminal },
   'default': { color: 'text-blue-600', bg: 'bg-blue-50', icon: FileText },
 }
 
@@ -46,7 +46,7 @@ export default function BlogPage() {
             <h1 className="font-poppins text-4xl sm:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
               Engineering <span className="text-slate-400">/</span> Blog
             </h1>
-            <p className="text-xl text-slate-500 leading-relaxed">
+            <p className="text-xl text-slate-400 leading-relaxed">
               Technical guides on fixing CSV schemas, understanding IRS formatting, and optimizing crypto tax reporting.
             </p>
           </div>
@@ -80,13 +80,13 @@ export default function BlogPage() {
                         </div>
 
                         {/* "Code" Badge */}
-                        <div className="absolute bottom-4 left-4 font-mono text-xs font-medium px-2 py-1 bg-white/80 backdrop-blur rounded text-slate-500 border border-slate-200/50">
+                        <div className="absolute bottom-4 left-4 font-mono text-xs font-medium px-2 py-1 bg-white/80 backdrop-blur rounded text-slate-400 border border-slate-200/50">
                           {post.slug}.mdx
                         </div>
                       </div>
 
                       <div className="p-8 flex-1 flex flex-col">
-                        <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">
+                        <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">
                           <span className={`${style.color}`}>{post.category}</span>
                           <span>•</span>
                           <span>{post.readingTime} min read</span>
@@ -96,7 +96,7 @@ export default function BlogPage() {
                           {post.title}
                         </h3>
 
-                        <p className="text-slate-600 mb-6 line-clamp-2 leading-relaxed">
+                        <p className="text-slate-400 mb-6 line-clamp-2 leading-relaxed">
                           {post.description}
                         </p>
 
@@ -128,7 +128,7 @@ export default function BlogPage() {
                   >
                     <article className="flex flex-col sm:flex-row gap-6 sm:items-start">
                        {/* Date Box */}
-                       <div className="hidden sm:flex flex-col items-center justify-center w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 shrink-0">
+                       <div className="hidden sm:flex flex-col items-center justify-center w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 text-slate-400 shrink-0">
                           <span className="text-xs font-bold uppercase">{format(new Date(post.date), 'MMM')}</span>
                           <span className="text-lg font-bold text-slate-900">{format(new Date(post.date), 'dd')}</span>
                        </div>
@@ -146,7 +146,7 @@ export default function BlogPage() {
                          <h3 className="font-poppins text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
                            {post.title}
                          </h3>
-                         <p className="text-slate-600 leading-relaxed mb-3">
+                         <p className="text-slate-400 leading-relaxed mb-3">
                            {post.description}
                          </p>
                          <div className="text-sm font-medium text-slate-400 group-hover:text-blue-600 transition-colors flex items-center gap-2">

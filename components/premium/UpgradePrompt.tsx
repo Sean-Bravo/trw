@@ -61,7 +61,7 @@ export function UpgradePrompt({ feature, requiredTier }: UpgradePromptProps) {
         Upgrade to {tier.name}
       </Link>
 
-      <p className="text-slate-500 text-xs mt-4">
+      <p className="text-slate-400 text-xs mt-4">
         One-time payment. No subscriptions.
       </p>
     </div>

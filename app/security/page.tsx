@@ -71,7 +71,7 @@ export default function SecurityPage() {
                 ].map((stat, i) => (
                     <div key={i} className="text-center">
                         <div className="text-2xl font-bold text-white font-mono">{stat.value}</div>
-                        <div className="text-xs text-slate-500 uppercase tracking-widest mt-1">{stat.label}</div>
+                        <div className="text-xs text-slate-400 uppercase tracking-widest mt-1">{stat.label}</div>
                     </div>
                 ))}
               </div>
@@ -160,7 +160,7 @@ export default function SecurityPage() {
                         <FileJson className="w-4 h-4 text-emerald-400" />
                         Upload & Encrypt
                     </h4>
-                    <p className="text-sm text-slate-500 mt-2">
+                    <p className="text-sm text-slate-400 mt-2">
                       CSV travels via TLS 1.3 and is immediately encrypted with a unique key upon hitting our bucket.
                     </p>
                   </div>
@@ -172,7 +172,7 @@ export default function SecurityPage() {
                         <Cpu className="w-4 h-4 text-yellow-400" />
                         In-Memory Processing
                     </h4>
-                    <p className="text-sm text-slate-500 mt-2">
+                    <p className="text-sm text-slate-400 mt-2">
                       Our engine spins up an isolated container. Processing happens in RAM (volatile memory), limiting disk exposure.
                     </p>
                   </div>
@@ -184,7 +184,7 @@ export default function SecurityPage() {
                         <Trash2 className="w-4 h-4 text-red-400" />
                         The Purge
                     </h4>
-                    <p className="text-sm text-slate-500 mt-2">
+                    <p className="text-sm text-slate-400 mt-2">
                       Once you download your output, the original file, the output file, and the encryption keys are hard-deleted.
                     </p>
                   </div>
@@ -201,7 +201,7 @@ export default function SecurityPage() {
                       <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
                       <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/50"></div>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500">
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
                         <Server className="w-3 h-3" />
                         <span>security_manifest.json</span>
                     </div>
@@ -281,7 +281,7 @@ export default function SecurityPage() {
               ].map((item, idx) => (
                 <div key={idx} className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
                   <h4 className="font-bold text-white mb-2 flex items-center gap-2">
-                    <Fingerprint className="w-4 h-4 text-slate-500" />
+                    <Fingerprint className="w-4 h-4 text-slate-400" />
                     {item.q}
                   </h4>
                   <p className="text-slate-400 text-sm leading-relaxed">{item.a}</p>

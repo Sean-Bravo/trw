@@ -53,7 +53,7 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
                           'block text-sm py-1.5 transition-all duration-200 relative',
                           isActive
                             ? 'text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)] font-semibold'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-[var(--color-primary-500)]'
+                            : 'text-slate-400 dark:text-slate-300 hover:text-[var(--color-primary-500)]'
                         )}
                         aria-current={isActive ? 'page' : undefined}
                       >

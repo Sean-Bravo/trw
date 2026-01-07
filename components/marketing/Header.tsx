@@ -43,7 +43,7 @@ export function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="relative text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-sm font-medium transition-colors after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-[var(--color-primary-500)] hover:after:w-full after:transition-all after:duration-300"
+              className="relative text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-sm font-medium transition-colors after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-[var(--color-primary-500)] hover:after:w-full after:transition-all after:duration-300"
             >
               {link.label}
             </Link>
@@ -53,7 +53,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="hidden md:block text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium"
+            className="hidden md:block text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium"
           >
             Sign In
           </Link>
@@ -71,7 +71,7 @@ export function Header() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="md:hidden p-2 text-slate-400 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"

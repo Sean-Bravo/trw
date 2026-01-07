@@ -50,7 +50,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                 <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700" />
                 <Link
                   href="/"
-                  className="hidden sm:flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-[var(--color-primary-500)] transition-colors group"
+                  className="hidden sm:flex items-center gap-2 text-sm text-slate-400 dark:text-slate-300 hover:text-[var(--color-primary-500)] transition-colors group"
                 >
                   <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--color-primary-500)] to-[var(--color-accent-500)] flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Home className="w-4 h-4 text-white" />
@@ -73,7 +73,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         <Container>
           <div className="py-8">
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Documentation</h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">Learn how to use TaxFormatter</p>
+            <p className="text-slate-400 dark:text-slate-300 mt-2">Learn how to use TaxFormatter</p>
           </div>
         </Container>
       </div>

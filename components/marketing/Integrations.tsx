@@ -46,9 +46,9 @@ export function Integrations() {
             <div className="absolute inset-x-0 top-16 bottom-0 overflow-hidden mask-linear-fade">
                <div className="flex flex-col gap-3 p-4 animate-marquee-vertical">
                   {[...exchanges, ...exchanges].map((ex, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-900/80 text-slate-500 font-mono text-xs">
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-900/80 text-slate-400 font-mono text-xs">
                       <span className="truncate max-w-[180px]">{ex}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] uppercase text-slate-600">Raw</span>
+                      <span className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] uppercase text-slate-400">Raw</span>
                     </div>
                   ))}
                </div>

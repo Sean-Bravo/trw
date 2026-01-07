@@ -68,7 +68,7 @@ export function AIInsightsPanel({ state = defaultState }: AIInsightsPanelProps) 
             </div>
             <div>
               <p className="font-semibold text-slate-800">Exchange Detected:</p>
-              <p className="text-slate-600 text-sm">
+              <p className="text-slate-400 text-sm">
                 {status === 'detecting' ? 'Scanning file...' : exchange || 'Waiting for upload...'}
               </p>
             </div>
@@ -87,7 +87,7 @@ export function AIInsightsPanel({ state = defaultState }: AIInsightsPanelProps) 
                 {status === 'analyzing' ? 'Analyzing Transactions...' : 'Transaction Analysis'}
               </p>
             </div>
-            <span className="text-slate-500 text-sm">
+            <span className="text-slate-400 text-sm">
               {isComplete ? `${transactionsAnalyzed} analyzed` : `${transactionsFound} found`}
             </span>
           </div>
@@ -126,7 +126,7 @@ export function AIInsightsPanel({ state = defaultState }: AIInsightsPanelProps) 
           </div>
           <div>
             <p className="font-semibold text-slate-800">Tax Flags</p>
-            <p className="text-slate-500 text-sm">
+            <p className="text-slate-400 text-sm">
               {taxFlags && taxFlags.count > 0
                 ? `${taxFlags.count} issue${taxFlags.count > 1 ? 's' : ''} found`
                 : isComplete
@@ -171,7 +171,7 @@ export function AIInsightsPanel({ state = defaultState }: AIInsightsPanelProps) 
 
 function StatusBadge({ status }: { status: InsightStatus | 'complete' }) {
   const styles = {
-    idle: 'bg-slate-100 text-slate-500',
+    idle: 'bg-slate-100 text-slate-400',
     detecting: 'bg-blue-100 text-blue-600',
     analyzing: 'bg-amber-100 text-amber-600',
     complete: 'bg-emerald-100 text-emerald-600',

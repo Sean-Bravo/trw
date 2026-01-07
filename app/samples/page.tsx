@@ -94,11 +94,11 @@ export default function SamplesPage() {
             <h1 className="font-poppins text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-6">
               Sample Output Downloads
             </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-4">
+            <p className="text-lg text-slate-400 dark:text-slate-300 max-w-2xl mx-auto mb-4">
               Don't take our word for it. Download real sample outputs and see exactly what TaxFormatter produces.
               Test them in your tax software before you commit.
             </p>
-            <p className="text-sm text-slate-500 dark:text-slate-500 max-w-xl mx-auto">
+            <p className="text-sm text-slate-400 dark:text-slate-400 max-w-xl mx-auto">
               These samples show a typical Coinbase export with 20 transactions, including buys, sells,
               conversions, staking rewards, and transfers.
             </p>
@@ -121,7 +121,7 @@ export default function SamplesPage() {
                       <h3 className="font-semibold text-lg text-slate-900 dark:text-white">
                         {sample.title}
                       </h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      <p className="text-sm text-slate-400 dark:text-slate-300 mt-1">
                         {sample.description}
                       </p>
                     </div>
@@ -134,7 +134,7 @@ export default function SamplesPage() {
                         {sample.issues.map((issue, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
                             <AlertTriangle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-slate-600 dark:text-slate-400">{issue}</span>
+                            <span className="text-slate-400 dark:text-slate-300">{issue}</span>
                           </li>
                         ))}
                       </ul>
@@ -144,7 +144,7 @@ export default function SamplesPage() {
                         {sample.features.map((feature, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
                             <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-slate-600 dark:text-slate-400">{feature}</span>
+                            <span className="text-slate-400 dark:text-slate-300">{feature}</span>
                           </li>
                         ))}
                       </ul>
@@ -176,7 +176,7 @@ export default function SamplesPage() {
                   1
                 </div>
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Download a Sample</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-400 dark:text-slate-300">
                   Grab the TurboTax or Koinly format above
                 </p>
               </div>
@@ -185,7 +185,7 @@ export default function SamplesPage() {
                   2
                 </div>
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Import to Your Software</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-400 dark:text-slate-300">
                   Try importing it into TurboTax, Koinly, or your preferred platform
                 </p>
               </div>
@@ -194,7 +194,7 @@ export default function SamplesPage() {
                   3
                 </div>
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Verify It Works</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-400 dark:text-slate-300">
                   See zero errors on import. We guarantee the format so you don't have to map columns manually.
                 </p>
               </div>
@@ -206,7 +206,7 @@ export default function SamplesPage() {
             <h2 className="font-poppins text-2xl font-bold text-slate-900 dark:text-white mb-4">
               Ready to Fix Your Own CSVs?
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-slate-400 dark:text-slate-300 mb-6">
               Upload your messy exchange exports and get clean, tax-ready files in seconds.
             </p>
             <Link
