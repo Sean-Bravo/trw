@@ -12,7 +12,7 @@ export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect('/api/auth/signin?callbackUrl=/dashboard/settings');
+    redirect('/login');
   }
 
   return <SettingsClient user={session.user} />;

@@ -17,7 +17,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect('/api/auth/signin?callbackUrl=/dashboard');
+    redirect('/login');
   }
 
   const { jobId } = await params;
