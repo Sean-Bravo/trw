@@ -5,22 +5,22 @@ import { Container } from '../layout/Container';
 import { Database, FileCheck, ArrowRight, Zap, Activity } from 'lucide-react';
 
 const exchanges = [
-  'Coinbase_raw.csv', 'Binance_export.xlsx', 'Kraken_2025.csv', 
+  'Coinbase_raw.csv', 'Binance_export.xlsx', 'Kraken_2025.csv',
   'KuCoin_trade_history.csv', 'Crypto.com_fiat.csv', 'Gemini_active.csv',
-  'Bitstamp_ledger.csv', 'Robinhood_1099.pdf', 'eToro_statement.xls', 
+  'Bitstamp_ledger.csv', 'Robinhood_1099.pdf', 'eToro_statement.xls',
   'OKX_spot.csv', 'Bybit_derivatives.csv', 'Gate.io_margin.csv'
 ];
 
 const platforms = [
-  'TurboTax_Ready.csv', 'Koinly_Universal.csv', 'CoinLedger_Import.csv', 
-  'H&R_Block_Format.csv', 'TaxAct_Standard.csv', 'ZenLedger_Compatible.csv', 
+  'TurboTax_Ready.csv', 'Koinly_Universal.csv', 'CoinLedger_Import.csv',
+  'H&R_Block_Format.csv', 'TaxAct_Standard.csv', 'ZenLedger_Compatible.csv',
   'TokenTax_Direct.csv'
 ];
 
 export function Integrations() {
   return (
     <section className="py-32 bg-slate-950 relative overflow-hidden">
-      
+
       {/* Background: Cyberpunk Grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-transparent to-slate-950"></div>
@@ -53,7 +53,7 @@ export function Integrations() {
                   ))}
                </div>
             </div>
-            
+
             {/* Overlay Gradient for Depth */}
             <div className="absolute inset-0 bg-gradient-to-b from-slate-900/20 via-transparent to-slate-900/80 pointer-events-none"></div>
           </div>
@@ -61,14 +61,14 @@ export function Integrations() {
 
           {/* COLUMN 2: THE REACTOR (Processing) */}
           <div className="relative flex flex-col items-center justify-center text-center z-20 py-12 lg:py-0">
-            
+
             {/* The Glowing Orb */}
             <div className="relative w-32 h-32 mb-8">
               <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
               <div className="relative w-full h-full bg-slate-900 border border-slate-700 rounded-full flex items-center justify-center shadow-2xl shadow-blue-900/50 ring-1 ring-blue-500/30">
                 <Zap className="w-12 h-12 text-blue-400 fill-blue-500/10" />
               </div>
-              
+
               {/* Orbiting Particles (CSS only) */}
               <div className="absolute inset-0 rounded-full border border-blue-500/20 border-t-blue-400 animate-spin duration-[3s]"></div>
               <div className="absolute -inset-4 rounded-full border border-dashed border-slate-700 animate-[spin_10s_linear_infinite_reverse]"></div>
@@ -114,7 +114,7 @@ export function Integrations() {
                   ))}
                </div>
             </div>
-            
+
              {/* Overlay Gradient */}
              <div className="absolute inset-0 bg-gradient-to-b from-slate-900/20 via-transparent to-slate-900/80 pointer-events-none"></div>
           </div>

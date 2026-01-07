@@ -330,6 +330,18 @@ svg circle[data-animated="true"] {
   100% { transform: translateX(-50%); }
 }
 
+/* Vertical Marquee - Scroll Up */
+@keyframes scroll-up {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+/* Vertical Marquee - Scroll Down */
+@keyframes scroll-down {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+
 @layer utilities {
   /* Gradient shift animation */
   .animate-gradient {
@@ -355,6 +367,16 @@ svg circle[data-animated="true"] {
   /* Marquee animation for logos */
   .animate-marquee {
     animation: marquee 30s linear infinite;
+  }
+
+  /* Vertical scroll up animation */
+  .animate-scroll-up {
+    animation: scroll-up 40s linear infinite;
+  }
+
+  /* Vertical scroll down animation */
+  .animate-scroll-down {
+    animation: scroll-down 40s linear infinite;
   }
 
   /* Gradient text utility */
