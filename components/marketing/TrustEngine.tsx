@@ -45,7 +45,7 @@ const TrustEngine = () => {
               {/* Input Data */}
               <div className="flex flex-col items-center gap-2 z-10">
                 <FileDiff className="w-8 h-8 text-slate-400 group-hover:text-yellow-200 transition-colors" />
-                <span className="text-[10px] font-mono text-slate-500 uppercase">Raw Data</span>
+                <span className="text-[10px] font-mono text-slate-400 uppercase">Raw Data</span>
               </div>
 
               {/* The "Shredder" Process */}
@@ -61,8 +61,8 @@ const TrustEngine = () => {
 
               {/* Output: Nothingness */}
               <div className="flex flex-col items-center gap-2 z-10">
-                <EyeOff className="w-8 h-8 text-slate-600 group-hover:text-red-400/80 transition-colors animate-[pulse_2s_ease-in-out_infinite_reverse]" />
-                 <span className="text-[10px] font-mono text-slate-600 uppercase group-hover:text-red-400/60 transition-colors">Void</span>
+                <EyeOff className="w-8 h-8 text-slate-400 group-hover:text-red-400/80 transition-colors animate-[pulse_2s_ease-in-out_infinite_reverse]" />
+                 <span className="text-[10px] font-mono text-slate-400 uppercase group-hover:text-red-400/60 transition-colors">Void</span>
               </div>
               
               {/* Digital Noise Overlay */}
@@ -89,7 +89,7 @@ const TrustEngine = () => {
 
             {/* Visual: The Diff Table */}
             <div className="h-36 mb-8 relative rounded-xl bg-slate-950/50 border border-slate-800/80 p-4 font-mono text-xs overflow-hidden flex flex-col justify-center">
-              <div className="grid grid-cols-3 gap-2 mb-2 text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-800/50 text-[10px]">
+              <div className="grid grid-cols-3 gap-2 mb-2 text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-800/50 text-[10px]">
                 <div>Date</div>
                 <div>Type</div>
                 <div>Amount</div>
@@ -99,7 +99,7 @@ const TrustEngine = () => {
                 <div className="absolute inset-y-0 -left-4 w-[calc(100%+2rem)] bg-red-400/5 skew-x-12 opacity-0 group-hover/row:opacity-100 transition-opacity"></div>
                 <div className="line-through decoration-2 text-red-400/50 decoration-red-400/40 relative">23/30/01</div>
                 <div className="line-through decoration-2 text-red-400/50 decoration-red-400/40 relative">STAKE_R</div>
-                <div className="text-slate-500 relative">0.005 ETH</div>
+                <div className="text-slate-400 relative">0.005 ETH</div>
               </div>
               {/* Good Data Row */}
               <div className="grid grid-cols-3 gap-2 py-1.5 relative mt-1">
@@ -132,7 +132,7 @@ const TrustEngine = () => {
                   <Key className="w-4 h-4 text-blue-400" />
                   <span className="text-slate-200 font-medium text-sm">API Scope Check</span>
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">ReadOnly Mode</div>
+                <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">ReadOnly Mode</div>
               </div>
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between pl-2 border-l-2 border-emerald-500/30 bg-emerald-500/5 py-0.5 rounded-r">
@@ -167,24 +167,24 @@ const TrustEngine = () => {
           {/* Subtle glow effect on the border */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent"></div>
           
-          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-sm text-slate-500 font-medium">
+          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-sm text-slate-400 font-medium">
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
-              <Server className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+              <Server className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
               <span>AWS Secure Enclaves</span>
             </div>
             <div className="hidden md:block w-1.5 h-1.5 bg-slate-800 rounded-full"></div>
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
-              <Database className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+              <Database className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
               <span>AES-256 Encryption at Rest</span>
             </div>
             <div className="hidden md:block w-1.5 h-1.5 bg-slate-800 rounded-full"></div>
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
-              <Shield className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+              <Shield className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
               <span>SOC2 Compliant Infrastructure</span>
             </div>
             <div className="hidden md:block w-1.5 h-1.5 bg-slate-800 rounded-full"></div>
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
-              <Globe className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+              <Globe className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
               <span>Stripe Secure Payments</span>
             </div>
           </div>

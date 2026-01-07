@@ -80,7 +80,7 @@ export function HowItWorks() {
             <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-6">
               See the engine in action.
             </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-400">
+            <p className="text-lg text-slate-400 dark:text-slate-300">
               We don't just "format" your file. We parse, validate, and repair every single row. Watch how TaxFormatter cleans a messy Coinbase export in real-time.
             </p>
           </div>
@@ -147,7 +147,7 @@ export function HowItWorks() {
                   </div>
                   <div className="text-center">
                     <p className="text-slate-300 font-medium">Click to upload CSV</p>
-                    <p className="text-sm text-slate-500">Simulate file processing</p>
+                    <p className="text-sm text-slate-400">Simulate file processing</p>
                   </div>
                 </div>
               )}
@@ -204,7 +204,7 @@ export function HowItWorks() {
               )}
 
               {state === 'idle' ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-600">
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
                   <Terminal className="w-12 h-12 mb-4 opacity-20" />
                   <p>System Idle.</p>
                   <p className="text-xs">Waiting for input stream...</p>
@@ -213,7 +213,7 @@ export function HowItWorks() {
                 <div className="space-y-3">
                   {logs.map((log, idx) => (
                     <div key={idx} className="animate-fade-in-left flex items-start gap-3">
-                      <span className="text-slate-600 text-xs mt-0.5">
+                      <span className="text-slate-400 text-xs mt-0.5">
                         {`00:${String(idx * 2).padStart(2, '0')}`}
                       </span>
                       <div>
@@ -240,7 +240,7 @@ export function HowItWorks() {
                     </div>
                   ))}
                   {state === 'processing' && (
-                    <div className="flex items-center gap-2 text-slate-500 animate-pulse mt-4">
+                    <div className="flex items-center gap-2 text-slate-400 animate-pulse mt-4">
                       <ChevronRight className="w-3 h-3" />
                       <span className="w-2 h-4 bg-slate-500 block" />
                     </div>

@@ -90,7 +90,7 @@ export function Footer() {
             </p>
             <form onSubmit={handleSubmit} className="flex gap-2">
               <div className="flex-1 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="email"
                   value={email}
@@ -144,7 +144,7 @@ export function Footer() {
                   { label: 'Docs', href: '/docs' },
                 ].map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="text-sm text-slate-500 hover:text-white transition-colors">
+                    <Link href={link.href} className="text-sm text-slate-400 hover:text-white transition-colors">
                       {link.label}
                     </Link>
                   </li>
@@ -157,12 +157,12 @@ export function Footer() {
               <h4 className="font-semibold text-sm mb-4 text-slate-300">Support</h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="mailto:support@taxformatter.com" className="text-sm text-slate-500 hover:text-white transition-colors">
+                  <a href="mailto:support@taxformatter.com" className="text-sm text-slate-400 hover:text-white transition-colors">
                     Contact
                   </a>
                 </li>
                 <li>
-                  <a href="https://twitter.com/taxformatter" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-500 hover:text-white transition-colors">
+                  <a href="https://twitter.com/taxformatter" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">
                     Twitter
                   </a>
                 </li>
@@ -174,12 +174,12 @@ export function Footer() {
               <h4 className="font-semibold text-sm mb-4 text-slate-300">Legal</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/privacy-policy" className="text-sm text-slate-500 hover:text-white transition-colors">
+                  <Link href="/privacy-policy" className="text-sm text-slate-400 hover:text-white transition-colors">
                     Privacy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="text-sm text-slate-500 hover:text-white transition-colors">
+                  <Link href="/terms" className="text-sm text-slate-400 hover:text-white transition-colors">
                     Terms
                   </Link>
                 </li>
@@ -193,21 +193,21 @@ export function Footer() {
               <p className="text-xs text-slate-400 mb-2">
                 <span className="font-semibold text-slate-300">What TaxFormatter Is:</span> A CSV repair and formatting tool that makes exchange exports compatible with tax software.
               </p>
-              <p className="text-xs text-slate-500">
-                <span className="font-semibold text-slate-400">What TaxFormatter Isn't:</span> Tax advice, cost basis calculations, or a replacement for actual tax software.
+              <p className="text-xs text-slate-400">
+                <span className="font-semibold text-slate-300">What TaxFormatter Isn't:</span> Tax advice, cost basis calculations, or a replacement for actual tax software.
               </p>
             </div>
           </div>
 
           {/* Bottom */}
           <div className="pt-6 border-t border-slate-800 text-center">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               © {new Date().getFullYear()} TaxFormatter. All rights reserved. 🇺🇸
             </p>
             <p className="text-xs text-slate-400 mt-2">
               The universal translation engine for crypto data.
             </p>
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="text-xs text-slate-400 mt-1">
               Made in NYC
             </p>
           </div>

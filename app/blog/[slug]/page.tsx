@@ -76,7 +76,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
               {/* Back Link */}
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 font-medium transition-colors mb-8 text-sm"
+                className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 font-medium transition-colors mb-8 text-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Engineering Blog
@@ -88,11 +88,11 @@ export default async function BlogPost({ params }: BlogPostProps) {
                   <Hash className="w-3 h-3" />
                   {post.category}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-slate-500 text-sm font-medium">
+                <span className="inline-flex items-center gap-1.5 text-slate-400 text-sm font-medium">
                   <Calendar className="w-4 h-4" />
                   {format(new Date(post.date), 'MMMM d, yyyy')}
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-slate-500 text-sm font-medium">
+                <span className="inline-flex items-center gap-1.5 text-slate-400 text-sm font-medium">
                   <Clock className="w-4 h-4" />
                   {post.readingTime} min read
                 </span>
@@ -102,7 +102,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
                 {post.title}
               </h1>
 
-              <p className="text-xl text-slate-600 leading-relaxed max-w-3xl">
+              <p className="text-xl text-slate-400 leading-relaxed max-w-3xl">
                 {post.description}
               </p>
             </div>
@@ -135,12 +135,12 @@ export default async function BlogPost({ params }: BlogPostProps) {
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Written By</h3>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold border border-slate-200">
+                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold border border-slate-200">
                       {post.author.charAt(0)}
                     </div>
                     <div>
                       <p className="font-bold text-slate-900 text-sm">{post.author}</p>
-                      <p className="text-xs text-slate-500">TaxFormatter Engineering</p>
+                      <p className="text-xs text-slate-400">TaxFormatter Engineering</p>
                     </div>
                   </div>
                 </div>
@@ -151,7 +151,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Related Topics</h3>
                     <div className="flex flex-wrap gap-2">
                       {post.tags.map(tag => (
-                        <span key={tag} className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-medium border border-slate-200">
+                        <span key={tag} className="px-2.5 py-1 bg-slate-100 text-slate-400 rounded-md text-xs font-medium border border-slate-200">
                           {tag}
                         </span>
                       ))}

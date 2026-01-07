@@ -94,7 +94,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
                       className={`block py-1 transition-all duration-200 ${
                         isActive
                           ? 'text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)] font-medium'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                          : 'text-slate-400 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       {heading.text}

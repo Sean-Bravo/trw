@@ -58,7 +58,7 @@ function StatCard({ icon, label, value, subtitle, gradient }: StatCardProps) {
   return (
     <div className="group bg-white/70 dark:bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 border border-white/20 dark:border-slate-700/50 p-6 hover:shadow-xl hover:shadow-[var(--color-primary-500)]/10 hover:-translate-y-0.5 transition-all duration-300">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{label}</span>
+        <span className="text-sm font-medium text-slate-400 dark:text-slate-300">{label}</span>
         <div className={`bg-gradient-to-r ${gradient} p-2.5 rounded-xl text-white`}>
           {icon}
         </div>
@@ -67,7 +67,7 @@ function StatCard({ icon, label, value, subtitle, gradient }: StatCardProps) {
         <p className="text-3xl font-bold text-slate-900 dark:text-white">{value}</p>
         <div className="flex items-center gap-2">
           <TrendingUp className="h-3 w-3 text-[var(--color-accent-500)]" />
-          <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+          <p className="text-sm text-slate-400 dark:text-slate-300">{subtitle}</p>
         </div>
       </div>
     </div>

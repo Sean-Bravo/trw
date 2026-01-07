@@ -92,7 +92,7 @@ export function SmartDiffTable({
                   `}
                 >
                   {/* Row number */}
-                  <td className="px-4 py-3 text-xs font-mono text-slate-500">
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">
                     {row.rowIndex + 1}
                   </td>
 
@@ -101,7 +101,7 @@ export function SmartDiffTable({
                     const cell = row.cells[col];
                     if (!cell) {
                       return (
-                        <td key={col} className="px-4 py-3 text-slate-500">—</td>
+                        <td key={col} className="px-4 py-3 text-slate-400">—</td>
                       );
                     }
 
@@ -139,7 +139,7 @@ export function SmartDiffTable({
                 p-2 rounded-lg transition-colors
                 ${hasPrev
                   ? 'text-slate-300 hover:bg-white/5'
-                  : 'text-slate-600 cursor-not-allowed'
+                  : 'text-slate-400 cursor-not-allowed'
                 }
               `}
             >
@@ -153,7 +153,7 @@ export function SmartDiffTable({
                 p-2 rounded-lg transition-colors
                 ${hasNext
                   ? 'text-slate-300 hover:bg-white/5'
-                  : 'text-slate-600 cursor-not-allowed'
+                  : 'text-slate-400 cursor-not-allowed'
                 }
               `}
             >

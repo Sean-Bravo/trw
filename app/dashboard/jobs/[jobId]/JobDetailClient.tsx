@@ -145,7 +145,7 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
                   <StatusIcon className={`w-3.5 h-3.5 ${statusConfig.animate ? 'animate-spin' : ''}`} />
                   {statusConfig.label}
                 </span>
-                <span className="text-slate-500 text-sm">
+                <span className="text-slate-400 text-sm">
                   {new Date(job.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -231,11 +231,11 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
             <SmartDiffTable diffData={diffData} viewMode={isPaidUser ? viewMode : 'clean'} />
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <FileText className="w-12 h-12 text-slate-600 mb-4" />
+              <FileText className="w-12 h-12 text-slate-400 mb-4" />
               <h3 className="text-lg font-medium text-slate-400 mb-2">
                 Preview not available
               </h3>
-              <p className="text-slate-500 text-sm max-w-md">
+              <p className="text-slate-400 text-sm max-w-md">
                 This job was processed before the diff view feature was added.
                 Download the CSV to see results.
               </p>

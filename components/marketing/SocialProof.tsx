@@ -10,7 +10,7 @@ const nightmares = [
     // We treat the description as JSX to allow specific styling
     description: (
       <>
-        Exchanges mix formats. Coinbase uses <span className="font-mono text-xs text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-300 px-1 py-0.5 rounded">ISO-8601</span> while Kraken uses <span className="font-mono text-xs text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-300 px-1 py-0.5 rounded">Unix Epoch</span>. We standardize everything to <span className="font-mono text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-300 px-1 py-0.5 rounded">UTC</span> to prevent "Future Date" lockouts.
+        Exchanges mix formats. Coinbase uses <span className="font-mono text-xs text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-200 px-1 py-0.5 rounded">ISO-8601</span> while Kraken uses <span className="font-mono text-xs text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-200 px-1 py-0.5 rounded">Unix Epoch</span>. We standardize everything to <span className="font-mono text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-200 px-1 py-0.5 rounded">UTC</span> to prevent "Future Date" lockouts.
       </>
     ),
     icon: Clock,
@@ -19,7 +19,7 @@ const nightmares = [
     title: "Transfer Detection",
     description: (
       <>
-        Moving ETH from Binance to MetaMask? Most tools see a <span className="font-mono text-xs text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-300 px-1 py-0.5 rounded">SALE</span> event. We trace the blockchain to flag it as a non-taxable <span className="font-mono text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-300 px-1 py-0.5 rounded">TRANSFER</span>, preserving your original cost basis.
+        Moving ETH from Binance to MetaMask? Most tools see a <span className="font-mono text-xs text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-200 px-1 py-0.5 rounded">SALE</span> event. We trace the blockchain to flag it as a non-taxable <span className="font-mono text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-200 px-1 py-0.5 rounded">TRANSFER</span>, preserving your original cost basis.
       </>
     ),
     icon: ArrowLeftRight,
@@ -28,7 +28,7 @@ const nightmares = [
     title: "Schema Compliance",
     description: (
       <>
-        TurboTax rejects generic CSVs. They enforce headers like <span className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 px-1 py-0.5 rounded">Cost Basis (USD)</span>. We remap your columns to match their strict schema version <span className="font-mono text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 px-1 py-0.5 rounded">v2024.1</span>.
+        TurboTax rejects generic CSVs. They enforce headers like <span className="font-mono text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 px-1 py-0.5 rounded">Cost Basis (USD)</span>. We remap your columns to match their strict schema version <span className="font-mono text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 px-1 py-0.5 rounded">v2024.1</span>.
       </>
     ),
     icon: FileWarning,
@@ -51,7 +51,7 @@ export function SocialProof() {
               <h2 className="font-poppins text-3xl font-bold text-slate-900 dark:text-white mb-4">
                 Why your import keeps failing.
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg">
+              <p className="text-slate-400 dark:text-slate-300 leading-relaxed text-lg">
                 We analyzed 10,000+ failed CSV uploads. These are the three most common reasons tax software rejects your files.
               </p>
             </div>
@@ -76,7 +76,7 @@ export function SocialProof() {
                   key={idx}
                   className="group relative bg-slate-50 dark:bg-slate-900 rounded-xl p-8 border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                 >
-                  <div className="absolute top-8 right-8 text-slate-400 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-500 transition-colors">
+                  <div className="absolute top-8 right-8 text-slate-400 dark:text-slate-400 group-hover:text-slate-400 dark:group-hover:text-slate-400 transition-colors">
                     <Icon className="w-6 h-6" strokeWidth={1.5} />
                   </div>
                   
@@ -84,7 +84,7 @@ export function SocialProof() {
                     {item.title}
                   </h3>
                   
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                  <p className="text-slate-400 dark:text-slate-300 leading-relaxed text-sm">
                     {item.description}
                   </p>
                 </div>
