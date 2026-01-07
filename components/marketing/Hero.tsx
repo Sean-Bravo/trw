@@ -66,7 +66,7 @@ export function Hero() {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-slate-400 dark:text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             Your exchange exported garbage. We clean it, fix the formatting errors, and make it import-ready for Koinly, TurboTax, and every other tax platform. They do the math—we fix the mess.
           </p>
 
@@ -91,7 +91,7 @@ export function Hero() {
           </div>
 
           {/* Trust Indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400 dark:text-slate-300 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600 dark:text-slate-300 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-[var(--color-accent-500)]" />
               <span>10,000+ files processed</span>
@@ -110,7 +110,7 @@ export function Hero() {
           <div className="mt-6 animate-fade-in-up" style={{ animationDelay: '450ms' }}>
             <a
               href="/samples"
-              className="text-sm text-slate-400 dark:text-slate-300 hover:text-[var(--color-primary-500)] dark:hover:text-[var(--color-primary-400)] transition-colors underline underline-offset-4"
+              className="text-sm text-slate-600 dark:text-slate-300 hover:text-[var(--color-primary-500)] dark:hover:text-[var(--color-primary-400)] transition-colors underline underline-offset-4"
             >
               Not ready to upload? See sample outputs first →
             </a>
