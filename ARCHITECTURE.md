@@ -158,10 +158,9 @@ The Python engine (`backend/services/engine.py`) parses:
 
 ## Known Gotchas
 
-1. **2FA login flow** passes base64 password in URL - needs refactor to session/POST
-2. **Lambda concurrency** must stay ≤50 to match RDS Proxy connection limit
-3. **Fingerprinting cache** currently uses Supabase - needs migration to Neon
-4. **Rate limiting** library exists but not applied to all routes yet
+1. **Lambda concurrency** must stay ≤50 to match RDS Proxy connection limit
+2. **Fingerprinting cache** currently uses Supabase - needs migration to Neon
+3. **Rate limiting** library exists but not applied to all routes yet
 
 ## What's Not Built Yet
 
