@@ -41,8 +41,12 @@ export default function LoginPage() {
 
       // If 2FA is required, redirect to 2FA page
       if (checkData.requires2FA) {
-        const token = btoa(formData.password); // Encode password for URL
-        router.push(`/login/2fa?email=${encodeURIComponent(formData.email)}&token=${encodeURIComponent(token)}`);
+        // Store credentials in sessionStorage (cleared when tab closes)
+        sessionStorage.setItem('2fa_pending', JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }));
+        router.push('/login/2fa');
         return;
       }
 

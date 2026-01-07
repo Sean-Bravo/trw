@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
@@ -9,24 +9,40 @@ import { Shield, Key, Loader2 } from 'lucide-react';
 
 function TwoFactorForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [useBackupCode, setUseBackupCode] = useState(false);
-
-  const email = searchParams.get('email') || '';
-  const token = searchParams.get('token') || '';
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => {
-    if (!email || !token) {
+    // Read credentials from sessionStorage (not URL)
+    const pending = sessionStorage.getItem('2fa_pending');
+    if (!pending) {
+      router.push('/login');
+      return;
+    }
+    try {
+      const parsed = JSON.parse(pending);
+      if (!parsed.email || !parsed.password) {
+        router.push('/login');
+        return;
+      }
+      setCredentials(parsed);
+    } catch {
       router.push('/login');
     }
-  }, [email, token, router]);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!credentials) {
+      router.push('/login');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -35,8 +51,8 @@ function TwoFactorForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
-          password: atob(token), // Decode password
+          email: credentials.email,
+          password: credentials.password,
           code: code.replace(/\s/g, ''),
           isBackupCode: useBackupCode,
         }),
@@ -53,14 +69,16 @@ function TwoFactorForm() {
       // Complete sign in with NextAuth
       const result = await signIn('credentials', {
         redirect: false,
-        email,
-        password: atob(token),
+        email: credentials.email,
+        password: credentials.password,
         skip2FA: 'true', // Signal to skip 2FA check since we verified it
       });
 
       if (result?.error) {
         setError('Sign in failed. Please try again.');
       } else {
+        // Clear credentials from sessionStorage on successful login
+        sessionStorage.removeItem('2fa_pending');
         router.push('/dashboard');
       }
     } catch {
