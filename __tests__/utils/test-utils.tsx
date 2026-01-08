@@ -1,19 +1,41 @@
 import React, { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
+import { JobProvider } from '@/contexts/JobContext'
+import { JobData } from '@/hooks/useJobPolling'
 
 // Add any providers your app needs here
 interface AllProvidersProps {
   children: React.ReactNode
+  userId?: string
+  initialJobs?: JobData[]
 }
 
-const AllProviders = ({ children }: AllProvidersProps) => {
-  return <>{children}</>
+const AllProviders = ({ children, userId = 'test-user', initialJobs = [] }: AllProvidersProps) => {
+  return (
+    <JobProvider userId={userId} initialJobs={initialJobs}>
+      {children}
+    </JobProvider>
+  )
+}
+
+// Custom render options
+interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+  userId?: string
+  initialJobs?: JobData[]
 }
 
 const customRender = (
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllProviders, ...options })
+  options?: CustomRenderOptions
+) => {
+  const { userId, initialJobs, ...renderOptions } = options || {}
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <AllProviders userId={userId} initialJobs={initialJobs}>
+      {children}
+    </AllProviders>
+  )
+  return render(ui, { wrapper: Wrapper, ...renderOptions })
+}
 
 // Re-export everything
 export * from '@testing-library/react'

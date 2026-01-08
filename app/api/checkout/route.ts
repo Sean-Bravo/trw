@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, STRIPE_PLANS } from '@/lib/stripe'
+import { stripe, STRIPE_PRICES, getPriceId, StripePlan, BillingPeriod } from '@/lib/stripe'
 import { getServerSession } from 'next-auth'
 import { captureException, setContext } from '@/lib/sentry'
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit'
@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
   }
 
   let plan: string | undefined
+  let billing: string | undefined
   let session: any
 
   try {
@@ -29,21 +30,34 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    plan = body.plan
+    plan = body.plan?.toUpperCase()
+    billing = body.billing || 'annual'
 
     // Validate plan
-    if (!plan || !STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
+    if (!plan || !STRIPE_PRICES[plan as StripePlan]) {
       return NextResponse.json(
         { error: 'Invalid plan selected' },
         { status: 400 }
       )
     }
 
-    const priceId = STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]
+    // Validate billing period
+    if (billing !== 'monthly' && billing !== 'annual') {
+      return NextResponse.json(
+        { error: 'Invalid billing period' },
+        { status: 400 }
+      )
+    }
+
+    const priceId = getPriceId(plan as StripePlan, billing as BillingPeriod)
+
+    // Determine checkout mode based on billing period
+    // Monthly = recurring subscription, Annual = one-time payment
+    const isSubscription = billing === 'monthly'
 
     // Create Stripe Checkout Session
     const checkoutSession = await stripe.checkout.sessions.create({
-      mode: 'payment', // One-time payment per tax year
+      mode: isSubscription ? 'subscription' : 'payment',
       customer_email: session.user.email,
       line_items: [
         {
@@ -52,12 +66,21 @@ export async function POST(request: NextRequest) {
         },
       ],
       success_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/pricing`,
+      cancel_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/#pricing`,
       metadata: {
-        userId: session.user.email, // Store user identifier
-        plan: plan,
+        userId: session.user.email,
+        plan: plan.toLowerCase(),
+        billing: billing,
       },
-      allow_promotion_codes: true, // Allow discount codes
+      allow_promotion_codes: true,
+      // For subscriptions, allow customer portal management
+      ...(isSubscription && {
+        subscription_data: {
+          metadata: {
+            plan: plan.toLowerCase(),
+          },
+        },
+      }),
     })
 
     return NextResponse.json({ url: checkoutSession.url })
@@ -67,6 +90,7 @@ export async function POST(request: NextRequest) {
     // Send error to Sentry with context
     setContext('checkout', {
       plan,
+      billing,
       userEmail: session?.user?.email,
     })
     captureException(error)
