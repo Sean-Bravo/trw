@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.execute-api.us-east-1.amazonaws.com';
 
@@ -9,6 +10,16 @@ const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.ex
  * Proxies to AWS Lambda to generate a presigned URL for S3 upload
  */
 export async function POST(request: NextRequest) {
+  // Rate limit: 10 uploads per hour
+  const identifier = getClientIdentifier(request);
+  const rateLimit = await rateLimiters.fileUpload.check(identifier);
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Upload limit reached. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     // 1. Authenticate user
     const session = await getServerSession(authOptions);

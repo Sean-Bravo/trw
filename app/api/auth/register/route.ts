@@ -2,8 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateEmail, validatePassword } from '@/lib/validation';
 import { createUser, emailExists } from '@/lib/auth-db';
 import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
+import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  // Rate limit: 5 attempts per 15 minutes
+  const identifier = getClientIdentifier(request);
+  const rateLimit = await rateLimiters.auth.check(identifier);
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many registration attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { email, password, name } = body;

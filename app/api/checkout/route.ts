@@ -2,8 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe, STRIPE_PLANS } from '@/lib/stripe'
 import { getServerSession } from 'next-auth'
 import { captureException, setContext } from '@/lib/sentry'
+import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
+  // Rate limit: 100 requests per minute (general API limit)
+  const identifier = getClientIdentifier(request)
+  const rateLimit = await rateLimiters.api.check(identifier)
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    )
+  }
+
   let plan: string | undefined
   let session: any
 

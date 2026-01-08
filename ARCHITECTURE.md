@@ -160,7 +160,6 @@ The Python engine (`backend/services/engine.py`) parses:
 
 1. **Lambda concurrency** must stay ≤50 to match RDS Proxy connection limit
 2. **Fingerprinting cache** currently uses Supabase - needs migration to Neon
-3. **Rate limiting** library exists but not applied to all routes yet
 
 ## What's Not Built Yet
 

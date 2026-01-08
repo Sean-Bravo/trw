@@ -1,8 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
 import { verifyPassword } from '@/lib/auth-db';
+import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limit: 5 attempts per 15 minutes
+  const identifier = getClientIdentifier(request);
+  const rateLimit = await rateLimiters.auth.check(identifier);
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many login attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const { email, password } = await request.json();
 

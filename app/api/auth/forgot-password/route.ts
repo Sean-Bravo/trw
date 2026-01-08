@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPasswordResetToken, findUserByEmail } from '@/lib/auth-db';
 import { sendPasswordResetEmail } from '@/lib/email';
+import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const forgotPasswordSchema = z.object({
@@ -8,6 +9,16 @@ const forgotPasswordSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Rate limit: 5 attempts per 15 minutes
+  const identifier = getClientIdentifier(request);
+  const rateLimit = await rateLimiters.auth.check(identifier);
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { email } = forgotPasswordSchema.parse(body);
