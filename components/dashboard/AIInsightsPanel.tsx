@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown } from 'lucide-react';
+import { useJobContext } from '@/contexts/JobContext';
+import { JobStatus } from '@/hooks/useJobPolling';
 
 export type InsightStatus = 'idle' | 'detecting' | 'analyzing' | 'complete' | 'error';
 
@@ -31,37 +33,56 @@ export interface AIInsightsState {
   error?: string;
 }
 
-interface AIInsightsPanelProps {
-  state?: AIInsightsState;
+// Map job status to insight status
+function mapJobStatusToInsightStatus(jobStatus: JobStatus): InsightStatus {
+  switch (jobStatus) {
+    case 'queued':
+      return 'detecting';
+    case 'running':
+      return 'analyzing';
+    case 'succeeded':
+      return 'complete';
+    case 'failed':
+    case 'canceled':
+      return 'error';
+    default:
+      return 'idle';
+  }
 }
 
-const defaultState: AIInsightsState = {
-  status: 'idle',
-  transactionsFound: 0,
-  transactionsAnalyzed: 0,
-  progress: 0,
-};
-
-// Sample detailed data for demo
-const sampleExchangeDetails = {
-  format: 'Binance Trade History',
-  dateFormat: 'YYYY-MM-DD HH:mm:ss',
-  columns: ['Date', 'Pair', 'Side', 'Price', 'Amount', 'Fee', 'Fee Coin'],
-  confidence: 98,
-};
-
-const sampleTransactionDetails = {
-  buys: 45,
-  sells: 32,
-  transfers: 12,
-  fees: 89,
-  dateRange: 'Jan 1, 2024 - Dec 31, 2024',
-};
-
-export function AIInsightsPanel({ state = defaultState }: AIInsightsPanelProps) {
-  const { status, exchange, exchangeDetails, transactionsFound = 0, transactionsAnalyzed = 0, transactionDetails, progress = 0, taxFlags, error } = state;
-
+export function AIInsightsPanel() {
+  const { activeJob, isPolling } = useJobContext();
   const [expandedPanel, setExpandedPanel] = useState<'exchange' | 'transactions' | 'flags' | null>(null);
+
+  // Derive insight state from active job
+  const state = useMemo((): AIInsightsState => {
+    if (!activeJob) {
+      return { status: 'idle', transactionsFound: 0, transactionsAnalyzed: 0, progress: 0 };
+    }
+
+    const result = activeJob.result as Record<string, unknown> | null;
+    const status = mapJobStatusToInsightStatus(activeJob.status);
+
+    // Calculate progress based on status
+    let progress = 0;
+    if (activeJob.status === 'queued') progress = 25;
+    else if (activeJob.status === 'running') progress = 60;
+    else if (activeJob.status === 'succeeded') progress = 100;
+
+    return {
+      status,
+      exchange: result?.exchangeDetected as string | undefined,
+      exchangeDetails: result?.exchangeDetails as AIInsightsState['exchangeDetails'],
+      transactionsFound: (result?.transactionCount as number) || 0,
+      transactionsAnalyzed: status === 'complete' ? (result?.transactionCount as number) || 0 : 0,
+      transactionDetails: result?.transactionDetails as AIInsightsState['transactionDetails'],
+      progress,
+      taxFlags: result?.taxFlags as AIInsightsState['taxFlags'],
+      error: activeJob.error || undefined,
+    };
+  }, [activeJob]);
+
+  const { status, exchange, exchangeDetails, transactionsFound = 0, transactionsAnalyzed = 0, transactionDetails, progress = 0, taxFlags, error } = state;
 
   const isProcessing = status === 'detecting' || status === 'analyzing';
   const isComplete = status === 'complete';

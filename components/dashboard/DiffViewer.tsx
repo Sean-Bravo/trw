@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { GitCompare, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { GitCompare, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { useJobContext } from '@/contexts/JobContext';
 
 interface DiffRow {
   original: string[];
@@ -9,58 +10,86 @@ interface DiffRow {
   changes: number[]; // indices of changed columns
 }
 
-interface DiffViewerProps {
-  jobId?: string;
-  originalHeaders?: string[];
-  formattedHeaders?: string[];
-  rows?: DiffRow[];
-  totalChanges?: number;
+// Generate diff rows by comparing original and processed data
+function generateDiffRows(
+  original: Record<string, unknown>[],
+  processed: Record<string, unknown>[],
+  columns: string[]
+): { rows: DiffRow[]; totalChanges: number } {
+  const rows: DiffRow[] = [];
+  let totalChanges = 0;
+
+  const maxRows = Math.min(original.length, processed.length, 10);
+
+  for (let i = 0; i < maxRows; i++) {
+    const origRow = original[i] || {};
+    const procRow = processed[i] || {};
+    const changes: number[] = [];
+
+    const origValues = columns.map((col) => String(origRow[col] ?? ''));
+    const procValues = columns.map((col) => String(procRow[col] ?? ''));
+
+    columns.forEach((col, idx) => {
+      if (origValues[idx] !== procValues[idx]) {
+        changes.push(idx);
+        totalChanges++;
+      }
+    });
+
+    if (changes.length > 0) {
+      rows.push({ original: origValues, formatted: procValues, changes });
+    }
+  }
+
+  return { rows, totalChanges };
 }
 
-// Sample data for demo - will be replaced with real data
-const sampleData: Required<Omit<DiffViewerProps, 'jobId'>> = {
-  originalHeaders: ['Date', 'Type', 'Amount', 'Currency', 'Fee'],
-  formattedHeaders: ['Date', 'Type', 'Amount', 'Currency', 'Fee'],
-  rows: [
-    {
-      original: ['2024/01/15 14:30', 'BUY', '0.5', 'BTC', '0.001'],
-      formatted: ['2024-01-15T14:30:00Z', 'BUY', '0.5', 'BTC', '0.001'],
-      changes: [0],
-    },
-    {
-      original: ['01-20-2024', 'SELL', '1.2', 'ETH', ''],
-      formatted: ['2024-01-20T00:00:00Z', 'SELL', '1.2', 'ETH', '0'],
-      changes: [0, 4],
-    },
-    {
-      original: ['Jan 25, 2024', 'TRANSFER', '100', 'USDT', '0.5'],
-      formatted: ['2024-01-25T00:00:00Z', 'TRANSFER', '100', 'USDT', '0.5'],
-      changes: [0],
-    },
-  ],
-  totalChanges: 4,
-};
-
-export function DiffViewer({
-  jobId,
-  originalHeaders,
-  formattedHeaders,
-  rows,
-  totalChanges,
-}: DiffViewerProps) {
+export function DiffViewer() {
+  const { activeJob, isPolling } = useJobContext();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAllRows, setShowAllRows] = useState(false);
 
-  // Use sample data if no real data provided
-  const headers = originalHeaders || sampleData.originalHeaders;
-  const formattedHeadersData = formattedHeaders || sampleData.formattedHeaders;
-  const rowData = rows || sampleData.rows;
-  const changes = totalChanges ?? sampleData.totalChanges;
+  // Generate diff data from job result
+  const diffData = useMemo(() => {
+    if (!activeJob?.result) return null;
 
-  const displayRows = showAllRows ? rowData : rowData.slice(0, 5);
-  const hasMoreRows = rowData.length > 5;
+    const result = activeJob.result as Record<string, unknown>;
+    const original = result.original as Record<string, unknown>[] | undefined;
+    const processed = result.processed as Record<string, unknown>[] | undefined;
+    const columns = result.columns as string[] | undefined;
 
-  if (!jobId && !rows) {
+    if (!original || !processed || !columns || original.length === 0) {
+      return null;
+    }
+
+    const { rows, totalChanges } = generateDiffRows(original, processed, columns);
+    return { headers: columns, rows, totalChanges };
+  }, [activeJob?.result]);
+
+  // Show empty state if no job or job not succeeded
+  if (!activeJob || activeJob.status !== 'succeeded' || !diffData) {
+    // Show processing state
+    if (activeJob && (activeJob.status === 'queued' || activeJob.status === 'running')) {
+      return (
+        <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-indigo-500/10">
+              <GitCompare className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Changes Preview</h2>
+              <p className="text-slate-400 text-sm">See what was fixed in your CSV</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center py-12 text-slate-500 gap-3">
+            <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+            <p className="text-sm">Processing your file...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Empty state - no job
     // Empty state - no job selected
     return (
       <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
@@ -80,6 +109,10 @@ export function DiffViewer({
     );
   }
 
+  const { headers, rows, totalChanges } = diffData;
+  const displayRows = showAllRows ? rows : rows.slice(0, 5);
+  const hasMoreRows = rows.length > 5;
+
   return (
     <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
       {/* Header */}
@@ -91,7 +124,7 @@ export function DiffViewer({
           <div>
             <h2 className="text-lg font-semibold text-white">Changes Preview</h2>
             <p className="text-slate-400 text-sm">
-              <span className="text-emerald-400 font-medium">{changes} fixes</span> applied to your data
+              <span className="text-emerald-400 font-medium">{totalChanges} fixes</span> applied to your data
             </p>
           </div>
         </div>
@@ -164,7 +197,7 @@ export function DiffViewer({
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-emerald-500/20">
-                        {formattedHeadersData.map((header, i) => (
+                        {headers.map((header, i) => (
                           <th
                             key={i}
                             className="px-3 py-2 text-left text-slate-400 font-medium whitespace-nowrap"
@@ -205,7 +238,7 @@ export function DiffViewer({
                 onClick={() => setShowAllRows(!showAllRows)}
                 className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
               >
-                {showAllRows ? 'Show less' : `Show ${rowData.length - 5} more rows`}
+                {showAllRows ? 'Show less' : `Show ${rows.length - 5} more rows`}
               </button>
             </div>
           )}

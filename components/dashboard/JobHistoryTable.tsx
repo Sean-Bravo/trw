@@ -1,15 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { Download, Clock, CheckCircle, XCircle, Loader2, FileText, Eye } from 'lucide-react';
+import { useJobContext } from '@/contexts/JobContext';
+import { JobData } from '@/hooks/useJobPolling';
 
-interface JobHistoryTableProps {
-  userId: string;
-}
+export function JobHistoryTable() {
+  const { jobHistory, activeJob, setActiveJob } = useJobContext();
 
-export async function JobHistoryTable({ userId }: JobHistoryTableProps) {
-  // TODO: Fetch real jobs from API
-  const jobs: any[] = [];
-
-  if (jobs.length === 0) {
+  if (jobHistory.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-center">
@@ -27,14 +26,25 @@ export async function JobHistoryTable({ userId }: JobHistoryTableProps) {
 
   return (
     <div className="space-y-3">
-      {jobs.map((job) => (
-        <JobRow key={job.id} job={job} />
+      {jobHistory.map((job) => (
+        <JobRow
+          key={job.jobId}
+          job={job}
+          isActive={activeJob?.jobId === job.jobId}
+          onSelect={() => setActiveJob(job.jobId)}
+        />
       ))}
     </div>
   );
 }
 
-function JobRow({ job }: { job: any }) {
+interface JobRowProps {
+  job: JobData;
+  isActive: boolean;
+  onSelect: () => void;
+}
+
+function JobRow({ job, isActive, onSelect }: JobRowProps) {
   const statusConfig = {
     queued: {
       icon: <Clock className="h-4 w-4 text-zinc-500" />,
@@ -42,13 +52,13 @@ function JobRow({ job }: { job: any }) {
       color: 'text-zinc-400',
       bg: 'bg-zinc-800/50',
     },
-    processing: {
+    running: {
       icon: <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />,
       text: 'Processing',
       color: 'text-amber-400',
       bg: 'bg-amber-500/10',
     },
-    completed: {
+    succeeded: {
       icon: <CheckCircle className="h-4 w-4 text-emerald-400" />,
       text: 'Completed',
       color: 'text-emerald-400',
@@ -60,12 +70,27 @@ function JobRow({ job }: { job: any }) {
       color: 'text-red-400',
       bg: 'bg-red-500/10',
     },
+    canceled: {
+      icon: <XCircle className="h-4 w-4 text-zinc-400" />,
+      text: 'Canceled',
+      color: 'text-zinc-400',
+      bg: 'bg-zinc-800/50',
+    },
   };
 
-  const status = statusConfig[job.status as keyof typeof statusConfig] || statusConfig.queued;
+  const status = statusConfig[job.status] || statusConfig.queued;
+  const result = job.result as Record<string, unknown> | null;
+  const transactionCount = result?.transactionCount as number | undefined;
 
   return (
-    <div className="flex items-center justify-between p-4 bg-zinc-800/30 hover:bg-zinc-800/50 rounded-xl transition-all duration-200 border border-zinc-800/50 hover:border-zinc-700/50 group">
+    <div
+      onClick={onSelect}
+      className={`flex items-center justify-between p-4 rounded-xl transition-all duration-200 border cursor-pointer ${
+        isActive
+          ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/15'
+          : 'bg-zinc-800/30 hover:bg-zinc-800/50 border-zinc-800/50 hover:border-zinc-700/50'
+      } group`}
+    >
       <div className="flex items-center gap-4 flex-1">
         {/* Status Icon */}
         <div className={`${status.bg} p-2.5 rounded-lg border border-zinc-700/50`}>
@@ -84,9 +109,9 @@ function JobRow({ job }: { job: any }) {
             <span className="text-xs text-zinc-500">
               {new Date(job.createdAt).toLocaleDateString()}
             </span>
-            {job.transactionCount && (
+            {transactionCount && (
               <span className="text-xs text-zinc-500">
-                {job.transactionCount} transactions
+                {transactionCount} transactions
               </span>
             )}
           </div>
@@ -94,18 +119,18 @@ function JobRow({ job }: { job: any }) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
         {/* View button - always show for completed jobs */}
-        {job.status === 'completed' && (
+        {job.status === 'succeeded' && (
           <Link
-            href={`/dashboard/jobs/${job.id}`}
+            href={`/dashboard/jobs/${job.jobId}`}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/30 transition-all"
           >
             <Eye className="h-4 w-4" />
             View
           </Link>
         )}
-        {job.status === 'completed' && (
+        {job.status === 'succeeded' && (
           <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all">
             <Download className="h-4 w-4" />
             Download

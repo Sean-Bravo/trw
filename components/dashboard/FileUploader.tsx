@@ -4,8 +4,10 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { uploadCSVFile, validateFile, formatFileSize, UploadError } from '@/lib/upload-client';
+import { useJobContext } from '@/contexts/JobContext';
 
 export function FileUploader() {
+  const { setActiveJob, refreshJobHistory } = useJobContext();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -45,7 +47,7 @@ export function FileUploader() {
     setUploadProgress(0);
 
     try {
-      await uploadCSVFile(file, (stage, percent) => {
+      const result = await uploadCSVFile(file, (stage, percent) => {
         setUploadStage(stage);
         setUploadProgress(percent);
       });
@@ -54,6 +56,10 @@ export function FileUploader() {
       setFile(null);
       setUploadProgress(100);
       setUploadStage(null);
+
+      // Trigger job tracking and refresh history
+      setActiveJob(result.jobId);
+      refreshJobHistory();
 
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
