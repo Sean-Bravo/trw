@@ -35,11 +35,6 @@ export default async function DashboardPage() {
       <DashboardHeader user={session.user} />
 
       <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Welcome */}
-        <div className="mb-10">
-          <p className="text-xl text-slate-300">Upload your CSV files to get AI-powered tax categorization</p>
-        </div>
-
         {/* Stats Row - Compact circular indicators */}
         <div className="flex items-center gap-8 mb-8">
           <CircleStat value={0} max={100} label="Uploads" color="blue" />
