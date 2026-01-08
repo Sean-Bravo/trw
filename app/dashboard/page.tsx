@@ -6,6 +6,7 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { FileUploader } from '@/components/dashboard/FileUploader';
 import { JobHistoryTable } from '@/components/dashboard/JobHistoryTable';
 import { AIInsightsPanel } from '@/components/dashboard/AIInsightsPanel';
+import { DiffViewer } from '@/components/dashboard/DiffViewer';
 
 export const metadata = {
   title: 'Dashboard | TaxFormatter',
@@ -55,6 +56,11 @@ export default async function DashboardPage() {
 
           {/* AI Insights Panel */}
           <AIInsightsPanel />
+        </div>
+
+        {/* Diff Viewer */}
+        <div className="mb-8">
+          <DiffViewer />
         </div>
 
         {/* Processing History */}
