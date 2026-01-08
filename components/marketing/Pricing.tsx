@@ -1,10 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Check, X, Shield, Crown, Sparkles } from 'lucide-react';
 
 const Pricing = () => {
+  const [isAnnual, setIsAnnual] = useState(true);
+
+  // Pricing configuration
+  const pricing = {
+    pro: {
+      monthly: 9,
+      annual: 89,
+    },
+    premium: {
+      monthly: 19,
+      annual: 189,
+    },
+  };
+
   return (
     <section className="py-24 bg-[#020617] relative overflow-hidden" id="pricing">
       {/* Background Ambience */}
@@ -13,13 +27,39 @@ const Pricing = () => {
       <div className="container mx-auto px-4 relative z-10">
 
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-20">
+        <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
             Simple, <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Transparent</span> Pricing.
           </h2>
           <p className="text-slate-400 text-lg">
             No hidden fees. No recurring nightmares. Pay for what you need to file this year.
           </p>
+        </div>
+
+        {/* Billing Toggle */}
+        <div className="flex items-center justify-center gap-4 mb-16">
+          <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-white' : 'text-slate-400'}`}>
+            Monthly
+          </span>
+          <button
+            onClick={() => setIsAnnual(!isAnnual)}
+            className="relative w-16 h-8 bg-slate-800 rounded-full p-1 transition-colors border border-slate-700 hover:border-slate-600"
+            aria-label="Toggle billing period"
+          >
+            <div
+              className={`absolute top-1 w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500 shadow-lg transition-all duration-300 ${
+                isAnnual ? 'left-[calc(100%-28px)]' : 'left-1'
+              }`}
+            />
+          </button>
+          <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-white' : 'text-slate-400'}`}>
+            Annual
+          </span>
+          {isAnnual && (
+            <span className="ml-2 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-full">
+              Save 17%
+            </span>
+          )}
         </div>
 
         {/* Pricing Grid */}
@@ -84,9 +124,16 @@ const Pricing = () => {
                 Pro Pass
               </h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-white">$89</span>
-                <span className="text-indigo-200/60">/ tax year</span>
+                <span className="text-5xl font-bold text-white">
+                  ${isAnnual ? pricing.pro.annual : pricing.pro.monthly}
+                </span>
+                <span className="text-indigo-200/60">/ {isAnnual ? 'year' : 'month'}</span>
               </div>
+              {isAnnual && (
+                <p className="text-emerald-400 text-xs mt-2">
+                  ${pricing.pro.monthly}/mo billed annually
+                </p>
+              )}
               <p className="text-slate-400 text-sm mt-4">
                 Everything you need to file your taxes this year. Unlimited formatting for all your wallets.
               </p>
@@ -116,7 +163,7 @@ const Pricing = () => {
             </ul>
 
             <Link
-              href="/signup?plan=pro"
+              href={`/signup?plan=pro&billing=${isAnnual ? 'annual' : 'monthly'}`}
               className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-center font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 relative overflow-hidden group"
             >
               <span className="relative z-10">Get Pro Access</span>
@@ -137,9 +184,16 @@ const Pricing = () => {
             <div className="mb-8">
               <h3 className="text-lg font-medium text-slate-300 mb-2">Premium</h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white">$189</span>
-                <span className="text-slate-400">/ tax year</span>
+                <span className="text-4xl font-bold text-white">
+                  ${isAnnual ? pricing.premium.annual : pricing.premium.monthly}
+                </span>
+                <span className="text-slate-400">/ {isAnnual ? 'year' : 'month'}</span>
               </div>
+              {isAnnual && (
+                <p className="text-emerald-400/70 text-xs mt-2">
+                  ${pricing.premium.monthly}/mo billed annually
+                </p>
+              )}
               <p className="text-slate-400 text-sm mt-4">
                 For power users who need audit-ready documentation and priority support.
               </p>
@@ -169,7 +223,7 @@ const Pricing = () => {
             </ul>
 
             <Link
-              href="/signup?plan=premium"
+              href={`/signup?plan=premium&billing=${isAnnual ? 'annual' : 'monthly'}`}
               className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white text-center font-medium rounded-lg transition-colors border border-slate-700"
             >
               Get Premium Access
