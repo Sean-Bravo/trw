@@ -37,8 +37,8 @@ export default async function DashboardPage() {
       <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Welcome */}
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-white">
-            Welcome back {session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'there'}
+          <h1 className="text-3xl font-bold text-white font-[family-name:var(--font-poppins)]">
+            {session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'User'}
           </h1>
           <p className="text-slate-400 mt-1">Upload your CSV files to get AI-powered tax categorization</p>
         </div>
