@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/layout/Container';
 import { AlertTriangle } from 'lucide-react';
+import { captureException } from '@/lib/sentry';
 
 export default function Error({
   error,
@@ -13,8 +14,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to error reporting service (e.g., Sentry)
-    console.error('Application error:', error);
+    captureException(error, { digest: error.digest, page: 'root' });
   }, [error]);
 
   return (
