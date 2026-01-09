@@ -1,14 +1,14 @@
-# Testing Progress - TaxReadyWallet
+# Testing Progress - TRW (TaxFormatter)
 
 ## Summary
 
-Comprehensive testing infrastructure has been set up for TaxReadyWallet with a focus on critical security utilities first.
+Comprehensive testing infrastructure has been set up for TRW with a focus on critical security utilities, UI components, API routes, and marketing components.
 
-### Current Status: ✅ Phase 1 Complete
+### Current Status: ✅ Phase 2 Complete
 
-**Total Tests Written:** 114 passing tests
-**Time Invested:** ~4 hours
-**Coverage:** 88-95% for critical security modules
+**Total Tests Written:** 415 passing tests
+**Test Suites:** 19
+**Coverage Focus:** Security, UI Components, API Routes, Marketing
 
 ---
 
@@ -20,143 +20,191 @@ Comprehensive testing infrastructure has been set up for TaxReadyWallet with a f
 - [x] Configured Jest for Next.js 15
   - Custom jest.config.js with coverage thresholds
   - jest.setup.js with mocks for IntersectionObserver, Next.js navigation, crypto
+  - Mock for @neondatabase/serverless
+  - Mock for next/server (NextRequest, NextResponse)
 - [x] Created test utilities (`__tests__/utils/test-utils.tsx`)
   - Custom render function
   - Mock helpers for fetch, NextRequest, Files
 - [x] Created mock factories (`__tests__/factories/index.ts`)
   - User, Session, Transaction, Pricing, Testimonial factories
   - Using @faker-js/faker for realistic test data
+- [x] Created mock request utility (`__tests__/utils/mock-request.ts`)
+  - Mock NextRequest for API route testing
 - [x] Configured Playwright for E2E testing
-  - playwright.config.ts for cross-browser testing
-  - Support for Chromium, Firefox, WebKit, Mobile
-- [x] Added NPM scripts
-  - `npm test` - Run unit tests
-  - `npm run test:watch` - Watch mode
-  - `npm run test:coverage` - Coverage report
-  - `npm run test:e2e` - E2E tests
-  - `npm run test:e2e:ui` - E2E with UI
-  - `npm run test:all` - All tests
 
-### 2. Critical Security Utility Tests
+### 2. Critical Security Utility Tests (114 tests)
 
 #### ✅ validation.ts (82 tests, 94.59% coverage)
 **File:** `lib/__tests__/validation.test.ts`
 
-**Zod Schema Tests:**
-- [x] emailSchema (3 tests) - validates, rejects, transforms
-- [x] passwordSchema (7 tests) - strength requirements, length limits
-- [x] nameSchema (6 tests) - character validation, trimming
-- [x] urlSchema (2 tests) - URL validation
-- [x] fileUploadSchema (2 tests) - size and type validation
-
-**Sanitization Functions:**
-- [x] sanitizeHtml (7 tests) - XSS prevention
-- [x] sanitizeString (6 tests) - control character removal
-
-**Validation Functions:**
-- [x] validateEmail (5 tests) - email validation with sanitization
-- [x] validatePassword (4 tests) - password strength validation
-- [x] validateName (4 tests) - name validation with sanitization
-- [x] detectSqlInjection (11 tests) - SQL injection pattern detection
-- [x] detectXss (8 tests) - XSS pattern detection
-- [x] validateFileUpload (5 tests) - file validation including path traversal prevention
-
-**CSRF Token Functions:**
-- [x] generateCsrfToken (4 tests) - secure token generation
-- [x] validateCsrfToken (7 tests) - constant-time comparison, timing attack prevention
-
-**Coverage:**
-- Statements: 94.59%
-- Branches: 83.33%
-- Functions: 100%
-- Lines: 93.84%
+- [x] emailSchema, passwordSchema, nameSchema, urlSchema, fileUploadSchema
+- [x] sanitizeHtml, sanitizeString
+- [x] validateEmail, validatePassword, validateName
+- [x] detectSqlInjection, detectXss
+- [x] validateFileUpload
+- [x] generateCsrfToken, validateCsrfToken
 
 #### ✅ rate-limit.ts (32 tests, 88.88% coverage)
 **File:** `lib/__tests__/rate-limit.test.ts`
 
-**RateLimiter Class:**
-- [x] Initialization (1 test)
-- [x] check() method (6 tests)
-  - Allows requests within limit
-  - Blocks requests exceeding limit
-  - Returns correct metadata
-  - Resets after interval
-  - Handles multiple identifiers independently
-  - Async operation and structure
+- [x] RateLimiter class tests
+- [x] getClientIdentifier function
+- [x] applyRateLimit middleware
+- [x] Pre-configured limiters (api, auth, contactForm, fileUpload)
+- [x] Edge case handling
 
-**Helper Functions:**
-- [x] getClientIdentifier (8 tests)
-  - x-forwarded-for parsing
-  - x-real-ip fallback
-  - cf-connecting-ip (Cloudflare) priority
-  - IP trimming
-  - Unknown handling
+### 3. UI Components Testing (98 tests)
 
-**Middleware:**
-- [x] applyRateLimit (7 tests)
-  - Returns null when under limit
-  - Returns 429 when over limit
-  - Sets rate limit headers
-  - Sets retry-after header
-  - Error response format
+#### ✅ Button Component (25 tests)
+**File:** `__tests__/components/ui/Button.test.tsx`
+- [x] Rendering - children, button/link elements
+- [x] Variants - primary, secondary, tertiary styles
+- [x] Arrow icon - visibility, positioning by variant
+- [x] Disabled state - attribute, click handler prevention
+- [x] Click handler
+- [x] Custom className
+- [x] Link variant with href
+- [x] Accessibility - focus visibility, keyboard accessible
 
-**Pre-configured Limiters:**
-- [x] All limiters present (5 tests)
-  - api: 100/minute
-  - auth: 5/15 minutes
-  - contactForm: 3/hour
-  - fileUpload: 10/hour
+#### ✅ Input Component (45 tests)
+**File:** `__tests__/components/ui/Input.test.tsx`
+- [x] Rendering - input, label, wrapper
+- [x] Error states - error message, styling
+- [x] Success states - message, styling
+- [x] Icon support - left/right icons, click handlers
+- [x] Input types - text, email, password, number
+- [x] Accessibility - label association, required/disabled, description
 
-**Edge Cases:**
-- [x] Security edge cases (4 tests)
-  - Concurrent requests
-  - Empty identifiers
-  - Long identifiers
-  - Special characters
+#### ✅ Modal Component (28 tests)
+**File:** `__tests__/components/ui/Modal.test.tsx`
+- [x] Rendering - portal, close button, title
+- [x] Close button functionality
+- [x] Backdrop click handling
+- [x] Escape key functionality
+- [x] Size variants (sm, md, lg, xl)
+- [x] Accessibility - dialog role, aria-label, body scroll lock
 
-**Coverage:**
-- Statements: 88.88%
-- Branches: 85.71%
-- Functions: 66.66%
-- Lines: 88.57%
+### 4. Dashboard Components Testing (62 tests)
+
+#### ✅ JobContext (21 tests)
+**File:** `__tests__/contexts/JobContext.test.tsx`
+- [x] Initial state
+- [x] Job operations (create, update, reset, error handling)
+- [x] Context provider access
+
+#### ✅ useJobPolling Hook (8 tests)
+**File:** `__tests__/hooks/useJobPolling.test.ts`
+- [x] Polling behavior
+- [x] State updates
+- [x] Error handling
+
+#### ✅ FileUploader (17 tests)
+**File:** `__tests__/components/FileUploader.test.tsx`
+- [x] Rendering
+- [x] File selection
+- [x] Upload functionality
+
+#### ✅ DiffViewer (8 tests)
+**File:** `__tests__/components/DiffViewer.test.tsx`
+- [x] Diff rendering
+- [x] Line changes visualization
+
+#### ✅ JobHistoryTable (8 tests)
+**File:** `__tests__/components/JobHistoryTable.test.tsx`
+- [x] Table rendering
+- [x] Job row display
+- [x] Actions
+
+### 5. Hooks Testing (16 tests)
+
+#### ✅ useScrollAnimation Hook (16 tests)
+**File:** `__tests__/hooks/useScrollAnimation.test.ts`
+- [x] Initial state - ref, isVisible
+- [x] Return value structure
+- [x] Options handling - threshold, rootMargin, combined
+- [x] Stability across rerenders
+- [x] Multiple instances
+- [x] Cleanup on unmount
+
+### 6. API Route Testing (71 tests)
+
+#### ✅ Register Route (17 tests)
+**File:** `__tests__/api/auth/register.test.ts`
+- [x] Successful registration - user creation, verification email
+- [x] Email validation - format, empty, lowercase normalization
+- [x] Password validation - strength, length, requirements
+- [x] Duplicate user handling
+- [x] Rate limiting
+- [x] Email sending failure handling
+- [x] Error handling - database errors, unexpected errors
+- [x] Response format - no sensitive data
+
+#### ✅ Verify Route (17 tests)
+**File:** `__tests__/api/auth/verify.test.ts`
+- [x] Successful verification
+- [x] Email validation
+- [x] Code validation - format, length
+- [x] Verification failure handling
+- [x] Error handling
+- [x] Response format
+
+#### ✅ Forgot Password Route (16 tests)
+**File:** `__tests__/api/auth/forgot-password.test.ts`
+- [x] Successful request
+- [x] Email enumeration prevention
+- [x] Email validation
+- [x] Rate limiting
+- [x] Error handling
+
+#### ✅ Reset Password Route (12 tests)
+**File:** `__tests__/api/auth/reset-password.test.ts`
+- [x] GET - Token verification
+- [x] POST - Password reset
+- [x] Validation - token, password length
+- [x] Error handling
+
+#### ✅ Resend Code Route (9 tests)
+**File:** `__tests__/api/auth/resend-code.test.ts`
+- [x] Successful resend
+- [x] Email validation
+- [x] Already verified handling
+- [x] Non-existent user security
+- [x] Error handling
+
+### 7. Marketing Components Testing (54 tests)
+
+#### ✅ FAQ Component (11 tests)
+**File:** `__tests__/components/marketing/FAQ.test.tsx`
+- [x] Section rendering - title, subtitle, questions
+- [x] Desktop interaction - active question, click handling
+- [x] Accessibility - buttons, section structure
+- [x] Content verification - exchanges, tax software, privacy
+
+#### ✅ Pricing Component (24 tests)
+**File:** `__tests__/components/marketing/Pricing.test.tsx`
+- [x] Section rendering - tiers, prices, badge
+- [x] Billing toggle - annual/monthly, Save badge
+- [x] Free tier features
+- [x] Pro tier features
+- [x] Premium tier features
+- [x] CTA links with correct parameters
+- [x] Footer content
+
+#### ✅ Hero Component (19 tests)
+**File:** `__tests__/components/marketing/Hero.test.tsx`
+- [x] Main content - headline, sub-headline, description
+- [x] CTA buttons - primary, secondary
+- [x] Trust indicators - files processed, accuracy, exchanges
+- [x] Sample link
+- [x] Product preview - before/after, AI Enhanced badge
+- [x] Sample CSV content
+- [x] Structure - section, h1
 
 ---
 
-## 📋 Pending (Per Your Checklist)
+## 📋 Pending
 
-### 3. UI Components Testing (0% coverage)
-Priority: HIGH for Button, Input, Modal; MEDIUM for others
-
-**Next Steps:**
-- Button Component (15-20 tests) - variants, states, accessibility
-- Input Component (15-18 tests) - validation, errors, labels
-- Modal Component (18-22 tests) - focus trap, keyboard nav, accessibility
-- Additional UI components as needed
-
-### 4. Hooks Testing (0% coverage)
-Priority: HIGH
-
-**Next Steps:**
-- useScrollAnimation hook (10-12 tests) - IntersectionObserver behavior
-
-### 5. Marketing Components Testing (0% coverage)
-Priority: MEDIUM-LOW
-
-**Components to test:**
-- Hero, Pricing (HIGH priority - business critical)
-- Header, Footer (MEDIUM)
-- Others (LOW)
-
-### 6. API Route Testing (0% coverage)
-Priority: CRITICAL for auth
-
-**Next Steps:**
-- NextAuth configuration tests
-- OAuth provider tests
-- Credentials provider tests
-- Session/JWT callback tests
-
-### 7. Integration & E2E Testing (0% coverage)
+### 8. Integration & E2E Testing (0% coverage)
 Priority: HIGH
 
 **Next Steps:**
@@ -165,7 +213,7 @@ Priority: HIGH
 - Accessibility E2E tests
 - Performance E2E tests
 
-### 8. CI/CD Pipeline (Not started)
+### 9. CI/CD Pipeline (Not started)
 Priority: HIGH
 
 **Next Steps:**
@@ -198,56 +246,33 @@ npm run test:e2e:ui
 npm test -- validation.test.ts
 
 # Run tests matching pattern
-npm test -- --testPathPattern=security
+npm test -- __tests__/api/auth
 ```
 
 ---
 
 ## Key Achievements
 
-1. ✅ **100% of critical security utilities tested**
+1. ✅ **415 tests passing across 19 test suites**
+
+2. ✅ **Critical security utilities fully tested**
    - validation.ts: 82 comprehensive tests
    - rate-limit.ts: 32 comprehensive tests
 
-2. ✅ **Testing infrastructure fully operational**
-   - Jest configured for Next.js 15
-   - Playwright ready for E2E tests
-   - Mock factories and utilities in place
+3. ✅ **UI Components thoroughly tested**
+   - Button: 25 tests
+   - Input: 45 tests
+   - Modal: 28 tests
 
-3. ✅ **High coverage on security-critical code**
-   - Near 100% coverage on validation functions
-   - 88%+ coverage on rate limiting
+4. ✅ **API Routes comprehensively tested**
+   - All auth endpoints covered (71 tests)
+   - Mock request utility for NextRequest handling
 
-4. ✅ **Fixed Zod v4 compatibility issues**
-   - Updated error handling for Zod v4 changes
-   - All tests passing with latest dependencies
+5. ✅ **Dashboard components tested**
+   - JobContext, FileUploader, DiffViewer, JobHistoryTable
 
-5. ✅ **Proper Next.js mocking**
-   - NextRequest/NextResponse mocked
-   - Navigation hooks mocked
-   - Server-side APIs mocked
-
----
-
-## Next Session Recommendations
-
-1. **Write Button, Input, Modal tests** (3-4 hours)
-   - These are used throughout the app
-   - High ROI for catching bugs
-
-2. **Write useScrollAnimation hook tests** (1 hour)
-   - Used extensively in marketing components
-   - Critical for user experience
-
-3. **Write NextAuth tests** (2-3 hours)
-   - Critical for security
-   - Complex authentication flows
-
-4. **Set up CI pipeline** (1-2 hours)
-   - Automate testing on every PR
-   - Catch regressions early
-
-**Estimated time to 90% coverage:** 25-35 additional hours
+6. ✅ **Marketing components tested**
+   - Hero, Pricing, FAQ components
 
 ---
 
@@ -255,34 +280,31 @@ npm test -- --testPathPattern=security
 
 ```
 /jest.config.js                           # Jest configuration
-/jest.setup.js                            # Test environment setup
+/jest.setup.js                            # Test environment setup (updated with NextResponse mock)
 /playwright.config.ts                     # Playwright E2E config
 /__tests__/utils/test-utils.tsx           # Testing utilities
+/__tests__/utils/mock-request.ts          # Mock NextRequest utility
 /__tests__/factories/index.ts             # Mock data factories
 /lib/__tests__/validation.test.ts         # Validation tests (82)
 /lib/__tests__/rate-limit.test.ts         # Rate limiting tests (32)
+/__tests__/components/ui/Button.test.tsx  # Button tests (25)
+/__tests__/components/ui/Input.test.tsx   # Input tests (45)
+/__tests__/components/ui/Modal.test.tsx   # Modal tests (28)
+/__tests__/hooks/useScrollAnimation.test.ts    # Hook tests (16)
+/__tests__/contexts/JobContext.test.tsx   # Context tests (21)
+/__tests__/hooks/useJobPolling.test.ts    # Polling hook tests (8)
+/__tests__/components/FileUploader.test.tsx    # FileUploader tests (17)
+/__tests__/components/DiffViewer.test.tsx      # DiffViewer tests (8)
+/__tests__/components/JobHistoryTable.test.tsx # JobHistoryTable tests (8)
+/__tests__/api/auth/register.test.ts      # Register route tests (17)
+/__tests__/api/auth/verify.test.ts        # Verify route tests (17)
+/__tests__/api/auth/forgot-password.test.ts    # Forgot password tests (16)
+/__tests__/api/auth/reset-password.test.ts     # Reset password tests (12)
+/__tests__/api/auth/resend-code.test.ts   # Resend code tests (9)
+/__tests__/components/marketing/FAQ.test.tsx   # FAQ tests (11)
+/__tests__/components/marketing/Pricing.test.tsx   # Pricing tests (24)
+/__tests__/components/marketing/Hero.test.tsx  # Hero tests (19)
 /e2e/                                     # E2E test directory
-```
-
----
-
-## Dependencies Added
-
-```json
-{
-  "@testing-library/react": "^16.3.1",
-  "@testing-library/jest-dom": "^6.9.1",
-  "@testing-library/user-event": "^14.6.1",
-  "@playwright/test": "^1.57.0",
-  "@faker-js/faker": "^10.1.0",
-  "@types/jest": "^30.0.0",
-  "jest": "^30.2.0",
-  "jest-environment-jsdom": "^30.2.0",
-  "msw": "^2.12.4",
-  "vitest": "^4.0.16",
-  "@vitejs/plugin-react": "^5.1.2",
-  "ts-node": "^10.9.2"
-}
 ```
 
 ---
@@ -290,9 +312,11 @@ npm test -- --testPathPattern=security
 ## Coverage Goals
 
 ### Current Coverage
-- **validation.ts:** 94.59% ✅
-- **rate-limit.ts:** 88.88% ✅
-- **Overall:** ~15% (only 2 files tested so far)
+- **Security utilities:** 88-95% ✅
+- **UI Components:** High coverage ✅
+- **API Routes:** All auth endpoints covered ✅
+- **Dashboard Components:** Core components covered ✅
+- **Marketing Components:** Key components covered ✅
 
 ### Target Coverage
 - **Overall:** 90%
@@ -305,14 +329,16 @@ npm test -- --testPathPattern=security
 
 ## Notes
 
-- All 114 tests are passing ✅
+- All 415 tests are passing ✅
 - Zero test failures ✅
 - Jest and Playwright fully configured ✅
 - Mock factories using realistic data (@faker-js) ✅
+- Mock NextRequest utility for API route testing ✅
 - Security utilities have excellent coverage ✅
-- Ready to proceed with UI component testing
+- UI components thoroughly tested ✅
+- API routes comprehensively tested ✅
 
 ---
 
-**Last Updated:** 2025-12-26
-**Status:** Phase 1 Complete - Security utilities fully tested
+**Last Updated:** 2026-01-09
+**Status:** Phase 2 Complete - UI Components, API Routes, Marketing Components tested

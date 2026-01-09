@@ -1,6 +1,17 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+// TextEncoder/TextDecoder polyfill for Neon serverless
+const { TextEncoder, TextDecoder } = require('util')
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
+
+// Mock @neondatabase/serverless before any imports
+jest.mock('@neondatabase/serverless', () => ({
+  neon: jest.fn(() => jest.fn()),
+  Pool: jest.fn(),
+}))
+
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
   constructor(callback, options) {
@@ -82,6 +93,22 @@ global.Response = global.Response || class Response {
   }
 }
 global.Headers = global.Headers || Map
+
+// Mock next/server NextResponse for API route testing
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: jest.fn((data, init) => ({
+      status: init?.status || 200,
+      headers: new Map(Object.entries(init?.headers || {})),
+      json: async () => data,
+    })),
+    redirect: jest.fn((url) => ({
+      status: 307,
+      headers: new Map([['Location', url]]),
+    })),
+  },
+}))
 
 // Suppress console errors in tests (optional - comment out if you want to see them)
 // global.console.error = jest.fn()
