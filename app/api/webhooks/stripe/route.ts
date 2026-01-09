@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
 import { updateSubscription, findUserByStripeCustomerId, findUserByEmailWithSubscription } from '@/lib/auth-db'
 import { queryOne } from '@/lib/db'
+import { sendSubscriptionEmail } from '@/lib/email'
 
 // Disable body parsing for webhooks
 export const runtime = 'nodejs'
@@ -86,6 +87,11 @@ export async function POST(request: NextRequest) {
             periodEnd
           )
           console.log(`[Stripe] Updated subscription for user ${user.id} to ${plan}`)
+
+          // Send subscription confirmation email
+          if (session.customer_email) {
+            await sendSubscriptionEmail(session.customer_email, plan)
+          }
         }
 
         break
