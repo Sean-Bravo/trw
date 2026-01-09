@@ -80,7 +80,7 @@ function JobRow({ job, isActive, onSelect }: JobRowProps) {
 
   const status = statusConfig[job.status] || statusConfig.queued;
   const result = job.result as Record<string, unknown> | null;
-  const transactionCount = result?.transactionCount as number | undefined;
+  const transactionCount = result?.['transactionCount'] as number | undefined;
 
   return (
     <div
