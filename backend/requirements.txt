@@ -1,0 +1,13 @@
+# TRW Backend Dependencies
+# Python CSV processing engine for crypto tax formatting
+
+# Core dependencies
+pandas>=2.0.0
+chardet>=5.0.0
+
+# Database (Neon PostgreSQL)
+psycopg2-binary>=2.9.0
+
+# Optional: For testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
