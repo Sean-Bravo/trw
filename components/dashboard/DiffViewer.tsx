@@ -54,9 +54,9 @@ export function DiffViewer() {
     if (!activeJob?.result) return null;
 
     const result = activeJob.result as Record<string, unknown>;
-    const original = result.original as Record<string, unknown>[] | undefined;
-    const processed = result.processed as Record<string, unknown>[] | undefined;
-    const columns = result.columns as string[] | undefined;
+    const original = result['original'] as Record<string, unknown>[] | undefined;
+    const processed = result['processed'] as Record<string, unknown>[] | undefined;
+    const columns = result['columns'] as string[] | undefined;
 
     if (!original || !processed || !columns || original.length === 0) {
       return null;

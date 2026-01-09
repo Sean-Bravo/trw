@@ -33,6 +33,22 @@ export interface AIInsightsState {
   error?: string;
 }
 
+// Default fallback values for expanded panels
+const defaultExchangeDetails = {
+  format: 'CSV',
+  dateFormat: 'YYYY-MM-DD',
+  columns: [] as string[],
+  confidence: 0,
+};
+
+const defaultTransactionDetails = {
+  buys: 0,
+  sells: 0,
+  transfers: 0,
+  fees: 0,
+  dateRange: undefined as string | undefined,
+};
+
 // Map job status to insight status
 function mapJobStatusToInsightStatus(jobStatus: JobStatus): InsightStatus {
   switch (jobStatus) {
@@ -71,13 +87,13 @@ export function AIInsightsPanel() {
 
     return {
       status,
-      exchange: result?.exchangeDetected as string | undefined,
-      exchangeDetails: result?.exchangeDetails as AIInsightsState['exchangeDetails'],
-      transactionsFound: (result?.transactionCount as number) || 0,
-      transactionsAnalyzed: status === 'complete' ? (result?.transactionCount as number) || 0 : 0,
-      transactionDetails: result?.transactionDetails as AIInsightsState['transactionDetails'],
+      exchange: result?.['exchangeDetected'] as string | undefined,
+      exchangeDetails: result?.['exchangeDetails'] as AIInsightsState['exchangeDetails'],
+      transactionsFound: (result?.['transactionCount'] as number) || 0,
+      transactionsAnalyzed: status === 'complete' ? (result?.['transactionCount'] as number) || 0 : 0,
+      transactionDetails: result?.['transactionDetails'] as AIInsightsState['transactionDetails'],
       progress,
-      taxFlags: result?.taxFlags as AIInsightsState['taxFlags'],
+      taxFlags: result?.['taxFlags'] as AIInsightsState['taxFlags'],
       error: activeJob.error || undefined,
     };
   }, [activeJob]);
@@ -141,7 +157,7 @@ export function AIInsightsPanel() {
           {expandedPanel === 'exchange' && exchange && (
             <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
               {(() => {
-                const details = exchangeDetails || sampleExchangeDetails;
+                const details = exchangeDetails || defaultExchangeDetails;
                 return (
                   <>
                     <div className="flex justify-between text-sm">
@@ -209,7 +225,7 @@ export function AIInsightsPanel() {
           {expandedPanel === 'transactions' && (isComplete || transactionsFound > 0) && (
             <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
               {(() => {
-                const details = transactionDetails || sampleTransactionDetails;
+                const details = transactionDetails || defaultTransactionDetails;
                 return (
                   <>
                     <div className="grid grid-cols-2 gap-3">
