@@ -1,175 +1,299 @@
-# Stripe Setup Guide
+# Stripe Integration Setup Guide
 
-This guide walks you through setting up Stripe products and prices for TaxFormatter subscriptions.
+## ✅ What's Already Done
 
-## Prerequisites
+Your Stripe integration is **fully implemented** with the following features:
 
-1. A Stripe account (create one at [stripe.com](https://stripe.com))
-2. Access to the [Stripe Dashboard](https://dashboard.stripe.com)
+- ✅ **Stripe SDK installed** (`stripe` and `@stripe/stripe-js`)
+- ✅ **Checkout API** (`/api/checkout`) - Creates payment sessions
+- ✅ **Webhook Handler** (`/api/webhooks/stripe`) - Processes payment events
+- ✅ **Customer Portal** (`/api/customer-portal`) - Allows users to manage purchases
+- ✅ **Success Page** (`/success`) - Post-payment confirmation
+- ✅ **TypeScript types** - Fully typed Stripe integration
+- ✅ **Environment variables** - Configured in `.env.example`
 
-## Step 1: Create Products
+---
 
-Go to **Products** in your Stripe Dashboard and create two products:
+## 📋 Setup Checklist
 
-### Product 1: Pro Plan
+### Step 1: Get Your Stripe Keys
 
-1. Click **Add Product**
-2. Fill in:
-   - **Name**: `Pro Plan` (or `TaxFormatter Pro`)
-   - **Description**: `Unlimited CSV uploads, full export, priority parsing`
-3. Click **Save product**
+1. Go to your Stripe Dashboard: https://dashboard.stripe.com/apikeys
+2. Copy your keys:
+   - **Publishable key**: `pk_test_...` (for test mode) or `pk_live_...` (for production)
+   - **Secret key**: `sk_test_...` (for test mode) or `sk_live_...` (for production)
 
-### Product 2: Premium Plan
+### Step 2: Create Products in Stripe
 
-1. Click **Add Product**
-2. Fill in:
-   - **Name**: `Premium Plan` (or `TaxFormatter Premium`)
-   - **Description**: `Everything in Pro plus AI reports, audit-ready notes`
-3. Click **Save product**
+1. Go to: https://dashboard.stripe.com/products
+2. Click "**Add product**"
 
-## Step 2: Create Prices
+#### Create Pro Plan:
+- **Name**: TaxFormatter Pro
+- **Description**: Tax-compliant corrected CSV with cost basis adjustments
+- **Pricing**: One-time payment
+- **Price**: $89 USD
+- Click "**Save product**"
+- **Copy the Price ID** (starts with `price_...`)
 
-For each product, create both monthly and annual prices:
+#### Create Premium Plan:
+- **Name**: TaxFormatter Premium
+- **Description**: Audit-ready documentation and full AI explanations
+- **Pricing**: One-time payment
+- **Price**: $189 USD
+- Click "**Save product**"
+- **Copy the Price ID** (starts with `price_...`)
 
-### Pro Plan Prices
+### Step 3: Configure Environment Variables
 
-1. Open the Pro Plan product
-2. Click **Add price**
-3. **Monthly Price**:
-   - Pricing model: `Standard pricing`
-   - Price: `$9.00`
-   - Billing period: `Monthly`
-   - Click **Save price**
-   - Copy the Price ID (starts with `price_`)
-
-4. Click **Add another price**
-5. **Annual Price**:
-   - Pricing model: `Standard pricing`
-   - Price: `$89.00`
-   - Billing period: `One time` (for annual pass)
-   - Click **Save price**
-   - Copy the Price ID
-
-### Premium Plan Prices
-
-1. Open the Premium Plan product
-2. Click **Add price**
-3. **Monthly Price**:
-   - Price: `$19.00`
-   - Billing period: `Monthly`
-   - Copy the Price ID
-
-4. **Annual Price**:
-   - Price: `$189.00`
-   - Billing period: `One time`
-   - Copy the Price ID
-
-## Step 3: Configure Environment Variables
-
-Add the Price IDs to your `.env.local` file:
+Create or update `/Users/sean/Desktop/trw/.env.local`:
 
 ```bash
-# Pro Plan
-STRIPE_PRICE_PRO_MONTHLY=price_1ABC...    # $9/month recurring
-STRIPE_PRICE_PRO_ANNUAL=price_1DEF...     # $89 one-time
+# Stripe API Keys
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_51...  # From Step 1
+STRIPE_SECRET_KEY=sk_test_51...                    # From Step 1
 
-# Premium Plan
-STRIPE_PRICE_PREMIUM_MONTHLY=price_1GHI...  # $19/month recurring
-STRIPE_PRICE_PREMIUM_ANNUAL=price_1JKL...   # $189 one-time
+# Stripe Price IDs (from Step 2)
+STRIPE_PRICE_ID_PRO=price_1...                     # Pro plan price ID
+STRIPE_PRICE_ID_PREMIUM=price_1...                 # Premium plan price ID
+
+# Webhook Secret (will get this in Step 4)
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# App URL
+NEXT_PUBLIC_APP_URL=https://taxformatter.com  # Or http://localhost:3000 for dev
 ```
 
-## Step 4: Set Up Webhooks
+### Step 4: Set Up Webhooks
 
-1. Go to **Developers** > **Webhooks**
-2. Click **Add endpoint**
-3. Enter your endpoint URL:
-   - Development: `https://your-ngrok-url.ngrok.io/api/webhooks/stripe`
-   - Production: `https://yourdomain.com/api/webhooks/stripe`
-4. Select events to listen to:
-   - `checkout.session.completed`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `payment_intent.succeeded`
-   - `payment_intent.payment_failed`
-5. Click **Add endpoint**
-6. Copy the **Signing secret** (starts with `whsec_`)
-7. Add to your `.env.local`:
+#### For Local Development:
+
+```bash
+# Install Stripe CLI (if not already installed)
+brew install stripe/stripe-cli/stripe
+
+# Login to Stripe
+stripe login
+
+# Forward webhooks to your local server
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+This will output a webhook signing secret like `whsec_...`. Add it to your `.env.local`:
 
 ```bash
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-## Step 5: Get API Keys
+#### For Production:
 
-1. Go to **Developers** > **API keys**
-2. Copy your keys:
+1. Go to: https://dashboard.stripe.com/webhooks
+2. Click "**Add endpoint**"
+3. Enter endpoint URL: `https://taxformatter.com/api/webhooks/stripe`
+4. Select events to listen for:
+   - ✅ `checkout.session.completed`
+   - ✅ `payment_intent.succeeded`
+   - ✅ `payment_intent.payment_failed`
+5. Click "**Add endpoint**"
+6. Copy the "**Signing secret**" (starts with `whsec_`)
+7. Add to your production environment variables
+
+### Step 5: Test the Integration
 
 ```bash
-# Test mode (for development)
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
+# Start your dev server
+npm run dev
 
-# Live mode (for production)
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_SECRET_KEY=sk_live_...
+# In another terminal, start webhook forwarding
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+
+# Visit your pricing page
+open http://localhost:3000#pricing
 ```
 
-## Pricing Summary
+#### Test a Payment:
 
-| Plan    | Monthly | Annual | Savings |
-|---------|---------|--------|---------|
-| Pro     | $9/mo   | $89/yr | 17%     |
-| Premium | $19/mo  | $189/yr| 17%     |
+1. Click "Download Fixed CSV" or "Get Audit-Ready Output" button
+2. You'll be redirected to Stripe Checkout
+3. Use test card: `4242 4242 4242 4242`
+   - Expiry: Any future date
+   - CVC: Any 3 digits
+   - ZIP: Any 5 digits
+4. Complete the payment
+5. You should be redirected to `/success`
+6. Check your webhook terminal for the `checkout.session.completed` event
 
-## Testing
+### Step 6: Enable Customer Portal (Optional but Recommended)
 
-### Test Cards
+The Customer Portal allows users to view receipts and manage their purchases.
 
-Use these test card numbers in test mode:
+1. Go to: https://dashboard.stripe.com/settings/billing/portal
+2. Click "**Activate**"
+3. Configure settings:
+   - Allow customers to view their invoice history: ✅
+   - Allow customers to update payment methods: ❌ (one-time payments)
+4. Click "**Save changes**"
 
-| Scenario | Card Number |
-|----------|-------------|
-| Success | `4242 4242 4242 4242` |
-| Decline | `4000 0000 0000 0002` |
-| 3D Secure | `4000 0027 6000 3184` |
+---
 
-### Testing Webhooks Locally
+## 🔧 How to Use in Your Code
 
-1. Install Stripe CLI: `brew install stripe/stripe-cli/stripe`
-2. Login: `stripe login`
-3. Forward webhooks: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
-4. Copy the webhook secret it provides
+### Trigger Checkout from Pricing Component:
 
-## Checkout Flow
+```typescript
+'use client'
 
-The checkout API (`/api/checkout`) accepts:
+import { useCheckout } from '@/hooks/useCheckout'
 
-```json
-{
-  "plan": "pro",       // "pro" or "premium"
-  "billing": "annual"  // "monthly" or "annual"
+function PricingCard() {
+  const { checkout, loading, error } = useCheckout()
+
+  return (
+    <button
+      onClick={() => checkout('PRO')} // or 'PREMIUM'
+      disabled={loading}
+    >
+      {loading ? 'Processing...' : 'Purchase Pro'}
+    </button>
+  )
 }
 ```
 
-- Monthly billing creates a **subscription** (recurring)
-- Annual billing creates a **one-time payment**
+### Access Customer Portal:
 
-## Customer Portal
+```typescript
+const handleManageBilling = async () => {
+  const response = await fetch('/api/customer-portal', {
+    method: 'POST',
+  })
+  const data = await response.json()
+  window.location.href = data.url
+}
+```
 
-To allow customers to manage their subscriptions:
+---
 
-1. Go to **Settings** > **Billing** > **Customer portal**
-2. Configure what customers can do:
-   - Update payment method
-   - Cancel subscription
-   - View invoice history
-3. Add portal link to your dashboard (future feature)
+## 🗄️ Database Integration (TODO)
 
-## Going Live Checklist
+You should update your database when payments succeed. In `/app/api/webhooks/stripe/route.ts`:
 
-- [ ] Create products in **Live mode**
-- [ ] Update environment variables with live keys
-- [ ] Set up webhook endpoint for production URL
-- [ ] Test full purchase flow with real card
-- [ ] Verify webhook events are received
-- [ ] Set up tax collection if required
+```typescript
+case 'checkout.session.completed': {
+  const session = event.data.object as Stripe.Checkout.Session
+
+  // Update your database
+  await prisma.user.update({
+    where: { email: session.customer_email },
+    data: {
+      plan: session.metadata?.plan,
+      paidAt: new Date(),
+      stripeCustomerId: session.customer as string,
+      stripePaymentId: session.payment_intent as string,
+    }
+  })
+
+  // Send confirmation email
+  await sendEmail({
+    to: session.customer_email,
+    subject: 'Payment Received - TaxFormatter',
+    template: 'payment-success',
+  })
+
+  break
+}
+```
+
+### Recommended Database Schema:
+
+Add to your User model:
+
+```prisma
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+
+  // Stripe fields
+  stripeCustomerId   String?  @unique
+  stripePaymentId    String?
+  plan               String?  // "PRO" or "PREMIUM"
+  paidAt             DateTime?
+  taxYear            Int?     // Track which tax year they paid for
+}
+```
+
+---
+
+## 🧪 Testing
+
+### Test Cards:
+
+| Card Number         | Result                    |
+|---------------------|---------------------------|
+| 4242424242424242    | Success                   |
+| 4000000000000002    | Card declined             |
+| 4000002500003155    | Requires authentication   |
+
+### Testing Webhooks Locally:
+
+```bash
+# Terminal 1: Run your dev server
+npm run dev
+
+# Terminal 2: Forward webhooks
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+
+# Terminal 3: Trigger test events
+stripe trigger checkout.session.completed
+stripe trigger payment_intent.succeeded
+```
+
+---
+
+## 🚀 Going Live
+
+Before launching to production:
+
+1. ✅ Switch to **Live mode** in Stripe Dashboard
+2. ✅ Get live API keys (`pk_live_...` and `sk_live_...`)
+3. ✅ Update environment variables in production
+4. ✅ Set up production webhooks (Step 4)
+5. ✅ Test with real card (use small amount first)
+6. ✅ Verify webhook events are being received
+7. ✅ Test the full flow: checkout → payment → success → database update
+
+---
+
+## 📞 Support
+
+- **Stripe Docs**: https://stripe.com/docs
+- **Stripe Test Cards**: https://stripe.com/docs/testing
+- **Webhook Events**: https://stripe.com/docs/api/events/types
+
+---
+
+## ✅ Verification Checklist
+
+Before going live, verify:
+
+- [ ] Stripe publishable key is set
+- [ ] Stripe secret key is set
+- [ ] Price IDs for Pro and Premium plans are configured
+- [ ] Webhook secret is configured
+- [ ] Webhook endpoint is accessible from internet
+- [ ] Success page displays correctly
+- [ ] Database is updated when payment succeeds
+- [ ] Confirmation emails are sent
+- [ ] Customer Portal is activated
+- [ ] Test payments work end-to-end
+
+---
+
+## 🎉 You're All Set!
+
+Your Stripe integration is ready to accept payments. Just:
+
+1. Add your keys to `.env.local`
+2. Create products in Stripe Dashboard
+3. Update the price IDs
+4. Test with test cards
+5. Go live! 🚀

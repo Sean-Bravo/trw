@@ -168,6 +168,33 @@ The Python engine (`backend/services/engine.py`) parses:
 - [ ] AI insights panel (UI exists, backend not connected)
 - [ ] Comprehensive test coverage for frontend
 
+## Future Features
+
+### Bank Statement Formatter (Post-TaxFormatter)
+
+A PDF-to-CSV converter for importing bank statements into QBO/Xero.
+
+**Workflow:** PDF Upload → Extraction → Normalization → Format for QBO/Xero → CSV Download
+
+**Tech Stack:**
+- `pdfplumber` / `Tabula-py` for digital PDFs
+- AWS Textract for scanned PDFs (OCR) - integrates with existing AWS infra
+- Pandas for data cleaning and export
+
+**Key Logic:**
+- Transaction detection via regex (date patterns like `^\d{2}/\d{2}/\d{4}`)
+- Multiline description handling (append non-date lines to previous row)
+- Date normalization with `dateparser` library
+- Credit/Debit logic: separate columns → single signed Amount
+
+**Output Formats:**
+- Xero CSV: `*Date`, `*Amount`, `Payee`, `Description`, `Reference`, `Check Number`
+- QBO CSV: `Date`, `Description`, `Amount` (negative=expense, positive=income)
+
+**MVP Scope:** Digital PDFs only (no OCR), `pdfplumber` extraction, simple upload→download flow
+
+**Access:** Pro/Premium tiers only (not available to free users)
+
 ## Related Docs
 
 - `BACKEND_ARCHITECTURE.md` - Detailed AWS/Lambda specs
