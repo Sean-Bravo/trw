@@ -159,14 +159,21 @@ The Python engine (`backend/services/engine.py`) parses:
 ## Known Gotchas
 
 1. **Lambda concurrency** must stay ≤50 to match RDS Proxy connection limit
-2. **Fingerprinting cache** currently uses Supabase - needs migration to Neon
 
 ## What's Not Built Yet
 
 - [ ] Lambda deployment (Terraform exists, packaging incomplete)
-- [ ] Real-time job status polling
-- [ ] AI insights panel (UI exists, backend not connected)
-- [ ] Comprehensive test coverage for frontend
+- [ ] S3 + SQS setup (buckets, queues, triggers)
+- [ ] Virus scanner Lambda (ClamAV integration)
+
+## What's Complete
+
+- [x] Real-time job status polling (useJobPolling hook + JobContext)
+- [x] AI insights panel connected to backend results
+- [x] Frontend test coverage (62 tests across 5 suites)
+- [x] Stripe webhooks (checkout, subscription updates, cancellation)
+- [x] Email templates (verification, password reset, welcome, subscription)
+- [x] Fingerprinting cache migrated to Neon PostgreSQL
 
 ## Future Features
 
