@@ -60,16 +60,16 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Call AWS Lambda via API Gateway
-    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/upload/presigned-url`, {
+    // Route: POST /presigned-url (see backend/handlers/webhook.py)
+    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/prod/presigned-url`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         filename,
-        fileSize,
+        contentType: 'text/csv',
         userId,
-        tier,
       }),
     });
 
@@ -87,14 +87,16 @@ export async function POST(request: NextRequest) {
     console.log(`[Presigned URL] Generated for user ${userId}, file ${filename}`);
 
     // 5. Return presigned URL (transform to match frontend expectations)
+    // Lambda returns: { uploadUrl, jobId, key, expiresIn }
     return NextResponse.json({
       presignedPost: {
         url: data.uploadUrl,
         fields: {}, // S3 PUT URL doesn't need fields
       },
-      uploadId: data.s3Key, // Use s3Key as uploadId
+      uploadId: data.key, // S3 key as uploadId
+      jobId: data.jobId,
       maxSize: fileSize,
-      s3Key: data.s3Key,
+      s3Key: data.key,
     });
 
   } catch (error) {

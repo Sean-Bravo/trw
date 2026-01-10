@@ -1,0 +1,343 @@
+"""
+Webhook Lambda Handler - API Gateway entry point
+Handles: presigned URLs, confirm upload, job status, download URLs
+
+Routes:
+- POST /presigned-url - Generate S3 presigned URL for upload
+- POST /confirm-upload - Confirm file upload completed
+- GET /job/{jobId} - Get job status
+- GET /download/{jobId} - Get presigned download URL
+"""
+
+import os
+import json
+import uuid
+import logging
+import boto3
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Environment variables
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "prod")
+UPLOADS_BUCKET = os.environ.get("UPLOADS_BUCKET")
+RESULTS_BUCKET = os.environ.get("RESULTS_BUCKET")
+SECRETS_ARN = os.environ.get("SECRETS_ARN")
+
+# AWS clients
+s3_client = boto3.client("s3")
+secretsmanager = boto3.client("secretsmanager")
+
+# Presigned URL expiration (15 minutes for upload, 1 hour for download)
+UPLOAD_EXPIRATION = 900
+DOWNLOAD_EXPIRATION = 3600
+
+# Maximum file size (50MB)
+MAX_FILE_SIZE = 50 * 1024 * 1024
+
+
+def get_secrets() -> Dict[str, str]:
+    """Fetch secrets from AWS Secrets Manager."""
+    try:
+        response = secretsmanager.get_secret_value(SecretId=SECRETS_ARN)
+        return json.loads(response["SecretString"])
+    except Exception as e:
+        logger.error(f"Failed to fetch secrets: {e}")
+        return {}
+
+
+def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dict:
+    """Generate API Gateway response."""
+    default_headers = {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    }
+    if headers:
+        default_headers.update(headers)
+
+    return {
+        "statusCode": status_code,
+        "headers": default_headers,
+        "body": json.dumps(body) if isinstance(body, dict) else body,
+    }
+
+
+def handle_presigned_url(event: Dict) -> Dict:
+    """
+    Generate a presigned URL for S3 upload.
+
+    Request body:
+    {
+        "filename": "coinbase_export.csv",
+        "contentType": "text/csv",
+        "userId": "user_123"  # Optional
+    }
+
+    Response:
+    {
+        "uploadUrl": "https://s3.amazonaws.com/...",
+        "jobId": "uuid",
+        "key": "uploads/uuid/filename.csv"
+    }
+    """
+    try:
+        body = json.loads(event.get("body", "{}"))
+    except json.JSONDecodeError:
+        return response(400, {"error": "Invalid JSON body"})
+
+    filename = body.get("filename")
+    content_type = body.get("contentType", "text/csv")
+    user_id = body.get("userId", "anonymous")
+
+    if not filename:
+        return response(400, {"error": "filename is required"})
+
+    # Validate file extension
+    allowed_extensions = [".csv", ".xlsx", ".xls"]
+    ext = os.path.splitext(filename.lower())[1]
+    if ext not in allowed_extensions:
+        return response(400, {"error": f"Invalid file type. Allowed: {allowed_extensions}"})
+
+    # Generate job ID and S3 key
+    job_id = str(uuid.uuid4())
+    safe_filename = filename.replace(" ", "_").replace("/", "_")
+    s3_key = f"uploads/{job_id}/{safe_filename}"
+
+    try:
+        # Generate presigned URL
+        presigned_url = s3_client.generate_presigned_url(
+            ClientMethod="put_object",
+            Params={
+                "Bucket": UPLOADS_BUCKET,
+                "Key": s3_key,
+                "ContentType": content_type,
+                "Metadata": {
+                    "user-id": user_id,
+                    "original-filename": filename,
+                    "job-id": job_id,
+                },
+            },
+            ExpiresIn=UPLOAD_EXPIRATION,
+        )
+
+        logger.info(f"Generated presigned URL for job {job_id}")
+
+        return response(200, {
+            "uploadUrl": presigned_url,
+            "jobId": job_id,
+            "key": s3_key,
+            "expiresIn": UPLOAD_EXPIRATION,
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to generate presigned URL: {e}")
+        return response(500, {"error": "Failed to generate upload URL"})
+
+
+def handle_confirm_upload(event: Dict) -> Dict:
+    """
+    Confirm that a file upload completed successfully.
+    This is called by the frontend after the presigned URL upload finishes.
+
+    Request body:
+    {
+        "jobId": "uuid",
+        "key": "uploads/uuid/filename.csv"
+    }
+
+    Response:
+    {
+        "success": true,
+        "jobId": "uuid",
+        "status": "pending"
+    }
+    """
+    try:
+        body = json.loads(event.get("body", "{}"))
+    except json.JSONDecodeError:
+        return response(400, {"error": "Invalid JSON body"})
+
+    job_id = body.get("jobId")
+    s3_key = body.get("key")
+
+    if not job_id or not s3_key:
+        return response(400, {"error": "jobId and key are required"})
+
+    try:
+        # Verify the file exists in S3
+        s3_client.head_object(Bucket=UPLOADS_BUCKET, Key=s3_key)
+
+        logger.info(f"Upload confirmed for job {job_id}")
+
+        # The S3 trigger will automatically invoke the scanner Lambda
+        return response(200, {
+            "success": True,
+            "jobId": job_id,
+            "status": "pending",
+            "message": "File uploaded successfully. Processing will begin shortly.",
+        })
+
+    except s3_client.exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            return response(404, {"error": "File not found in S3"})
+        logger.error(f"S3 error confirming upload: {e}")
+        return response(500, {"error": "Failed to confirm upload"})
+
+
+def handle_job_status(event: Dict) -> Dict:
+    """
+    Get the status of a processing job.
+
+    Path: GET /job/{jobId}
+
+    Response:
+    {
+        "jobId": "uuid",
+        "status": "pending|processing|completed|failed",
+        "progress": 50,
+        "result": {...}  # Only if completed
+    }
+    """
+    path_params = event.get("pathParameters", {}) or {}
+    job_id = path_params.get("jobId")
+
+    if not job_id:
+        return response(400, {"error": "jobId is required"})
+
+    try:
+        # Check if result file exists (completed)
+        result_key = f"results/{job_id}/output.csv"
+        try:
+            s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
+            return response(200, {
+                "jobId": job_id,
+                "status": "completed",
+                "progress": 100,
+            })
+        except s3_client.exceptions.ClientError:
+            pass
+
+        # Check if source file exists (pending/processing)
+        try:
+            result = s3_client.list_objects_v2(
+                Bucket=UPLOADS_BUCKET,
+                Prefix=f"uploads/{job_id}/",
+                MaxKeys=1,
+            )
+            if result.get("KeyCount", 0) > 0:
+                # File exists, check for error marker
+                try:
+                    error_key = f"results/{job_id}/error.json"
+                    error_obj = s3_client.get_object(Bucket=RESULTS_BUCKET, Key=error_key)
+                    error_data = json.loads(error_obj["Body"].read().decode("utf-8"))
+                    return response(200, {
+                        "jobId": job_id,
+                        "status": "failed",
+                        "error": error_data.get("error", "Unknown error"),
+                    })
+                except s3_client.exceptions.ClientError:
+                    pass
+
+                # File exists but no result yet - still processing
+                return response(200, {
+                    "jobId": job_id,
+                    "status": "processing",
+                    "progress": 50,
+                })
+        except s3_client.exceptions.ClientError:
+            pass
+
+        # No files found
+        return response(404, {"error": "Job not found"})
+
+    except Exception as e:
+        logger.error(f"Error getting job status: {e}")
+        return response(500, {"error": "Failed to get job status"})
+
+
+def handle_download(event: Dict) -> Dict:
+    """
+    Get a presigned download URL for the processed file.
+
+    Path: GET /download/{jobId}
+
+    Response:
+    {
+        "downloadUrl": "https://s3.amazonaws.com/...",
+        "expiresIn": 3600
+    }
+    """
+    path_params = event.get("pathParameters", {}) or {}
+    job_id = path_params.get("jobId")
+
+    if not job_id:
+        return response(400, {"error": "jobId is required"})
+
+    try:
+        result_key = f"results/{job_id}/output.csv"
+
+        # Verify the result file exists
+        try:
+            s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
+        except s3_client.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                return response(404, {"error": "Result file not found. Job may still be processing."})
+            raise
+
+        # Generate presigned download URL
+        download_url = s3_client.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": RESULTS_BUCKET,
+                "Key": result_key,
+                "ResponseContentDisposition": f'attachment; filename="{job_id}_formatted.csv"',
+            },
+            ExpiresIn=DOWNLOAD_EXPIRATION,
+        )
+
+        logger.info(f"Generated download URL for job {job_id}")
+
+        return response(200, {
+            "downloadUrl": download_url,
+            "expiresIn": DOWNLOAD_EXPIRATION,
+        })
+
+    except Exception as e:
+        logger.error(f"Error generating download URL: {e}")
+        return response(500, {"error": "Failed to generate download URL"})
+
+
+def handler(event: Dict, context: Any) -> Dict:
+    """
+    Main Lambda handler - routes requests to appropriate handlers.
+    """
+    logger.info(f"Received event: {json.dumps(event)}")
+
+    # Handle OPTIONS preflight
+    http_method = event.get("requestContext", {}).get("http", {}).get("method", "")
+    if http_method == "OPTIONS":
+        return response(200, {})
+
+    # Get route from API Gateway v2 format
+    route_key = event.get("routeKey", "")
+
+    # Route to appropriate handler
+    if route_key == "POST /presigned-url":
+        return handle_presigned_url(event)
+    elif route_key == "POST /confirm-upload":
+        return handle_confirm_upload(event)
+    elif route_key == "GET /job/{jobId}":
+        return handle_job_status(event)
+    elif route_key == "GET /download/{jobId}":
+        return handle_download(event)
+    elif route_key == "POST /webhook":
+        # Generic webhook endpoint (for future use)
+        return response(200, {"message": "Webhook received"})
+    else:
+        logger.warning(f"Unknown route: {route_key}")
+        return response(404, {"error": f"Route not found: {route_key}"})

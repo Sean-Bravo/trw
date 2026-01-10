@@ -8,6 +8,9 @@ chardet>=5.0.0
 # Database (Neon PostgreSQL)
 psycopg2-binary>=2.9.0
 
+# AWS SDK (Lambda uses bundled boto3, but useful for local dev)
+boto3>=1.26.0
+
 # Optional: For testing
 pytest>=7.0.0
 pytest-cov>=4.0.0

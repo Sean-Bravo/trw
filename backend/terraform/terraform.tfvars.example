@@ -1,0 +1,30 @@
+# terraform.tfvars.example - Copy to terraform.tfvars and fill in values
+# DO NOT commit terraform.tfvars to git!
+
+aws_region   = "us-east-1"
+project_name = "taxformatter"
+environment  = "prod"
+
+# Neon PostgreSQL connection string
+database_url = "postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/neondb?sslmode=require"
+
+# Application secrets
+nextauth_secret       = "your-nextauth-secret-here"
+anthropic_api_key     = "sk-ant-xxx"
+openai_api_key        = ""  # Optional
+google_gemini_api_key = ""  # Optional
+
+# Email configuration
+alert_email      = "alerts@yourdomain.com"
+ses_sender_email = "noreply@taxformatter.com"
+
+# Domain
+domain_name = "taxformatter.com"
+
+# Optional overrides
+# lambda_runtime     = "python3.12"
+# lambda_timeout     = 900
+# lambda_memory_size = 512
+# s3_lifecycle_days  = 30
+# s3_expiration_days = 90
+# log_retention_days = 30

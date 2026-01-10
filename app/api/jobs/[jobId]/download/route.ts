@@ -29,8 +29,9 @@ export async function GET(
     const type = searchParams.get('type') || 'formatted';
 
     // 2. Call AWS Lambda via API Gateway
+    // Route: GET /download/{jobId} (see backend/handlers/webhook.py)
     const lambdaResponse = await fetch(
-      `${API_GATEWAY_URL}/job/download-url?jobId=${encodeURIComponent(jobId)}&type=${encodeURIComponent(type)}`,
+      `${API_GATEWAY_URL}/prod/download/${encodeURIComponent(jobId)}`,
       {
         method: 'GET',
         headers: {
