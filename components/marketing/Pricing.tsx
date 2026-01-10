@@ -150,7 +150,7 @@ const Pricing = () => {
               </li>
               <li className="flex items-center gap-3 text-white text-sm">
                 <div className="p-1 rounded-full bg-indigo-500/20 text-indigo-400"><Check className="w-3 h-3" strokeWidth={3} /></div>
-                <span>Priority Parsing Engine</span>
+                <span>Bank PDF → Excel (Big 4)</span>
               </li>
               <li className="flex items-center gap-3 text-white text-sm">
                 <div className="p-1 rounded-full bg-indigo-500/20 text-indigo-400"><Check className="w-3 h-3" strokeWidth={3} /></div>
@@ -206,15 +206,15 @@ const Pricing = () => {
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
                 <Check className="w-4 h-4 text-slate-400" />
+                <span>Bank PDF → Excel (All Banks)</span>
+              </li>
+              <li className="flex items-center gap-3 text-slate-300 text-sm">
+                <Check className="w-4 h-4 text-slate-400" />
+                <span>Request New Bank Formats</span>
+              </li>
+              <li className="flex items-center gap-3 text-slate-300 text-sm">
+                <Check className="w-4 h-4 text-slate-400" />
                 <span>AI-Generated PDF Report</span>
-              </li>
-              <li className="flex items-center gap-3 text-slate-300 text-sm">
-                <Check className="w-4 h-4 text-slate-400" />
-                <span>Line-by-Line Explanations</span>
-              </li>
-              <li className="flex items-center gap-3 text-slate-300 text-sm">
-                <Check className="w-4 h-4 text-slate-400" />
-                <span>Audit-Ready Notes</span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
                 <Check className="w-4 h-4 text-slate-400" />
