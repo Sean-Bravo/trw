@@ -1,5 +1,6 @@
 import { Header } from '@/components/marketing/Header';
 import { Hero } from '@/components/marketing/Hero';
+import { BankFeature } from '@/components/marketing/BankFeature';
 import { HowItWorks } from '@/components/marketing/HowItWorks';
 import { SocialProof } from '@/components/marketing/SocialProof';
 import { Integrations } from '@/components/marketing/Integrations';
@@ -17,6 +18,7 @@ export default function Home() {
       <main className="min-h-screen">
         <Header />
         <Hero />
+        <BankFeature />
         <HowItWorks />
         <SocialProof />
         <Integrations />
