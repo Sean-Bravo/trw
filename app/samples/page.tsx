@@ -122,7 +122,8 @@ const cryptoSamples = [
 
 
 export default function SamplesPage() {
-  const [selectedBank, setSelectedBank] = useState(0);
+  const [selectedBankIndex, setSelectedBankIndex] = useState(0);
+  const selectedBank = SAMPLE_BANKS[selectedBankIndex]!;
 
   return (
     <>
@@ -180,9 +181,9 @@ export default function SamplesPage() {
               {SAMPLE_BANKS.map((bank, i) => (
                 <button
                   key={bank.name}
-                  onClick={() => setSelectedBank(i)}
+                  onClick={() => setSelectedBankIndex(i)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    selectedBank === i
+                    selectedBankIndex === i
                       ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
                       : 'text-slate-500 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800'
                   }`}
@@ -207,7 +208,7 @@ export default function SamplesPage() {
                   <div className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-red-500" />
                     <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                      {SAMPLE_BANKS[selectedBank].name} - {SAMPLE_BANKS[selectedBank].type}.pdf
+                      {selectedBank.name} - {selectedBank.type}.pdf
                     </span>
                   </div>
                   <div className="overflow-x-auto">
@@ -222,7 +223,7 @@ export default function SamplesPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {SAMPLE_BANKS[selectedBank].before.map((row, i) => (
+                        {selectedBank.before.map((row, i) => (
                           <tr key={i} className="border-b border-slate-100 dark:border-slate-800">
                             <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">{row.date}</td>
                             <td className="px-3 py-2 text-slate-900 dark:text-white font-mono">{row.desc}</td>
@@ -254,7 +255,7 @@ export default function SamplesPage() {
                   <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-200 dark:border-emerald-800 flex items-center gap-2">
                     <Table className="w-4 h-4 text-emerald-500" />
                     <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                      {SAMPLE_BANKS[selectedBank].name.toLowerCase().replace(/ /g, '-')}-qbo.xlsx
+                      {selectedBank.name.toLowerCase().replace(/ /g, '-')}-qbo.xlsx
                     </span>
                   </div>
                   <div className="overflow-x-auto">
@@ -267,7 +268,7 @@ export default function SamplesPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {SAMPLE_BANKS[selectedBank].after.map((row, i) => (
+                        {selectedBank.after.map((row, i) => (
                           <tr key={i} className="border-b border-slate-100 dark:border-slate-800">
                             <td className="px-3 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap font-mono">{row.date}</td>
                             <td className="px-3 py-2 text-slate-900 dark:text-white">{row.desc}</td>
