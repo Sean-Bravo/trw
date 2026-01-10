@@ -8,21 +8,27 @@ Tier-based AI categorization for crypto transactions. Free users get **no AI sub
 
 | Tier | AI Model | Cost/1M tokens (input) | Rationale |
 |------|----------|------------------------|-----------|
-| **Free** | None OR Gemini 1.5 Flash | Free / $0.075 | Zero cost to TaxFormatter |
-| **Pro** | Claude Haiku 3.5 | $0.25 | Fast, cheap, good enough |
+| **Free** | Gemini 1.5 Flash | $0.075 (Google free tier available) | Cheapest option, no paid user subsidy |
+| **Pro** | Claude Haiku 3.5 | $0.80 | Fast, excellent quality/cost ratio |
 | **Premium** | Claude Opus 4 | $15 | Best quality, premium experience |
 
-### Free Tier Options
+### Model Selection Rationale
 
-**Option A: No AI (Recommended)**
-- Free users see "Upgrade to Pro for AI categorization"
-- Zero cost, zero subsidy
-- Simplest implementation
-
-**Option B: Gemini 1.5 Flash (if we want to offer something)**
+**Free: Gemini 1.5 Flash**
 - Google offers generous free tier (15 RPM, 1M tokens/day)
 - Falls back gracefully if quota exceeded
-- User sees "Basic categorization (upgrade for advanced AI)"
+- Provides basic AI without costing us anything
+- Clear upgrade path to better models
+
+**Pro: Claude Haiku 3.5**
+- Best balance of speed, quality, and cost
+- Fast responses (~1-2s per transaction batch)
+- High accuracy for transaction categorization
+
+**Premium: Claude Opus 4**
+- Best-in-class reasoning and accuracy
+- Handles edge cases and complex transactions
+- Justifies premium pricing
 
 ## Architecture
 
@@ -336,26 +342,21 @@ def get_provider_for_tier(tier: SubscriptionTier) -> LLMProvider:
     """
     Get the appropriate LLM provider based on subscription tier.
 
-    FREE:    NoAIProvider (no cost) OR GeminiProvider (Google free tier)
+    FREE:    GeminiProvider (Google free tier - no cost to us)
     PRO:     ClaudeProvider with Haiku 3.5
     PREMIUM: ClaudeProvider with Opus 4
     """
     if tier == SubscriptionTier.FREE:
-        # Option A: No AI for free users
-        return NoAIProvider()
-
-        # Option B: Gemini free tier (uncomment to enable)
-        # return GeminiProvider()
+        return GeminiProvider()  # Gemini Flash - free tier
 
     elif tier == SubscriptionTier.PRO:
         return ClaudeProvider(model="claude-3-5-haiku-20241022")
 
     elif tier == SubscriptionTier.PREMIUM:
-        return ClaudeProvider(model="claude-sonnet-4-20250514")
-        # Could use Opus for true premium: "claude-opus-4-20250514"
+        return ClaudeProvider(model="claude-opus-4-20250514")
 
     else:
-        return NoAIProvider()
+        return GeminiProvider()  # Default to free tier
 
 
 # =============================================================================
@@ -608,18 +609,18 @@ Secrets Manager already includes API keys. No changes needed.
 
 | Tier | Model | Input Tokens | Cost | Notes |
 |------|-------|--------------|------|-------|
-| Free | None | 0 | $0.00 | No AI |
 | Free | Gemini Flash | ~200K | $0.00* | Google free tier |
-| Pro | Haiku 3.5 | ~200K | $0.05 | With caching |
-| Premium | Sonnet 4 | ~200K | $0.60 | Best quality |
+| Pro | Haiku 3.5 | ~200K | $0.16 | $0.80/1M tokens |
+| Premium | Opus 4 | ~200K | $3.00 | $15/1M tokens |
 
-*Google Gemini free tier: 15 RPM, 1M tokens/day
+*Google Gemini free tier: 15 RPM, 1M tokens/day, 1500 RPD
 
 ### Caching Impact
 
 With 70% cache hit rate (common transaction patterns):
-- Pro: $0.05 → ~$0.015 per 1,000 tx
-- Premium: $0.60 → ~$0.18 per 1,000 tx
+- Free: $0.00 (Google free tier)
+- Pro: $0.16 → ~$0.05 per 1,000 tx
+- Premium: $3.00 → ~$0.90 per 1,000 tx
 
 ## Testing Plan
 
@@ -656,30 +657,16 @@ With 70% cache hit rate (common transaction patterns):
 - [ ] Show "Upgrade for AI" message for free users
 - [ ] Add AI confidence indicators
 
-## Decision Points
+## Confirmed Model Selection
 
-### Decision 1: Free Tier AI
-**Option A (Recommended): No AI for free users**
-- Pros: Zero cost, clear upgrade incentive
-- Cons: Less compelling free tier
+| Tier | Model | Decision |
+|------|-------|----------|
+| **Free** | Gemini 1.5 Flash | ✅ Confirmed - Google free tier |
+| **Pro** | Claude Haiku 3.5 | ✅ Confirmed |
+| **Premium** | Claude Opus 4 | ✅ Confirmed |
 
-**Option B: Gemini Flash for free users**
-- Pros: Some AI capability, uses Google's free tier
-- Cons: Dependency on Google, may hit rate limits
-
-### Decision 2: Premium Model
-**Option A: Claude Sonnet 4**
-- Pros: Excellent quality, reasonable cost ($3/1M input)
-- Cons: Not the absolute best
-
-**Option B: Claude Opus 4**
-- Pros: Best quality available
-- Cons: $15/1M input tokens - expensive
-
-### Decision 3: Cache Duration
-**Current: 30 days**
-- Pros: Good balance of freshness and cost savings
-- Cons: Stale results if models improve
+### Cache Duration
+**30 days** - Good balance of freshness and cost savings
 
 ## Summary
 
