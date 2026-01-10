@@ -202,9 +202,9 @@ The Python engine (`backend/services/engine.py`) parses:
 
 ## Future Features
 
-### Bank Statement Formatter (Post-TaxFormatter)
+### Bank Statement Formatter
 
-A PDF-to-CSV converter for importing bank statements into QBO/Xero.
+A PDF-to-CSV converter feature for importing bank statements into QBO/Xero.
 
 **Workflow:** PDF Upload → Extraction → Normalization → Format for QBO/Xero → CSV Download
 
