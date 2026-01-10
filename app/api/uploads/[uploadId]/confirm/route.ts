@@ -30,16 +30,20 @@ export async function POST(
     const { etag } = body;
 
     // 3. Call AWS Lambda via API Gateway
+    // Route: POST /confirm-upload (see backend/handlers/webhook.py)
     // Note: uploadId is the s3Key from presigned-url response
-    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/upload/confirm`, {
+    // Extract jobId from the s3Key: uploads/{jobId}/filename.csv
+    const parts = uploadId.split('/');
+    const jobId = parts.length >= 2 ? parts[1] : uploadId;
+
+    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/prod/confirm-upload`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        s3Key: uploadId, // uploadId is actually the s3Key
-        userId,
-        fileSha256: etag, // Use etag as file hash for now
+        jobId,
+        key: uploadId, // S3 key
       }),
     });
 

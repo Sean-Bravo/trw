@@ -71,12 +71,26 @@ trw/
 │   ├── stripe.ts           # Stripe helpers
 │   └── email.ts            # Email sending
 │
-├── backend/                # Python backend (pending merge)
+├── backend/                # Python backend
 │   ├── services/
-│   │   └── engine.py       # CSV processing (2,973 lines)
-│   ├── lambda/             # AWS Lambda handlers
+│   │   ├── engine.py       # CSV processing (2,973 lines, 13 parsers)
+│   │   ├── storage.py      # Neon PostgreSQL operations
+│   │   └── fingerprinting.py # Exchange format detection
+│   ├── handlers/           # AWS Lambda handlers
+│   │   ├── webhook.py      # API Gateway (presigned URLs, job status)
+│   │   ├── scanner.py      # S3 trigger (file validation)
+│   │   └── processor.py    # SQS trigger (CSV processing)
 │   ├── terraform/          # Infrastructure as Code
-│   └── tests/              # pytest suite
+│   │   ├── main.tf         # Core config + outputs
+│   │   ├── lambda.tf       # Lambda functions + IAM
+│   │   ├── s3.tf           # Buckets (uploads, results, lambda)
+│   │   ├── sqs.tf          # Processing queue + DLQ
+│   │   ├── api_gateway.tf  # HTTP API routes
+│   │   ├── monitoring.tf   # CloudWatch alarms + dashboard
+│   │   ├── ses.tf          # Email configuration
+│   │   └── waf.tf          # Web Application Firewall
+│   ├── deploy.sh           # Lambda packaging + deploy script
+│   └── ENV.md              # Environment variable docs
 │
 ├── db/
 │   └── schema.sql          # PostgreSQL DDL
@@ -148,32 +162,43 @@ The Python engine (`backend/services/engine.py`) parses:
 
 | Service | Purpose | Config |
 |---------|---------|--------|
-| Neon | PostgreSQL database | `NEON_DATABASE_URL` |
-| AWS S3 | File storage | `AWS_*` env vars |
-| AWS SQS | Job queue | `AWS_SQS_QUEUE_URL` |
+| Neon | PostgreSQL database | `DATABASE_URL` |
+| AWS S3 | File storage (uploads, results) | Managed by Terraform |
+| AWS SQS | Job queue | Managed by Terraform |
+| AWS Lambda | Python processing (3 functions) | Managed by Terraform |
+| AWS API Gateway | Lambda HTTP API | `API_GATEWAY_URL` |
+| AWS Secrets Manager | Sensitive config | Managed by Terraform |
 | Stripe | Payments | `STRIPE_*` env vars |
 | Google OAuth | Social login | `GOOGLE_CLIENT_*` |
 | Sentry | Error tracking | `SENTRY_*` env vars |
-| SendGrid/SES | Email | `SMTP_*` env vars |
+| AWS SES | Email | Managed by Terraform |
 
 ## Known Gotchas
 
-1. **Lambda concurrency** must stay ≤50 to match RDS Proxy connection limit
-
-## What's Not Built Yet
-
-- [ ] Lambda deployment (Terraform exists, packaging incomplete)
-- [ ] S3 + SQS setup (buckets, queues, triggers)
-- [ ] Virus scanner Lambda (ClamAV integration)
+1. **Lambda concurrency** - SQS trigger limited to 10 concurrent executions
+2. **No VPC** - Lambdas connect directly to Neon (public internet) for faster cold starts
+3. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
 
 ## What's Complete
 
+- [x] **Lambda deployment** - Terraform + deploy.sh fully configured
+- [x] **S3 + SQS setup** - 3 buckets (uploads, results, lambda) + processing queue with DLQ
+- [x] **Scanner Lambda** - File validation (size, type, security checks)
+- [x] **Processor Lambda** - Integrates with engine.py for CSV processing
+- [x] **Webhook Lambda** - API Gateway routes for presigned URLs, job status, downloads
+- [x] **WAF protection** - Rate limiting, SQL injection, XSS prevention
+- [x] **CloudWatch monitoring** - Alarms, dashboard, log insights
 - [x] Real-time job status polling (useJobPolling hook + JobContext)
 - [x] AI insights panel connected to backend results
 - [x] Frontend test coverage (62 tests across 5 suites)
 - [x] Stripe webhooks (checkout, subscription updates, cancellation)
 - [x] Email templates (verification, password reset, welcome, subscription)
 - [x] Fingerprinting cache migrated to Neon PostgreSQL
+
+## What's Not Built Yet
+
+- [ ] AI analysis integration in processor Lambda (tier-based)
+- [ ] Bank statement PDF parsing (future feature)
 
 ## Future Features
 

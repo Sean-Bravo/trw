@@ -3,9 +3,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getJobById } from '@/lib/jobs-db';
 
+const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.execute-api.us-east-1.amazonaws.com';
+
 /**
  * GET /api/jobs/[jobId]
- * Get job status from Neon DB
+ * Get job status - tries Neon DB first, falls back to Lambda/S3
  */
 export async function GET(
   request: NextRequest,
@@ -23,35 +25,66 @@ export async function GET(
 
     const { jobId } = await params;
 
-    // 2. Get job from Neon DB
-    const job = await getJobById(jobId);
+    // 2. Try to get job from Neon DB first
+    try {
+      const job = await getJobById(jobId);
 
-    if (!job) {
+      if (job) {
+        // Verify user owns this job (via upload)
+        if (job.upload.user_id !== session.user.id) {
+          return NextResponse.json(
+            { error: 'Unauthorized' },
+            { status: 403 }
+          );
+        }
+
+        return NextResponse.json({
+          jobId: job.id,
+          uploadId: job.upload_id,
+          status: job.status,
+          result: job.result,
+          error: job.error,
+          createdAt: job.created_at,
+          startedAt: job.started_at,
+          finishedAt: job.finished_at,
+          filename: job.upload.filename,
+        });
+      }
+    } catch (dbError) {
+      console.warn('[Job Status] DB lookup failed, trying Lambda:', dbError);
+    }
+
+    // 3. Fallback to Lambda/S3 status check
+    // Route: GET /job/{jobId} (see backend/handlers/webhook.py)
+    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/prod/job/${jobId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!lambdaResponse.ok) {
+      if (lambdaResponse.status === 404) {
+        return NextResponse.json(
+          { error: 'Job not found' },
+          { status: 404 }
+        );
+      }
+      const errorData = await lambdaResponse.json().catch(() => ({}));
       return NextResponse.json(
-        { error: 'Job not found' },
-        { status: 404 }
+        { error: errorData.error || 'Failed to get job status' },
+        { status: lambdaResponse.status }
       );
     }
 
-    // 3. Verify user owns this job (via upload)
-    if (job.upload.user_id !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+    const data = await lambdaResponse.json();
 
-    // 4. Return job status
+    // Transform Lambda response to match expected format
     return NextResponse.json({
-      jobId: job.id,
-      uploadId: job.upload_id,
-      status: job.status,
-      result: job.result,
-      error: job.error,
-      createdAt: job.created_at,
-      startedAt: job.started_at,
-      finishedAt: job.finished_at,
-      filename: job.upload.filename,
+      jobId: data.jobId,
+      status: data.status,
+      progress: data.progress,
+      error: data.error,
     });
 
   } catch (error) {

@@ -1,40 +1,47 @@
 # TaxFormatter Backend Architecture Specification
 ## Complete Production-Ready Implementation
 
-**Version:** 2.3 (RDS Proxy + Connection Pool Fix)
-**Status:** Production Ready (5.0/5 stars)
-**Timeline:** 8-10 weeks
-**Monthly Cost:** $73 baseline (free tier) + usage scaling
+**Version:** 3.0 (Neon + Python 3.12 Lambda)
+**Status:** Implemented
+**Database:** Neon PostgreSQL (replaces RDS)
+
+---
+
+> **IMPLEMENTATION NOTE (v3.0 - January 2025):**
+>
+> This specification has been implemented. See `backend/` for working code:
+> - `backend/handlers/` - Lambda functions (webhook.py, scanner.py, processor.py)
+> - `backend/terraform/` - Infrastructure as Code (all .tf files)
+> - `backend/deploy.sh` - Deployment script
+> - `backend/ENV.md` - Environment variable documentation
+>
+> **Key changes from original spec:**
+> - **Neon PostgreSQL** instead of RDS (no VPC, no NAT Gateway, no Proxy needed)
+> - **Python 3.12** instead of Node.js for Lambda handlers
+> - **No VPC** - Lambdas connect directly to Neon (faster cold starts, lower cost)
+> - **SQS concurrency limit: 10** instead of 50 (adequate for current scale)
 
 ---
 
 ## Executive Summary
 
-This document specifies the complete backend architecture for TaxFormatter's CSV processing system. The system accepts CSV uploads via Stripe, processes them through AI-powered tax categorization, and delivers results via email.
+This document specifies the complete backend architecture for TaxFormatter's CSV processing system. The system accepts CSV uploads via presigned URLs, processes them through the Python engine, and delivers results via S3 download.
 
 **Architecture Highlights:**
-- Serverless AWS infrastructure (Lambda + SQS + RDS)
-- Decimal-precision financial calculations (tax-grade accuracy)
-- AI-powered categorization with circuit breaker fallback (Claude Sonnet 4.5 → GPT-4o-mini)
-- Async job processing with atomic claiming to prevent race conditions
-- Comprehensive error handling, monitoring, and cost optimization
+- Serverless AWS infrastructure (Lambda + SQS + S3)
+- Neon PostgreSQL (managed, serverless, no VPC required)
+- Python 3.12 Lambda handlers
+- AI-powered categorization (tier-based, future feature)
+- Async job processing with DLQ for failed jobs
+- WAF protection, CloudWatch monitoring
 
-**Recent Updates (v2.3 - RDS PROXY FIX):**
-- **RDS Proxy with connection pooling:** Prevents db.t4g.small connection exhaustion (100 max)
-- **Lambda concurrency reduced to 50:** Matches RDS Proxy limit, prevents FATAL connection errors
-- **Upgraded RDS to t4g.small (2GB RAM):** From t4g.micro, supports 100 connections vs 80-90
-- **Connection pool multiplexing:** 50 Lambdas → 50 Proxy connections → ≤50 DB connections
-- **Cost increase:** +$22/month for Proxy ($10) + RDS upgrade ($12), prevents production failures
-- **Tier-based AI models:** Free (Gemini Flash $0), Pro (Claude Haiku), Premium (Claude Opus)
-- **Tier-based virus scanning:** Free (ClamAV $1/1000), Pro/Premium (GuardDuty $300/1000, user pays)
-- **Sustainable free tier:** $73/month for 1000 jobs (no AI waste, minimal virus scan cost)
-- Dedicated virus scanning Lambda (fast, non-blocking, S3 trigger)
-- Rate limiting on SQS sends to prevent queue flooding
-- DLQ alerts at threshold 1 for immediate failure notification
-- AI response caching by prompt_hash (60% hit rate)
-- VPC endpoints instead of NAT Gateway (saves $25/month)
-- Quarterly database partitions (easier maintenance)
-- Timeline: 8-10 weeks
+**Current Implementation:**
+- **3 Lambda functions:** webhook (API), scanner (S3 trigger), processor (SQS trigger)
+- **3 S3 buckets:** uploads, results, lambda packages
+- **SQS queue:** processing queue with DLQ
+- **API Gateway:** HTTP API with presigned URL routes
+- **Terraform:** Full infrastructure as code
+- **Deploy script:** `./deploy.sh all` for full deployment
 
 ---
 
