@@ -324,6 +324,12 @@ svg circle[data-animated="true"] {
   }
 }
 
+/* Slide Right - Progress bar slide animation */
+@keyframes slide-right {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
 /* Marquee - Logo slider animation */
 @keyframes marquee {
   0% { transform: translateX(0); }
@@ -367,6 +373,11 @@ svg circle[data-animated="true"] {
   /* Marquee animation for logos */
   .animate-marquee {
     animation: marquee 30s linear infinite;
+  }
+
+  /* Slide right animation for progress bars */
+  .animate-slide-right {
+    animation: slide-right 2s ease-in-out infinite;
   }
 
   /* Vertical scroll up animation */
