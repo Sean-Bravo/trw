@@ -25,6 +25,16 @@ interface FAQItem {
 
 const faqItems: FAQItem[] = [
   {
+    question: "What are the 'Big 4' banks for PDF conversion?",
+    answer: "Chase, Bank of America, Wells Fargo, and Citi. These are the four most common bank statement formats we see, and Pro users get unlimited PDF-to-Excel conversions for all of them. These banks cover roughly 80% of US business banking, so most users never need more.",
+    vibe: 'curious',
+  },
+  {
+    question: "What if my bank isn't in the Big 4?",
+    answer: "Premium users get access to all 50+ supported banks including Capital One, US Bank, PNC, TD Bank, American Express, Discover, Mercury, Relay, Brex, HSBC, and more. Premium also lets you request new bank formats—we'll add your bank within 48 hours if it's not already supported.",
+    vibe: 'hopeful',
+  },
+  {
     question: "What exchanges do you actually support?",
     answer: "12 and counting: Coinbase, Kraken, Gemini, Binance, Robinhood, Crypto.com, PayPal, Cash App, Venmo, KuCoin, Bybit, and FTX (RIP, but we still process historical data). We detect formats automatically—no API keys, no account linking. New exchanges get added constantly based on what users throw at us.",
     vibe: 'curious',
