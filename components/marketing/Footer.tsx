@@ -157,9 +157,9 @@ export function Footer() {
               <h4 className="font-semibold text-sm mb-4 text-slate-300">Support</h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="mailto:support@taxformatter.com" className="text-sm text-slate-400 hover:text-white transition-colors">
+                  <Link href="/contact" className="text-sm text-slate-400 hover:text-white transition-colors">
                     Contact
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="https://twitter.com/taxformatter" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">
