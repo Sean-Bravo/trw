@@ -41,4 +41,16 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
+
+# Terraform
 terraform.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Backend build artifacts
+backend/.build/
+backend/**/__pycache__/
+backend/**/*.pyc
+*.zip

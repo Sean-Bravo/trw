@@ -91,6 +91,9 @@ trw/
 │   │   ├── ses.tf          # Email configuration
 │   │   └── waf.tf          # Web Application Firewall
 │   ├── deploy.sh           # Lambda packaging + deploy script
+│   ├── requirements-webhook.txt   # Minimal deps (psycopg2 only)
+│   ├── requirements-scanner.txt   # No external deps
+│   ├── requirements-processor.txt # Full deps (pandas, anthropic)
 │   └── ENV.md              # Environment variable docs
 │
 ├── db/

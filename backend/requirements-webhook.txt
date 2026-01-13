@@ -1,0 +1,3 @@
+# Webhook Lambda - minimal dependencies
+# Only needs boto3 (included in Lambda runtime) and psycopg2 for DB
+psycopg2-binary>=2.9.0

@@ -104,42 +104,30 @@ package_lambdas() {
     rm -rf "$BUILD_DIR"
     mkdir -p "$BUILD_DIR"
 
-    # Create virtual environment for dependencies
+    # Create virtual environment
     log_info "Creating virtual environment..."
     python3 -m venv "$BUILD_DIR/venv"
     source "$BUILD_DIR/venv/bin/activate"
-
-    # Install dependencies
-    log_info "Installing dependencies..."
     pip install --quiet --upgrade pip
-    if [ -f "$SCRIPT_DIR/requirements.txt" ]; then
-        pip install --quiet -r "$SCRIPT_DIR/requirements.txt" -t "$BUILD_DIR/package"
-    fi
 
-    # Get site-packages location
-    SITE_PACKAGES="$BUILD_DIR/package"
-
-    # Package webhook Lambda
+    # Package webhook Lambda (minimal deps)
     log_info "Packaging webhook Lambda..."
     mkdir -p "$BUILD_DIR/webhook"
     cp "$HANDLERS_DIR/webhook.py" "$BUILD_DIR/webhook/"
-    if [ -d "$SITE_PACKAGES" ]; then
-        cp -r "$SITE_PACKAGES"/* "$BUILD_DIR/webhook/" 2>/dev/null || true
+    if [ -f "$SCRIPT_DIR/requirements-webhook.txt" ]; then
+        pip install --quiet -r "$SCRIPT_DIR/requirements-webhook.txt" -t "$BUILD_DIR/webhook"
     fi
     cd "$BUILD_DIR/webhook"
     zip -q -r "$BUILD_DIR/webhook.zip" .
 
-    # Package scanner Lambda
+    # Package scanner Lambda (no external deps, uses Lambda boto3)
     log_info "Packaging scanner Lambda..."
     mkdir -p "$BUILD_DIR/scanner"
     cp "$HANDLERS_DIR/scanner.py" "$BUILD_DIR/scanner/"
-    if [ -d "$SITE_PACKAGES" ]; then
-        cp -r "$SITE_PACKAGES"/* "$BUILD_DIR/scanner/" 2>/dev/null || true
-    fi
     cd "$BUILD_DIR/scanner"
     zip -q -r "$BUILD_DIR/scanner.zip" .
 
-    # Package processor Lambda (includes services)
+    # Package processor Lambda (full deps for CSV + AI)
     log_info "Packaging processor Lambda..."
     mkdir -p "$BUILD_DIR/processor"
     cp "$HANDLERS_DIR/processor.py" "$BUILD_DIR/processor/"
@@ -149,9 +137,9 @@ package_lambdas() {
         cp -r "$SERVICES_DIR" "$BUILD_DIR/processor/"
     fi
 
-    # Copy dependencies
-    if [ -d "$SITE_PACKAGES" ]; then
-        cp -r "$SITE_PACKAGES"/* "$BUILD_DIR/processor/" 2>/dev/null || true
+    # Install processor dependencies
+    if [ -f "$SCRIPT_DIR/requirements-processor.txt" ]; then
+        pip install --quiet -r "$SCRIPT_DIR/requirements-processor.txt" -t "$BUILD_DIR/processor"
     fi
 
     cd "$BUILD_DIR/processor"
@@ -167,37 +155,51 @@ package_lambdas() {
 deploy_lambdas() {
     log_info "Deploying Lambda functions..."
 
-    # Get function names from Terraform outputs
+    # Get function names and S3 bucket from Terraform outputs
     cd "$TERRAFORM_DIR"
     WEBHOOK_FUNCTION=$(terraform output -raw webhook_lambda_function_name 2>/dev/null || echo "")
     SCANNER_FUNCTION=$(terraform output -raw scanner_lambda_function_name 2>/dev/null || echo "")
     PROCESSOR_FUNCTION=$(terraform output -raw processor_lambda_function_name 2>/dev/null || echo "")
+    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    LAMBDA_BUCKET="taxformatter-prod-lambda-${AWS_ACCOUNT_ID}"
 
     if [ -z "$WEBHOOK_FUNCTION" ] || [ -z "$SCANNER_FUNCTION" ] || [ -z "$PROCESSOR_FUNCTION" ]; then
         log_error "Could not get function names from Terraform. Run 'terraform apply' first."
         exit 1
     fi
 
+    # Check package sizes and use S3 for large packages (>50MB)
+    WEBHOOK_SIZE=$(stat -f%z "$BUILD_DIR/webhook.zip" 2>/dev/null || stat -c%s "$BUILD_DIR/webhook.zip")
+    SCANNER_SIZE=$(stat -f%z "$BUILD_DIR/scanner.zip" 2>/dev/null || stat -c%s "$BUILD_DIR/scanner.zip")
+    PROCESSOR_SIZE=$(stat -f%z "$BUILD_DIR/processor.zip" 2>/dev/null || stat -c%s "$BUILD_DIR/processor.zip")
+    SIZE_LIMIT=50000000  # 50MB
+
     # Deploy webhook
-    log_info "Deploying webhook Lambda: $WEBHOOK_FUNCTION"
-    aws lambda update-function-code \
-        --function-name "$WEBHOOK_FUNCTION" \
-        --zip-file "fileb://$BUILD_DIR/webhook.zip" \
-        --no-cli-pager
+    log_info "Deploying webhook Lambda: $WEBHOOK_FUNCTION ($(du -h "$BUILD_DIR/webhook.zip" | cut -f1))"
+    if [ "$WEBHOOK_SIZE" -gt "$SIZE_LIMIT" ]; then
+        aws s3 cp "$BUILD_DIR/webhook.zip" "s3://$LAMBDA_BUCKET/webhook.zip" --quiet
+        aws lambda update-function-code --function-name "$WEBHOOK_FUNCTION" --s3-bucket "$LAMBDA_BUCKET" --s3-key webhook.zip --query 'FunctionArn' --output text
+    else
+        aws lambda update-function-code --function-name "$WEBHOOK_FUNCTION" --zip-file "fileb://$BUILD_DIR/webhook.zip" --query 'FunctionArn' --output text
+    fi
 
     # Deploy scanner
-    log_info "Deploying scanner Lambda: $SCANNER_FUNCTION"
-    aws lambda update-function-code \
-        --function-name "$SCANNER_FUNCTION" \
-        --zip-file "fileb://$BUILD_DIR/scanner.zip" \
-        --no-cli-pager
+    log_info "Deploying scanner Lambda: $SCANNER_FUNCTION ($(du -h "$BUILD_DIR/scanner.zip" | cut -f1))"
+    if [ "$SCANNER_SIZE" -gt "$SIZE_LIMIT" ]; then
+        aws s3 cp "$BUILD_DIR/scanner.zip" "s3://$LAMBDA_BUCKET/scanner.zip" --quiet
+        aws lambda update-function-code --function-name "$SCANNER_FUNCTION" --s3-bucket "$LAMBDA_BUCKET" --s3-key scanner.zip --query 'FunctionArn' --output text
+    else
+        aws lambda update-function-code --function-name "$SCANNER_FUNCTION" --zip-file "fileb://$BUILD_DIR/scanner.zip" --query 'FunctionArn' --output text
+    fi
 
     # Deploy processor
-    log_info "Deploying processor Lambda: $PROCESSOR_FUNCTION"
-    aws lambda update-function-code \
-        --function-name "$PROCESSOR_FUNCTION" \
-        --zip-file "fileb://$BUILD_DIR/processor.zip" \
-        --no-cli-pager
+    log_info "Deploying processor Lambda: $PROCESSOR_FUNCTION ($(du -h "$BUILD_DIR/processor.zip" | cut -f1))"
+    if [ "$PROCESSOR_SIZE" -gt "$SIZE_LIMIT" ]; then
+        aws s3 cp "$BUILD_DIR/processor.zip" "s3://$LAMBDA_BUCKET/processor.zip" --quiet
+        aws lambda update-function-code --function-name "$PROCESSOR_FUNCTION" --s3-bucket "$LAMBDA_BUCKET" --s3-key processor.zip --query 'FunctionArn' --output text
+    else
+        aws lambda update-function-code --function-name "$PROCESSOR_FUNCTION" --zip-file "fileb://$BUILD_DIR/processor.zip" --query 'FunctionArn' --output text
+    fi
 
     log_info "Lambda functions deployed successfully!"
 
