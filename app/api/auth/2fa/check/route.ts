@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
 import { verifyPassword } from '@/lib/auth-db';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
-import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
+import { generateVerificationCode, send2FALoginEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   // Rate limit: 5 attempts per 15 minutes
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
 
       // Send the code via email
-      const emailResult = await sendVerificationEmail(email, code, user2fa?.name || undefined);
+      const emailResult = await send2FALoginEmail(email, code, user2fa?.name || undefined);
 
       if (!emailResult.success) {
         console.error('[2FA Check] Failed to send 2FA email:', emailResult.error);
