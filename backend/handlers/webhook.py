@@ -1,12 +1,13 @@
 """
 Webhook Lambda Handler - API Gateway entry point
-Handles: presigned URLs, confirm upload, job status, download URLs
+Handles: presigned URLs, confirm upload, job status, download URLs, AI insights
 
 Routes:
 - POST /presigned-url - Generate S3 presigned URL for upload
 - POST /confirm-upload - Confirm file upload completed
 - GET /job/{jobId} - Get job status
 - GET /download/{jobId} - Get presigned download URL
+- GET /insights/{jobId} - Get AI insights for job
 """
 
 import os
@@ -312,6 +313,62 @@ def handle_download(event: Dict) -> Dict:
         return response(500, {"error": "Failed to generate download URL"})
 
 
+def handle_insights(event: Dict) -> Dict:
+    """
+    Get AI insights for a processed job.
+
+    Path: GET /insights/{jobId}
+
+    Response:
+    {
+        "success": true,
+        "quick_stats": {...},
+        "ai_insights": {...},
+        "tier": "free|pro|premium"
+    }
+    """
+    path_params = event.get("pathParameters", {}) or {}
+    job_id = path_params.get("jobId")
+
+    if not job_id:
+        return response(400, {"error": "jobId is required"})
+
+    try:
+        insights_key = f"results/{job_id}/insights.json"
+
+        # Try to get insights file
+        try:
+            insights_obj = s3_client.get_object(Bucket=RESULTS_BUCKET, Key=insights_key)
+            insights_data = json.loads(insights_obj["Body"].read().decode("utf-8"))
+
+            logger.info(f"Retrieved insights for job {job_id}")
+
+            return response(200, insights_data)
+
+        except s3_client.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                # Check if job exists but insights not generated
+                result_key = f"results/{job_id}/output.csv"
+                try:
+                    s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
+                    # Job completed but no insights
+                    return response(200, {
+                        "success": True,
+                        "quick_stats": None,
+                        "ai_insights": None,
+                        "message": "Insights not available for this job",
+                    })
+                except s3_client.exceptions.ClientError:
+                    pass
+
+                return response(404, {"error": "Job not found or still processing"})
+            raise
+
+    except Exception as e:
+        logger.error(f"Error getting insights: {e}")
+        return response(500, {"error": "Failed to get insights"})
+
+
 def handler(event: Dict, context: Any) -> Dict:
     """
     Main Lambda handler - routes requests to appropriate handlers.
@@ -335,6 +392,8 @@ def handler(event: Dict, context: Any) -> Dict:
         return handle_job_status(event)
     elif route_key == "GET /download/{jobId}":
         return handle_download(event)
+    elif route_key == "GET /insights/{jobId}":
+        return handle_insights(event)
     elif route_key == "POST /webhook":
         # Generic webhook endpoint (for future use)
         return response(200, {"message": "Webhook received"})

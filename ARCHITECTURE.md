@@ -75,17 +75,18 @@ trw/
 │   ├── services/
 │   │   ├── engine.py       # CSV processing (2,973 lines, 13 parsers)
 │   │   ├── storage.py      # Neon PostgreSQL operations
-│   │   └── fingerprinting.py # Exchange format detection
+│   │   ├── fingerprinting.py # Exchange format detection
+│   │   └── ai_insights.py  # Tiered AI analysis (Gemini/Sonnet/Opus)
 │   ├── handlers/           # AWS Lambda handlers
-│   │   ├── webhook.py      # API Gateway (presigned URLs, job status)
+│   │   ├── webhook.py      # API Gateway (presigned URLs, job status, insights)
 │   │   ├── scanner.py      # S3 trigger (file validation)
-│   │   └── processor.py    # SQS trigger (CSV processing)
+│   │   └── processor.py    # SQS trigger (CSV processing + AI insights)
 │   ├── terraform/          # Infrastructure as Code
 │   │   ├── main.tf         # Core config + outputs
 │   │   ├── lambda.tf       # Lambda functions + IAM
 │   │   ├── s3.tf           # Buckets (uploads, results, lambda)
 │   │   ├── sqs.tf          # Processing queue + DLQ
-│   │   ├── api_gateway.tf  # HTTP API routes
+│   │   ├── api_gateway.tf  # HTTP API routes + custom domain (api.taxformatter.com)
 │   │   ├── monitoring.tf   # CloudWatch alarms + dashboard
 │   │   ├── ses.tf          # Email configuration
 │   │   └── waf.tf          # Web Application Firewall
@@ -116,9 +117,17 @@ trw/
 
 | Tier | Price | Features |
 |------|-------|----------|
-| Free | $0 | 1 file/month, 5-row preview, ClamAV scan |
-| Pro | $89/year | Unlimited files, full export, Claude Haiku AI |
+| Free | $0 | 1 file/month, 5-row preview, Google Gemini AI |
+| Pro | $89/year | Unlimited files, full export, Claude Sonnet AI |
 | Premium | $189/year | All Pro + Claude Opus AI, priority support |
+
+## AI Tiers
+
+| Tier | Provider | Model | Notes |
+|------|----------|-------|-------|
+| Free | Google | gemini-1.5-flash | Free API, basic insights |
+| Pro | Anthropic | claude-sonnet-4 | Balanced quality/cost |
+| Premium | Anthropic | claude-opus-4 | Best quality analysis |
 
 ## Supported Exchanges
 
@@ -153,10 +162,12 @@ The Python engine (`backend/services/engine.py`) parses:
 | `app/api/uploads/presigned-url/route.ts` | Generates S3 upload URLs |
 | `app/api/uploads/[uploadId]/confirm/route.ts` | Confirms upload, creates job |
 | `app/api/jobs/[jobId]/download/route.ts` | Generates S3 download URLs |
-| `lib/upload-client.ts` | Frontend upload flow (3-stage progress) |
+| `app/api/jobs/[jobId]/insights/route.ts` | Fetches AI insights for job |
+| `lib/upload-client.ts` | Frontend upload flow (3-stage progress) + `getJobInsights()` |
 | `lib/auth-db.ts` | User registration, login, 2FA, password reset |
 | `backend/services/engine.py` | Core CSV processing engine |
 | `backend/services/fingerprinting.py` | Exchange format detection |
+| `backend/services/ai_insights.py` | Tiered AI insights (Gemini/Sonnet/Opus) |
 
 ## External Dependencies
 
@@ -184,8 +195,10 @@ The Python engine (`backend/services/engine.py`) parses:
 - [x] **Lambda deployment** - Terraform + deploy.sh fully configured
 - [x] **S3 + SQS setup** - 3 buckets (uploads, results, lambda) + processing queue with DLQ
 - [x] **Scanner Lambda** - File validation (size, type, security checks)
-- [x] **Processor Lambda** - Integrates with engine.py for CSV processing
-- [x] **Webhook Lambda** - API Gateway routes for presigned URLs, job status, downloads
+- [x] **Processor Lambda** - Integrates with engine.py for CSV processing + AI insights
+- [x] **Webhook Lambda** - API Gateway routes for presigned URLs, job status, downloads, insights
+- [x] **Custom domain** - api.taxformatter.com with ACM SSL certificate
+- [x] **AI Insights** - Tiered analysis (Free=Gemini, Pro=Sonnet, Premium=Opus)
 - [x] **WAF protection** - Rate limiting, SQL injection, XSS prevention
 - [x] **CloudWatch monitoring** - Alarms, dashboard, log insights
 - [x] Real-time job status polling (useJobPolling hook + JobContext)
@@ -194,10 +207,11 @@ The Python engine (`backend/services/engine.py`) parses:
 - [x] Stripe webhooks (checkout, subscription updates, cancellation)
 - [x] Email templates (verification, password reset, welcome, subscription)
 - [x] Fingerprinting cache migrated to Neon PostgreSQL
+- [x] 2FA (email-based default + authenticator app + backup codes)
 
 ## What's Not Built Yet
 
-- [ ] AI analysis integration in processor Lambda (tier-based)
+- [ ] AIInsightsPanel frontend component (backend ready)
 - [ ] Bank statement PDF parsing (future feature)
 
 ## Future Features

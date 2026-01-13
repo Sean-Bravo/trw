@@ -244,6 +244,79 @@ def send_completion_email(job_id: str, user_email: str, success: bool, error: st
         logger.warning(f"Failed to send email: {e}")
 
 
+def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
+    """
+    Generate AI insights for processed records.
+
+    Args:
+        records: List of transaction records
+        user_tier: User's subscription tier (free, pro, premium)
+
+    Returns:
+        Dictionary with AI insights or error
+    """
+    try:
+        from ai_insights import generate_insights, generate_quick_stats
+
+        secrets = get_secrets()
+
+        # Always generate quick stats (no AI needed)
+        quick_stats = generate_quick_stats(records)
+
+        # Try to generate AI insights
+        ai_result = generate_insights(records, user_tier, secrets)
+
+        if ai_result.get("success"):
+            return {
+                "success": True,
+                "quick_stats": quick_stats,
+                "ai_insights": ai_result.get("insights", {}),
+                "model": ai_result.get("model"),
+                "provider": ai_result.get("provider"),
+                "tier": user_tier,
+            }
+        else:
+            # AI failed, return quick stats only
+            logger.warning(f"AI insights failed: {ai_result.get('error')}")
+            return {
+                "success": True,
+                "quick_stats": quick_stats,
+                "ai_insights": None,
+                "ai_error": ai_result.get("error"),
+                "tier": user_tier,
+            }
+
+    except ImportError as e:
+        logger.warning(f"AI insights module not available: {e}")
+        return {
+            "success": False,
+            "error": "AI insights not available",
+        }
+    except Exception as e:
+        logger.error(f"Error generating AI insights: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+        }
+
+
+def upload_insights(bucket: str, job_id: str, insights: Dict):
+    """Upload AI insights to S3."""
+    key = f"results/{job_id}/insights.json"
+    try:
+        s3_client.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=json.dumps(insights, default=str).encode("utf-8"),
+            ContentType="application/json",
+        )
+        logger.info(f"Uploaded insights to s3://{bucket}/{key}")
+        return key
+    except Exception as e:
+        logger.error(f"Failed to upload insights: {e}")
+        return None
+
+
 def process_message(message: Dict) -> Dict[str, Any]:
     """Process a single SQS message."""
     job_id = message.get("job_id")
@@ -251,8 +324,9 @@ def process_message(message: Dict) -> Dict[str, Any]:
     s3_key = message.get("s3_key")
     filename = message.get("filename")
     user_id = message.get("user_id", "anonymous")
+    user_tier = message.get("user_tier", "free")  # Default to free tier
 
-    logger.info(f"Processing job {job_id}: s3://{s3_bucket}/{s3_key}")
+    logger.info(f"Processing job {job_id}: s3://{s3_bucket}/{s3_key} (tier: {user_tier})")
 
     # Ensure secrets are loaded (sets DATABASE_URL)
     get_secrets()
@@ -273,6 +347,20 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 result["csv_output"],
             )
 
+            # Generate and upload AI insights
+            insights = None
+            # Parse the CSV output back to records for AI analysis
+            import csv
+            from io import StringIO
+            reader = csv.DictReader(StringIO(result["csv_output"]))
+            records = list(reader)
+
+            if records:
+                insights_result = generate_ai_insights(records, user_tier)
+                if insights_result.get("success") or insights_result.get("quick_stats"):
+                    upload_insights(RESULTS_BUCKET, job_id, insights_result)
+                    insights = insights_result
+
             logger.info(f"Job {job_id} completed successfully. {result['record_count']} records.")
 
             return {
@@ -281,6 +369,7 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 "result_key": result_key,
                 "record_count": result["record_count"],
                 "exchange": result.get("exchange"),
+                "has_insights": insights is not None,
             }
         else:
             # Upload error
