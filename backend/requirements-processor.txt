@@ -1,0 +1,6 @@
+# Processor Lambda - dependencies for CSV processing and AI
+pandas>=2.0.0
+chardet>=5.0.0
+psycopg2-binary>=2.9.0
+anthropic>=0.40.0
+# Note: Google Gemini uses REST API directly (no SDK) to save ~180MB

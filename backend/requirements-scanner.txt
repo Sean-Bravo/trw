@@ -1,0 +1,3 @@
+# Scanner Lambda - minimal dependencies
+# Only needs boto3 (included in Lambda runtime)
+# No external dependencies required

@@ -98,28 +98,47 @@ class AnthropicProvider(AIProvider):
 
 
 class GoogleProvider(AIProvider):
-    """Google Gemini provider for Free tier."""
+    """Google Gemini provider for Free tier - uses REST API directly to avoid heavy SDK."""
 
     def __init__(self, api_key: str, model: str, max_tokens: int):
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
+        self.base_url = "https://generativelanguage.googleapis.com/v1beta"
 
     def analyze(self, prompt: str, data: str) -> Dict[str, Any]:
         try:
-            import google.generativeai as genai
+            import urllib.request
+            import urllib.error
 
-            genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel(self.model)
+            url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
 
-            response = model.generate_content(
-                f"{prompt}\n\nTransaction Data:\n{data}",
-                generation_config=genai.types.GenerationConfig(
-                    max_output_tokens=self.max_tokens,
-                ),
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": f"{prompt}\n\nTransaction Data:\n{data}"}
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": self.max_tokens,
+                    "temperature": 0.7,
+                }
+            }
+
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST"
             )
 
-            response_text = response.text
+            with urllib.request.urlopen(req, timeout=60) as response:
+                result = json.loads(response.read().decode("utf-8"))
+
+            # Extract text from response
+            response_text = result["candidates"][0]["content"]["parts"][0]["text"]
 
             # Try to parse as JSON, fall back to text
             try:
@@ -137,6 +156,15 @@ class GoogleProvider(AIProvider):
                     "provider": "google",
                 }
 
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8") if e.fp else str(e)
+            logger.error(f"Google Gemini API HTTP error: {e.code} - {error_body}")
+            return {
+                "success": False,
+                "error": f"HTTP {e.code}: {error_body}",
+                "model": self.model,
+                "provider": "google",
+            }
         except Exception as e:
             logger.error(f"Google Gemini API error: {e}")
             return {

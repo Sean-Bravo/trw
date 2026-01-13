@@ -71,21 +71,7 @@ resource "aws_sqs_queue_policy" "processing" {
   })
 }
 
-# Lambda Event Source Mapping - Connect SQS to Processor Lambda
-resource "aws_lambda_event_source_mapping" "sqs_to_processor" {
-  event_source_arn = aws_sqs_queue.processing.arn
-  function_name    = aws_lambda_function.processor.function_name
-  batch_size       = 1
-  enabled          = true
-
-  scaling_config {
-    maximum_concurrency = 10
-  }
-
-  function_response_types = ["ReportBatchItemFailures"]
-
-  depends_on = [aws_iam_role_policy_attachment.processor_sqs]
-}
+# NOTE: SQS-to-Lambda event source mapping is defined in lambda.tf (processor_sqs)
 
 # CloudWatch Alarm for DLQ messages
 resource "aws_cloudwatch_metric_alarm" "dlq_messages" {
