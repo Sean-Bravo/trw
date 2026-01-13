@@ -3,16 +3,75 @@
 import { useState, useEffect } from 'react';
 import { User } from 'next-auth';
 import Link from 'next/link';
-import { ArrowLeft, Shield, ShieldCheck, Smartphone, Key, Copy, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Shield, ShieldCheck, Smartphone, Key, Copy, Check, Loader2, X, AlertTriangle } from 'lucide-react';
 
 interface SettingsClientProps {
   user: User;
+}
+
+interface ConfirmModalProps {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmText: string;
+  confirmVariant?: 'danger' | 'warning';
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function ConfirmModal({ isOpen, title, message, confirmText, confirmVariant = 'danger', onConfirm, onCancel }: ConfirmModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-start gap-4 mb-6">
+          <div className={`p-3 rounded-xl ${confirmVariant === 'danger' ? 'bg-red-500/10' : 'bg-amber-500/10'}`}>
+            <AlertTriangle className={`w-6 h-6 ${confirmVariant === 'danger' ? 'text-red-400' : 'text-amber-400'}`} />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">{title}</h3>
+            <p className="text-zinc-400 mt-1">{message}</p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-zinc-400 hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              confirmVariant === 'danger'
+                ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
+                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20'
+            }`}
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function SettingsClient({ user }: SettingsClientProps) {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showRegenerateCodes, setShowRegenerateCodes] = useState(false);
+  const [showDisableConfirm, setShowDisableConfirm] = useState(false);
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
@@ -84,8 +143,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
   };
 
   const disable2FA = async () => {
-    if (!confirm('Are you sure you want to disable two-factor authentication?')) return;
-
+    setShowDisableConfirm(false);
     setLoading(true);
     try {
       const res = await fetch('/api/auth/2fa/disable', { method: 'POST' });
@@ -116,8 +174,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
   };
 
   const regenerateBackupCodes = async () => {
-    if (!confirm('This will invalidate all your existing backup codes. Continue?')) return;
-
+    setShowRegenerateConfirm(false);
     setLoading(true);
     setError('');
     try {
@@ -206,7 +263,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               {twoFactorEnabled ? (
                 <>
                   <button
-                    onClick={regenerateBackupCodes}
+                    onClick={() => setShowRegenerateConfirm(true)}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
                   >
@@ -214,7 +271,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     {loading ? 'Generating...' : 'Regenerate Backup Codes'}
                   </button>
                   <button
-                    onClick={disable2FA}
+                    onClick={() => setShowDisableConfirm(true)}
                     disabled={loading}
                     className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
                   >
@@ -435,6 +492,27 @@ export function SettingsClient({ user }: SettingsClientProps) {
           </div>
         </div>
       </main>
+
+      {/* Confirmation Modals */}
+      <ConfirmModal
+        isOpen={showDisableConfirm}
+        title="Disable Two-Factor Authentication"
+        message="Are you sure you want to disable two-factor authentication? This will make your account less secure."
+        confirmText="Disable 2FA"
+        confirmVariant="danger"
+        onConfirm={disable2FA}
+        onCancel={() => setShowDisableConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showRegenerateConfirm}
+        title="Regenerate Backup Codes"
+        message="This will invalidate all your existing backup codes. Make sure you save the new codes after regenerating."
+        confirmText="Regenerate Codes"
+        confirmVariant="warning"
+        onConfirm={regenerateBackupCodes}
+        onCancel={() => setShowRegenerateConfirm(false)}
+      />
     </div>
   );
 }
