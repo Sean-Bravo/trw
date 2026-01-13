@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
-import { Shield, Key, Loader2 } from 'lucide-react';
+import { Mail, Key, Loader2 } from 'lucide-react';
 
 function TwoFactorForm() {
   const router = useRouter();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const [useBackupCode, setUseBackupCode] = useState(false);
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
 
@@ -33,6 +35,37 @@ function TwoFactorForm() {
       router.push('/login');
     }
   }, [router]);
+
+  const handleResendCode = async () => {
+    if (!credentials || isResending) return;
+
+    setIsResending(true);
+    setError('');
+    setResendSuccess(false);
+
+    try {
+      const res = await fetch('/api/auth/2fa/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+        }),
+      });
+
+      if (res.ok) {
+        setResendSuccess(true);
+        setTimeout(() => setResendSuccess(false), 3000);
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to resend code');
+      }
+    } catch {
+      setError('Failed to resend code');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +137,9 @@ function TwoFactorForm() {
           Two-Factor Authentication
         </h2>
         <p className="mt-2 text-center text-sm text-zinc-400">
-          Enter the 6-digit code from your authenticator app
+          {useBackupCode
+            ? 'Enter one of your backup codes'
+            : `We sent a 6-digit code to ${credentials?.email || 'your email'}`}
         </p>
       </div>
 
@@ -115,10 +150,16 @@ function TwoFactorForm() {
               {useBackupCode ? (
                 <Key className="h-8 w-8 text-emerald-400" />
               ) : (
-                <Shield className="h-8 w-8 text-emerald-400" />
+                <Mail className="h-8 w-8 text-emerald-400" />
               )}
             </div>
           </div>
+
+          {resendSuccess && (
+            <div className="mb-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4">
+              <p className="text-sm text-emerald-300">New code sent! Check your email.</p>
+            </div>
+          )}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
@@ -162,7 +203,20 @@ function TwoFactorForm() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          {!useBackupCode && (
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={isResending}
+                className="text-sm text-zinc-500 hover:text-emerald-400 transition-colors disabled:opacity-50"
+              >
+                {isResending ? 'Sending...' : "Didn't receive the code? Resend"}
+              </button>
+            </div>
+          )}
+
+          <div className="mt-4 text-center">
             <button
               type="button"
               onClick={() => {
@@ -172,7 +226,7 @@ function TwoFactorForm() {
               }}
               className="text-sm text-zinc-500 hover:text-emerald-400 transition-colors"
             >
-              {useBackupCode ? 'Use authenticator code instead' : 'Use a backup code'}
+              {useBackupCode ? 'Use email code instead' : 'Use a backup code'}
             </button>
           </div>
 
