@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
-import { Mail, Key, Loader2 } from 'lucide-react';
+import { Mail, Key, Loader2, Smartphone } from 'lucide-react';
+
+type VerificationMethod = 'email' | 'authenticator' | 'backup';
 
 function TwoFactorForm() {
   const router = useRouter();
@@ -14,7 +16,7 @@ function TwoFactorForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
-  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [method, setMethod] = useState<VerificationMethod>('email');
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
 
   useEffect(() => {
@@ -87,7 +89,8 @@ function TwoFactorForm() {
           email: credentials.email,
           password: credentials.password,
           code: code.replace(/\s/g, ''),
-          isBackupCode: useBackupCode,
+          isBackupCode: method === 'backup',
+          useAuthenticatorApp: method === 'authenticator',
         }),
       });
 
@@ -137,8 +140,10 @@ function TwoFactorForm() {
           Two-Factor Authentication
         </h2>
         <p className="mt-2 text-center text-sm text-zinc-400">
-          {useBackupCode
+          {method === 'backup'
             ? 'Enter one of your backup codes'
+            : method === 'authenticator'
+            ? 'Enter the code from your authenticator app'
             : `We sent a 6-digit code to ${credentials?.email || 'your email'}`}
         </p>
       </div>
@@ -147,8 +152,10 @@ function TwoFactorForm() {
         <div className="bg-zinc-900/50 border border-zinc-800 py-8 px-4 shadow-2xl sm:rounded-2xl sm:px-10">
           <div className="flex justify-center mb-6">
             <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-              {useBackupCode ? (
+              {method === 'backup' ? (
                 <Key className="h-8 w-8 text-emerald-400" />
+              ) : method === 'authenticator' ? (
+                <Smartphone className="h-8 w-8 text-emerald-400" />
               ) : (
                 <Mail className="h-8 w-8 text-emerald-400" />
               )}
@@ -170,26 +177,26 @@ function TwoFactorForm() {
 
             <div>
               <label htmlFor="code" className="block text-sm font-medium text-zinc-300">
-                {useBackupCode ? 'Backup Code' : 'Verification Code'}
+                {method === 'backup' ? 'Backup Code' : 'Verification Code'}
               </label>
               <input
                 id="code"
                 name="code"
                 type="text"
-                inputMode={useBackupCode ? 'text' : 'numeric'}
+                inputMode={method === 'backup' ? 'text' : 'numeric'}
                 autoComplete="one-time-code"
                 required
-                maxLength={useBackupCode ? 9 : 6}
+                maxLength={method === 'backup' ? 9 : 6}
                 value={code}
-                onChange={(e) => setCode(useBackupCode ? e.target.value.toUpperCase() : e.target.value.replace(/\D/g, ''))}
-                placeholder={useBackupCode ? 'XXXX-XXXX' : '000000'}
+                onChange={(e) => setCode(method === 'backup' ? e.target.value.toUpperCase() : e.target.value.replace(/\D/g, ''))}
+                placeholder={method === 'backup' ? 'XXXX-XXXX' : '000000'}
                 className="mt-2 block w-full rounded-xl border border-zinc-700 bg-zinc-800/50 px-4 py-3 text-white text-center text-2xl font-mono tracking-[0.3em] placeholder-zinc-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-colors"
               />
             </div>
 
             <button
               type="submit"
-              disabled={isLoading || (!useBackupCode && code.length !== 6)}
+              disabled={isLoading || (method !== 'backup' && code.length !== 6)}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:ring-offset-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-500/20"
             >
               {isLoading ? (
@@ -203,7 +210,7 @@ function TwoFactorForm() {
             </button>
           </form>
 
-          {!useBackupCode && (
+          {method === 'email' && (
             <div className="mt-6 text-center">
               <button
                 type="button"
@@ -216,18 +223,50 @@ function TwoFactorForm() {
             </div>
           )}
 
-          <div className="mt-4 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setUseBackupCode(!useBackupCode);
-                setCode('');
-                setError('');
-              }}
-              className="text-sm text-zinc-500 hover:text-emerald-400 transition-colors"
-            >
-              {useBackupCode ? 'Use email code instead' : 'Use a backup code'}
-            </button>
+          <div className="mt-6 pt-4 border-t border-zinc-800">
+            <p className="text-xs text-zinc-500 text-center mb-3">Other verification methods</p>
+            <div className="flex justify-center gap-4">
+              {method !== 'email' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMethod('email');
+                    setCode('');
+                    setError('');
+                    handleResendCode();
+                  }}
+                  className="text-sm text-zinc-500 hover:text-emerald-400 transition-colors"
+                >
+                  Email code
+                </button>
+              )}
+              {method !== 'authenticator' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMethod('authenticator');
+                    setCode('');
+                    setError('');
+                  }}
+                  className="text-sm text-zinc-500 hover:text-emerald-400 transition-colors"
+                >
+                  Authenticator app
+                </button>
+              )}
+              {method !== 'backup' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMethod('backup');
+                    setCode('');
+                    setError('');
+                  }}
+                  className="text-sm text-zinc-500 hover:text-emerald-400 transition-colors"
+                >
+                  Backup code
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="mt-4 text-center">
