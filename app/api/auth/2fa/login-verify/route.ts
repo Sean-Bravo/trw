@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
-import { verifyToken, verifyBackupCode } from '@/lib/2fa';
+import { verifyBackupCode } from '@/lib/2fa';
 import { verifyPassword } from '@/lib/auth-db';
 
 interface User2FA {
   id: string;
-  two_factor_secret: string;
+  two_factor_login_code: string | null;
+  two_factor_login_code_expires: Date | null;
   backup_codes: string[] | null;
 }
 
@@ -25,11 +26,11 @@ export async function POST(request: Request) {
 
     // Get 2FA details
     const user2fa = await queryOne<User2FA>(
-      'SELECT id, two_factor_secret, backup_codes FROM users WHERE id = $1 AND two_factor_enabled = TRUE',
+      'SELECT id, two_factor_login_code, two_factor_login_code_expires, backup_codes FROM users WHERE id = $1 AND two_factor_enabled = TRUE',
       [user.id]
     );
 
-    if (!user2fa || !user2fa.two_factor_secret) {
+    if (!user2fa) {
       return NextResponse.json({ error: '2FA not enabled' }, { status: 400 });
     }
 
@@ -51,12 +52,24 @@ export async function POST(request: Request) {
         }
       }
     } else {
-      // Verify TOTP
-      valid = verifyToken(code, user2fa.two_factor_secret);
+      // Verify email code
+      if (user2fa.two_factor_login_code && user2fa.two_factor_login_code_expires) {
+        const now = new Date();
+        const expiresAt = new Date(user2fa.two_factor_login_code_expires);
+
+        if (user2fa.two_factor_login_code === code && now < expiresAt) {
+          valid = true;
+          // Clear the used code
+          await execute(
+            'UPDATE users SET two_factor_login_code = NULL, two_factor_login_code_expires = NULL WHERE id = $1',
+            [user.id]
+          );
+        }
+      }
     }
 
     if (!valid) {
-      return NextResponse.json({ error: 'Invalid verification code' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid or expired verification code' }, { status: 401 });
     }
 
     // Return success - client will complete sign in
