@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.execute-api.us-east-1.amazonaws.com';
+// Custom domain doesn't need /prod prefix - it's mapped directly
+const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * POST /api/uploads/[uploadId]/confirm
@@ -36,7 +37,7 @@ export async function POST(
     const parts = uploadId.split('/');
     const jobId = parts.length >= 2 ? parts[1] : uploadId;
 
-    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/prod/confirm-upload`, {
+    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/confirm-upload`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

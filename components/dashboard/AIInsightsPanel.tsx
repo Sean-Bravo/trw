@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown, TrendingUp, Calendar, Coins, Lightbulb } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
 import { JobStatus } from '@/hooks/useJobPolling';
+import { getJobInsights, AIInsights } from '@/lib/upload-client';
 
 export type InsightStatus = 'idle' | 'detecting' | 'analyzing' | 'complete' | 'error';
 
@@ -68,7 +69,34 @@ function mapJobStatusToInsightStatus(jobStatus: JobStatus): InsightStatus {
 
 export function AIInsightsPanel() {
   const { activeJob, isPolling } = useJobContext();
-  const [expandedPanel, setExpandedPanel] = useState<'exchange' | 'transactions' | 'flags' | null>(null);
+  const [expandedPanel, setExpandedPanel] = useState<'exchange' | 'transactions' | 'flags' | 'ai' | null>(null);
+  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
+
+  // Fetch AI insights when job completes
+  useEffect(() => {
+    if (activeJob?.status === 'succeeded' && activeJob.jobId) {
+      setInsightsLoading(true);
+      setInsightsError(null);
+
+      getJobInsights(activeJob.jobId)
+        .then((data) => {
+          setAiInsights(data);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch AI insights:', err);
+          setInsightsError(err.message || 'Failed to load insights');
+        })
+        .finally(() => {
+          setInsightsLoading(false);
+        });
+    } else if (!activeJob || activeJob.status !== 'succeeded') {
+      // Reset when no active job or job not complete
+      setAiInsights(null);
+      setInsightsError(null);
+    }
+  }, [activeJob?.jobId, activeJob?.status]);
 
   // Derive insight state from active job
   const state = useMemo((): AIInsightsState => {
@@ -85,18 +113,33 @@ export function AIInsightsPanel() {
     else if (activeJob.status === 'running') progress = 60;
     else if (activeJob.status === 'succeeded') progress = 100;
 
+    // Use AI insights data if available
+    const quickStats = aiInsights?.quick_stats;
+    const aiData = aiInsights?.ai_insights;
+
     return {
       status,
       exchange: result?.['exchangeDetected'] as string | undefined,
       exchangeDetails: result?.['exchangeDetails'] as AIInsightsState['exchangeDetails'],
-      transactionsFound: (result?.['transactionCount'] as number) || 0,
-      transactionsAnalyzed: status === 'complete' ? (result?.['transactionCount'] as number) || 0 : 0,
-      transactionDetails: result?.['transactionDetails'] as AIInsightsState['transactionDetails'],
+      transactionsFound: quickStats?.total_transactions || (result?.['transactionCount'] as number) || 0,
+      transactionsAnalyzed: status === 'complete' ? (quickStats?.total_transactions || (result?.['transactionCount'] as number) || 0) : 0,
+      transactionDetails: quickStats ? {
+        buys: quickStats.transaction_types?.['buy'] || quickStats.transaction_types?.['Buy'] || 0,
+        sells: quickStats.transaction_types?.['sell'] || quickStats.transaction_types?.['Sell'] || 0,
+        transfers: quickStats.transaction_types?.['transfer'] || quickStats.transaction_types?.['Transfer'] || 0,
+        fees: quickStats.transaction_types?.['fee'] || quickStats.transaction_types?.['Fee'] || 0,
+        dateRange: quickStats.date_range?.start && quickStats.date_range?.end
+          ? `${quickStats.date_range.start} - ${quickStats.date_range.end}`
+          : undefined,
+      } : (result?.['transactionDetails'] as AIInsightsState['transactionDetails']),
       progress,
-      taxFlags: result?.['taxFlags'] as AIInsightsState['taxFlags'],
+      taxFlags: aiData?.potential_issues?.length ? {
+        count: aiData.potential_issues.length,
+        issues: aiData.potential_issues,
+      } : (result?.['taxFlags'] as AIInsightsState['taxFlags']),
       error: activeJob.error || undefined,
     };
-  }, [activeJob]);
+  }, [activeJob, aiInsights]);
 
   const { status, exchange, exchangeDetails, transactionsFound = 0, transactionsAnalyzed = 0, transactionDetails, progress = 0, taxFlags, error } = state;
 
@@ -325,6 +368,132 @@ export function AIInsightsPanel() {
           )}
         </button>
 
+        {/* AI Summary Panel - Shows when insights are available */}
+        {isComplete && (aiInsights?.ai_insights || insightsLoading) && (
+          <button
+            onClick={() => setExpandedPanel(expandedPanel === 'ai' ? null : 'ai')}
+            className={`w-full rounded-xl p-4 shadow-lg transition-all text-left hover:shadow-xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-400/30 ${
+              expandedPanel === 'ai' ? 'ring-2 ring-indigo-400/50' : ''
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                  {insightsLoading ? (
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  ) : (
+                    <Sparkles className="w-5 h-5 text-white" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-800 flex items-center gap-2">
+                    AI Analysis
+                    {aiInsights?.tier && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        aiInsights.tier === 'premium' ? 'bg-purple-100 text-purple-600' :
+                        aiInsights.tier === 'pro' ? 'bg-indigo-100 text-indigo-600' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {aiInsights.tier.charAt(0).toUpperCase() + aiInsights.tier.slice(1)}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-slate-400 text-sm">
+                    {insightsLoading ? 'Generating insights...' :
+                     aiInsights?.ai_insights?.summary ? 'AI-powered analysis ready' :
+                     'Basic stats available'}
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedPanel === 'ai' ? 'rotate-180' : ''}`} />
+            </div>
+
+            {/* Expanded AI Details */}
+            {expandedPanel === 'ai' && aiInsights?.ai_insights && (
+              <div className="mt-4 pt-4 border-t border-indigo-200 space-y-4">
+                {/* Summary */}
+                {aiInsights.ai_insights.summary && (
+                  <div className="bg-white/70 rounded-lg p-3">
+                    <p className="text-sm text-slate-700 leading-relaxed">{aiInsights.ai_insights.summary}</p>
+                  </div>
+                )}
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {aiInsights.ai_insights.total_transactions && (
+                    <div className="bg-white/70 rounded-lg p-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-indigo-500" />
+                      <div>
+                        <p className="text-lg font-bold text-slate-800">{aiInsights.ai_insights.total_transactions}</p>
+                        <p className="text-xs text-slate-500">Transactions</p>
+                      </div>
+                    </div>
+                  )}
+                  {aiInsights.ai_insights.estimated_events && (
+                    <div className="bg-white/70 rounded-lg p-3 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-purple-500" />
+                      <div>
+                        <p className="text-lg font-bold text-slate-800">{aiInsights.ai_insights.estimated_events}</p>
+                        <p className="text-xs text-slate-500">Taxable Events</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Top Assets */}
+                {aiInsights.ai_insights.top_assets && aiInsights.ai_insights.top_assets.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <Coins className="w-3 h-3" /> Top Assets
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {aiInsights.ai_insights.top_assets.slice(0, 5).map((asset, i) => (
+                        <span key={i} className="px-2 py-1 bg-white/70 rounded text-sm text-slate-700">
+                          {asset.asset} <span className="text-slate-400">({asset.count})</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tax Tips */}
+                {aiInsights.ai_insights.tax_tips && aiInsights.ai_insights.tax_tips.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <Lightbulb className="w-3 h-3" /> Tax Tips
+                    </p>
+                    <div className="space-y-2">
+                      {aiInsights.ai_insights.tax_tips.map((tip, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm bg-white/70 rounded-lg p-2">
+                          <span className="text-amber-500 font-bold">{i + 1}.</span>
+                          <span className="text-slate-700">{tip}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Model Info */}
+                {aiInsights.model && (
+                  <div className="text-xs text-slate-400 pt-2 border-t border-indigo-100">
+                    Powered by {aiInsights.provider === 'anthropic' ? 'Claude' : 'Gemini'} ({aiInsights.model})
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AI Error State */}
+            {expandedPanel === 'ai' && aiInsights?.ai_error && (
+              <div className="mt-4 pt-4 border-t border-indigo-200">
+                <div className="flex items-center gap-2 text-sm text-amber-600">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>AI analysis unavailable: {aiInsights.ai_error}</span>
+                </div>
+              </div>
+            )}
+          </button>
+        )}
+
         {/* Error State */}
         {hasError && error && (
           <div className="bg-red-50 rounded-xl p-4 flex items-center gap-3 shadow-lg border-2 border-red-400/50">
@@ -335,6 +504,14 @@ export function AIInsightsPanel() {
               <p className="font-semibold text-slate-800">Processing Error</p>
               <p className="text-red-600 text-sm">{error}</p>
             </div>
+          </div>
+        )}
+
+        {/* Insights Loading Error */}
+        {insightsError && (
+          <div className="bg-amber-50 rounded-xl p-4 flex items-center gap-3 shadow-lg border border-amber-400/50">
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <p className="text-amber-700 text-sm">{insightsError}</p>
           </div>
         )}
       </div>
@@ -349,7 +526,7 @@ export function AIInsightsPanel() {
             {isProcessing
               ? 'Processing your file...'
               : isComplete
-                ? 'Analysis complete'
+                ? `Analysis complete${aiInsights?.tier ? ` (${aiInsights.tier} tier)` : ''}`
                 : 'Panels update in real-time during processing'}
           </span>
         </div>

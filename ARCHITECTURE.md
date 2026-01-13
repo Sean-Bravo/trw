@@ -167,6 +167,7 @@ The Python engine (`backend/services/engine.py`) parses:
 | `app/api/jobs/[jobId]/download/route.ts` | Generates S3 download URLs |
 | `app/api/jobs/[jobId]/insights/route.ts` | Fetches AI insights for job |
 | `lib/upload-client.ts` | Frontend upload flow (3-stage progress) + `getJobInsights()` |
+| `components/dashboard/AIInsightsPanel.tsx` | AI insights display (summary, stats, tips) |
 | `lib/auth-db.ts` | User registration, login, 2FA, password reset |
 | `backend/services/engine.py` | Core CSV processing engine |
 | `backend/services/fingerprinting.py` | Exchange format detection |
@@ -180,7 +181,7 @@ The Python engine (`backend/services/engine.py`) parses:
 | AWS S3 | File storage (uploads, results) | Managed by Terraform |
 | AWS SQS | Job queue | Managed by Terraform |
 | AWS Lambda | Python processing (3 functions) | Managed by Terraform |
-| AWS API Gateway | Lambda HTTP API | `API_GATEWAY_URL` |
+| AWS API Gateway | Lambda HTTP API | `api.taxformatter.com` |
 | AWS Secrets Manager | Sensitive config | Managed by Terraform |
 | Stripe | Payments | `STRIPE_*` env vars |
 | Google OAuth | Social login | `GOOGLE_CLIENT_*` |
@@ -205,7 +206,8 @@ The Python engine (`backend/services/engine.py`) parses:
 - [x] **WAF protection** - Rate limiting, SQL injection, XSS prevention
 - [x] **CloudWatch monitoring** - Alarms, dashboard, log insights
 - [x] Real-time job status polling (useJobPolling hook + JobContext)
-- [x] AI insights panel connected to backend results
+- [x] AI insights panel connected to backend results (AIInsightsPanel.tsx)
+- [x] API routes updated to use custom domain (api.taxformatter.com)
 - [x] Frontend test coverage (62 tests across 5 suites)
 - [x] Stripe webhooks (checkout, subscription updates, cancellation)
 - [x] Email templates (verification, password reset, welcome, subscription)
@@ -214,7 +216,6 @@ The Python engine (`backend/services/engine.py`) parses:
 
 ## What's Not Built Yet
 
-- [ ] AIInsightsPanel frontend component (backend ready)
 - [ ] Bank statement PDF parsing (future feature)
 
 ## Future Features

@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getJobById } from '@/lib/jobs-db';
 
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.execute-api.us-east-1.amazonaws.com';
+// Custom domain doesn't need /prod prefix - it's mapped directly
+const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * GET /api/jobs/[jobId]
@@ -56,7 +57,7 @@ export async function GET(
 
     // 3. Fallback to Lambda/S3 status check
     // Route: GET /job/{jobId} (see backend/handlers/webhook.py)
-    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/prod/job/${jobId}`, {
+    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/job/${jobId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
