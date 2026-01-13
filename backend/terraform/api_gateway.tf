@@ -110,6 +110,12 @@ resource "aws_apigatewayv2_route" "job_status" {
   target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
 }
 
+resource "aws_apigatewayv2_route" "insights" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /insights/{jobId}"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
 # Lambda Permission for API Gateway
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowExecutionFromAPIGateway"
@@ -159,4 +165,74 @@ resource "aws_cloudwatch_metric_alarm" "api_gateway_4xx" {
   }
 
   tags = local.common_tags
+}
+
+# =============================================================================
+# Custom Domain: api.taxformatter.com
+# =============================================================================
+
+# ACM Certificate for api.taxformatter.com
+resource "aws_acm_certificate" "api" {
+  domain_name       = "api.${var.domain_name}"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "api.${var.domain_name}"
+  })
+}
+
+# Certificate validation DNS records (output for manual creation in DNS provider)
+output "api_certificate_validation" {
+  description = "DNS validation records for ACM certificate"
+  value = {
+    for dvo in aws_acm_certificate.api.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      value  = dvo.resource_record_value
+    }
+  }
+}
+
+# Wait for certificate validation
+resource "aws_acm_certificate_validation" "api" {
+  certificate_arn = aws_acm_certificate.api.arn
+
+  timeouts {
+    create = "30m"
+  }
+}
+
+# API Gateway Custom Domain
+resource "aws_apigatewayv2_domain_name" "api" {
+  domain_name = "api.${var.domain_name}"
+
+  domain_name_configuration {
+    certificate_arn = aws_acm_certificate_validation.api.certificate_arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+
+  tags = local.common_tags
+}
+
+# Map custom domain to API Gateway stage
+resource "aws_apigatewayv2_api_mapping" "api" {
+  api_id      = aws_apigatewayv2_api.main.id
+  domain_name = aws_apigatewayv2_domain_name.api.id
+  stage       = aws_apigatewayv2_stage.prod.id
+}
+
+# Output the target domain name for DNS CNAME record
+output "api_domain_target" {
+  description = "Target domain for CNAME record (api.taxformatter.com -> this value)"
+  value       = aws_apigatewayv2_domain_name.api.domain_name_configuration[0].target_domain_name
+}
+
+output "api_custom_domain" {
+  description = "Custom API domain"
+  value       = "https://api.${var.domain_name}"
 }

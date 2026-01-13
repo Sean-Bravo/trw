@@ -321,5 +321,52 @@ export function formatFileSize(bytes: number): string {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
+/**
+ * AI Insights response type
+ */
+export interface AIInsights {
+  success: boolean;
+  quick_stats?: {
+    total_transactions: number;
+    transaction_types: Record<string, number>;
+    assets: string[];
+    unique_assets: number;
+    date_range: { start: string | null; end: string | null };
+  };
+  ai_insights?: {
+    summary: string;
+    total_transactions: number;
+    date_range: { start: string; end: string };
+    transaction_types: Record<string, number>;
+    top_assets: Array<{ asset: string; count: number }>;
+    potential_issues: string[];
+    tax_tips: string[];
+    estimated_events: number;
+  };
+  tier?: 'free' | 'pro' | 'premium';
+  model?: string;
+  provider?: string;
+  ai_error?: string;
+  message?: string;
+}
+
+/**
+ * Get AI insights for completed job
+ */
+export async function getJobInsights(jobId: string): Promise<AIInsights> {
+  const response = await fetch(
+    `/api/jobs/${encodeURIComponent(jobId)}/insights`
+  );
+
+  if (!response.ok) {
+    throw {
+      code: 'SERVER_ERROR',
+      message: 'Failed to get insights',
+    } as UploadError;
+  }
+
+  return response.json();
+}
+
 // Re-export for backwards compatibility
 export type PresignedPostResponse = PresignedUrlResponse;
