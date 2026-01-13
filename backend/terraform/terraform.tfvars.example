@@ -10,9 +10,9 @@ database_url = "postgresql://user:password@ep-xxx.us-east-1.aws.neon.tech/neondb
 
 # Application secrets
 nextauth_secret       = "your-nextauth-secret-here"
-anthropic_api_key     = "sk-ant-xxx"
+anthropic_api_key     =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
 openai_api_key        = ""  # Optional
-google_gemini_api_key = ""  # Optional
+google_gemini_api_key =AIzaSyDPyaBK8KCguF1p_GhruvklVZ5CoOBQqMk
 
 # Email configuration
 alert_email      = "alerts@yourdomain.com"

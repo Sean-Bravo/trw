@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.execute-api.us-east-1.amazonaws.com';
+// Custom domain doesn't need /prod prefix - it's mapped directly
+const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * POST /api/uploads/presigned-url
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Call AWS Lambda via API Gateway
     // Route: POST /presigned-url (see backend/handlers/webhook.py)
-    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/prod/presigned-url`, {
+    const lambdaResponse = await fetch(`${API_GATEWAY_URL}/presigned-url`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

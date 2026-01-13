@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://in4wj9vldj.execute-api.us-east-1.amazonaws.com';
+// Custom domain doesn't need /prod prefix - it's mapped directly
+const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * GET /api/jobs/[jobId]/insights
@@ -27,7 +28,7 @@ export async function GET(
     // 2. Call AWS Lambda via API Gateway
     // Route: GET /insights/{jobId} (see backend/handlers/webhook.py)
     const lambdaResponse = await fetch(
-      `${API_GATEWAY_URL}/prod/insights/${encodeURIComponent(jobId)}`,
+      `${API_GATEWAY_URL}/insights/${encodeURIComponent(jobId)}`,
       {
         method: 'GET',
         headers: {
