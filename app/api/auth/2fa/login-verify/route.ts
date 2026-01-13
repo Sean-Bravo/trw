@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
-import { verifyBackupCode } from '@/lib/2fa';
+import { verifyBackupCode, verifyToken } from '@/lib/2fa';
 import { verifyPassword } from '@/lib/auth-db';
 
 interface User2FA {
   id: string;
+  two_factor_secret: string | null;
   two_factor_login_code: string | null;
   two_factor_login_code_expires: Date | null;
   backup_codes: string[] | null;
@@ -12,7 +13,7 @@ interface User2FA {
 
 export async function POST(request: Request) {
   try {
-    const { email, password, code, isBackupCode } = await request.json();
+    const { email, password, code, isBackupCode, useAuthenticatorApp } = await request.json();
 
     if (!email || !password || !code) {
       return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
 
     // Get 2FA details
     const user2fa = await queryOne<User2FA>(
-      'SELECT id, two_factor_login_code, two_factor_login_code_expires, backup_codes FROM users WHERE id = $1 AND two_factor_enabled = TRUE',
+      'SELECT id, two_factor_secret, two_factor_login_code, two_factor_login_code_expires, backup_codes FROM users WHERE id = $1 AND two_factor_enabled = TRUE',
       [user.id]
     );
 
@@ -51,8 +52,13 @@ export async function POST(request: Request) {
           valid = true;
         }
       }
+    } else if (useAuthenticatorApp) {
+      // Verify TOTP from authenticator app
+      if (user2fa.two_factor_secret) {
+        valid = verifyToken(code, user2fa.two_factor_secret);
+      }
     } else {
-      // Verify email code
+      // Verify email code (default)
       if (user2fa.two_factor_login_code && user2fa.two_factor_login_code_expires) {
         const now = new Date();
         const expiresAt = new Date(user2fa.two_factor_login_code_expires);
