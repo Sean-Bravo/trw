@@ -7,7 +7,10 @@ function getTransporter() {
   const user = process.env['SMTP_USER'];
   const pass = process.env['SMTP_PASSWORD'];
 
+  console.log('[Email] SMTP Config:', { host, port, user, hasPassword: !!pass });
+
   if (!host || !user || !pass) {
+    console.error('[Email] SMTP configuration missing:', { host: !!host, user: !!user, pass: !!pass });
     throw new Error('SMTP configuration missing. Set SMTP_HOST, SMTP_USER, and SMTP_PASSWORD.');
   }
 
@@ -37,6 +40,7 @@ export async function sendVerificationEmail(
   code: string,
   name?: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log('[Email] sendVerificationEmail called for:', email);
   try {
     const transporter = getTransporter();
     const fromEmail = process.env['EMAIL_FROM'] || 'noreply@taxformatter.com';
@@ -95,6 +99,7 @@ If you didn't create an account, you can safely ignore this email.
 © ${new Date().getFullYear()} ${siteName}
     `.trim();
 
+    console.log('[Email] Sending verification email to:', email);
     await transporter.sendMail({
       from: `"${siteName}" <${fromEmail}>`,
       to: email,
@@ -103,6 +108,7 @@ If you didn't create an account, you can safely ignore this email.
       html: htmlContent,
     });
 
+    console.log('[Email] Verification email sent successfully to:', email);
     return { success: true };
   } catch (error) {
     console.error('[Email] Failed to send verification email:', error);
@@ -121,6 +127,7 @@ export async function sendPasswordResetEmail(
   resetUrl: string,
   name?: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log('[Email] sendPasswordResetEmail called for:', email);
   try {
     const transporter = getTransporter();
     const fromEmail = process.env['EMAIL_FROM'] || 'noreply@taxformatter.com';
@@ -182,6 +189,7 @@ If you didn't request a password reset, you can safely ignore this email.
 © ${new Date().getFullYear()} ${siteName}
     `.trim();
 
+    console.log('[Email] Sending password reset email to:', email);
     await transporter.sendMail({
       from: `"${siteName}" <${fromEmail}>`,
       to: email,
@@ -190,6 +198,7 @@ If you didn't request a password reset, you can safely ignore this email.
       html: htmlContent,
     });
 
+    console.log('[Email] Password reset email sent successfully to:', email);
     return { success: true };
   } catch (error) {
     console.error('[Email] Failed to send password reset email:', error);
