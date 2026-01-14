@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { getJobById } from '@/lib/jobs-db';
+import { getJobById, updateJobStatus } from '@/lib/jobs-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
@@ -27,29 +27,34 @@ export async function GET(
     const { jobId } = await params;
 
     // 2. Try to get job from Neon DB first
+    let dbJob: Awaited<ReturnType<typeof getJobById>> = null;
     try {
-      const job = await getJobById(jobId);
+      dbJob = await getJobById(jobId);
 
-      if (job) {
+      if (dbJob) {
         // Verify user owns this job (via upload)
-        if (job.upload.user_id !== session.user.id) {
+        if (dbJob.upload.user_id !== session.user.id) {
           return NextResponse.json(
             { error: 'Unauthorized' },
             { status: 403 }
           );
         }
 
-        return NextResponse.json({
-          jobId: job.id,
-          uploadId: job.upload_id,
-          status: job.status,
-          result: job.result,
-          error: job.error,
-          createdAt: job.created_at,
-          startedAt: job.started_at,
-          finishedAt: job.finished_at,
-          filename: job.upload.filename,
-        });
+        // If job is in terminal state, return from DB (no need to check Lambda)
+        if (['succeeded', 'failed', 'canceled'].includes(dbJob.status)) {
+          return NextResponse.json({
+            jobId: dbJob.id,
+            uploadId: dbJob.upload_id,
+            status: dbJob.status,
+            result: dbJob.result,
+            error: dbJob.error,
+            createdAt: dbJob.created_at,
+            startedAt: dbJob.started_at,
+            finishedAt: dbJob.finished_at,
+            filename: dbJob.upload.filename,
+          });
+        }
+        // Non-terminal status (queued/running) - check Lambda for latest status
       }
     } catch (dbError) {
       console.warn('[Job Status] DB lookup failed, trying Lambda:', dbError);
@@ -80,12 +85,44 @@ export async function GET(
 
     const data = await lambdaResponse.json();
 
+    // Map Lambda status to frontend status
+    const statusMap: Record<string, string> = {
+      'pending': 'queued',
+      'processing': 'running',
+      'completed': 'succeeded',
+      'failed': 'failed',
+    };
+
+    const mappedStatus = statusMap[data.status] || data.status;
+
+    // Sync terminal status to DB (succeeded/failed) so it persists
+    if (mappedStatus === 'succeeded' || mappedStatus === 'failed') {
+      try {
+        await updateJobStatus(
+          jobId,
+          mappedStatus as 'succeeded' | 'failed',
+          data.result || undefined,
+          data.error || undefined
+        );
+        console.log(`[Job Status] Synced ${mappedStatus} status to DB for job ${jobId}`);
+      } catch (syncError) {
+        console.warn('[Job Status] Failed to sync status to DB:', syncError);
+      }
+    }
+
     // Transform Lambda response to match expected format
+    // Use DB job data if available for accurate timestamps/filename
     return NextResponse.json({
       jobId: data.jobId,
-      status: data.status,
+      uploadId: dbJob?.upload_id || jobId,
+      status: mappedStatus,
       progress: data.progress,
-      error: data.error,
+      error: data.error || null,
+      result: data.result || null,
+      createdAt: dbJob?.created_at || new Date().toISOString(),
+      startedAt: dbJob?.started_at || null,
+      finishedAt: data.status === 'completed' || data.status === 'failed' ? new Date().toISOString() : null,
+      filename: dbJob?.upload.filename || data.filename || 'Unknown file',
     });
 
   } catch (error) {

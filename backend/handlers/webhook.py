@@ -15,6 +15,7 @@ import json
 import uuid
 import logging
 import boto3
+from botocore.exceptions import ClientError
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -183,7 +184,7 @@ def handle_confirm_upload(event: Dict) -> Dict:
             "message": "File uploaded successfully. Processing will begin shortly.",
         })
 
-    except s3_client.exceptions.ClientError as e:
+    except ClientError as e:
         if e.response["Error"]["Code"] == "404":
             return response(404, {"error": "File not found in S3"})
         logger.error(f"S3 error confirming upload: {e}")
@@ -210,50 +211,65 @@ def handle_job_status(event: Dict) -> Dict:
     if not job_id:
         return response(400, {"error": "jobId is required"})
 
-    try:
-        # Check if result file exists (completed)
-        result_key = f"results/{job_id}/output.csv"
-        try:
-            s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
-            return response(200, {
-                "jobId": job_id,
-                "status": "completed",
-                "progress": 100,
-            })
-        except s3_client.exceptions.ClientError:
-            pass
+    logger.info(f"Getting status for job {job_id}, UPLOADS_BUCKET={UPLOADS_BUCKET}, RESULTS_BUCKET={RESULTS_BUCKET}")
 
-        # Check if source file exists (pending/processing)
+    try:
+        # Get filename from uploads bucket first (needed for all statuses)
+        filename = "Unknown file"
         try:
-            result = s3_client.list_objects_v2(
+            upload_result = s3_client.list_objects_v2(
                 Bucket=UPLOADS_BUCKET,
                 Prefix=f"uploads/{job_id}/",
                 MaxKeys=1,
             )
-            if result.get("KeyCount", 0) > 0:
-                # File exists, check for error marker
-                try:
-                    error_key = f"results/{job_id}/error.json"
-                    error_obj = s3_client.get_object(Bucket=RESULTS_BUCKET, Key=error_key)
-                    error_data = json.loads(error_obj["Body"].read().decode("utf-8"))
-                    return response(200, {
-                        "jobId": job_id,
-                        "status": "failed",
-                        "error": error_data.get("error", "Unknown error"),
-                    })
-                except s3_client.exceptions.ClientError:
-                    pass
-
-                # File exists but no result yet - still processing
-                return response(200, {
-                    "jobId": job_id,
-                    "status": "processing",
-                    "progress": 50,
-                })
-        except s3_client.exceptions.ClientError:
+            if upload_result.get("KeyCount", 0) > 0:
+                s3_key = upload_result.get("Contents", [{}])[0].get("Key", "")
+                filename = s3_key.split("/")[-1] if s3_key else "Unknown file"
+        except ClientError:
             pass
 
+        # Check if result file exists (completed)
+        result_key = f"results/{job_id}/output.csv"
+        try:
+            s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
+            logger.info(f"Job {job_id} completed - found output.csv")
+            return response(200, {
+                "jobId": job_id,
+                "status": "completed",
+                "progress": 100,
+                "filename": filename,
+            })
+        except ClientError as e:
+            logger.info(f"Job {job_id} no output.csv: {e.response['Error']['Code']}")
+
+        # If we found a file, check for error or processing status
+        if filename != "Unknown file":
+            # Check for error marker
+            try:
+                error_key = f"results/{job_id}/error.json"
+                error_obj = s3_client.get_object(Bucket=RESULTS_BUCKET, Key=error_key)
+                error_data = json.loads(error_obj["Body"].read().decode("utf-8"))
+                logger.info(f"Job {job_id} failed - found error.json")
+                return response(200, {
+                    "jobId": job_id,
+                    "status": "failed",
+                    "error": error_data.get("error", "Unknown error"),
+                    "filename": filename,
+                })
+            except ClientError as e:
+                logger.info(f"Job {job_id} no error.json: {e.response['Error']['Code']}")
+
+            # File exists but no result yet - still processing
+            logger.info(f"Job {job_id} still processing")
+            return response(200, {
+                "jobId": job_id,
+                "status": "processing",
+                "progress": 50,
+                "filename": filename,
+            })
+
         # No files found
+        logger.info(f"Job {job_id} not found - no files in uploads bucket")
         return response(404, {"error": "Job not found"})
 
     except Exception as e:
@@ -285,7 +301,7 @@ def handle_download(event: Dict) -> Dict:
         # Verify the result file exists
         try:
             s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
-        except s3_client.exceptions.ClientError as e:
+        except ClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return response(404, {"error": "Result file not found. Job may still be processing."})
             raise
@@ -345,7 +361,7 @@ def handle_insights(event: Dict) -> Dict:
 
             return response(200, insights_data)
 
-        except s3_client.exceptions.ClientError as e:
+        except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
                 # Check if job exists but insights not generated
                 result_key = f"results/{job_id}/output.csv"
@@ -358,7 +374,7 @@ def handle_insights(event: Dict) -> Dict:
                         "ai_insights": None,
                         "message": "Insights not available for this job",
                     })
-                except s3_client.exceptions.ClientError:
+                except ClientError:
                     pass
 
                 return response(404, {"error": "Job not found or still processing"})

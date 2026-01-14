@@ -19,7 +19,12 @@ from typing import Any, Dict, List
 from io import BytesIO
 
 # Add services directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services"))
+# In Lambda, services is at /var/task/services (same level as processor.py)
+# Locally, services is at ../services relative to handlers/
+services_path = os.path.join(os.path.dirname(__file__), "services")
+if not os.path.exists(services_path):
+    services_path = os.path.join(os.path.dirname(__file__), "..", "services")
+sys.path.insert(0, services_path)
 
 # Configure logging
 logger = logging.getLogger()

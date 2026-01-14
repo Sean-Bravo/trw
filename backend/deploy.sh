@@ -137,9 +137,13 @@ package_lambdas() {
         cp -r "$SERVICES_DIR" "$BUILD_DIR/processor/"
     fi
 
-    # Install processor dependencies
+    # Install processor dependencies (must use Linux platform for Lambda)
     if [ -f "$SCRIPT_DIR/requirements-processor.txt" ]; then
-        pip install --quiet -r "$SCRIPT_DIR/requirements-processor.txt" -t "$BUILD_DIR/processor"
+        pip install --quiet -r "$SCRIPT_DIR/requirements-processor.txt" -t "$BUILD_DIR/processor" \
+            --platform manylinux2014_x86_64 \
+            --implementation cp \
+            --python-version 312 \
+            --only-binary=:all:
     fi
 
     cd "$BUILD_DIR/processor"
