@@ -116,6 +116,12 @@ resource "aws_apigatewayv2_route" "insights" {
   target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
 }
 
+resource "aws_apigatewayv2_route" "job_retry" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /job/{jobId}/retry"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
 # Lambda Permission for API Gateway
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowExecutionFromAPIGateway"

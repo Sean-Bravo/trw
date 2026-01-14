@@ -84,6 +84,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   status           job_status NOT NULL DEFAULT 'queued',
   result           jsonb,          -- structured output from processing
   error            text,
+  retry_count      integer NOT NULL DEFAULT 0,
+  last_retry_at    timestamptz,
   created_at       timestamptz NOT NULL DEFAULT now(),
   started_at       timestamptz,
   finished_at      timestamptz

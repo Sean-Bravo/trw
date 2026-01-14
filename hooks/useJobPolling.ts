@@ -14,6 +14,8 @@ export interface JobData {
   startedAt: string | null;
   finishedAt: string | null;
   filename: string;
+  retryCount?: number;
+  lastRetryAt?: string | null;
 }
 
 interface UseJobPollingOptions {

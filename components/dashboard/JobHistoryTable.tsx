@@ -1,12 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Download, Clock, CheckCircle, XCircle, Loader2, FileText, Eye } from 'lucide-react';
+import { Download, Clock, CheckCircle, XCircle, Loader2, FileText, Eye, RotateCcw } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
 import { JobData } from '@/hooks/useJobPolling';
 
 export function JobHistoryTable() {
-  const { jobHistory, activeJob, setActiveJob } = useJobContext();
+  const { jobHistory, activeJob, setActiveJob, refreshJobHistory } = useJobContext();
 
   if (jobHistory.length === 0) {
     return (
@@ -32,6 +33,10 @@ export function JobHistoryTable() {
           job={job}
           isActive={activeJob?.jobId === job.jobId}
           onSelect={() => setActiveJob(job.jobId)}
+          onRetrySuccess={() => {
+            refreshJobHistory();
+            setActiveJob(job.jobId);
+          }}
         />
       ))}
     </div>
@@ -42,9 +47,37 @@ interface JobRowProps {
   job: JobData;
   isActive: boolean;
   onSelect: () => void;
+  onRetrySuccess: () => void;
 }
 
-function JobRow({ job, isActive, onSelect }: JobRowProps) {
+function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    setRetryError(null);
+
+    try {
+      const response = await fetch(`/api/jobs/${job.jobId}/retry`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setRetryError(data.error || 'Retry failed');
+        return;
+      }
+
+      // Refresh job list to show new status
+      onRetrySuccess();
+    } catch {
+      setRetryError('Failed to connect');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
   const statusConfig = {
     queued: {
       icon: <Clock className="h-4 w-4 text-zinc-500" />,
@@ -82,6 +115,10 @@ function JobRow({ job, isActive, onSelect }: JobRowProps) {
   const result = job.result as Record<string, unknown> | null;
   const transactionCount = result?.['transactionCount'] as number | undefined;
   const exchangeDetected = result?.['exchangeDetected'] as string | undefined;
+
+  // Retry info from job data
+  const retryCount = (job as { retryCount?: number }).retryCount || 0;
+  const lastRetryAt = (job as { lastRetryAt?: string }).lastRetryAt;
 
   // Format the date with time
   const formatDate = (dateStr: string) => {
@@ -155,9 +192,28 @@ function JobRow({ job, isActive, onSelect }: JobRowProps) {
           </button>
         )}
         {job.status === 'failed' && (
-          <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors">
-            Retry
-          </button>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={handleRetry}
+              disabled={isRetrying}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRetrying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4" />
+              )}
+              {isRetrying ? 'Retrying...' : 'Retry'}
+            </button>
+            {retryCount > 0 && (
+              <span className="text-xs text-zinc-500">
+                Tried {retryCount}x {lastRetryAt && `• ${formatDate(lastRetryAt)}`}
+              </span>
+            )}
+            {retryError && (
+              <span className="text-xs text-red-400">{retryError}</span>
+            )}
+          </div>
         )}
       </div>
     </div>
