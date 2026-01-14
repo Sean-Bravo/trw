@@ -27,18 +27,36 @@ User uploads CSV
        ↓
 Frontend → S3 (presigned URL)
        ↓
-S3 trigger → Virus Scanner Lambda
+Frontend calls /api/uploads/[uploadId]/confirm
        ↓
-If clean → SQS Queue
+Confirm route:
+  - Calls Lambda /confirm-upload
+  - Persists upload + job to Neon DB (queued status)
+  - Returns jobId to frontend
        ↓
-Processor Lambda
+S3 trigger → Scanner Lambda
+  - Validates file (size, type, security)
+  - Sends message to SQS queue
+       ↓
+SQS → Processor Lambda
   - Parse CSV (13 exchange formats)
   - AI categorization (tier-based)
-  - Generate fixed CSV
+  - Generate fixed CSV or error.json
+  - Generate AI insights
        ↓
-Result → S3
+Result → S3 (output.csv + insights.json OR error.json)
        ↓
-User downloads from dashboard
+Frontend polls /api/jobs/[jobId] every 2.5s
+  - Checks Neon DB first (terminal states: succeeded/failed)
+  - Falls back to Lambda for live status
+  - Syncs terminal status back to DB
+       ↓
+User sees real-time updates:
+  - "Scanning file for viruses..."
+  - "Analyzing transactions (X found)..."
+  - "Processing failed: [error]" or "Analysis complete"
+       ↓
+User downloads from dashboard (persists after sign out)
 ```
 
 ## Directory Structure
@@ -163,11 +181,19 @@ The Python engine (`backend/services/engine.py`) parses:
 | File | What It Does |
 |------|--------------|
 | `app/api/uploads/presigned-url/route.ts` | Generates S3 upload URLs |
-| `app/api/uploads/[uploadId]/confirm/route.ts` | Confirms upload, creates job |
+| `app/api/uploads/[uploadId]/confirm/route.ts` | Confirms upload, persists to Neon DB, creates job |
+| `app/api/jobs/route.ts` | Lists all jobs for user (from Neon DB) |
+| `app/api/jobs/[jobId]/route.ts` | Job status - DB first, Lambda fallback, syncs terminal states |
 | `app/api/jobs/[jobId]/download/route.ts` | Generates S3 download URLs |
 | `app/api/jobs/[jobId]/insights/route.ts` | Fetches AI insights for job |
 | `lib/upload-client.ts` | Frontend upload flow (3-stage progress) + `getJobInsights()` |
-| `components/dashboard/AIInsightsPanel.tsx` | AI insights display (summary, stats, tips) |
+| `lib/uploads-db.ts` | Upload database operations (createUpload, getUploadById) |
+| `lib/jobs-db.ts` | Job database operations (createJob, updateJobStatus, getJobById) |
+| `hooks/useJobPolling.ts` | Polls job status every 2.5s until terminal state |
+| `contexts/JobContext.tsx` | Global job state (activeJob, jobHistory, refreshJobHistory) |
+| `components/dashboard/AIInsightsPanel.tsx` | AI insights display with real-time status updates |
+| `components/dashboard/DiffViewer.tsx` | Changes preview with processing/error states |
+| `components/dashboard/JobHistoryTable.tsx` | Job history with filename, status, error display |
 | `lib/auth-db.ts` | User registration, login, 2FA, password reset |
 | `backend/services/engine.py` | Core CSV processing engine |
 | `backend/services/fingerprinting.py` | Exchange format detection |
@@ -193,6 +219,8 @@ The Python engine (`backend/services/engine.py`) parses:
 1. **Lambda concurrency** - SQS trigger limited to 10 concurrent executions
 2. **No VPC** - Lambdas connect directly to Neon (public internet) for faster cold starts
 3. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
+4. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
+5. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py needs to skip these
 
 ## What's Complete
 
@@ -213,10 +241,14 @@ The Python engine (`backend/services/engine.py`) parses:
 - [x] Email templates (verification, password reset, welcome, subscription)
 - [x] Fingerprinting cache migrated to Neon PostgreSQL
 - [x] 2FA (email-based default + authenticator app + backup codes)
+- [x] **Job persistence** - Uploads and jobs saved to Neon DB, persist after sign out
+- [x] **Real-time UI updates** - Status messages update every 2.5s during processing
+- [x] **DB-Lambda sync** - Terminal job states synced from Lambda to DB on poll
 
 ## What's Not Built Yet
 
 - [ ] Bank statement PDF parsing (future feature)
+- [ ] Coinbase CSV parsing (engine.py needs to skip metadata rows before headers)
 
 ## Future Features
 

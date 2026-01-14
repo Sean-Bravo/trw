@@ -66,30 +66,60 @@ export function DiffViewer() {
     return { headers: columns, rows, totalChanges };
   }, [activeJob?.result]);
 
+  // Get detailed status message
+  const getStatusMessage = () => {
+    if (!activeJob) return null;
+    switch (activeJob.status) {
+      case 'queued':
+        return { icon: 'spin', text: 'Virus scan in progress • Validating file format...' };
+      case 'running':
+        return { icon: 'spin', text: 'Detecting exchange format • Analyzing transactions...' };
+      case 'failed':
+        return { icon: 'error', text: activeJob.error || 'Processing failed' };
+      default:
+        return null;
+    }
+  };
+
   // Show empty state if no job or job not succeeded
   if (!activeJob || activeJob.status !== 'succeeded' || !diffData) {
-    // Show processing state
-    if (activeJob && (activeJob.status === 'queued' || activeJob.status === 'running')) {
+    const statusMsg = getStatusMessage();
+
+    // Show processing or error state
+    if (activeJob && statusMsg) {
+      const isError = activeJob.status === 'failed';
       return (
-        <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+        <div className={`bg-white/[0.03] backdrop-blur-sm border rounded-2xl p-6 ${
+          isError ? 'border-red-500/30' : 'border-white/10'
+        }`}>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-indigo-500/10">
-              <GitCompare className="w-5 h-5 text-indigo-400" />
+            <div className={`p-2 rounded-lg ${isError ? 'bg-red-500/10' : 'bg-indigo-500/10'}`}>
+              <GitCompare className={`w-5 h-5 ${isError ? 'text-red-400' : 'text-indigo-400'}`} />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-white">Changes Preview</h2>
               <p className="text-slate-400 text-sm">See what was fixed in your CSV</p>
             </div>
           </div>
-          <div className="flex flex-col items-center justify-center py-12 text-slate-500 gap-3">
-            <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
-            <p className="text-sm">Processing your file...</p>
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            {statusMsg.icon === 'spin' ? (
+              <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                <span className="text-red-400 text-xl">!</span>
+              </div>
+            )}
+            <p className={`text-sm text-center max-w-md ${isError ? 'text-red-400' : 'text-slate-500'}`}>
+              {statusMsg.text}
+            </p>
+            {!isError && (
+              <p className="text-xs text-slate-600">Checking status every 2.5 seconds...</p>
+            )}
           </div>
         </div>
       );
     }
 
-    // Empty state - no job
     // Empty state - no job selected
     return (
       <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">

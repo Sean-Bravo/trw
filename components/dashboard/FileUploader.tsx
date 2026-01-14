@@ -163,9 +163,9 @@ export function FileUploader() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-zinc-400">
-              {uploadStage === 'requesting' && 'Preparing upload...'}
-              {uploadStage === 'uploading' && 'Uploading file...'}
-              {uploadStage === 'confirming' && 'Confirming...'}
+              {uploadStage === 'requesting' && 'Preparing secure upload...'}
+              {uploadStage === 'uploading' && 'Uploading to secure storage...'}
+              {uploadStage === 'confirming' && 'Triggering virus scanner...'}
             </span>
             <span className="text-zinc-500 font-mono">{uploadProgress}%</span>
           </div>

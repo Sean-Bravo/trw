@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { createUpload } from '@/lib/uploads-db';
+import { queryOne } from '@/lib/db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
@@ -72,7 +74,30 @@ export async function POST(
 
     console.log(`[Upload Confirm] Created job ${data.jobId} for user ${userId}`);
 
-    // 4. Return job details
+    // 4. Persist to Neon database
+    // Extract filename from S3 key: uploads/{jobId}/{filename}
+    const s3KeyParts = uploadId.split('/');
+    const filename = s3KeyParts.length >= 3 ? s3KeyParts.slice(2).join('/') : 'Unknown file';
+
+    try {
+      // Create upload record
+      const upload = await createUpload(userId, filename, uploadId);
+
+      // Create job record linked to upload
+      await queryOne(
+        `INSERT INTO jobs (id, upload_id, status)
+         VALUES ($1, $2, 'queued')
+         RETURNING *`,
+        [data.jobId, upload.id]
+      );
+
+      console.log(`[Upload Confirm] Persisted upload ${upload.id} and job ${data.jobId} to DB`);
+    } catch (dbError) {
+      // Log but don't fail the request - Lambda processing will continue
+      console.error('[Upload Confirm] Failed to persist to DB:', dbError);
+    }
+
+    // 5. Return job details
     return NextResponse.json({
       jobId: data.jobId,
       uploadId: data.uploadId,

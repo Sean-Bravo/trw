@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown, TrendingUp, Calendar, Coins, Lightbulb } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown, TrendingUp, Calendar, Coins, Lightbulb, Shield, Search, FileCheck, Zap } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
 import { JobStatus } from '@/hooks/useJobPolling';
 import { getJobInsights, AIInsights } from '@/lib/upload-client';
@@ -66,6 +66,14 @@ function mapJobStatusToInsightStatus(jobStatus: JobStatus): InsightStatus {
       return 'idle';
   }
 }
+
+// Processing steps for visual display
+const PROCESSING_STEPS = [
+  { id: 'upload', label: 'Upload', icon: FileCheck },
+  { id: 'scan', label: 'Virus Scan', icon: Shield },
+  { id: 'detect', label: 'Detect Format', icon: Search },
+  { id: 'analyze', label: 'Analyze', icon: Zap },
+];
 
 export function AIInsightsPanel() {
   const { activeJob, isPolling } = useJobContext();
@@ -147,6 +155,17 @@ export function AIInsightsPanel() {
   const isComplete = status === 'complete';
   const hasError = status === 'error';
 
+  // Determine current step for progress indicator
+  const getCurrentStep = () => {
+    if (status === 'idle') return -1;
+    if (status === 'detecting') return 1; // Virus scan / detect
+    if (status === 'analyzing') return 3; // Analyze
+    if (status === 'complete') return 4;
+    if (status === 'error') return -1;
+    return 0;
+  };
+  const currentStep = getCurrentStep();
+
   return (
     <div className="bg-[#0d2847]/80 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden">
       {/* Subtle glow effects */}
@@ -158,6 +177,59 @@ export function AIInsightsPanel() {
         <h2 className="text-lg font-semibold text-white">AI Insights Panel</h2>
       </div>
 
+      {/* Processing Steps Indicator */}
+      {(isProcessing || isComplete) && (
+        <div className="mb-5 relative">
+          <div className="flex items-center justify-between">
+            {PROCESSING_STEPS.map((step, index) => {
+              const StepIcon = step.icon;
+              const isStepComplete = currentStep > index || isComplete;
+              const isStepActive = currentStep === index && !isComplete;
+
+              return (
+                <div key={step.id} className="flex flex-col items-center flex-1">
+                  <div className={`
+                    w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                    ${isStepComplete ? 'bg-emerald-500 text-white' :
+                      isStepActive ? 'bg-blue-500 text-white animate-pulse' :
+                      'bg-slate-700 text-slate-400'}
+                  `}>
+                    {isStepComplete ? (
+                      <CheckCircle2 className="w-5 h-5" />
+                    ) : isStepActive ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <StepIcon className="w-5 h-5" />
+                    )}
+                  </div>
+                  <span className={`text-xs mt-1 ${
+                    isStepComplete ? 'text-emerald-400' :
+                    isStepActive ? 'text-blue-400' :
+                    'text-slate-500'
+                  }`}>
+                    {step.label}
+                  </span>
+                  {/* Connector line */}
+                  {index < PROCESSING_STEPS.length - 1 && (
+                    <div className="absolute top-5 h-0.5 bg-slate-700" style={{
+                      left: `${(index + 1) * 25 - 10}%`,
+                      width: '20%',
+                    }}>
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          isStepComplete || currentStep > index ? 'bg-emerald-500' : 'bg-transparent'
+                        }`}
+                        style={{ width: isStepComplete || currentStep > index ? '100%' : '0%' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3 relative">
         {/* Exchange Detected */}
         <button
@@ -168,22 +240,20 @@ export function AIInsightsPanel() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                exchange ? 'bg-emerald-100' : 'bg-slate-100'
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                exchange ? 'bg-emerald-100' : status === 'detecting' ? 'bg-blue-100' : 'bg-slate-100'
               }`}>
                 {status === 'detecting' ? (
                   <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
                 ) : exchange ? (
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                 ) : (
-                  <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                  <Search className="w-5 h-5 text-slate-400" />
                 )}
               </div>
               <div>
-                <p className="font-semibold text-slate-800">Exchange Detected:</p>
-                <p className="text-slate-400 text-sm">
+                <p className="font-semibold text-slate-800">Exchange Detected</p>
+                <p className={`text-sm ${exchange ? 'text-emerald-600 font-medium' : 'text-slate-400'}`}>
                   {status === 'detecting' ? 'Scanning file...' : exchange || 'Waiting for upload...'}
                 </p>
               </div>
@@ -203,28 +273,32 @@ export function AIInsightsPanel() {
                 const details = exchangeDetails || defaultExchangeDetails;
                 return (
                   <>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Format</span>
-                      <span className="text-slate-800 font-medium">{details.format}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Date Format</span>
-                      <span className="text-slate-800 font-mono text-xs">{details.dateFormat}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Confidence</span>
-                      <span className="text-emerald-600 font-medium">{details.confidence}%</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-slate-500 block mb-2">Columns Detected</span>
-                      <div className="flex flex-wrap gap-1">
-                        {details.columns.map((col, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">
-                            {col}
-                          </span>
-                        ))}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-slate-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-slate-500 mb-1">Format</p>
+                        <p className="text-sm font-semibold text-slate-800">{details.format}</p>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-slate-500 mb-1">Date Format</p>
+                        <p className="text-xs font-mono text-slate-800">{details.dateFormat}</p>
+                      </div>
+                      <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-slate-500 mb-1">Confidence</p>
+                        <p className="text-sm font-bold text-emerald-600">{details.confidence}%</p>
                       </div>
                     </div>
+                    {details.columns.length > 0 && (
+                      <div className="text-sm">
+                        <span className="text-slate-500 block mb-2">Columns Detected</span>
+                        <div className="flex flex-wrap gap-1">
+                          {details.columns.map((col, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">
+                              {col}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </>
                 );
               })()}
@@ -232,33 +306,52 @@ export function AIInsightsPanel() {
           )}
         </button>
 
-        {/* Analyzing Transactions */}
+        {/* Transaction Analysis */}
         <button
           onClick={() => setExpandedPanel(expandedPanel === 'transactions' ? null : 'transactions')}
           className={`w-full bg-white rounded-xl p-4 shadow-lg transition-all text-left hover:shadow-xl ${
             status === 'analyzing' ? 'border-2 border-amber-400/50' : isComplete ? 'border-2 border-emerald-400/50' : ''
           } ${expandedPanel === 'transactions' ? 'ring-2 ring-blue-400/50' : ''}`}
         >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              {status === 'analyzing' && <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />}
-              <p className="font-semibold text-slate-800">
-                {status === 'analyzing' ? 'Analyzing Transactions...' : 'Transaction Analysis'}
-              </p>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                isComplete ? 'bg-emerald-100' : status === 'analyzing' ? 'bg-amber-100' : 'bg-slate-100'
+              }`}>
+                {status === 'analyzing' ? (
+                  <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+                ) : isComplete ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                ) : (
+                  <TrendingUp className="w-5 h-5 text-slate-400" />
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Transaction Analysis</p>
+                <p className="text-sm text-slate-400">
+                  {status === 'analyzing' ? 'Processing transactions...' :
+                   isComplete ? `${transactionsAnalyzed} transactions processed` :
+                   transactionsFound > 0 ? `${transactionsFound} found` : 'Waiting...'}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 text-sm">
-                {isComplete ? `${transactionsAnalyzed} analyzed` : `${transactionsFound} found`}
-              </span>
+              {isComplete && transactionsAnalyzed > 0 && (
+                <span className="text-2xl font-bold text-emerald-600">{transactionsAnalyzed}</span>
+              )}
               {(isComplete || transactionsFound > 0) && (
                 <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedPanel === 'transactions' ? 'rotate-180' : ''}`} />
               )}
             </div>
           </div>
+
+          {/* Progress bar */}
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
-                isComplete ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-400 to-blue-600'
+                isComplete ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' :
+                status === 'analyzing' ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
+                'bg-gradient-to-r from-blue-400 to-blue-600'
               }`}
               style={{ width: `${isComplete ? 100 : progress}%` }}
             />
@@ -271,7 +364,7 @@ export function AIInsightsPanel() {
                 const details = transactionDetails || defaultTransactionDetails;
                 return (
                   <>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-4 gap-2">
                       <div className="bg-emerald-50 rounded-lg p-3 text-center">
                         <p className="text-2xl font-bold text-emerald-600">{details.buys}</p>
                         <p className="text-xs text-slate-500">Buys</p>
@@ -290,8 +383,11 @@ export function AIInsightsPanel() {
                       </div>
                     </div>
                     {details.dateRange && (
-                      <div className="flex justify-between text-sm pt-2">
-                        <span className="text-slate-500">Date Range</span>
+                      <div className="flex items-center justify-between text-sm bg-slate-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-slate-400" />
+                          <span className="text-slate-500">Date Range</span>
+                        </div>
                         <span className="text-slate-800 font-medium">{details.dateRange}</span>
                       </div>
                     )}
@@ -309,41 +405,51 @@ export function AIInsightsPanel() {
             taxFlags && taxFlags.count > 0
               ? 'bg-orange-50 border-2 border-orange-400/50'
               : isComplete
-                ? 'bg-emerald-50'
-                : 'bg-orange-50'
+                ? 'bg-emerald-50 border-2 border-emerald-400/50'
+                : 'bg-white'
           } ${expandedPanel === 'flags' ? 'ring-2 ring-blue-400/50' : ''}`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                 taxFlags && taxFlags.count > 0
                   ? 'bg-orange-100'
                   : isComplete
                     ? 'bg-emerald-100'
-                    : 'bg-orange-100'
+                    : 'bg-slate-100'
               }`}>
                 {taxFlags && taxFlags.count > 0 ? (
                   <AlertTriangle className="w-5 h-5 text-orange-500" />
                 ) : isComplete ? (
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                 ) : (
-                  <AlertTriangle className="w-5 h-5 text-orange-500" />
+                  <Shield className="w-5 h-5 text-slate-400" />
                 )}
               </div>
               <div>
                 <p className="font-semibold text-slate-800">Tax Flags</p>
-                <p className="text-slate-400 text-sm">
+                <p className={`text-sm ${
+                  taxFlags && taxFlags.count > 0 ? 'text-orange-600' :
+                  isComplete ? 'text-emerald-600' : 'text-slate-400'
+                }`}>
                   {taxFlags && taxFlags.count > 0
-                    ? `${taxFlags.count} issue${taxFlags.count > 1 ? 's' : ''} found`
+                    ? `${taxFlags.count} issue${taxFlags.count > 1 ? 's' : ''} need attention`
                     : isComplete
                       ? 'No issues detected'
-                      : 'No issues detected yet'}
+                      : 'Checking for issues...'}
                 </p>
               </div>
             </div>
-            {(taxFlags?.issues?.length || isComplete) && (
-              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedPanel === 'flags' ? 'rotate-180' : ''}`} />
-            )}
+            <div className="flex items-center gap-2">
+              {taxFlags && taxFlags.count > 0 && (
+                <span className="w-8 h-8 rounded-full bg-orange-500 text-white text-sm font-bold flex items-center justify-center">
+                  {taxFlags.count}
+                </span>
+              )}
+              {(taxFlags?.issues?.length || isComplete) && (
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedPanel === 'flags' ? 'rotate-180' : ''}`} />
+              )}
+            </div>
           </div>
 
           {/* Expanded Details */}
@@ -351,13 +457,13 @@ export function AIInsightsPanel() {
             <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
               {taxFlags?.issues?.length ? (
                 taxFlags.issues.map((issue, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
+                  <div key={i} className="flex items-start gap-2 text-sm bg-white rounded-lg p-3">
                     <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
                     <span className="text-slate-700">{issue}</span>
                   </div>
                 ))
               ) : isComplete ? (
-                <div className="flex items-center gap-2 text-sm text-emerald-600">
+                <div className="flex items-center gap-2 text-sm text-emerald-600 bg-white rounded-lg p-3">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>All transactions passed validation checks</span>
                 </div>
@@ -378,7 +484,7 @@ export function AIInsightsPanel() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0">
                   {insightsLoading ? (
                     <Loader2 className="w-5 h-5 text-white animate-spin" />
                   ) : (
@@ -413,7 +519,7 @@ export function AIInsightsPanel() {
               <div className="mt-4 pt-4 border-t border-indigo-200 space-y-4">
                 {/* Summary */}
                 {aiInsights.ai_insights.summary && (
-                  <div className="bg-white/70 rounded-lg p-3">
+                  <div className="bg-white/70 rounded-lg p-4">
                     <p className="text-sm text-slate-700 leading-relaxed">{aiInsights.ai_insights.summary}</p>
                   </div>
                 )}
@@ -421,19 +527,23 @@ export function AIInsightsPanel() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-3">
                   {aiInsights.ai_insights.total_transactions && (
-                    <div className="bg-white/70 rounded-lg p-3 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-indigo-500" />
+                    <div className="bg-white/70 rounded-lg p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-indigo-500" />
+                      </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-800">{aiInsights.ai_insights.total_transactions}</p>
-                        <p className="text-xs text-slate-500">Transactions</p>
+                        <p className="text-2xl font-bold text-slate-800">{aiInsights.ai_insights.total_transactions}</p>
+                        <p className="text-xs text-slate-500">Total Transactions</p>
                       </div>
                     </div>
                   )}
                   {aiInsights.ai_insights.estimated_events && (
-                    <div className="bg-white/70 rounded-lg p-3 flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-purple-500" />
+                    <div className="bg-white/70 rounded-lg p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-purple-500" />
+                      </div>
                       <div>
-                        <p className="text-lg font-bold text-slate-800">{aiInsights.ai_insights.estimated_events}</p>
+                        <p className="text-2xl font-bold text-slate-800">{aiInsights.ai_insights.estimated_events}</p>
                         <p className="text-xs text-slate-500">Taxable Events</p>
                       </div>
                     </div>
@@ -442,13 +552,13 @@ export function AIInsightsPanel() {
 
                 {/* Top Assets */}
                 {aiInsights.ai_insights.top_assets && aiInsights.ai_insights.top_assets.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <div className="bg-white/70 rounded-lg p-4">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1">
                       <Coins className="w-3 h-3" /> Top Assets
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {aiInsights.ai_insights.top_assets.slice(0, 5).map((asset, i) => (
-                        <span key={i} className="px-2 py-1 bg-white/70 rounded text-sm text-slate-700">
+                        <span key={i} className="px-3 py-1.5 bg-slate-100 rounded-full text-sm text-slate-700 font-medium">
                           {asset.asset} <span className="text-slate-400">({asset.count})</span>
                         </span>
                       ))}
@@ -458,14 +568,16 @@ export function AIInsightsPanel() {
 
                 {/* Tax Tips */}
                 {aiInsights.ai_insights.tax_tips && aiInsights.ai_insights.tax_tips.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <div className="bg-white/70 rounded-lg p-4">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1">
                       <Lightbulb className="w-3 h-3" /> Tax Tips
                     </p>
                     <div className="space-y-2">
                       {aiInsights.ai_insights.tax_tips.map((tip, i) => (
-                        <div key={i} className="flex items-start gap-2 text-sm bg-white/70 rounded-lg p-2">
-                          <span className="text-amber-500 font-bold">{i + 1}.</span>
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                            {i + 1}
+                          </span>
                           <span className="text-slate-700">{tip}</span>
                         </div>
                       ))}
@@ -475,7 +587,8 @@ export function AIInsightsPanel() {
 
                 {/* Model Info */}
                 {aiInsights.model && (
-                  <div className="text-xs text-slate-400 pt-2 border-t border-indigo-100">
+                  <div className="text-xs text-slate-400 pt-2 border-t border-indigo-100 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
                     Powered by {aiInsights.provider === 'anthropic' ? 'Claude' : 'Gemini'} ({aiInsights.model})
                   </div>
                 )}
@@ -485,7 +598,7 @@ export function AIInsightsPanel() {
             {/* AI Error State */}
             {expandedPanel === 'ai' && aiInsights?.ai_error && (
               <div className="mt-4 pt-4 border-t border-indigo-200">
-                <div className="flex items-center gap-2 text-sm text-amber-600">
+                <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 rounded-lg p-3">
                   <AlertTriangle className="w-4 h-4" />
                   <span>AI analysis unavailable: {aiInsights.ai_error}</span>
                 </div>
@@ -496,13 +609,15 @@ export function AIInsightsPanel() {
 
         {/* Error State */}
         {hasError && error && (
-          <div className="bg-red-50 rounded-xl p-4 flex items-center gap-3 shadow-lg border-2 border-red-400/50">
-            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-800">Processing Error</p>
-              <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-red-50 rounded-xl p-4 shadow-lg border-2 border-red-400/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Processing Error</p>
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
             </div>
           </div>
         )}
@@ -516,20 +631,29 @@ export function AIInsightsPanel() {
         )}
       </div>
 
-      {/* Bottom info */}
+      {/* Bottom info - Real-time status updates */}
       <div className="mt-5 pt-4 border-t border-white/10 relative">
         <div className="flex items-center gap-2 text-xs text-slate-400">
           <div className={`w-2 h-2 rounded-full ${
-            isProcessing ? 'bg-blue-400 animate-pulse' : isComplete ? 'bg-emerald-400' : 'bg-slate-500'
+            hasError ? 'bg-red-400' : isProcessing ? 'bg-blue-400 animate-pulse' : isComplete ? 'bg-emerald-400' : 'bg-slate-500'
           }`} />
           <span>
-            {isProcessing
-              ? 'Processing your file...'
-              : isComplete
-                ? `Analysis complete${aiInsights?.tier ? ` (${aiInsights.tier} tier)` : ''}`
-                : 'Panels update in real-time during processing'}
+            {hasError
+              ? `Processing failed: ${error || 'Unknown error'}`
+              : status === 'detecting'
+                ? 'Virus scan active • Validating file format...'
+                : status === 'analyzing'
+                  ? `Analyzing transactions${transactionsFound > 0 ? ` (${transactionsFound} found)` : ''}...`
+                  : isComplete
+                    ? `Analysis complete${transactionsAnalyzed > 0 ? ` - ${transactionsAnalyzed} transactions processed` : ''}${aiInsights?.tier ? ` (${aiInsights.tier} tier)` : ''}`
+                    : 'Upload a file to begin processing'}
           </span>
         </div>
+        {isProcessing && (
+          <div className="mt-2 text-xs text-slate-500">
+            Live updates every 2.5 seconds
+          </div>
+        )}
       </div>
     </div>
   );

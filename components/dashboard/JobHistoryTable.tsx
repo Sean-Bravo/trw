@@ -81,6 +81,13 @@ function JobRow({ job, isActive, onSelect }: JobRowProps) {
   const status = statusConfig[job.status] || statusConfig.queued;
   const result = job.result as Record<string, unknown> | null;
   const transactionCount = result?.['transactionCount'] as number | undefined;
+  const exchangeDetected = result?.['exchangeDetected'] as string | undefined;
+
+  // Format the date with time
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <div
@@ -100,21 +107,32 @@ function JobRow({ job, isActive, onSelect }: JobRowProps) {
         {/* Job Details */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-white truncate">
-            {job.filename}
+            {job.filename || 'Unnamed file'}
           </p>
-          <div className="flex items-center gap-4 mt-1">
+          <div className="flex items-center gap-4 mt-1 flex-wrap">
             <span className={`text-xs font-medium ${status.color}`}>
               {status.text}
             </span>
             <span className="text-xs text-zinc-500">
-              {new Date(job.createdAt).toLocaleDateString()}
+              {formatDate(job.createdAt)}
             </span>
-            {transactionCount && (
+            {exchangeDetected && (
+              <span className="text-xs text-cyan-400">
+                {exchangeDetected}
+              </span>
+            )}
+            {transactionCount !== undefined && transactionCount > 0 && (
               <span className="text-xs text-zinc-500">
                 {transactionCount} transactions
               </span>
             )}
           </div>
+          {/* Error message for failed jobs */}
+          {job.status === 'failed' && job.error && (
+            <p className="text-xs text-red-400/80 mt-1.5 truncate" title={job.error}>
+              {job.error}
+            </p>
+          )}
         </div>
       </div>
 
