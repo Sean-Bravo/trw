@@ -25,6 +25,8 @@ export async function GET(request: NextRequest) {
       status: string;
       result: Record<string, unknown> | null;
       error: string | null;
+      retry_count: number;
+      last_retry_at: Date | null;
       created_at: Date;
       started_at: Date | null;
       finished_at: Date | null;
@@ -46,6 +48,8 @@ export async function GET(request: NextRequest) {
       status: job.status,
       result: job.result,
       error: job.error,
+      retryCount: job.retry_count || 0,
+      lastRetryAt: job.last_retry_at,
       createdAt: job.created_at,
       startedAt: job.started_at,
       finishedAt: job.finished_at,

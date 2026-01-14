@@ -1,11 +1,12 @@
 """
 Webhook Lambda Handler - API Gateway entry point
-Handles: presigned URLs, confirm upload, job status, download URLs, AI insights
+Handles: presigned URLs, confirm upload, job status, download URLs, AI insights, retry
 
 Routes:
 - POST /presigned-url - Generate S3 presigned URL for upload
 - POST /confirm-upload - Confirm file upload completed
 - GET /job/{jobId} - Get job status
+- POST /job/{jobId}/retry - Retry a failed job
 - GET /download/{jobId} - Get presigned download URL
 - GET /insights/{jobId} - Get AI insights for job
 """
@@ -31,7 +32,11 @@ SECRETS_ARN = os.environ.get("SECRETS_ARN")
 
 # AWS clients
 s3_client = boto3.client("s3")
+sqs_client = boto3.client("sqs")
 secretsmanager = boto3.client("secretsmanager")
+
+# SQS Queue URL
+PROCESSOR_QUEUE_URL = os.environ.get("PROCESSOR_QUEUE_URL")
 
 # Presigned URL expiration (15 minutes for upload, 1 hour for download)
 UPLOAD_EXPIRATION = 900
@@ -329,6 +334,86 @@ def handle_download(event: Dict) -> Dict:
         return response(500, {"error": "Failed to generate download URL"})
 
 
+def handle_job_retry(event: Dict) -> Dict:
+    """
+    Retry a failed job by re-sending it to the processor queue.
+
+    Path: POST /job/{jobId}/retry
+
+    Request body:
+    {
+        "s3Key": "uploads/jobId/filename.csv",
+        "jobId": "uuid"
+    }
+
+    Response:
+    {
+        "success": true,
+        "message": "Job queued for retry"
+    }
+    """
+    path_params = event.get("pathParameters", {}) or {}
+    job_id = path_params.get("jobId")
+
+    if not job_id:
+        return response(400, {"error": "jobId is required"})
+
+    try:
+        body = json.loads(event.get("body", "{}"))
+    except json.JSONDecodeError:
+        return response(400, {"error": "Invalid JSON body"})
+
+    s3_key = body.get("s3Key")
+    if not s3_key:
+        return response(400, {"error": "s3Key is required"})
+
+    try:
+        # Verify the file still exists in S3
+        try:
+            s3_client.head_object(Bucket=UPLOADS_BUCKET, Key=s3_key)
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                return response(404, {"error": "Original file no longer exists"})
+            raise
+
+        # Clear any existing error marker
+        try:
+            error_key = f"results/{job_id}/error.json"
+            s3_client.delete_object(Bucket=RESULTS_BUCKET, Key=error_key)
+            logger.info(f"Cleared error marker for job {job_id}")
+        except ClientError:
+            pass  # Error file may not exist
+
+        # Send message to processor queue
+        if not PROCESSOR_QUEUE_URL:
+            logger.error("PROCESSOR_QUEUE_URL not configured")
+            return response(500, {"error": "Queue not configured"})
+
+        message = {
+            "jobId": job_id,
+            "bucket": UPLOADS_BUCKET,
+            "key": s3_key,
+            "retry": True,
+        }
+
+        sqs_client.send_message(
+            QueueUrl=PROCESSOR_QUEUE_URL,
+            MessageBody=json.dumps(message),
+        )
+
+        logger.info(f"Job {job_id} queued for retry")
+
+        return response(200, {
+            "success": True,
+            "message": "Job queued for retry",
+            "jobId": job_id,
+        })
+
+    except Exception as e:
+        logger.error(f"Error retrying job: {e}")
+        return response(500, {"error": "Failed to retry job"})
+
+
 def handle_insights(event: Dict) -> Dict:
     """
     Get AI insights for a processed job.
@@ -410,6 +495,8 @@ def handler(event: Dict, context: Any) -> Dict:
         return handle_download(event)
     elif route_key == "GET /insights/{jobId}":
         return handle_insights(event)
+    elif route_key == "POST /job/{jobId}/retry":
+        return handle_job_retry(event)
     elif route_key == "POST /webhook":
         # Generic webhook endpoint (for future use)
         return response(200, {"message": "Webhook received"})

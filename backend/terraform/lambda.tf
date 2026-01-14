@@ -106,7 +106,8 @@ resource "aws_iam_role_policy" "webhook" {
         Action = [
           "s3:PutObject",
           "s3:GetObject",
-          "s3:HeadObject"
+          "s3:HeadObject",
+          "s3:DeleteObject"
         ]
         Resource = "${aws_s3_bucket.uploads.arn}/*"
       },
@@ -121,7 +122,8 @@ resource "aws_iam_role_policy" "webhook" {
         Effect = "Allow"
         Action = [
           "s3:GetObject",
-          "s3:HeadObject"
+          "s3:HeadObject",
+          "s3:DeleteObject"
         ]
         Resource = "${aws_s3_bucket.results.arn}/*"
       },
@@ -131,6 +133,13 @@ resource "aws_iam_role_policy" "webhook" {
           "secretsmanager:GetSecretValue"
         ]
         Resource = aws_secretsmanager_secret.app_secrets.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage"
+        ]
+        Resource = aws_sqs_queue.processing.arn
       }
     ]
   })
@@ -281,10 +290,11 @@ resource "aws_lambda_function" "webhook" {
 
   environment {
     variables = {
-      ENVIRONMENT    = var.environment
-      UPLOADS_BUCKET = aws_s3_bucket.uploads.id
-      RESULTS_BUCKET = aws_s3_bucket.results.id
-      SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+      ENVIRONMENT         = var.environment
+      UPLOADS_BUCKET      = aws_s3_bucket.uploads.id
+      RESULTS_BUCKET      = aws_s3_bucket.results.id
+      SECRETS_ARN         = aws_secretsmanager_secret.app_secrets.arn
+      PROCESSOR_QUEUE_URL = aws_sqs_queue.processing.url
     }
   }
 

@@ -52,6 +52,8 @@ export async function GET(
             startedAt: dbJob.started_at,
             finishedAt: dbJob.finished_at,
             filename: dbJob.upload.filename,
+            retryCount: (dbJob as { retry_count?: number }).retry_count || 0,
+            lastRetryAt: (dbJob as { last_retry_at?: string }).last_retry_at || null,
           });
         }
         // Non-terminal status (queued/running) - check Lambda for latest status
@@ -123,6 +125,8 @@ export async function GET(
       startedAt: dbJob?.started_at || null,
       finishedAt: data.status === 'completed' || data.status === 'failed' ? new Date().toISOString() : null,
       filename: dbJob?.upload.filename || data.filename || 'Unknown file',
+      retryCount: (dbJob as { retry_count?: number })?.retry_count || 0,
+      lastRetryAt: (dbJob as { last_retry_at?: string })?.last_retry_at || null,
     });
 
   } catch (error) {
