@@ -122,7 +122,7 @@ trw/
 
 ## Database Schema
 
-7 tables in Neon PostgreSQL:
+8 tables in Neon PostgreSQL:
 
 | Table | Purpose |
 |-------|---------|
@@ -133,13 +133,14 @@ trw/
 | `jobs` | Processing jobs + status + results |
 | `transactions` | Parsed transactions (for AI features) |
 | `ai_cache` | Cached AI categorizations |
+| `downloads` | Free tier download tracking (3/month limit) |
 
 ## Subscription Tiers
 
 | Tier | Price | Features |
 |------|-------|----------|
-| Free | $0 | 1 file/month, 5-row preview, Google Gemini AI |
-| Pro | $89/year | Unlimited files, full export, Claude Sonnet AI |
+| Free | $0 | 3 downloads/month, full export, Google Gemini AI |
+| Pro | $89/year | Unlimited downloads, Claude Sonnet AI |
 | Premium | $189/year | All Pro + Claude Opus AI, priority support |
 
 ## AI Tiers
@@ -220,7 +221,7 @@ The Python engine (`backend/services/engine.py`) parses:
 2. **No VPC** - Lambdas connect directly to Neon (public internet) for faster cold starts
 3. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
 4. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
-5. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py needs to skip these
+5. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
 
 ## What's Complete
 
@@ -244,11 +245,14 @@ The Python engine (`backend/services/engine.py`) parses:
 - [x] **Job persistence** - Uploads and jobs saved to Neon DB, persist after sign out
 - [x] **Real-time UI updates** - Status messages update every 2.5s during processing
 - [x] **DB-Lambda sync** - Terminal job states synced from Lambda to DB on poll
+- [x] **Coinbase CSV parsing** - Handles metadata rows, new 2025 format, negative amounts
+- [x] **Free tier download limit** - 3 downloads/month tracked in `downloads` table
+- [x] **Consolidated exchange detection** - Single source of truth in fingerprinting.py
 
 ## What's Not Built Yet
 
 - [ ] Bank statement PDF parsing (future feature)
-- [ ] Coinbase CSV parsing (engine.py needs to skip metadata rows before headers)
+- [ ] Stripe payment integration (Pro/Premium buttons show "Coming Soon")
 
 ## Future Features
 
