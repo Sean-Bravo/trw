@@ -83,11 +83,11 @@ const Pricing = () => {
             <ul className="space-y-4 mb-8">
               <li className="flex items-center gap-3 text-slate-300 text-sm">
                 <Check className="w-4 h-4 text-emerald-500" />
-                <span>Format 1 CSV File</span>
+                <span><strong>3 Downloads</strong> per Month</span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
                 <Check className="w-4 h-4 text-emerald-500" />
-                <span>Preview Output (5 rows)</span>
+                <span>Full Export Download</span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
                 <Check className="w-4 h-4 text-emerald-500" />
@@ -95,7 +95,7 @@ const Pricing = () => {
               </li>
               <li className="flex items-center gap-3 text-slate-400 text-sm opacity-50">
                 <X className="w-4 h-4" />
-                <span>Full Export Download</span>
+                <span>Unlimited Uploads</span>
               </li>
             </ul>
 
@@ -162,14 +162,12 @@ const Pricing = () => {
               </li>
             </ul>
 
-            <Link
-              href={`/signup?plan=pro&billing=${isAnnual ? 'annual' : 'monthly'}`}
-              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-center font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25 relative overflow-hidden group"
+            <button
+              disabled
+              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600/50 to-cyan-600/50 text-white/60 text-center font-bold rounded-xl cursor-not-allowed relative overflow-hidden"
             >
-              <span className="relative z-10">Get Pro Access</span>
-              {/* Button Shine Effect */}
-              <div className="absolute top-0 -left-full w-full h-full bg-white/20 skew-x-12 group-hover:animate-[shimmer_1.5s_infinite]"></div>
-            </Link>
+              <span className="relative z-10">Coming Soon</span>
+            </button>
 
             <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
                <Shield className="w-3 h-3" />
@@ -222,12 +220,12 @@ const Pricing = () => {
               </li>
             </ul>
 
-            <Link
-              href={`/signup?plan=premium&billing=${isAnnual ? 'annual' : 'monthly'}`}
-              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white text-center font-medium rounded-lg transition-colors border border-slate-700"
+            <button
+              disabled
+              className="block w-full py-3 px-4 bg-slate-800/50 text-white/50 text-center font-medium rounded-lg cursor-not-allowed border border-slate-700/50"
             >
-              Get Premium Access
-            </Link>
+              Coming Soon
+            </button>
           </div>
         </div>
 

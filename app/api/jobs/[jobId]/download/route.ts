@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { query, queryOne } from '@/lib/db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
+
+// Free tier limit
+const FREE_TIER_MONTHLY_DOWNLOADS = 3;
+
+interface DownloadCount {
+  count: string;
+}
+
+interface Subscription {
+  tier: 'free' | 'pro' | 'premium';
+}
 
 /**
  * GET /api/jobs/[jobId]/download
@@ -23,13 +35,56 @@ export async function GET(
       );
     }
 
+    const userId = session.user.id;
     const { jobId } = await params;
+
+    // 2. Check subscription tier
+    const subscription = await queryOne<Subscription>(
+      `SELECT tier FROM subscriptions WHERE user_id = $1`,
+      [userId]
+    );
+
+    const tier = subscription?.tier || 'free';
+
+    // 3. For free tier, check monthly download limit
+    if (tier === 'free') {
+      // Check if this job was already downloaded (don't count twice)
+      const existingDownload = await queryOne(
+        `SELECT id FROM downloads WHERE user_id = $1 AND job_id = $2`,
+        [userId, jobId]
+      );
+
+      if (!existingDownload) {
+        // Count downloads this month
+        const result = await queryOne<DownloadCount>(
+          `SELECT COUNT(*) as count FROM downloads
+           WHERE user_id = $1
+           AND downloaded_at >= date_trunc('month', CURRENT_TIMESTAMP)`,
+          [userId]
+        );
+
+        const monthlyDownloads = parseInt(result?.count || '0', 10);
+
+        if (monthlyDownloads >= FREE_TIER_MONTHLY_DOWNLOADS) {
+          return NextResponse.json(
+            {
+              error: 'Monthly download limit reached',
+              message: `Free tier allows ${FREE_TIER_MONTHLY_DOWNLOADS} downloads per month. Upgrade to Pro for unlimited downloads.`,
+              limit: FREE_TIER_MONTHLY_DOWNLOADS,
+              used: monthlyDownloads,
+              upgradeUrl: '/pricing'
+            },
+            { status: 403 }
+          );
+        }
+      }
+    }
 
     // Get file type from query params (formatted or flagged)
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'formatted';
 
-    // 2. Call AWS Lambda via API Gateway
+    // 4. Call AWS Lambda via API Gateway
     // Route: GET /download/{jobId} (see backend/handlers/webhook.py)
     const lambdaResponse = await fetch(
       `${API_GATEWAY_URL}/download/${encodeURIComponent(jobId)}`,
@@ -52,7 +107,22 @@ export async function GET(
 
     const data = await lambdaResponse.json();
 
-    // 3. Return download URL
+    // 5. Record download for free tier tracking (only if not already recorded)
+    if (tier === 'free') {
+      try {
+        await query(
+          `INSERT INTO downloads (user_id, job_id)
+           VALUES ($1, $2)
+           ON CONFLICT (user_id, job_id) DO NOTHING`,
+          [userId, jobId]
+        );
+      } catch (err) {
+        // Don't fail the download if tracking fails
+        console.error('[Download] Failed to record download:', err);
+      }
+    }
+
+    // 6. Return download URL
     return NextResponse.json(data);
 
   } catch (error) {
