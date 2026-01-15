@@ -248,25 +248,39 @@ export async function getJobStatus(jobId: string): Promise<{
   return response.json();
 }
 
+/** Supported tax software output formats */
+export type TaxSoftwareFormat = 'koinly' | 'turbotax' | 'coinledger' | 'zenledger';
+
 /**
  * Get download URL for completed job
+ * @param jobId - The job ID
+ * @param type - File type (formatted or flagged)
+ * @param format - Tax software format (koinly, turbotax, coinledger, zenledger)
  */
 export async function getDownloadUrl(
   jobId: string,
-  type: 'formatted' | 'flagged' = 'formatted'
+  type: 'formatted' | 'flagged' = 'formatted',
+  format: TaxSoftwareFormat = 'koinly'
 ): Promise<{
   downloadUrl: string;
   fileType: string;
   expiresIn: number;
+  format: TaxSoftwareFormat;
 }> {
+  const params = new URLSearchParams({
+    type,
+    format,
+  });
+
   const response = await fetch(
-    `/api/jobs/${encodeURIComponent(jobId)}/download?type=${type}`
+    `/api/jobs/${encodeURIComponent(jobId)}/download?${params.toString()}`
   );
 
   if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
     throw {
       code: 'SERVER_ERROR',
-      message: 'Failed to get download URL',
+      message: error.error || 'Failed to get download URL',
     } as UploadError;
   }
 
@@ -362,6 +376,43 @@ export async function getJobInsights(jobId: string): Promise<AIInsights> {
     throw {
       code: 'SERVER_ERROR',
       message: 'Failed to get insights',
+    } as UploadError;
+  }
+
+  return response.json();
+}
+
+/**
+ * Retry a failed job with optional exchange override
+ */
+export async function retryJobWithExchange(
+  jobId: string,
+  exchangeName?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  jobId: string;
+  retryCount: number;
+  maxRetries: number;
+  retriesRemaining: number;
+  exchangeName: string | null;
+}> {
+  const response = await fetch(
+    `/api/jobs/${encodeURIComponent(jobId)}/retry`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ exchangeName }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw {
+      code: 'SERVER_ERROR',
+      message: error.error || 'Failed to retry job',
     } as UploadError;
   }
 

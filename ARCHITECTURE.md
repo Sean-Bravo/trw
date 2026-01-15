@@ -41,7 +41,7 @@ S3 trigger → Scanner Lambda
 SQS → Processor Lambda
   - Parse CSV (13 exchange formats)
   - AI categorization (tier-based)
-  - Generate fixed CSV or error.json
+  - Generate fixed CSV (Koinly format internally) or error.json
   - Generate AI insights
        ↓
 Result → S3 (output.csv + insights.json OR error.json)
@@ -56,7 +56,11 @@ User sees real-time updates:
   - "Analyzing transactions (X found)..."
   - "Processing failed: [error]" or "Analysis complete"
        ↓
-User downloads from dashboard (persists after sign out)
+User selects tax software format (Koinly/TurboTax/CoinLedger/ZenLedger)
+       ↓
+Download converts to selected format on-the-fly
+       ↓
+User downloads formatted CSV (persists after sign out)
 ```
 
 ## Directory Structure
@@ -171,11 +175,16 @@ The Python engine (`backend/services/engine.py`) parses:
 
 ## Export Formats
 
-- Koinly
-- TurboTax
-- CoinLedger
-- ZenLedger
-- OFX
+User selects output format at download time via `TaxSoftwareSelector` component.
+
+| Format | Description | Columns |
+|--------|-------------|---------|
+| Koinly | Default internal format | Date, Sent Amount/Currency, Received Amount/Currency, Fee Amount/Currency, Description |
+| TurboTax | Schedule D compatible | Date Sold, Date Acquired, Description, Proceeds, Cost Basis, Gain/Loss |
+| CoinLedger | Crypto-focused | Date, Type (BUY/SELL/TRADE), Sent/Received Currencies & Amounts, Fee, Notes |
+| ZenLedger | Comprehensive | Timestamp, Type, In/Out Currency & Amount, Fee Currency & Amount, Comment |
+
+Format conversion happens on-demand at download time (`webhook.py:handle_download`). Converted files are cached in S3 (`output_{format}.csv`) for subsequent downloads.
 
 ## Key Files
 
@@ -185,14 +194,15 @@ The Python engine (`backend/services/engine.py`) parses:
 | `app/api/uploads/[uploadId]/confirm/route.ts` | Confirms upload, persists to Neon DB, creates job |
 | `app/api/jobs/route.ts` | Lists all jobs for user (from Neon DB) |
 | `app/api/jobs/[jobId]/route.ts` | Job status - DB first, Lambda fallback, syncs terminal states |
-| `app/api/jobs/[jobId]/download/route.ts` | Generates S3 download URLs |
+| `app/api/jobs/[jobId]/download/route.ts` | Generates S3 download URLs with format conversion |
 | `app/api/jobs/[jobId]/insights/route.ts` | Fetches AI insights for job |
 | `lib/upload-client.ts` | Frontend upload flow (3-stage progress) + `getJobInsights()` |
 | `lib/uploads-db.ts` | Upload database operations (createUpload, getUploadById) |
 | `lib/jobs-db.ts` | Job database operations (createJob, updateJobStatus, getJobById) |
 | `hooks/useJobPolling.ts` | Polls job status every 2.5s until terminal state |
 | `contexts/JobContext.tsx` | Global job state (activeJob, jobHistory, refreshJobHistory) |
-| `components/dashboard/AIInsightsPanel.tsx` | AI insights display with real-time status updates |
+| `components/dashboard/AIInsightsPanel.tsx` | AI insights display with real-time status updates + download section |
+| `components/dashboard/TaxSoftwareSelector.tsx` | Tax software format selection for downloads |
 | `components/dashboard/DiffViewer.tsx` | Changes preview with processing/error states |
 | `components/dashboard/JobHistoryTable.tsx` | Job history with filename, status, error display |
 | `lib/auth-db.ts` | User registration, login, 2FA, password reset |
@@ -222,6 +232,34 @@ The Python engine (`backend/services/engine.py`) parses:
 3. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
 4. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
 5. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
+6. **Exchange detection fallback** - When classification fails, engine.py auto-tries GenericCSVParser if file has date+amount columns. Only shows manual selector if generic also fails.
+
+## Exchange Detection Flow
+
+```
+CSV Upload
+    ↓
+fingerprinting.py: detect_exchange_from_headers()
+    ↓
+┌─────────────────────────────────────────────────┐
+│ Match found? → Use specific exchange parser     │
+│                                                 │
+│ No match + has date/amount columns?             │
+│   → Try GenericCSVParser automatically          │
+│   → Success: Return data with warning           │
+│   → Failure: Show ExchangeSelector UI           │
+│                                                 │
+│ No match + missing basic columns?               │
+│   → Show ExchangeSelector UI with analysis      │
+│   → User selects exchange → Retry with parser   │
+└─────────────────────────────────────────────────┘
+```
+
+**ExchangeSelector UI** (`components/dashboard/ExchangeSelector.tsx`):
+- Shows column analysis (✓/✗ for date, amount, type columns)
+- Displays detected column names from the file
+- Dropdown of all supported exchanges + "Generic CSV" option
+- Retry button triggers `/api/jobs/[jobId]/retry` with `exchangeName` override
 
 ## What's Complete
 
@@ -248,6 +286,12 @@ The Python engine (`backend/services/engine.py`) parses:
 - [x] **Coinbase CSV parsing** - Handles metadata rows, new 2025 format, negative amounts
 - [x] **Free tier download limit** - 3 downloads/month tracked in `downloads` table
 - [x] **Consolidated exchange detection** - Single source of truth in fingerprinting.py
+- [x] **Generic CSV fallback** - Auto-tries generic parser when exchange detection fails (if file has date+amount columns)
+- [x] **Manual exchange selection** - ExchangeSelector dropdown for retry with specific exchange when auto-detect fails
+- [x] **Enhanced error messages** - Column analysis shows which required columns are present/missing
+- [x] **Output format selection** - User picks tax software (Koinly/TurboTax/CoinLedger/ZenLedger) at download time
+- [x] **Format converters** - `engine.py` converts Koinly format to TurboTax/CoinLedger/ZenLedger on-demand
+- [x] **Format caching** - Converted files cached in S3 for subsequent downloads
 
 ## What's Not Built Yet
 

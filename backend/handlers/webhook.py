@@ -286,12 +286,16 @@ def handle_download(event: Dict) -> Dict:
     """
     Get a presigned download URL for the processed file.
 
-    Path: GET /download/{jobId}
+    Path: GET /download/{jobId}?format=koinly|turbotax|coinledger|zenledger
+
+    Query params:
+    - format: Output format (default: koinly)
 
     Response:
     {
         "downloadUrl": "https://s3.amazonaws.com/...",
-        "expiresIn": 3600
+        "expiresIn": 3600,
+        "format": "koinly"
     }
     """
     path_params = event.get("pathParameters", {}) or {}
@@ -300,33 +304,135 @@ def handle_download(event: Dict) -> Dict:
     if not job_id:
         return response(400, {"error": "jobId is required"})
 
+    # Get format from query string
+    query_params = event.get("queryStringParameters", {}) or {}
+    output_format = query_params.get("format", "koinly").lower().strip()
+
+    # Validate format
+    valid_formats = ["koinly", "turbotax", "coinledger", "zenledger"]
+    if output_format not in valid_formats:
+        return response(400, {"error": f"Invalid format. Valid formats: {valid_formats}"})
+
     try:
         result_key = f"results/{job_id}/output.csv"
 
-        # Verify the result file exists
+        # If format is koinly (default), return presigned URL directly
+        if output_format == "koinly":
+            # Verify the result file exists
+            try:
+                s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
+            except ClientError as e:
+                if e.response["Error"]["Code"] == "404":
+                    return response(404, {"error": "Result file not found. Job may still be processing."})
+                raise
+
+            # Generate presigned download URL
+            download_url = s3_client.generate_presigned_url(
+                ClientMethod="get_object",
+                Params={
+                    "Bucket": RESULTS_BUCKET,
+                    "Key": result_key,
+                    "ResponseContentDisposition": f'attachment; filename="{job_id}_koinly.csv"',
+                },
+                ExpiresIn=DOWNLOAD_EXPIRATION,
+            )
+
+            logger.info(f"Generated download URL for job {job_id} (format: koinly)")
+
+            return response(200, {
+                "downloadUrl": download_url,
+                "expiresIn": DOWNLOAD_EXPIRATION,
+                "format": "koinly",
+            })
+
+        # For other formats, check if converted file exists or convert on-the-fly
+        converted_key = f"results/{job_id}/output_{output_format}.csv"
+
         try:
-            s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
+            # Check if converted file already exists
+            s3_client.head_object(Bucket=RESULTS_BUCKET, Key=converted_key)
+            logger.info(f"Using cached {output_format} format for job {job_id}")
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
-                return response(404, {"error": "Result file not found. Job may still be processing."})
-            raise
+                # Need to convert - download original, convert, upload
+                logger.info(f"Converting job {job_id} to {output_format} format")
 
-        # Generate presigned download URL
+                try:
+                    # Download original CSV
+                    original_obj = s3_client.get_object(Bucket=RESULTS_BUCKET, Key=result_key)
+                    csv_content = original_obj["Body"].read().decode("utf-8")
+
+                    # Parse records from CSV
+                    import csv
+                    from io import StringIO
+                    reader = csv.DictReader(StringIO(csv_content))
+                    records = list(reader)
+
+                    if not records:
+                        return response(400, {"error": "No records found in result file"})
+
+                    # Import converter (add services to path)
+                    import sys
+                    import os
+                    services_path = os.path.join(os.path.dirname(__file__), "services")
+                    if not os.path.exists(services_path):
+                        services_path = os.path.join(os.path.dirname(__file__), "..", "services")
+                    if services_path not in sys.path:
+                        sys.path.insert(0, services_path)
+
+                    from engine import convert_records
+
+                    # Convert records
+                    converted_records, fieldnames = convert_records(records, output_format)
+
+                    if not converted_records:
+                        return response(400, {"error": f"Failed to convert to {output_format} format"})
+
+                    # Write converted CSV
+                    output = StringIO()
+                    writer = csv.DictWriter(output, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(converted_records)
+                    converted_csv = output.getvalue()
+
+                    # Upload converted file
+                    s3_client.put_object(
+                        Bucket=RESULTS_BUCKET,
+                        Key=converted_key,
+                        Body=converted_csv.encode("utf-8"),
+                        ContentType="text/csv",
+                        Metadata={
+                            "job-id": job_id,
+                            "format": output_format,
+                            "converted-at": str(int(__import__("time").time())),
+                        },
+                    )
+                    logger.info(f"Uploaded converted {output_format} file for job {job_id}")
+
+                except ClientError as download_error:
+                    if download_error.response["Error"]["Code"] == "NoSuchKey":
+                        return response(404, {"error": "Result file not found. Job may still be processing."})
+                    raise
+            else:
+                raise
+
+        # Generate presigned download URL for converted file
         download_url = s3_client.generate_presigned_url(
             ClientMethod="get_object",
             Params={
                 "Bucket": RESULTS_BUCKET,
-                "Key": result_key,
-                "ResponseContentDisposition": f'attachment; filename="{job_id}_formatted.csv"',
+                "Key": converted_key,
+                "ResponseContentDisposition": f'attachment; filename="{job_id}_{output_format}.csv"',
             },
             ExpiresIn=DOWNLOAD_EXPIRATION,
         )
 
-        logger.info(f"Generated download URL for job {job_id}")
+        logger.info(f"Generated download URL for job {job_id} (format: {output_format})")
 
         return response(200, {
             "downloadUrl": download_url,
             "expiresIn": DOWNLOAD_EXPIRATION,
+            "format": output_format,
         })
 
     except Exception as e:
