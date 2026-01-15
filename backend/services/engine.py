@@ -3149,7 +3149,7 @@ def process_file(
             exchange_name = registry.detect_exchange(df)
 
         if not exchange_name:
-            # Build a more helpful error message with column analysis
+            # Build column analysis for error/warning messages
             columns_found = list(df.columns)
             columns_lower = [str(c).lower() for c in columns_found]
 
@@ -3157,6 +3157,56 @@ def process_file(
             has_date = any(kw in ' '.join(columns_lower) for kw in ['date', 'time', 'timestamp', 'created'])
             has_amount = any(kw in ' '.join(columns_lower) for kw in ['amount', 'quantity', 'size', 'volume'])
             has_type = any(kw in ' '.join(columns_lower) for kw in ['type', 'side', 'action', 'transaction'])
+
+            # If file has basic required columns, try Generic parser as fallback
+            if has_date and has_amount:
+                logger.info("Exchange detection failed, trying Generic parser as fallback...")
+                generic_parser = GenericCSVParser()
+                generic_records, generic_errors = generic_parser.parse(df)
+
+                # If Generic parser extracted records, return success with warning
+                if generic_records:
+                    # Add warning that this was parsed with generic fallback
+                    warnings.append("⚠️ Exchange format not recognized - parsed with generic CSV parser. Results may be incomplete.")
+                    warnings.append(f"ℹ️ If you know which exchange this is from, select it manually for better accuracy.")
+
+                    # Deduplicate if requested
+                    if deduplicate and generic_records:
+                        original_count = len(generic_records)
+                        generic_records = deduplicate_records(generic_records)
+                        if len(generic_records) < original_count:
+                            warnings.append(f"ℹ️ Removed {original_count - len(generic_records)} duplicate transactions")
+
+                    # Generate fingerprint
+                    fingerprint = ""
+                    if FINGERPRINTING_AVAILABLE:
+                        try:
+                            fingerprint = generate_fingerprint(df)
+                        except Exception as e:
+                            logger.warning(f"Fingerprint generation failed: {e}")
+
+                    return {
+                        "success": True,
+                        "records": generic_records,
+                        "errors": [err.to_dict() for err in generic_errors[:max_errors]] if generic_errors else [],
+                        "warnings": warnings,
+                        "meta": {
+                            "rows_total": len(df),
+                            "rows_parsed": len(generic_records),
+                            "rows_skipped": len(df) - len(generic_records),
+                            "rows_with_errors": len(generic_errors),
+                            "total_errors": len(generic_errors),
+                            "errors_shown": min(len(generic_errors), max_errors),
+                            "exchange_detected": "Generic (fallback)",
+                            "fingerprint": fingerprint,
+                            "parser_version": __version__,
+                            "fallback_used": True,
+                        },
+                        "exchange": "Generic",
+                    }
+
+                # Generic parser also failed - log why
+                logger.info(f"Generic parser also failed: {len(generic_errors)} errors")
 
             # Build suggestion based on what's present
             suggestion_parts = []
