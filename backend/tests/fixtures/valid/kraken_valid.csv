@@ -1,0 +1,4 @@
+txid,refid,time,type,subtype,aclass,asset,amount,fee,balance
+TE12345,REF123,2024-01-01 12:00:00,trade,,currency,XXBT,0.5,0.0,1.5
+TE67890,REF456,2024-01-02 14:00:00,staking,,currency,ZEUR,20000.0,0.0,50000.0
+TE11111,REF789,2024-01-03 10:00:00,deposit,,currency,XETH,5.0,0.0,5.0

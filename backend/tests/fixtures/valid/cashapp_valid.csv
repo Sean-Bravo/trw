@@ -1,0 +1,4 @@
+Transaction ID,Date,Transaction Type,Currency,Amount,Fee,Net Amount,Asset Type,Asset Price,Bitcoin Amount
+CA123,2024-01-01,Bitcoin Buy,USD,-50.00,1.00,-51.00,BTC,40000.00,0.00125
+CA456,2024-02-01,Bitcoin Sale,USD,100.00,2.00,98.00,BTC,42000.00,0.00238
+CA789,2024-03-01,Bitcoin Buy,USD,-200.00,4.00,-204.00,BTC,45000.00,0.00444

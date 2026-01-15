@@ -1,0 +1,4 @@
+Timestamp,Transaction Type,Asset,Notes,Amount,Fee
+2024-01-01 10:00:00 UTC,Buy,BTC,购买比特币,0.1,10.00
+2024-01-02 14:30:00 UTC,Sell,ETH,Продажа эфира,1.5,5.00
+2024-01-03 09:00:00 UTC,Send,SOL,Überweisung,10.0,0.01

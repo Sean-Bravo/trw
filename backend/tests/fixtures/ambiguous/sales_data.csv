@@ -1,0 +1,4 @@
+Date,Customer,Product,Quantity,Amount,Region
+2024-01-01,Acme Corp,Widget A,100,5000.00,North
+2024-01-02,Beta Inc,Widget B,50,2500.00,South
+2024-01-03,Gamma LLC,Widget C,75,3750.00,East
