@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown, TrendingUp, Calendar, Coins, Lightbulb, Shield, Search, FileCheck, Zap } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Loader2, Sparkles, ChevronDown, TrendingUp, Calendar, Coins, Lightbulb, Shield, Search, FileCheck, Zap, Download } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
 import { JobStatus } from '@/hooks/useJobPolling';
-import { getJobInsights, AIInsights } from '@/lib/upload-client';
+import { getJobInsights, AIInsights, retryJobWithExchange, getDownloadUrl, TaxSoftwareFormat } from '@/lib/upload-client';
+import { ExchangeSelector } from './ExchangeSelector';
+import { TaxSoftwareSelector } from './TaxSoftwareSelector';
 
 export type InsightStatus = 'idle' | 'detecting' | 'analyzing' | 'complete' | 'error';
 
@@ -76,11 +78,15 @@ const PROCESSING_STEPS = [
 ];
 
 export function AIInsightsPanel() {
-  const { activeJob, isPolling } = useJobContext();
+  const { activeJob, isPolling, setActiveJob } = useJobContext();
   const [expandedPanel, setExpandedPanel] = useState<'exchange' | 'transactions' | 'flags' | 'ai' | null>(null);
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   // Fetch AI insights when job completes
   useEffect(() => {
@@ -154,6 +160,71 @@ export function AIInsightsPanel() {
   const isProcessing = status === 'detecting' || status === 'analyzing';
   const isComplete = status === 'complete';
   const hasError = status === 'error';
+
+  // Check if error is specifically an auto-detect failure
+  const isDetectionFailure = hasError && error?.toLowerCase().includes('auto-detect');
+
+  // Get detected columns and error details from error metadata if available
+  const errorDetails = useMemo(() => {
+    if (!activeJob?.result) return { columns: [], suggestion: '', analysis: null };
+    const result = activeJob.result as Record<string, unknown>;
+    const errors = result?.['errors'] as Array<{
+      columns_found?: string[];
+      suggestion?: string;
+      analysis?: {
+        has_date_column: boolean;
+        has_amount_column: boolean;
+        has_type_column: boolean;
+      };
+    }> | undefined;
+
+    return {
+      columns: errors?.[0]?.columns_found || [],
+      suggestion: errors?.[0]?.suggestion || '',
+      analysis: errors?.[0]?.analysis || null,
+    };
+  }, [activeJob?.result]);
+
+  const detectedColumns = errorDetails.columns;
+
+  // Handle retry with manual exchange selection
+  const handleRetryWithExchange = async (exchangeName: string) => {
+    if (!activeJob?.jobId) return;
+
+    setIsRetrying(true);
+    setRetryError(null);
+
+    try {
+      const result = await retryJobWithExchange(activeJob.jobId, exchangeName);
+      // Re-trigger polling by setting the same job ID
+      // This will cause the useJobPolling hook to start polling again
+      setActiveJob(activeJob.jobId);
+    } catch (err) {
+      const error = err as { message?: string };
+      setRetryError(error.message || 'Failed to retry job');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  // Handle download with format selection
+  const handleDownload = async (format: string) => {
+    if (!activeJob?.jobId) return;
+
+    setIsDownloading(true);
+    setDownloadError(null);
+
+    try {
+      const result = await getDownloadUrl(activeJob.jobId, 'formatted', format as TaxSoftwareFormat);
+      // Open download URL in new tab
+      window.open(result.downloadUrl, '_blank');
+    } catch (err) {
+      const error = err as { message?: string };
+      setDownloadError(error.message || 'Failed to get download URL');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   // Determine current step for progress indicator
   const getCurrentStep = () => {
@@ -607,8 +678,41 @@ export function AIInsightsPanel() {
           </button>
         )}
 
-        {/* Error State */}
-        {hasError && error && (
+        {/* Download Section - Shows when job is complete */}
+        {isComplete && (
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 shadow-lg border-2 border-emerald-400/30">
+            <TaxSoftwareSelector
+              onDownload={handleDownload}
+              isDownloading={isDownloading}
+            />
+            {downloadError && (
+              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{downloadError}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Error State - Detection Failure with Exchange Selector */}
+        {isDetectionFailure && (
+          <div className="bg-amber-50 rounded-xl p-4 shadow-lg border-2 border-amber-400/50">
+            <ExchangeSelector
+              onRetry={handleRetryWithExchange}
+              isRetrying={isRetrying}
+              detectedColumns={detectedColumns}
+              suggestion={errorDetails.suggestion}
+              analysis={errorDetails.analysis}
+            />
+            {retryError && (
+              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{retryError}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Error State - Other Errors */}
+        {hasError && error && !isDetectionFailure && (
           <div className="bg-red-50 rounded-xl p-4 shadow-lg border-2 border-red-400/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">

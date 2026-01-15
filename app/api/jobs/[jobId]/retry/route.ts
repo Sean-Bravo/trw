@@ -15,6 +15,9 @@ const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformat
 /**
  * POST /api/jobs/[jobId]/retry
  * Retry a failed job - re-triggers Lambda processing
+ *
+ * Body (optional):
+ * - exchangeName: string - Override exchange detection with specified exchange
  */
 export async function POST(
   request: NextRequest,
@@ -31,6 +34,15 @@ export async function POST(
     }
 
     const { jobId } = await params;
+
+    // Parse optional body for exchange override
+    let exchangeName: string | undefined;
+    try {
+      const body = await request.json();
+      exchangeName = body.exchangeName;
+    } catch {
+      // No body or invalid JSON is OK - exchangeName remains undefined
+    }
 
     // 2. Get job from DB
     const dbJob = await getJobById(jobId);
@@ -103,6 +115,7 @@ export async function POST(
 
     // 8. Re-trigger Lambda processing by calling the retry endpoint
     // This sends the S3 key back to the processor queue
+    // Include exchangeName if user specified manual override
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/job/${jobId}/retry`, {
       method: 'POST',
       headers: {
@@ -111,6 +124,7 @@ export async function POST(
       body: JSON.stringify({
         s3Key: dbJob.upload.s3_key,
         jobId: jobId,
+        exchangeName: exchangeName || undefined, // Manual exchange override
       }),
     });
 
@@ -135,11 +149,14 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Job retry initiated',
+      message: exchangeName
+        ? `Job retry initiated with ${exchangeName} parser`
+        : 'Job retry initiated',
       jobId,
       retryCount: newRetryCount,
       maxRetries: MAX_RETRIES,
       retriesRemaining: MAX_RETRIES - newRetryCount,
+      exchangeName: exchangeName || null,
     });
 
   } catch (error) {

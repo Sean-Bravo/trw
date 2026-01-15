@@ -80,14 +80,24 @@ export async function GET(
       }
     }
 
-    // Get file type from query params (formatted or flagged)
+    // Get file type and format from query params
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'formatted';
+    const format = searchParams.get('format') || 'koinly';
+
+    // Validate format
+    const validFormats = ['koinly', 'turbotax', 'coinledger', 'zenledger'];
+    if (!validFormats.includes(format)) {
+      return NextResponse.json(
+        { error: `Invalid format. Valid formats: ${validFormats.join(', ')}` },
+        { status: 400 }
+      );
+    }
 
     // 4. Call AWS Lambda via API Gateway
-    // Route: GET /download/{jobId} (see backend/handlers/webhook.py)
+    // Route: GET /download/{jobId}?format=... (see backend/handlers/webhook.py)
     const lambdaResponse = await fetch(
-      `${API_GATEWAY_URL}/download/${encodeURIComponent(jobId)}`,
+      `${API_GATEWAY_URL}/download/${encodeURIComponent(jobId)}?format=${encodeURIComponent(format)}`,
       {
         method: 'GET',
         headers: {

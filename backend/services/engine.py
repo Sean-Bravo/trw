@@ -3357,3 +3357,299 @@ def process_file(
             "meta": {},
             "exchange": None,
         }
+
+
+# ============================================================================
+# OUTPUT FORMAT CONVERTERS
+# ============================================================================
+
+class OutputFormat(Enum):
+    """Supported tax software output formats."""
+    KOINLY = "koinly"
+    TURBOTAX = "turbotax"
+    COINLEDGER = "coinledger"
+    ZENLEDGER = "zenledger"
+
+
+def convert_to_turbotax(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Convert Koinly-format records to TurboTax format.
+
+    TurboTax format:
+    - Date Acquired (for buys) / Date Sold (for sells)
+    - Description
+    - Proceeds (for sells)
+    - Cost Basis
+    - Gain/Loss (calculated by TurboTax)
+
+    Args:
+        records: List of records in Koinly format
+
+    Returns:
+        List of records in TurboTax format
+    """
+    turbotax_records = []
+
+    for record in records:
+        # Determine if this is a buy or sell
+        sent_amount = record.get("Sent Amount", 0) or 0
+        received_amount = record.get("Received Amount", 0) or 0
+        sent_currency = record.get("Sent Currency", "")
+        received_currency = record.get("Received Currency", "")
+        date = record.get("Date", "")
+        description = record.get("Description", "")
+        fee_amount = record.get("Fee Amount", 0) or 0
+        fee_currency = record.get("Fee Currency", "")
+
+        # Skip if no meaningful transaction
+        if not sent_amount and not received_amount:
+            continue
+
+        # Fiat currencies to detect trade direction
+        fiat_currencies = {"USD", "EUR", "GBP", "CAD", "AUD", "JPY", "USDT", "USDC", "BUSD", "DAI"}
+
+        is_sell = sent_currency and sent_currency.upper() not in fiat_currencies and received_currency.upper() in fiat_currencies
+        is_buy = received_currency and received_currency.upper() not in fiat_currencies and sent_currency.upper() in fiat_currencies
+
+        if is_sell:
+            # SELL transaction - crypto to fiat
+            turbotax_records.append({
+                "Date Sold": date,
+                "Date Acquired": "",  # User needs to fill this from cost basis lot
+                "Description": f"Sold {sent_amount} {sent_currency}",
+                "Proceeds": received_amount - fee_amount if fee_currency.upper() in fiat_currencies else received_amount,
+                "Cost Basis": "",  # TaxFormatter Free tier doesn't calculate this
+                "Adjustment Code": "",
+                "Adjustment Amount": "",
+                "Gain/Loss": "",  # Calculated by TurboTax
+                "Notes": description,
+            })
+        elif is_buy:
+            # BUY transaction - fiat to crypto
+            turbotax_records.append({
+                "Date Acquired": date,
+                "Date Sold": "",
+                "Description": f"Bought {received_amount} {received_currency}",
+                "Proceeds": "",
+                "Cost Basis": sent_amount + (fee_amount if fee_currency.upper() in fiat_currencies else 0),
+                "Adjustment Code": "",
+                "Adjustment Amount": "",
+                "Gain/Loss": "",
+                "Notes": description,
+            })
+        else:
+            # Crypto-to-crypto trade or transfer - treat as two transactions
+            if sent_amount and sent_currency:
+                turbotax_records.append({
+                    "Date Sold": date,
+                    "Date Acquired": "",
+                    "Description": f"Exchanged {sent_amount} {sent_currency}",
+                    "Proceeds": "",  # Unknown fiat value
+                    "Cost Basis": "",
+                    "Adjustment Code": "",
+                    "Adjustment Amount": "",
+                    "Gain/Loss": "",
+                    "Notes": f"{description} - Crypto-to-crypto trade",
+                })
+
+    return turbotax_records
+
+
+def convert_to_coinledger(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Convert Koinly-format records to CoinLedger format.
+
+    CoinLedger format:
+    - Date
+    - Type (BUY, SELL, TRADE, STAKING, AIRDROP, etc.)
+    - Sent Currency
+    - Sent Amount
+    - Received Currency
+    - Received Amount
+    - Fee Currency
+    - Fee Amount
+    - Notes
+
+    Args:
+        records: List of records in Koinly format
+
+    Returns:
+        List of records in CoinLedger format
+    """
+    coinledger_records = []
+    fiat_currencies = {"USD", "EUR", "GBP", "CAD", "AUD", "JPY", "USDT", "USDC", "BUSD", "DAI"}
+
+    for record in records:
+        sent_amount = record.get("Sent Amount", 0) or 0
+        received_amount = record.get("Received Amount", 0) or 0
+        sent_currency = record.get("Sent Currency", "") or ""
+        received_currency = record.get("Received Currency", "") or ""
+        date = record.get("Date", "")
+        description = record.get("Description", "")
+        fee_amount = record.get("Fee Amount", 0) or 0
+        fee_currency = record.get("Fee Currency", "") or ""
+        label = record.get("Label", "")
+
+        # Determine transaction type
+        if label and label.upper() in ["STAKING", "AIRDROP", "MINING", "INCOME"]:
+            tx_type = label.upper()
+        elif sent_currency.upper() in fiat_currencies and received_currency.upper() not in fiat_currencies:
+            tx_type = "BUY"
+        elif sent_currency.upper() not in fiat_currencies and received_currency.upper() in fiat_currencies:
+            tx_type = "SELL"
+        elif sent_currency and received_currency:
+            tx_type = "TRADE"
+        elif received_currency and not sent_currency:
+            tx_type = "DEPOSIT"
+        elif sent_currency and not received_currency:
+            tx_type = "WITHDRAWAL"
+        else:
+            tx_type = "UNKNOWN"
+
+        coinledger_records.append({
+            "Date": date,
+            "Type": tx_type,
+            "Sent Currency": sent_currency,
+            "Sent Amount": sent_amount if sent_amount else "",
+            "Received Currency": received_currency,
+            "Received Amount": received_amount if received_amount else "",
+            "Fee Currency": fee_currency,
+            "Fee Amount": fee_amount if fee_amount else "",
+            "Notes": description,
+        })
+
+    return coinledger_records
+
+
+def convert_to_zenledger(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Convert Koinly-format records to ZenLedger format.
+
+    ZenLedger format:
+    - Timestamp
+    - Type (Trade, Deposit, Withdrawal, Staking, Airdrop)
+    - In Currency
+    - In Amount
+    - Out Currency
+    - Out Amount
+    - Fee Currency
+    - Fee Amount
+    - Comment
+
+    Args:
+        records: List of records in Koinly format
+
+    Returns:
+        List of records in ZenLedger format
+    """
+    zenledger_records = []
+    fiat_currencies = {"USD", "EUR", "GBP", "CAD", "AUD", "JPY", "USDT", "USDC", "BUSD", "DAI"}
+
+    for record in records:
+        sent_amount = record.get("Sent Amount", 0) or 0
+        received_amount = record.get("Received Amount", 0) or 0
+        sent_currency = record.get("Sent Currency", "") or ""
+        received_currency = record.get("Received Currency", "") or ""
+        date = record.get("Date", "")
+        description = record.get("Description", "")
+        fee_amount = record.get("Fee Amount", 0) or 0
+        fee_currency = record.get("Fee Currency", "") or ""
+        label = record.get("Label", "")
+
+        # Determine transaction type for ZenLedger
+        if label and label.upper() in ["STAKING", "AIRDROP", "MINING"]:
+            tx_type = label.capitalize()
+        elif sent_currency and received_currency:
+            tx_type = "Trade"
+        elif received_currency and not sent_currency:
+            tx_type = "Deposit"
+        elif sent_currency and not received_currency:
+            tx_type = "Withdrawal"
+        else:
+            tx_type = "Trade"
+
+        zenledger_records.append({
+            "Timestamp": date,
+            "Type": tx_type,
+            "In Currency": received_currency,
+            "In Amount": received_amount if received_amount else "",
+            "Out Currency": sent_currency,
+            "Out Amount": sent_amount if sent_amount else "",
+            "Fee Currency": fee_currency,
+            "Fee Amount": fee_amount if fee_amount else "",
+            "Comment": description,
+        })
+
+    return zenledger_records
+
+
+def convert_records(
+    records: List[Dict[str, Any]],
+    output_format: str = "koinly"
+) -> Tuple[List[Dict[str, Any]], List[str]]:
+    """
+    Convert records from Koinly format to the specified output format.
+
+    Args:
+        records: List of records in Koinly format (from process_file)
+        output_format: Target format - "koinly", "turbotax", "coinledger", "zenledger"
+
+    Returns:
+        Tuple of (converted_records, fieldnames)
+    """
+    output_format = output_format.lower().strip()
+
+    if output_format == "koinly" or not output_format:
+        # Already in Koinly format, return as-is
+        fieldnames = [
+            "Date", "Sent Amount", "Sent Currency",
+            "Received Amount", "Received Currency",
+            "Fee Amount", "Fee Currency", "Description"
+        ]
+        # Add optional fields if present
+        if records and "TxHash" in records[0]:
+            fieldnames.append("TxHash")
+        if records and "Label" in records[0]:
+            fieldnames.append("Label")
+        return records, fieldnames
+
+    elif output_format == "turbotax":
+        converted = convert_to_turbotax(records)
+        fieldnames = [
+            "Date Sold", "Date Acquired", "Description",
+            "Proceeds", "Cost Basis", "Adjustment Code",
+            "Adjustment Amount", "Gain/Loss", "Notes"
+        ]
+        return converted, fieldnames
+
+    elif output_format == "coinledger":
+        converted = convert_to_coinledger(records)
+        fieldnames = [
+            "Date", "Type", "Sent Currency", "Sent Amount",
+            "Received Currency", "Received Amount",
+            "Fee Currency", "Fee Amount", "Notes"
+        ]
+        return converted, fieldnames
+
+    elif output_format == "zenledger":
+        converted = convert_to_zenledger(records)
+        fieldnames = [
+            "Timestamp", "Type", "In Currency", "In Amount",
+            "Out Currency", "Out Amount",
+            "Fee Currency", "Fee Amount", "Comment"
+        ]
+        return converted, fieldnames
+
+    else:
+        logger.warning(f"Unknown output format '{output_format}', defaulting to Koinly")
+        return convert_records(records, "koinly")
+
+
+# Export new functions
+__all__.extend([
+    'OutputFormat',
+    'convert_records',
+    'convert_to_turbotax',
+    'convert_to_coinledger',
+    'convert_to_zenledger',
+])
