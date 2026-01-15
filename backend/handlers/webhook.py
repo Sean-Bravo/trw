@@ -343,7 +343,8 @@ def handle_job_retry(event: Dict) -> Dict:
     Request body:
     {
         "s3Key": "uploads/jobId/filename.csv",
-        "jobId": "uuid"
+        "jobId": "uuid",
+        "exchangeName": "coinbase"  // Optional - manual exchange override
     }
 
     Response:
@@ -364,6 +365,8 @@ def handle_job_retry(event: Dict) -> Dict:
         return response(400, {"error": "Invalid JSON body"})
 
     s3_key = body.get("s3Key")
+    exchange_name = body.get("exchangeName")  # Optional manual override
+
     if not s3_key:
         return response(400, {"error": "s3Key is required"})
 
@@ -396,6 +399,11 @@ def handle_job_retry(event: Dict) -> Dict:
             "retry": True,
         }
 
+        # Add exchange override if specified
+        if exchange_name:
+            message["exchangeName"] = exchange_name
+            logger.info(f"Job {job_id} retry with manual exchange: {exchange_name}")
+
         sqs_client.send_message(
             QueueUrl=PROCESSOR_QUEUE_URL,
             MessageBody=json.dumps(message),
@@ -405,8 +413,9 @@ def handle_job_retry(event: Dict) -> Dict:
 
         return response(200, {
             "success": True,
-            "message": "Job queued for retry",
+            "message": f"Job queued for retry{f' with {exchange_name} parser' if exchange_name else ''}",
             "jobId": job_id,
+            "exchangeName": exchange_name,
         })
 
     except Exception as e:

@@ -2651,6 +2651,215 @@ class OKXParser(BaseExchangeParser):
 
 
 # ============================================================================
+# GENERIC FALLBACK PARSER
+# ============================================================================
+
+class GenericCSVParser(BaseExchangeParser):
+    """
+    Generic CSV parser for files that don't match known exchange formats.
+
+    Attempts to map common column names to standard transaction fields.
+    This is a best-effort parser that can handle many crypto CSV formats.
+    """
+
+    exchange_name = "Generic"
+
+    # Map of common column names to standard fields
+    # Each standard field has a list of possible column names (case-insensitive)
+    COLUMN_VARIATIONS = {
+        'date': [
+            'date', 'time', 'timestamp', 'datetime', 'created', 'created_at',
+            'transaction date', 'transaction_date', 'trade date', 'trade_date',
+            'execution time', 'execution_time', 'activity date', 'activity_date',
+            'date(utc)', 'date_utc', 'utc date', 'utc_date'
+        ],
+        'type': [
+            'type', 'transaction type', 'transaction_type', 'trade type', 'trade_type',
+            'side', 'action', 'direction', 'operation', 'trans_type', 'trans type',
+            'activity type', 'activity_type', 'kind', 'category'
+        ],
+        'amount': [
+            'amount', 'quantity', 'qty', 'size', 'volume', 'units',
+            'quantity transacted', 'quantity_transacted', 'trade amount', 'trade_amount',
+            'crypto amount', 'crypto_amount', 'coin amount', 'coin_amount',
+            'asset amount', 'asset_amount', 'executed', 'filled'
+        ],
+        'currency': [
+            'currency', 'asset', 'coin', 'token', 'symbol', 'crypto',
+            'base currency', 'base_currency', 'crypto currency', 'crypto_currency',
+            'asset type', 'asset_type', 'ticker'
+        ],
+        'price': [
+            'price', 'rate', 'unit price', 'unit_price', 'spot price', 'spot_price',
+            'execution price', 'execution_price', 'fill price', 'fill_price',
+            'price per unit', 'price_per_unit', 'avg price', 'avg_price'
+        ],
+        'total': [
+            'total', 'value', 'subtotal', 'gross', 'net', 'cost',
+            'usd amount', 'usd_amount', 'fiat amount', 'fiat_amount',
+            'total value', 'total_value', 'notional', 'proceeds'
+        ],
+        'fee': [
+            'fee', 'fees', 'commission', 'trading fee', 'trading_fee',
+            'transaction fee', 'transaction_fee', 'fee amount', 'fee_amount',
+            'cost', 'charges'
+        ],
+        'pair': [
+            'pair', 'market', 'trading pair', 'trading_pair', 'trade pair', 'trade_pair',
+            'symbol', 'instrument', 'product', 'contract'
+        ],
+    }
+
+    def get_required_columns(self) -> List[str]:
+        """Generic parser has no strict requirements - it's best-effort."""
+        return []
+
+    def _find_column(self, df: pd.DataFrame, field: str) -> Optional[str]:
+        """Find a column matching any of the variations for a field."""
+        variations = self.COLUMN_VARIATIONS.get(field, [])
+        columns_lower = {col.lower().strip(): col for col in df.columns}
+
+        for var in variations:
+            if var in columns_lower:
+                return columns_lower[var]
+        return None
+
+    def _map_columns(self, df: pd.DataFrame) -> Dict[str, str]:
+        """Map DataFrame columns to standard field names."""
+        mapping = {}
+        for field in self.COLUMN_VARIATIONS.keys():
+            col = self._find_column(df, field)
+            if col:
+                mapping[field] = col
+        return mapping
+
+    def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
+        """Parse CSV with best-effort column mapping."""
+        records: List[Dict[str, Any]] = []
+        errors: List[ParseError] = []
+
+        # Find column mappings
+        mapping = self._map_columns(df)
+        logger.info(f"Generic parser mapped columns: {mapping}")
+
+        # We need at least date and either amount or total
+        if 'date' not in mapping:
+            errors.append(ParseError(
+                row=0,
+                message="Could not find a date column. Expected columns like: date, timestamp, time, created_at",
+                severity=ErrorSeverity.CRITICAL,
+                suggestion="Ensure your CSV has a date/timestamp column"
+            ))
+            return [], errors
+
+        if 'amount' not in mapping and 'total' not in mapping:
+            errors.append(ParseError(
+                row=0,
+                message="Could not find an amount column. Expected columns like: amount, quantity, size, total",
+                severity=ErrorSeverity.CRITICAL,
+                suggestion="Ensure your CSV has an amount or quantity column"
+            ))
+            return [], errors
+
+        for idx, row in df.iterrows():
+            try:
+                # Parse date
+                date_col = mapping['date']
+                date_str = str(row[date_col]).strip()
+                date = parse_date_flexible(date_str)
+                if not date:
+                    errors.append(ParseError(
+                        row=idx,
+                        message=f"Could not parse date: {date_str}",
+                        severity=ErrorSeverity.WARNING,
+                        data=safe_row_data(row)
+                    ))
+                    continue
+
+                # Parse type (default to "Trade" if not found)
+                tx_type = "Trade"
+                if 'type' in mapping:
+                    tx_type = str(row[mapping['type']]).strip() or "Trade"
+
+                # Parse amount
+                amount = 0.0
+                if 'amount' in mapping:
+                    amount = float(safe_decimal(row[mapping['amount']]))
+
+                # Parse currency
+                currency = "UNKNOWN"
+                if 'currency' in mapping:
+                    currency = str(row[mapping['currency']]).strip().upper() or "UNKNOWN"
+                elif 'pair' in mapping:
+                    # Try to extract currency from pair (e.g., BTC/USD -> BTC)
+                    pair = str(row[mapping['pair']]).strip()
+                    if '/' in pair:
+                        currency = pair.split('/')[0].strip().upper()
+                    elif '-' in pair:
+                        currency = pair.split('-')[0].strip().upper()
+
+                # Parse price
+                price = 0.0
+                if 'price' in mapping:
+                    price = float(safe_decimal(row[mapping['price']]))
+
+                # Parse total
+                total = 0.0
+                if 'total' in mapping:
+                    total = abs(float(safe_decimal(row[mapping['total']])))
+                elif amount != 0 and price != 0:
+                    total = abs(amount * price)
+
+                # Parse fee
+                fee = 0.0
+                if 'fee' in mapping:
+                    fee = abs(float(safe_decimal(row[mapping['fee']])))
+
+                # Skip rows with zero amount and zero total
+                if amount == 0 and total == 0:
+                    continue
+
+                # Build record using UniversalRecord format
+                record = UniversalRecord(
+                    Date=date,
+                    Sent_Amount=amount if tx_type.lower() in ['sell', 'send', 'withdrawal', 'withdraw'] else 0.0,
+                    Sent_Currency=currency if tx_type.lower() in ['sell', 'send', 'withdrawal', 'withdraw'] else '',
+                    Received_Amount=amount if tx_type.lower() in ['buy', 'receive', 'deposit'] else 0.0,
+                    Received_Currency=currency if tx_type.lower() in ['buy', 'receive', 'deposit'] else '',
+                    Fee_Amount=fee,
+                    Fee_Currency="USD",
+                    Description=f"Generic: {tx_type} {currency}",
+                    Label="trade" if tx_type.lower() in ['trade', 'buy', 'sell', 'swap'] else "other"
+                )
+
+                # For unknown types, default to received
+                if record.Sent_Amount == 0 and record.Received_Amount == 0:
+                    record.Received_Amount = amount
+                    record.Received_Currency = currency
+
+                records.append(record.to_dict())
+
+            except Exception as e:
+                errors.append(ParseError(
+                    row=idx,
+                    message=f"Generic parser error: {str(e)}",
+                    severity=ErrorSeverity.ERROR,
+                    data=safe_row_data(row),
+                    suggestion="Check that your CSV has valid data in each row"
+                ))
+
+        if not records:
+            errors.append(ParseError(
+                row=0,
+                message="No valid transactions could be extracted from the file",
+                severity=ErrorSeverity.CRITICAL,
+                suggestion="Verify your CSV format and ensure it contains transaction data"
+            ))
+
+        return records, errors
+
+
+# ============================================================================
 # PARSER REGISTRY
 # ============================================================================
 
@@ -2677,6 +2886,8 @@ class ParserRegistry:
             "ftx": FTXParser(),
             "bitfinex": BitfinexParser(),
             "okx": OKXParser(),
+            # Generic fallback
+            "generic": GenericCSVParser(),
         }
     
     def detect_exchange(self, df: pd.DataFrame) -> Optional[str]:
@@ -2938,15 +3149,46 @@ def process_file(
             exchange_name = registry.detect_exchange(df)
 
         if not exchange_name:
+            # Build a more helpful error message with column analysis
+            columns_found = list(df.columns)
+            columns_lower = [str(c).lower() for c in columns_found]
+
+            # Check which common fields are present
+            has_date = any(kw in ' '.join(columns_lower) for kw in ['date', 'time', 'timestamp', 'created'])
+            has_amount = any(kw in ' '.join(columns_lower) for kw in ['amount', 'quantity', 'size', 'volume'])
+            has_type = any(kw in ' '.join(columns_lower) for kw in ['type', 'side', 'action', 'transaction'])
+
+            # Build suggestion based on what's present
+            suggestion_parts = []
+            if not has_date:
+                suggestion_parts.append("No date/timestamp column found")
+            if not has_amount:
+                suggestion_parts.append("No amount/quantity column found")
+            if not has_type:
+                suggestion_parts.append("No transaction type column found")
+
+            if suggestion_parts:
+                detailed_suggestion = f"Issues detected: {'; '.join(suggestion_parts)}. "
+            else:
+                detailed_suggestion = "Your file has basic columns but doesn't match any known exchange format. "
+
+            detailed_suggestion += "Select your exchange manually from the dropdown, or try 'Generic CSV' if your file has common column names."
+
             return {
                 "success": False,
                 "records": [],
                 "errors": [{
                     "message": "Could not auto-detect exchange format",
                     "severity": "critical",
-                    "columns_found": list(df.columns),
+                    "columns_found": columns_found,
+                    "column_count": len(columns_found),
                     "supported_exchanges": registry.list_supported_exchanges(),
-                    "suggestion": "Try specifying the exchange name manually, or check that you exported the correct CSV format"
+                    "suggestion": detailed_suggestion,
+                    "analysis": {
+                        "has_date_column": has_date,
+                        "has_amount_column": has_amount,
+                        "has_type_column": has_type,
+                    }
                 }],
                 "warnings": warnings,
                 "meta": meta,
