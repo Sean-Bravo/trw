@@ -111,9 +111,14 @@ def upload_error(bucket: str, job_id: str, error: Dict):
         logger.error(f"Failed to upload error: {e}")
 
 
-def process_csv(file_data: bytes, filename: str) -> Dict[str, Any]:
+def process_csv(file_data: bytes, filename: str, exchange_name: str = None) -> Dict[str, Any]:
     """
     Process CSV using the engine.
+
+    Args:
+        file_data: Raw CSV bytes
+        filename: Original filename
+        exchange_name: Optional manual exchange override (skips auto-detection)
 
     Returns:
         {
@@ -128,10 +133,10 @@ def process_csv(file_data: bytes, filename: str) -> Dict[str, Any]:
         # Import engine (after DATABASE_URL is set)
         from engine import process_file
 
-        # Process the file
+        # Process the file with optional exchange override
         result = process_file(
             input_data=file_data,
-            exchange_name=None,  # Auto-detect
+            exchange_name=exchange_name,  # None = auto-detect, string = manual override
             debug=False,
             deduplicate=True,
         )
@@ -330,8 +335,12 @@ def process_message(message: Dict) -> Dict[str, Any]:
     filename = message.get("filename")
     user_id = message.get("user_id", "anonymous")
     user_tier = message.get("user_tier", "free")  # Default to free tier
+    exchange_name = message.get("exchangeName")  # Optional manual exchange override
 
-    logger.info(f"Processing job {job_id}: s3://{s3_bucket}/{s3_key} (tier: {user_tier})")
+    if exchange_name:
+        logger.info(f"Processing job {job_id}: s3://{s3_bucket}/{s3_key} (tier: {user_tier}, exchange: {exchange_name})")
+    else:
+        logger.info(f"Processing job {job_id}: s3://{s3_bucket}/{s3_key} (tier: {user_tier})")
 
     # Ensure secrets are loaded (sets DATABASE_URL)
     get_secrets()
@@ -341,8 +350,8 @@ def process_message(message: Dict) -> Dict[str, Any]:
         file_data = download_file(s3_bucket, s3_key)
         logger.info(f"Downloaded {len(file_data)} bytes")
 
-        # Process the CSV
-        result = process_csv(file_data, filename)
+        # Process the CSV (with optional exchange override)
+        result = process_csv(file_data, filename, exchange_name)
 
         if result["success"]:
             # Upload result
