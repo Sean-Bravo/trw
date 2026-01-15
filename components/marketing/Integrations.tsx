@@ -12,9 +12,8 @@ const exchanges = [
 ];
 
 const platforms = [
-  'TurboTax_Ready.csv', 'Koinly_Universal.csv', 'CoinLedger_Import.csv',
-  'H&R_Block_Format.csv', 'TaxAct_Standard.csv', 'ZenLedger_Compatible.csv',
-  'TokenTax_Direct.csv'
+  'TurboTax_Ready.csv', 'Koinly_Universal.csv',
+  'CoinLedger_Import.csv', 'ZenLedger_Compatible.csv'
 ];
 
 export function Integrations() {
