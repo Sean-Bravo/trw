@@ -310,15 +310,23 @@ def detect_exchange_from_headers(df: pd.DataFrame) -> str:
             logger.info("✓ Detected exchange: Cash App")
             return "Cash App"
     
-    # Robinhood detection
-    if "activity date" in headers_joined and "token" in headers_joined:
+    # Coinbase detection (check BEFORE Robinhood - both have "quantity transacted")
+    # Standard Coinbase export: Timestamp, Transaction Type, Asset, Quantity Transacted
+    # Coinbase Pro: created_at, product, side, size
+    if "transaction type" in headers_joined and "asset" in headers_set:
+        if "timestamp" in headers_set or "quantity transacted" in headers_joined:
+            logger.info("✓ Detected exchange: Coinbase")
+            return "Coinbase"
+    # Legacy Coinbase format
+    if "type" in headers_set and "currency" in headers_set and "timestamp" in headers_joined:
+        logger.info("✓ Detected exchange: Coinbase")
+        return "Coinbase"
+
+    # Robinhood detection (must have both activity date AND token)
+    if "activity date" in headers_joined and "token" in headers_set:
         logger.info("✓ Detected exchange: Robinhood")
         return "Robinhood"
-    
-    if "quantity transacted" in headers_joined or "quantity_transacted" in headers_joined:
-        logger.info("✓ Detected exchange: Robinhood")
-        return "Robinhood"
-    
+
     # PayPal/Venmo detection (has gross + status + crypto pattern)
     if "gross" in headers_set and "status" in headers_set:
         # Check if it's actually crypto transactions
@@ -329,21 +337,16 @@ def detect_exchange_from_headers(df: pd.DataFrame) -> str:
             if any('crypto' in t for t in types_sample):
                 logger.info("✓ Detected exchange: PayPal")
                 return "PayPal"
-    
+
     # ========================================================================
     # TIER 1: ENTERPRISE EXCHANGES
     # ========================================================================
-    
+
     # Binance detection (has pair + side + date(utc))
     if "pair" in headers_set and "side" in headers_set:
         if "date(utc)" in headers_joined or "date_utc" in headers_joined:
             logger.info("✓ Detected exchange: Binance")
             return "Binance"
-    
-    # Coinbase detection (has type + currency + timestamp)
-    if "type" in headers_set and "currency" in headers_set and "timestamp" in headers_joined:
-        logger.info("✓ Detected exchange: Coinbase")
-        return "Coinbase"
     
     # Kraken detection (has txid/refid OR specific ledger pattern)
     if "txid" in headers_joined or "refid" in headers_joined:
