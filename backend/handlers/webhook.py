@@ -371,16 +371,19 @@ def handle_download(event: Dict) -> Dict:
                     if not records:
                         return response(400, {"error": "No records found in result file"})
 
-                    # Import converter (add services to path)
-                    import sys
-                    import os
-                    services_path = os.path.join(os.path.dirname(__file__), "services")
-                    if not os.path.exists(services_path):
+                    # Import converter
+                    # In Lambda, engine.py is in the same directory (flat structure after deploy)
+                    # Locally, it's in services/engine.py
+                    try:
+                        from engine import convert_records
+                    except ImportError:
+                        import sys
+                        import os
+                        # Try services path for local development
                         services_path = os.path.join(os.path.dirname(__file__), "..", "services")
-                    if services_path not in sys.path:
-                        sys.path.insert(0, services_path)
-
-                    from engine import convert_records
+                        if services_path not in sys.path:
+                            sys.path.insert(0, services_path)
+                        from engine import convert_records
 
                     # Convert records
                     converted_records, fieldnames = convert_records(records, output_format)

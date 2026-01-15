@@ -82,7 +82,7 @@ export function TaxSoftwareSelector({
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+          <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden max-h-64 overflow-y-auto">
             {TAX_SOFTWARE_OPTIONS.map((option) => (
               <button
                 key={option.value}
