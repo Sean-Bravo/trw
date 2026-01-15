@@ -27,7 +27,10 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from functools import lru_cache
 
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    pd = None  # Pandas not required for format conversion functions
 
 try:
     import chardet

@@ -216,8 +216,14 @@ export function AIInsightsPanel() {
 
     try {
       const result = await getDownloadUrl(activeJob.jobId, 'formatted', format as TaxSoftwareFormat);
-      // Open download URL in new tab
-      window.open(result.downloadUrl, '_blank');
+      // Create a temporary link and click it to trigger download
+      // This is more reliable than window.open which can be blocked
+      const link = document.createElement('a');
+      link.href = result.downloadUrl;
+      link.download = `${activeJob.jobId}_${format}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
       const error = err as { message?: string };
       setDownloadError(error.message || 'Failed to get download URL');

@@ -67,7 +67,7 @@ export function Hero() {
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            Your exchange exported garbage. We clean it, fix the formatting errors, and make it import-ready for Koinly, TurboTax, and every other tax platform. They do the math—we fix the mess.
+            Your exchange exported garbage. We clean it, fix the formatting errors, and make it import-ready for TurboTax, Koinly, CoinLedger, and ZenLedger. They do the math—we fix the mess.
           </p>
 
           {/* CTA Buttons */}

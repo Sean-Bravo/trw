@@ -13,7 +13,7 @@ const LOG_SEQUENCE = [
   { type: 'success', text: '>> FIXED: Inferred "USD" from context', delay: 2800 },
   { type: 'warn', text: 'Row 312: Duplicate Transaction ID detected', delay: 3400 },
   { type: 'success', text: '>> FIXED: Deduped record', delay: 3800 },
-  { type: 'info', text: 'Validating against Koinly schema...', delay: 4500 },
+  { type: 'info', text: 'Validating for TurboTax, Koinly, CoinLedger, ZenLedger...', delay: 4500 },
   { type: 'done', text: 'Processing Complete. File ready.', delay: 5000 },
 ];
 
