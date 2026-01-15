@@ -725,9 +725,9 @@ class BinanceParser(BaseExchangeParser):
 
 class CoinbaseParser(BaseExchangeParser):
     """Parse Coinbase transaction CSV exports."""
-    
+
     exchange_name = "Coinbase"
-    
+
     COLUMN_MAPPING = {
         'timestamp': 'date',
         'transaction_type': 'type',     # Coinbase uses "Transaction Type"
@@ -735,6 +735,10 @@ class CoinbaseParser(BaseExchangeParser):
         'quantity_transacted': 'amount', # Coinbase uses "Quantity Transacted"
         'fees_and_or_spread': 'fee',    # "Fees and/or Spread" normalized
         'spot_price_at_transaction': 'price',
+        # New 2025 Coinbase format
+        'price_at_transaction': 'price',  # "Price at Transaction" (no "Spot")
+        'price_currency': 'quote_currency',  # "Price Currency"
+        'total_inclusive_of_fees_and_or_spread_': 'total',  # Full column name normalized
         # Coinbase Pro mappings
         'created_at': 'date',           # Pro format
         'product': 'pair',              # Pro format
@@ -743,94 +747,175 @@ class CoinbaseParser(BaseExchangeParser):
 
     def get_required_columns(self) -> List[str]:
         return ['timestamp']
-    
+
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Coinbase CSV to universal schema."""
         df = self.normalize_columns(df)
-        
+
         for col in ['total', 'fee']:
             if col not in df.columns:
                 df[col] = 0.0
-        
+
         records = []
         errors = []
-        
+
         for row in df.itertuples(index=True, name='Row'):
             idx = row.Index
             try:
                 date = format_date(row.date, strict=self.strict_validation)
                 if not date:
                     raise ValueError("Invalid or missing date")
-                
+
                 tx_type = str(row.type).upper().strip()
                 currency = str(row.currency).upper().strip()
-                amount = parse_float(row.amount)
-                
+
+                # Handle negative amounts (Coinbase uses negative for sends/withdrawals)
+                raw_amount = getattr(row, 'amount', 0)
+                if isinstance(raw_amount, str):
+                    raw_amount = raw_amount.replace('$', '').replace(',', '')
+                amount = abs(float(raw_amount)) if raw_amount else 0.0
+
                 if not currency:
                     raise ValueError("Missing currency")
                 if amount <= 0:
                     raise ValueError(f"Invalid amount: {amount} (must be > 0)")
-                
-                total = parse_float(row.total) if hasattr(row, 'total') else 0.0
-                fee = parse_float(row.fee) if hasattr(row, 'fee') else 0.0
-                
+
+                # Parse total - handle string values with $ signs
+                raw_total = getattr(row, 'total', 0)
+                if isinstance(raw_total, str):
+                    raw_total = raw_total.replace('$', '').replace(',', '')
+                total = abs(float(raw_total)) if raw_total else 0.0
+
+                # Parse fee - handle string values with $ signs
+                raw_fee = getattr(row, 'fee', 0)
+                if isinstance(raw_fee, str):
+                    raw_fee = raw_fee.replace('$', '').replace(',', '')
+                fee = abs(float(raw_fee)) if raw_fee else 0.0
+
                 # Dynamic Currency Detection
                 quote_currency = "USD"
-                if hasattr(row, 'native_currency') and row.native_currency:
+                if hasattr(row, 'quote_currency') and row.quote_currency:
+                    quote_currency = str(row.quote_currency).upper().strip()
+                elif hasattr(row, 'native_currency') and row.native_currency:
                     quote_currency = str(row.native_currency).upper().strip()
-                
-                # Determine transaction label
-                label = "trade" if tx_type in ["BUY", "SELL"] else "transfer"
-                
-                if tx_type == "BUY":
+
+                # Normalize transaction types
+                tx_type_upper = tx_type.upper()
+
+                # Map various Coinbase transaction types
+                SEND_TYPES = ["SEND", "WITHDRAWAL", "RETAIL MGX DEX SEND"]
+                RECEIVE_TYPES = ["RECEIVE", "DEPOSIT"]
+                INCOME_TYPES = ["REWARD INCOME", "STAKING INCOME", "LEARNING REWARD", "COINBASE EARN"]
+                TRADE_TYPES = ["BUY", "SELL", "CONVERT", "RETAIL MGX DEX TRADE"]
+
+                # Determine label
+                if any(t in tx_type_upper for t in ["BUY", "SELL", "CONVERT", "TRADE"]):
+                    label = "trade"
+                elif any(t in tx_type_upper for t in INCOME_TYPES):
+                    label = "income"
+                else:
+                    label = "transfer"
+
+                if tx_type_upper == "BUY" or "BUY" in tx_type_upper:
                     record = UniversalRecord(
                         Date=date,
-                        Sent_Amount=total + fee,
+                        Sent_Amount=total + fee if total else amount,
                         Sent_Currency=quote_currency,
                         Received_Amount=amount,
                         Received_Currency=currency,
                         Fee_Amount=fee,
                         Fee_Currency=quote_currency,
-                        Description="Coinbase buy",
+                        Description=f"Coinbase {tx_type.lower()}",
                         Label=label
                     )
-                elif tx_type == "SELL":
+                elif tx_type_upper == "SELL" or "SELL" in tx_type_upper:
                     record = UniversalRecord(
                         Date=date,
                         Sent_Amount=amount,
                         Sent_Currency=currency,
-                        Received_Amount=total - fee,
+                        Received_Amount=total - fee if total else 0,
                         Received_Currency=quote_currency,
                         Fee_Amount=fee,
                         Fee_Currency=quote_currency,
-                        Description="Coinbase sell",
+                        Description=f"Coinbase {tx_type.lower()}",
                         Label=label
                     )
-                else:
-                    # Fallback for deposits/withdrawals
+                elif tx_type_upper == "CONVERT" or "CONVERT" in tx_type_upper:
+                    # Convert: selling one crypto for another
+                    # Note: Coinbase shows each side as separate row, amount is negative for "from" side
                     record = UniversalRecord(
                         Date=date,
-                        Sent_Amount=amount if tx_type in ["WITHDRAWAL", "SEND"] else 0,
-                        Sent_Currency=currency if tx_type in ["WITHDRAWAL", "SEND"] else "",
-                        Received_Amount=amount if tx_type in ["DEPOSIT", "RECEIVE"] else 0,
-                        Received_Currency=currency if tx_type in ["DEPOSIT", "RECEIVE"] else "",
+                        Sent_Amount=amount,
+                        Sent_Currency=currency,
+                        Received_Amount=0,  # Will be filled by matching row
+                        Received_Currency="",
+                        Fee_Amount=fee,
+                        Fee_Currency=quote_currency,
+                        Description=f"Coinbase {tx_type.lower()}",
+                        Label=label
+                    )
+                elif any(t in tx_type_upper for t in SEND_TYPES):
+                    record = UniversalRecord(
+                        Date=date,
+                        Sent_Amount=amount,
+                        Sent_Currency=currency,
+                        Received_Amount=0,
+                        Received_Currency="",
                         Fee_Amount=fee,
                         Fee_Currency=currency,
                         Description=f"Coinbase {tx_type.lower()}",
                         Label=label
                     )
-                    
+                elif any(t in tx_type_upper for t in RECEIVE_TYPES):
+                    record = UniversalRecord(
+                        Date=date,
+                        Sent_Amount=0,
+                        Sent_Currency="",
+                        Received_Amount=amount,
+                        Received_Currency=currency,
+                        Fee_Amount=fee,
+                        Fee_Currency=currency,
+                        Description=f"Coinbase {tx_type.lower()}",
+                        Label=label
+                    )
+                elif any(t in tx_type_upper for t in INCOME_TYPES):
+                    # Staking rewards, learning rewards, etc.
+                    record = UniversalRecord(
+                        Date=date,
+                        Sent_Amount=0,
+                        Sent_Currency="",
+                        Received_Amount=amount,
+                        Received_Currency=currency,
+                        Fee_Amount=0,
+                        Fee_Currency="",
+                        Description=f"Coinbase {tx_type.lower()}",
+                        Label="income"
+                    )
+                else:
+                    # Fallback for unknown types
+                    record = UniversalRecord(
+                        Date=date,
+                        Sent_Amount=0,
+                        Sent_Currency="",
+                        Received_Amount=amount,
+                        Received_Currency=currency,
+                        Fee_Amount=fee,
+                        Fee_Currency=currency,
+                        Description=f"Coinbase {tx_type.lower()}",
+                        Label=label
+                    )
+
                 records.append(record.to_dict())
-                
+
             except Exception as e:
                 errors.append(ParseError(
                     row=idx,
                     message=str(e),
                     severity=ErrorSeverity.ERROR,
                     data=safe_row_data(row),
-                    suggestion="Ensure your Coinbase export includes Timestamp, Type, Currency, and Amount columns"
+                    suggestion="Ensure your Coinbase export includes Timestamp, Transaction Type, Asset, and Quantity Transacted columns"
                 ))
-        
+
         return records, errors
 
 
@@ -2595,81 +2680,63 @@ class ParserRegistry:
         }
     
     def detect_exchange(self, df: pd.DataFrame) -> Optional[str]:
-        """Detect which exchange based on column headers."""
+        """
+        Detect which exchange based on column headers.
+
+        Uses centralized detection from fingerprinting.py to avoid duplicate logic.
+        """
+        # Use centralized detection from fingerprinting module
+        if FINGERPRINTING_AVAILABLE:
+            result = detect_exchange_from_headers(df)
+            if result and result != "Unknown":
+                # Normalize to lowercase for parser lookup
+                # Handle special cases like "Cash App" -> "cashapp", "Crypto.com" -> "crypto.com"
+                normalized = result.lower().replace(" ", "").replace(".", "")
+                # Map normalized names to parser keys
+                name_map = {
+                    "cashapp": "cashapp",
+                    "cryptocom": "crypto.com",
+                }
+                return name_map.get(normalized, result.lower())
+
+        # Fallback: inline detection if fingerprinting not available
         columns_lower = [col.lower() for col in df.columns]
-        
+        columns_joined = " ".join(columns_lower)
+
         # FTX detection
         if "market" in columns_lower and any(col in columns_lower for col in ["size", "price"]):
             if 'market' in df.columns:
                 markets_sample = df['market'].astype(str).head(5)
                 if any('/' in str(m) or 'PERP' in str(m) for m in markets_sample):
                     return "ftx"
-        
+
         # Bitfinex detection
         if "#" in columns_lower or df.columns[0] == '#':
             return "bitfinex"
-        
+
         # OKX detection
         if "instrument" in columns_lower or "instrument_id" in columns_lower:
             return "okx"
-        if "order_id" in columns_lower and "fill_price" in columns_lower:
-            return "okx"
-        
-        # Crypto.com detection
-        if "transaction kind" in columns_lower or "transaction_kind" in columns_lower:
-            return "crypto.com"
-        if "timestamp (utc)" in columns_lower and ("native amount (in usd)" in columns_lower or "native_amount__in_usd_" in columns_lower):
-            return "crypto.com"
-        
-        # Gemini detection
-        if "liquidity indicator" in columns_lower or "liquidity_indicator" in columns_lower:
-            return "gemini"
-        if "trading fee (usd)" in columns_lower:
-            return "gemini"
-        crypto_amount_cols = [col for col in columns_lower if 'amount' in col and col not in ['usd_amount', 'usd amount', 'amount']]
-        if len(crypto_amount_cols) >= 2:
-            return "gemini"
-        
-        # Cash App detection
-        if "asset type" in columns_lower or "transaction type" in columns_lower:
-            if any("bitcoin" in str(col).lower() for col in df.columns):
-                return "cashapp"
-        
-        # Robinhood detection
-        if "activity date" in columns_lower and "token" in columns_lower:
-            return "robinhood"
-        if "quantity transacted" in columns_lower:
-            return "robinhood"
-        
-        # PayPal/Venmo detection
-        if "gross" in columns_lower and "status" in columns_lower:
-            if 'type' in df.columns:
-                types_sample = df['type'].astype(str).str.lower()
-                if any('crypto' in t for t in types_sample.head(20)):
-                    return "paypal"
-        
-        # Binance detection
-        if any(col in columns_lower for col in ["pair", "side"]) and "date(utc)" in columns_lower:
-            return "binance"
-        
+
         # Coinbase detection
+        if "transaction type" in columns_joined and "asset" in columns_lower:
+            if "timestamp" in columns_lower or "quantity transacted" in columns_joined:
+                return "coinbase"
         if "type" in columns_lower and "currency" in columns_lower and "timestamp" in columns_lower:
             return "coinbase"
-        
+
+        # Robinhood detection
+        if "activity date" in columns_joined and "token" in columns_lower:
+            return "robinhood"
+
+        # Binance detection
+        if any(col in columns_lower for col in ["pair", "side"]) and "date(utc)" in columns_joined:
+            return "binance"
+
         # Kraken detection
         if "txid" in columns_lower or "refid" in columns_lower:
             return "kraken"
-        if "asset" in columns_lower and any(x in columns_lower for x in ["ledgers", "time"]):
-            return "kraken"
-        
-        # KuCoin detection
-        if "trade_pair" in columns_lower or "trade pair" in columns_lower:
-            return "kucoin"
-        
-        # Bybit detection
-        if "symbol" in columns_lower and "orderid" in columns_lower:
-            return "bybit"
-        
+
         return None
     
     def get_parser(self, exchange: str) -> Optional[BaseExchangeParser]:
@@ -2750,28 +2817,54 @@ def load_csv_to_df(csv_content: bytes) -> Tuple[Optional[pd.DataFrame], Dict[str
         text = csv_content.decode("utf-8", errors="replace")
     
     delimiter = detect_delimiter(text)
-    
-    # Smart header detection
-    lines = text.split('\n')[:20]
+
+    # Smart header detection - find actual header row by looking for header keywords
+    # This handles CSVs with metadata rows before headers (e.g., Coinbase)
+    lines = text.split('\n')[:30]
     header_row = 0
-    max_cols = 0
-    
+
+    # Common header keywords across exchanges
+    HEADER_KEYWORDS = [
+        'timestamp', 'date', 'time', 'created',  # Date columns
+        'type', 'transaction', 'side', 'action',  # Transaction type columns
+        'amount', 'quantity', 'size', 'volume',   # Amount columns
+        'asset', 'currency', 'coin', 'symbol', 'pair',  # Asset columns
+        'price', 'rate', 'fee', 'total', 'subtotal',  # Price/fee columns
+        'txid', 'refid', 'order', 'id',  # ID columns
+    ]
+
     for i, line in enumerate(lines):
         if not line.strip():
             continue
+
+        lower = line.lower()
         cols = len(line.split(delimiter))
-        if cols > max_cols:
-            max_cols = cols
-            header_row = i
-            
-    if max_cols < 2: 
-        header_row = 0
-        
+
+        # Must have at least 3 columns and contain header keywords
+        if cols >= 3:
+            keyword_matches = sum(1 for kw in HEADER_KEYWORDS if kw in lower)
+            # If we find 2+ header keywords, this is likely the header row
+            if keyword_matches >= 2:
+                header_row = i
+                break
+
+    # Fallback: if no keywords found, use row with most columns
+    if header_row == 0:
+        max_cols = 0
+        for i, line in enumerate(lines):
+            if not line.strip():
+                continue
+            cols = len(line.split(delimiter))
+            if cols > max_cols:
+                max_cols = cols
+                header_row = i
+
     try:
+        # Use skiprows to skip metadata rows, header will be first row after skip
         df = pd.read_csv(
-            io.StringIO(text), 
-            delimiter=delimiter, 
-            header=header_row,
+            io.StringIO(text),
+            delimiter=delimiter,
+            skiprows=header_row,
             on_bad_lines='skip',
             nrows=MAX_ROWS
         )
