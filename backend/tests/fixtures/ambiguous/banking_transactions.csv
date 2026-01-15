@@ -1,0 +1,4 @@
+Transaction ID,Date,Description,Amount,Balance,Category
+TXN001,2024-01-01,Direct Deposit,3500.00,10500.00,Income
+TXN002,2024-01-02,Electric Bill,-150.00,10350.00,Utilities
+TXN003,2024-01-03,Grocery Store,-89.50,10260.50,Food

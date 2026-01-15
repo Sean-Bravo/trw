@@ -1,0 +1,3 @@
+Date,Description,Transaction Type,Asset,Amount,Fee
+2024-01-01,"Buy Bitcoin, 0.1 BTC",Buy,BTC,4000.00,10.00
+2024-01-02,"Sell Ethereum, market order",Sell,ETH,2500.00,5.00

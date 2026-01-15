@@ -1,0 +1,8 @@
+
+Transactions
+"User,John Doe,abc123-def456-uuid"
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+tx001,2024-01-01T10:00:00Z,Buy,BTC,0.1,USD,40000.00,4000.00,4010.00,10.00,
+tx002,2024-01-05T09:00:00Z,Sell,ETH,1.5,USD,2200.00,3300.00,3290.00,10.00,
+tx003,2024-01-10T14:30:00Z,Send,BTC,-0.05,USD,42000.00,2100.00,2100.00,0.00,Withdrawal
+tx004,2024-01-15T08:00:00Z,Receive,ETH,2.0,USD,2400.00,4800.00,4800.00,0.00,Deposit

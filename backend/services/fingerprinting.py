@@ -284,32 +284,38 @@ def detect_exchange_from_headers(df: pd.DataFrame) -> str:
         logger.info("✓ Detected exchange: Crypto.com")
         return "Crypto.com"
     
-    # Gemini detection (multi-currency columns)
+    # Gemini detection (specific patterns - check BEFORE multi-currency fallback)
     if "liquidity indicator" in headers_joined or "liquidity_indicator" in headers_joined:
         logger.info("✓ Detected exchange: Gemini")
         return "Gemini"
-    
+
     if "trading fee (usd)" in headers_joined or "trading_fee__usd_" in headers_joined:
         logger.info("✓ Detected exchange: Gemini")
         return "Gemini"
-    
-    # Gemini also has multiple crypto amount columns
-    crypto_amount_cols = [col for col in headers_lower if 'amount' in col and col not in ['usd_amount', 'usd amount', 'amount']]
-    if len(crypto_amount_cols) >= 2:
-        logger.info("✓ Detected exchange: Gemini (multi-currency pattern)")
-        return "Gemini"
-    
+
     # ========================================================================
     # TIER 2: BEGINNER-FRIENDLY EXCHANGES
     # ========================================================================
-    
-    # Cash App detection
-    if "asset type" in headers_joined or "transaction type" in headers_joined:
-        # Check for Bitcoin-specific columns
+
+    # Cash App detection (check BEFORE Gemini's multi-amount fallback)
+    # Cash App has 'asset type' AND 'bitcoin' somewhere in headers
+    if "asset type" in headers_joined:
         if any("bitcoin" in str(col).lower() for col in df.columns):
             logger.info("✓ Detected exchange: Cash App")
             return "Cash App"
-    
+
+    # Also check for Cash App specific pattern: Transaction Type + Asset Type together
+    if "transaction type" in headers_joined and "asset type" in headers_joined:
+        logger.info("✓ Detected exchange: Cash App")
+        return "Cash App"
+
+    # Gemini fallback: multiple crypto amount columns (BTC Amount, ETH Amount, etc.)
+    # This is a weaker signal, so check AFTER Cash App
+    crypto_amount_cols = [col for col in headers_lower if 'amount' in col and col not in ['usd_amount', 'usd amount', 'amount', 'net amount', 'bitcoin amount']]
+    if len(crypto_amount_cols) >= 2:
+        logger.info("✓ Detected exchange: Gemini (multi-currency pattern)")
+        return "Gemini"
+
     # Coinbase detection (check BEFORE Robinhood - both have "quantity transacted")
     # Standard Coinbase export: Timestamp, Transaction Type, Asset, Quantity Transacted
     # Coinbase Pro: created_at, product, side, size

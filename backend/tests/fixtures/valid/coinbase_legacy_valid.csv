@@ -1,0 +1,4 @@
+Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price at Transaction,Subtotal,Total (inclusive of fees),Fees and/or Spread
+2024-01-01 10:00:00 UTC,Buy,BTC,0.1,40000.00,4000.00,4010.00,10.00
+2024-01-05 09:00:00 UTC,Sell,ETH,1.5,2200.00,3300.00,3290.00,10.00
+2024-01-10 14:30:00 UTC,Send,BTC,0.05,42000.00,2100.00,2100.00,0.00

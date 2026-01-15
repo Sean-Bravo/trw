@@ -1,0 +1,4 @@
+Invoice Number,Date,Customer,Amount,Status,Due Date
+INV001,2024-01-01,Client A,1500.00,Paid,2024-01-15
+INV002,2024-01-05,Client B,2500.00,Pending,2024-01-20
+INV003,2024-01-10,Client C,750.00,Overdue,2024-01-25
