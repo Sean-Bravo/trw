@@ -266,7 +266,7 @@ def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
         Dictionary with AI insights or error
     """
     try:
-        from services.ai_insights import generate_insights, generate_quick_stats
+        from ai_insights import generate_insights, generate_quick_stats
 
         secrets = get_secrets()
 
