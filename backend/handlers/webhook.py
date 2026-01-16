@@ -438,8 +438,12 @@ def handle_download(event: Dict) -> Dict:
             "format": output_format,
         })
 
+    except ImportError as e:
+        logger.error(f"Import error in download handler: {e}")
+        return response(500, {"error": f"Server configuration error: {e}"})
     except Exception as e:
-        logger.error(f"Error generating download URL: {e}")
+        import traceback
+        logger.error(f"Error generating download URL: {e}\n{traceback.format_exc()}")
         return response(500, {"error": "Failed to generate download URL"})
 
 
