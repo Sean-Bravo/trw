@@ -110,13 +110,13 @@ package_lambdas() {
     source "$BUILD_DIR/venv/bin/activate"
     pip install --quiet --upgrade pip
 
-    # Package webhook Lambda (minimal deps + engine.py for format conversion)
+    # Package webhook Lambda (minimal deps + lightweight format converter)
     log_info "Packaging webhook Lambda..."
     mkdir -p "$BUILD_DIR/webhook"
     cp "$HANDLERS_DIR/webhook.py" "$BUILD_DIR/webhook/"
-    # Copy engine.py for format conversion (convert_records function)
-    if [ -f "$SERVICES_DIR/engine.py" ]; then
-        cp "$SERVICES_DIR/engine.py" "$BUILD_DIR/webhook/"
+    # Copy lightweight format converter (no heavy dependencies like pandas)
+    if [ -f "$SERVICES_DIR/format_converter.py" ]; then
+        cp "$SERVICES_DIR/format_converter.py" "$BUILD_DIR/webhook/"
     fi
     if [ -f "$SCRIPT_DIR/requirements-webhook.txt" ]; then
         pip install --quiet -r "$SCRIPT_DIR/requirements-webhook.txt" -t "$BUILD_DIR/webhook"

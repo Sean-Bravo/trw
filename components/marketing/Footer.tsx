@@ -72,8 +72,8 @@ export function Footer() {
                 Get Started Free
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-              <Button variant="secondary" href="#pricing" className="border-slate-700 text-white hover:bg-slate-800">
-                View Pricing
+              <Button variant="secondary" href="/docs" className="border-slate-700 text-white hover:bg-slate-800">
+                View Docs
               </Button>
             </div>
           </div>
@@ -139,7 +139,6 @@ export function Footer() {
               <ul className="space-y-2">
                 {[
                   { label: 'Features', href: '/#features' },
-                  { label: 'Pricing', href: '/#pricing' },
                   { label: 'Blog', href: '/blog' },
                   { label: 'Docs', href: '/docs' },
                 ].map((link) => (
@@ -216,3 +215,4 @@ export function Footer() {
     </footer>
   );
 }
+

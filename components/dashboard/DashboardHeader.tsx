@@ -25,7 +25,6 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <NavLink href="/dashboard" active>Dashboard</NavLink>
             <NavLink href="/dashboard/settings">Settings</NavLink>
             <NavLink href="/docs">Docs</NavLink>
-            <NavLink href="/#pricing">Pricing</NavLink>
           </nav>
 
           {/* User Menu */}
@@ -49,15 +48,6 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               </div>
             </div>
 
-            {/* Upgrade Button */}
-            {tier === 'free' && (
-              <Link
-                href="/#pricing"
-                className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all shadow-lg shadow-emerald-500/20"
-              >
-                Upgrade
-              </Link>
-            )}
 
             {/* Sign Out */}
             <button

@@ -53,16 +53,8 @@ export function UpgradePrompt({ feature, requiredTier }: UpgradePromptProps) {
         <span className="text-slate-400 text-sm">{tier.period}</span>
       </div>
 
-      <Link
-        href="/#pricing"
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium hover:from-cyan-400 hover:to-blue-400 transition-all"
-      >
-        <Sparkles className="w-4 h-4" />
-        Upgrade to {tier.name}
-      </Link>
-
-      <p className="text-slate-400 text-xs mt-4">
-        One-time payment. No subscriptions.
+      <p className="text-slate-400 text-sm">
+        Premium features coming soon.
       </p>
     </div>
   );

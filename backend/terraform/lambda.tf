@@ -123,9 +123,17 @@ resource "aws_iam_role_policy" "webhook" {
         Action = [
           "s3:GetObject",
           "s3:HeadObject",
+          "s3:PutObject",
           "s3:DeleteObject"
         ]
         Resource = "${aws_s3_bucket.results.arn}/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = aws_s3_bucket.results.arn
       },
       {
         Effect = "Allow"

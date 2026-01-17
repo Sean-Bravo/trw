@@ -353,9 +353,12 @@ export interface AIInsights {
     date_range: { start: string; end: string };
     transaction_types: Record<string, number>;
     top_assets: Array<{ asset: string; count: number }>;
-    potential_issues: string[];
-    tax_tips: string[];
-    estimated_events: number;
+    potential_issues?: string[];  // Legacy field
+    tax_tips?: string[];          // Legacy field
+    what_to_do_next?: string[];   // New: clear next steps for user
+    data_notes?: string[];        // New: observations about the data
+    estimated_events?: number;    // Legacy field name
+    estimated_taxable_events?: number;  // New field name
   };
   tier?: 'free' | 'pro' | 'premium';
   model?: string;
