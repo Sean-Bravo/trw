@@ -83,10 +83,10 @@ export function Hero() {
             </Button>
             <Button
               variant="secondary"
-              href="#pricing"
+              href="/docs"
               className="text-base px-8 py-3 h-12"
             >
-              View Pricing
+              View Docs
             </Button>
           </div>
 
@@ -194,3 +194,4 @@ export function Hero() {
     </section>
   );
 }
+

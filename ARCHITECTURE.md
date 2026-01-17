@@ -1,4 +1,4 @@
-# TaxReadyWallet Architecture
+# TaxFormatter Architecture
 
 > High-level system overview. For detailed backend specs, see `BACKEND_ARCHITECTURE.md`.
 
@@ -95,12 +95,13 @@ trw/
 │
 ├── backend/                # Python backend
 │   ├── services/
-│   │   ├── engine.py       # CSV processing (2,973 lines, 13 parsers)
+│   │   ├── engine.py       # CSV processing (3,600+ lines, 13 parsers)
+│   │   ├── format_converter.py # Lightweight tax format conversion (no deps)
 │   │   ├── storage.py      # Neon PostgreSQL operations
 │   │   ├── fingerprinting.py # Exchange format detection
 │   │   └── ai_insights.py  # Tiered AI analysis (Gemini/Sonnet/Opus)
 │   ├── handlers/           # AWS Lambda handlers
-│   │   ├── webhook.py      # API Gateway (presigned URLs, job status, insights)
+│   │   ├── webhook.py      # API Gateway (presigned URLs, job status, downloads, insights)
 │   │   ├── scanner.py      # S3 trigger (file validation)
 │   │   └── processor.py    # SQS trigger (CSV processing + AI insights)
 │   ├── terraform/          # Infrastructure as Code
@@ -157,21 +158,31 @@ trw/
 
 ## Supported Exchanges
 
-The Python engine (`backend/services/engine.py`) parses:
+The Python engine (`backend/services/engine.py`) parses 12 exchanges:
 
-1. Binance
-2. Coinbase
-3. Kraken
-4. KuCoin
-5. Bybit
-6. Gemini
-7. Crypto.com
-8. FTX
-9. Bitfinex
-10. OKX
-11. Robinhood
-12. PayPal/Venmo
-13. Cash App
+| # | Exchange | Date Format | TZ | Notes |
+|---|----------|-------------|-----|-------|
+| 1 | Coinbase | ISO 8601 UTC (YYYY-MM-DDTHH:mm:ss.SSSZ) | UTC | 10 columns, includes Coinbase Pro |
+| 2 | Kraken | YYYY-MM-DD HH:MM:SS | UTC | ZIP delivery (ledgers.csv) |
+| 3 | Gemini | YYYY-MM-DD HH:MM:SS | UTC | XLSX format - requires conversion |
+| 4 | Binance | YYYY-MM-DD HH:MM:SS | UTC+0 | .tar.gz compressed, max 10K rows |
+| 5 | Robinhood | M/D/YYYY | Local | US date format, 1 year history |
+| 6 | Crypto.com | YYYY-MM-DD HH:MM:SS | UTC | Multi-file export |
+| 7 | PayPal | MM/DD/YYYY | Variable | 4 cryptos only, skip metadata lines |
+| 8 | Cash App | YYYY-MM-DDTHH:MM:SSZ (ISO 8601 UTC) | UTC | BTC only |
+| 9 | Venmo | YYYY-MM-DDTHH:MM:SS (ISO 8601) | Local | Skip metadata rows (first + last line) |
+| 10 | KuCoin | Unix timestamp (ms) or YYYY-MM-DD HH:MM:SS | UTC | 5/day limit, max 1 year |
+| 11 | Bybit | Unix timestamp (ms) or YYYY-MM-DD HH:mm:ss | UTC | ZIP archives, format changes frequently |
+| 12 | FTX | ISO 8601 + microseconds | UTC | Bankrupt - historical via claims.ftx.com |
+
+### Implementation Notes
+
+- **Internal storage**: Koinly format (most flexible) - convert on download
+- **Compressed archives**: Binance (.tar.gz), Kraken/Bybit (.zip)
+- **XLSX conversion**: Gemini exports require pre-processing
+- **Unix timestamps**: KuCoin/Bybit - check if ms or seconds
+- **Metadata rows**: Venmo (first few + last line), PayPal (top lines)
+- **Date normalization**: All dates converted to UTC ISO 8601 for internal storage
 
 ## Export Formats
 
@@ -179,12 +190,12 @@ User selects output format at download time via `TaxSoftwareSelector` component.
 
 | Format | Description | Columns |
 |--------|-------------|---------|
-| Koinly | Default internal format | Date, Sent Amount/Currency, Received Amount/Currency, Fee Amount/Currency, Description |
-| TurboTax | Schedule D compatible | Date Sold, Date Acquired, Description, Proceeds, Cost Basis, Gain/Loss |
-| CoinLedger | Crypto-focused | Date, Type (BUY/SELL/TRADE), Sent/Received Currencies & Amounts, Fee, Notes |
-| ZenLedger | Comprehensive | Timestamp, Type, In/Out Currency & Amount, Fee Currency & Amount, Comment |
+| Koinly | Universal Template (YYYY-MM-DD HH:mm:ss) | Date, Sent Amount, Sent Currency, Received Amount, Received Currency, Fee Amount, Fee Currency, Label, TxHash, Description |
+| TurboTax | Form 8949 Gain/Loss Report (MM/DD/YYYY) | Currency Name, Purchase Date, Cost Basis, Date Sold, Proceeds |
+| CoinLedger | Universal Manual Import (MM/DD/YYYY HH:mm:ss) | Timestamp, Type, Asset Received, Amount Received, Asset Sent, Amount Sent, Fee Asset, Fee Amount |
+| ZenLedger | Custom CSV (UTC 24hr) | Timestamp, Type, IN Amount, IN Currency, OUT Amount, OUT Currency, Fee Amount, Fee Currency, Exchange, US-Based |
 
-Format conversion happens on-demand at download time (`webhook.py:handle_download`). Converted files are cached in S3 (`output_{format}.csv`) for subsequent downloads.
+Format conversion happens on-demand at download time (`webhook.py:handle_download`) using `format_converter.py`. Converted files are cached in S3 (`output_{format}.csv`) for subsequent downloads. The converter module has zero external dependencies for minimal Lambda package size.
 
 ## Key Files
 
@@ -207,6 +218,7 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | `components/dashboard/JobHistoryTable.tsx` | Job history with filename, status, error display |
 | `lib/auth-db.ts` | User registration, login, 2FA, password reset |
 | `backend/services/engine.py` | Core CSV processing engine |
+| `backend/services/format_converter.py` | Lightweight tax format conversion (Koinly→TurboTax/CoinLedger/ZenLedger) |
 | `backend/services/fingerprinting.py` | Exchange format detection |
 | `backend/services/ai_insights.py` | Tiered AI insights (Gemini/Sonnet/Opus) |
 
@@ -290,8 +302,9 @@ fingerprinting.py: detect_exchange_from_headers()
 - [x] **Manual exchange selection** - ExchangeSelector dropdown for retry with specific exchange when auto-detect fails
 - [x] **Enhanced error messages** - Column analysis shows which required columns are present/missing
 - [x] **Output format selection** - User picks tax software (Koinly/TurboTax/CoinLedger/ZenLedger) at download time
-- [x] **Format converters** - `engine.py` converts Koinly format to TurboTax/CoinLedger/ZenLedger on-demand
+- [x] **Format converters** - `format_converter.py` converts Koinly format to TurboTax/CoinLedger/ZenLedger on-demand
 - [x] **Format caching** - Converted files cached in S3 for subsequent downloads
+- [x] **Lightweight webhook Lambda** - Uses `format_converter.py` (no heavy deps) instead of full `engine.py`
 
 ## What's Not Built Yet
 

@@ -353,9 +353,11 @@ def handle_download(event: Dict) -> Dict:
             s3_client.head_object(Bucket=RESULTS_BUCKET, Key=converted_key)
             logger.info(f"Using cached {output_format} format for job {job_id}")
         except ClientError as e:
-            if e.response["Error"]["Code"] == "404":
+            error_code = e.response["Error"]["Code"]
+            # S3 returns 404 or 403 when file doesn't exist (403 if no ListBucket permission)
+            if error_code in ("404", "403", "NoSuchKey", "AccessDenied"):
                 # Need to convert - download original, convert, upload
-                logger.info(f"Converting job {job_id} to {output_format} format")
+                logger.info(f"Converting job {job_id} to {output_format} format (cache miss: {error_code})")
 
                 try:
                     # Download original CSV
@@ -372,24 +374,33 @@ def handle_download(event: Dict) -> Dict:
                         return response(400, {"error": "No records found in result file"})
 
                     # Import converter
-                    # In Lambda, engine.py is in the same directory (flat structure after deploy)
-                    # Locally, it's in services/engine.py
+                    # In Lambda, format_converter.py is in the same directory (flat structure after deploy)
+                    # Locally, it's in services/format_converter.py
                     try:
-                        from engine import convert_records
-                    except ImportError:
+                        from format_converter import convert_records
+                        logger.info("Imported convert_records from format_converter")
+                    except ImportError as ie:
+                        logger.warning(f"Direct format_converter import failed: {ie}, trying services path")
                         import sys
                         import os
                         # Try services path for local development
                         services_path = os.path.join(os.path.dirname(__file__), "..", "services")
                         if services_path not in sys.path:
                             sys.path.insert(0, services_path)
-                        from engine import convert_records
+                        from format_converter import convert_records
+                        logger.info("Imported convert_records from services/format_converter")
 
-                    # Convert records
-                    converted_records, fieldnames = convert_records(records, output_format)
+                    # Convert records with explicit error handling
+                    logger.info(f"Converting {len(records)} records to {output_format} format")
+                    try:
+                        converted_records, fieldnames = convert_records(records, output_format)
+                        logger.info(f"Conversion complete: {len(converted_records)} records, fields: {fieldnames}")
+                    except Exception as conv_error:
+                        logger.error(f"Format conversion failed: {conv_error}")
+                        return response(500, {"error": f"Format conversion failed: {str(conv_error)}"})
 
                     if not converted_records:
-                        return response(400, {"error": f"Failed to convert to {output_format} format"})
+                        return response(400, {"error": f"No records after conversion to {output_format} format"})
 
                     # Write converted CSV
                     output = StringIO()
@@ -438,13 +449,20 @@ def handle_download(event: Dict) -> Dict:
             "format": output_format,
         })
 
+    except ClientError as e:
+        error_code = e.response.get("Error", {}).get("Code", "Unknown")
+        error_msg = e.response.get("Error", {}).get("Message", str(e))
+        logger.error(f"S3 error in download handler: {error_code} - {error_msg}")
+        if error_code == "AccessDenied":
+            return response(500, {"error": "Server permission error accessing storage"})
+        return response(500, {"error": f"Storage error: {error_code}"})
     except ImportError as e:
         logger.error(f"Import error in download handler: {e}")
-        return response(500, {"error": f"Server configuration error: {e}"})
+        return response(500, {"error": f"Server configuration error: missing module"})
     except Exception as e:
         import traceback
         logger.error(f"Error generating download URL: {e}\n{traceback.format_exc()}")
-        return response(500, {"error": "Failed to generate download URL"})
+        return response(500, {"error": f"Failed to generate download URL: {type(e).__name__}"})
 
 
 def handle_job_retry(event: Dict) -> Dict:

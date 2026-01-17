@@ -614,14 +614,14 @@ export function AIInsightsPanel() {
                       </div>
                     </div>
                   )}
-                  {aiInsights.ai_insights.estimated_events && (
+                  {(aiInsights.ai_insights.estimated_taxable_events || aiInsights.ai_insights.estimated_events) && (
                     <div className="bg-white/70 rounded-lg p-4 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                         <Calendar className="w-5 h-5 text-purple-500" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-slate-800">{aiInsights.ai_insights.estimated_events}</p>
-                        <p className="text-xs text-slate-500">Taxable Events</p>
+                        <p className="text-2xl font-bold text-slate-800">~{aiInsights.ai_insights.estimated_taxable_events || aiInsights.ai_insights.estimated_events}</p>
+                        <p className="text-xs text-slate-500">Est. Taxable Events</p>
                       </div>
                     </div>
                   )}
@@ -643,14 +643,50 @@ export function AIInsightsPanel() {
                   </div>
                 )}
 
-                {/* Tax Tips */}
-                {aiInsights.ai_insights.tax_tips && aiInsights.ai_insights.tax_tips.length > 0 && (
+                {/* What To Do Next */}
+                {aiInsights.ai_insights.what_to_do_next && aiInsights.ai_insights.what_to_do_next.length > 0 && (
                   <div className="bg-white/70 rounded-lg p-4">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1">
-                      <Lightbulb className="w-3 h-3" /> Tax Tips
+                      <Lightbulb className="w-3 h-3" /> Next Steps
                     </p>
                     <div className="space-y-2">
-                      {aiInsights.ai_insights.tax_tips.map((tip, i) => (
+                      {aiInsights.ai_insights.what_to_do_next.map((step: string, i: number) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                            {i + 1}
+                          </span>
+                          <span className="text-slate-700">{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Data Notes */}
+                {aiInsights.ai_insights.data_notes && aiInsights.ai_insights.data_notes.length > 0 && (
+                  <div className="bg-white/70 rounded-lg p-4">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" /> Data Notes
+                    </p>
+                    <div className="space-y-2">
+                      {aiInsights.ai_insights.data_notes.map((note: string, i: number) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
+                          <span className="text-slate-600">{note}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Legacy: Tax Tips (backwards compatibility) */}
+                {!aiInsights.ai_insights.what_to_do_next && aiInsights.ai_insights.tax_tips && aiInsights.ai_insights.tax_tips.length > 0 && (
+                  <div className="bg-white/70 rounded-lg p-4">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1">
+                      <Lightbulb className="w-3 h-3" /> Tips
+                    </p>
+                    <div className="space-y-2">
+                      {aiInsights.ai_insights.tax_tips.map((tip: string, i: number) => (
                         <div key={i} className="flex items-start gap-2 text-sm">
                           <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
                             {i + 1}
