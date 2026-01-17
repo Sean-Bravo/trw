@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 TIER_CONFIG = {
     "free": {
         "provider": "google",
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.0-flash",
         "max_tokens": 1024,
     },
     "pro": {
