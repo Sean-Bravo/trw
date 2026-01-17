@@ -1,0 +1,43 @@
+# configs/banks/_generic.yaml
+# Fallback parser for unrecognized banks
+bank:
+  name: "Unknown Bank"
+  version: "1.0.0"
+  updated_at: "2026-01-17"
+  is_generic: true  # Flag for special UX handling
+
+fingerprint:
+  # Matches nothing - only used as fallback
+  logo_patterns: []
+  header_patterns: []
+
+table_detection:
+  # Generic patterns that work for most statements
+  header_row_keywords: ["Date", "Transaction", "Description", "Amount", "Debit", "Credit", "Balance", "Withdrawal", "Deposit"]
+  skip_rows_containing: ["Total", "Balance Forward", "Opening", "Closing", "Page", "Statement", "Beginning", "Ending", "continued", "TOTALS"]
+
+columns:
+  date:
+    names: ["Date", "Trans Date", "Transaction Date", "Posted", "Post Date", "Posting Date", "Value Date"]
+    format: "MM/DD/YYYY"
+  description:
+    names: ["Description", "Transaction", "Details", "Memo", "Narrative", "Particulars", "Reference"]
+    max_length: 255
+    multiline: true
+  amount:
+    names: ["Amount", "Debit", "Credit", "Value", "Transaction Amount"]
+    debit_credit_mode: true
+  debit:
+    names: ["Debit", "Withdrawals", "Debits", "Checks", "Payments", "Money Out"]
+  credit:
+    names: ["Credit", "Deposits", "Credits", "Additions", "Money In"]
+  balance:
+    names: ["Balance", "Running Balance", "Available Balance", "Ledger Balance"]
+
+normalization:
+  date_output: "YYYY-MM-DD"
+  amount_sign: "negative_for_debits"
+
+validation:
+  balance_reconciliation: false  # Can't verify without knowing format
+  date_sequence: true

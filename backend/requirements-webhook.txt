@@ -1,3 +1,7 @@
 # Webhook Lambda - minimal dependencies
 # Only needs boto3 (included in Lambda runtime) and psycopg2 for DB
 psycopg2-binary>=2.9.0
+
+# Bank statement processing
+pdfplumber>=0.10.0
+PyYAML>=6.0

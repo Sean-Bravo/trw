@@ -1,0 +1,43 @@
+# configs/banks/wells_fargo.yaml
+bank:
+  name: "Wells Fargo"
+  aliases: ["Wells Fargo Bank", "WF", "Wells Fargo Bank, N.A."]
+  version: "1.0.0"
+  updated_at: "2026-01-17"
+
+fingerprint:
+  logo_patterns: ["Wells Fargo", "wellsfargo.com"]
+  header_patterns: ["Account Number", "Statement Period"]
+  unique_markers: ["Wells Fargo Bank, N.A."]
+
+table_detection:
+  header_row_keywords: ["Date", "Description", "Deposits", "Withdrawals", "Balance"]
+  skip_rows_containing: ["Beginning Balance", "Ending Balance", "Page", "Total", "Subtotal", "continued"]
+
+columns:
+  date:
+    names: ["Date", "Post Date", "Transaction Date"]
+    format: "MM/DD"  # Wells Fargo often omits year
+  description:
+    names: ["Description", "Transaction"]
+    max_length: 255
+    multiline: true
+  amount:
+    names: ["Amount"]
+    debit_credit_mode: true
+  debit:
+    names: ["Withdrawals", "Debits", "Checks Paid"]
+  credit:
+    names: ["Deposits", "Credits", "Additions"]
+  balance:
+    names: ["Ending Daily Balance", "Balance"]
+
+normalization:
+  date_output: "YYYY-MM-DD"
+  amount_sign: "negative_for_debits"
+  # Wells Fargo often omits year - infer from statement period
+  infer_year_from_statement: true
+
+validation:
+  balance_reconciliation: true
+  date_sequence: true
