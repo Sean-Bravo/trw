@@ -6,7 +6,10 @@ import { query, queryOne } from '@/lib/db';
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
-// Free tier limit
+// MVP Mode: Unlimited downloads for all users to maximize feedback
+const MVP_UNLIMITED_DOWNLOADS = true;
+
+// Free tier limit (disabled during MVP)
 const FREE_TIER_MONTHLY_DOWNLOADS = 3;
 
 interface DownloadCount {
@@ -46,8 +49,8 @@ export async function GET(
 
     const tier = subscription?.tier || 'free';
 
-    // 3. For free tier, check monthly download limit
-    if (tier === 'free') {
+    // 3. For free tier, check monthly download limit (disabled during MVP)
+    if (!MVP_UNLIMITED_DOWNLOADS && tier === 'free') {
       // Check if this job was already downloaded (don't count twice)
       const existingDownload = await queryOne(
         `SELECT id FROM downloads WHERE user_id = $1 AND job_id = $2`,

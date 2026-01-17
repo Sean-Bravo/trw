@@ -3,7 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { queryOne } from '@/lib/db';
 
-// Free tier limit
+// MVP Mode: Unlimited downloads for all users to maximize feedback
+const MVP_UNLIMITED_DOWNLOADS = true;
+
+// Free tier limit (disabled during MVP)
 const FREE_TIER_MONTHLY_DOWNLOADS = 3;
 
 interface DownloadCount {
@@ -37,6 +40,17 @@ export async function GET() {
     );
 
     const tier = subscription?.tier || 'free';
+
+    // MVP Mode: All tiers get unlimited downloads
+    if (MVP_UNLIMITED_DOWNLOADS) {
+      return NextResponse.json({
+        tier,
+        limit: null, // unlimited during MVP
+        used: 0,
+        remaining: null,
+        mvpMode: true,
+      });
+    }
 
     // For paid tiers, return unlimited
     if (tier !== 'free') {
