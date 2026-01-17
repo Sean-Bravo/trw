@@ -305,6 +305,7 @@ fingerprinting.py: detect_exchange_from_headers()
 - [x] **Format converters** - `format_converter.py` converts Koinly format to TurboTax/CoinLedger/ZenLedger on-demand
 - [x] **Format caching** - Converted files cached in S3 for subsequent downloads
 - [x] **Lightweight webhook Lambda** - Uses `format_converter.py` (no heavy deps) instead of full `engine.py`
+- [x] **Download trigger fix** - Changed from `link.click()` to `window.location.href` for S3 presigned URLs (browsers block programmatic clicks on cross-origin links)
 
 ## What's Not Built Yet
 
