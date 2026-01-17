@@ -1,0 +1,38 @@
+# configs/banks/chase.yaml
+bank:
+  name: "Chase"
+  aliases: ["JPMorgan Chase", "JPMC", "Chase Bank"]
+  version: "1.0.0"
+  updated_at: "2026-01-17"
+
+fingerprint:
+  logo_patterns: ["JPMorgan", "CHASE", "chase.com"]
+  header_patterns: ["Account Number", "Statement Period"]
+  # Unique identifiers that distinguish Chase from other banks
+  unique_markers: ["JPMorgan Chase Bank, N.A."]
+
+table_detection:
+  header_row_keywords: ["Date", "Description", "Amount", "Balance"]
+  skip_rows_containing: ["Opening Balance", "Closing Balance", "Page", "TOTALS", "Beginning Balance", "Ending Balance"]
+
+columns:
+  date:
+    names: ["Date", "Transaction Date", "Post Date", "Posting Date"]
+    format: "MM/DD/YYYY"
+  description:
+    names: ["Description", "Transaction Description"]
+    max_length: 255
+    multiline: true
+  amount:
+    names: ["Amount"]
+    debit_credit_mode: false
+  balance:
+    names: ["Balance", "Running Balance"]
+
+normalization:
+  date_output: "YYYY-MM-DD"
+  amount_sign: "negative_for_debits"
+
+validation:
+  balance_reconciliation: true
+  date_sequence: true

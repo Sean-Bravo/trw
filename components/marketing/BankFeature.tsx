@@ -3,8 +3,7 @@ import {
   FileText,
   CheckCircle2,
   ScanLine,
-  Table,
-  ArrowRight
+  Table
 } from 'lucide-react';
 
 export function BankFeature() {
@@ -25,7 +24,7 @@ export function BankFeature() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              Now Beta Testing
+              Pro Feature
             </div>
 
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
@@ -36,15 +35,15 @@ export function BankFeature() {
             </h2>
 
             <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-              Same pain, different format. You used us to clean up messy crypto CSVs for tax season. Now, use us to turn <strong>locked PDF bank statements</strong> into clean, importable Excel (XLS) files for QuickBooks & Xero.
+              Same pain, different format. You used us to clean up messy crypto CSVs for tax season. Now, use us to turn <strong>PDF bank statements</strong> into clean, importable CSV files for QuickBooks Online & Xero.
             </p>
 
             <ul className="space-y-4">
               {[
-                'Extract data from non-selectable PDF scans',
-                'Auto-detect credits, debits, and balances',
-                'Formatted specifically for Xero & QBO import',
-                'Support for Chase, Wells Fargo, Amex, and 50+ others'
+                'Extract transactions from digital PDF statements',
+                'Auto-detect bank format (Chase, BofA, Wells Fargo, Citi)',
+                'Export to QuickBooks Online or Xero CSV format',
+                'Duplicate detection removes overlapping transactions'
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
@@ -54,13 +53,12 @@ export function BankFeature() {
             </ul>
 
             <div className="pt-4">
-               <a
-                 href="/samples#bank-samples"
-                 className="inline-flex items-center justify-center h-10 px-6 rounded-full text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)] border-2 border-[var(--color-primary-500)]/30 bg-white dark:bg-slate-900 hover:bg-[var(--color-primary-50)] dark:hover:bg-[var(--color-primary-500)]/10 hover:border-[var(--color-primary-500)]/50 hover:-translate-y-0.5 transition-all duration-300 font-semibold text-sm"
-               >
-                 See a Bank PDF Demo
-                 <ArrowRight className="ml-2 h-4 w-4" />
-               </a>
+              <a
+                href="/signup"
+                className="inline-flex items-center justify-center h-10 px-6 rounded-full text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 font-semibold text-sm transition-all hover:-translate-y-0.5"
+              >
+                Try Bank Statement Converter
+              </a>
             </div>
           </div>
 
@@ -84,14 +82,14 @@ export function BankFeature() {
                     <span className="text-sm font-medium text-slate-500">Bank Stmt</span>
                   </div>
 
-                  {/* Process: Arrow + OCR Animation */}
+                  {/* Process: Arrow + Extract Animation */}
                   <div className="flex-1 flex flex-col items-center gap-2">
                     <div className="relative w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                       <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-blue-500 to-emerald-500 animate-slide-right" />
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-mono text-emerald-600 dark:text-emerald-400">
                       <ScanLine className="w-3 h-3" />
-                      <span>OCR_EXTRACT</span>
+                      <span>PDF_EXTRACT</span>
                     </div>
                   </div>
 
@@ -100,7 +98,7 @@ export function BankFeature() {
                     <div className="w-20 h-20 bg-gradient-to-br from-[#2CA01C] to-[#0ea5e9] rounded-xl shadow-lg flex items-center justify-center text-white relative group-hover:-translate-y-2 transition-transform duration-300 delay-75">
                       <Table className="w-10 h-10" />
                       <div className="absolute -bottom-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
-                        .XLS
+                        .CSV
                       </div>
                     </div>
                     <span className="text-sm font-medium text-slate-500">QBO Ready</span>

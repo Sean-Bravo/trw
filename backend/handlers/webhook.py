@@ -610,6 +610,335 @@ def handle_insights(event: Dict) -> Dict:
         return response(500, {"error": "Failed to get insights"})
 
 
+# =============================================================================
+# Bank Statement Handlers
+# =============================================================================
+
+# Bank statement bucket (separate from crypto uploads)
+BANK_UPLOADS_BUCKET = os.environ.get("BANK_UPLOADS_BUCKET", UPLOADS_BUCKET)
+BANK_RESULTS_BUCKET = os.environ.get("BANK_RESULTS_BUCKET", RESULTS_BUCKET)
+
+
+def handle_bank_presigned_url(event: Dict) -> Dict:
+    """
+    Generate presigned URL for bank statement PDF upload.
+
+    Request body:
+    {
+        "filename": "chase_jan_2024.pdf",
+        "contentType": "application/pdf",
+        "userId": "user_123"
+    }
+    """
+    try:
+        body = json.loads(event.get("body", "{}"))
+    except json.JSONDecodeError:
+        return response(400, {"error": "Invalid JSON body"})
+
+    filename = body.get("filename")
+    content_type = body.get("contentType", "application/pdf")
+    user_id = body.get("userId", "anonymous")
+
+    if not filename:
+        return response(400, {"error": "filename is required"})
+
+    # Validate file extension - PDF only for bank statements
+    ext = os.path.splitext(filename.lower())[1]
+    if ext != ".pdf":
+        return response(400, {"error": "Only PDF files are allowed for bank statements"})
+
+    # Generate job ID and S3 key
+    job_id = str(uuid.uuid4())
+    safe_filename = filename.replace(" ", "_").replace("/", "_")
+    s3_key = f"bank/{job_id}/{safe_filename}"
+
+    try:
+        presigned_url = s3_client.generate_presigned_url(
+            ClientMethod="put_object",
+            Params={
+                "Bucket": BANK_UPLOADS_BUCKET,
+                "Key": s3_key,
+                "ContentType": content_type,
+                "Metadata": {
+                    "user-id": user_id,
+                    "original-filename": filename,
+                    "job-id": job_id,
+                    "job-type": "bank",
+                },
+            },
+            ExpiresIn=UPLOAD_EXPIRATION,
+        )
+
+        logger.info(f"Generated bank presigned URL for job {job_id}")
+
+        return response(200, {
+            "uploadUrl": presigned_url,
+            "jobId": job_id,
+            "key": s3_key,
+            "expiresIn": UPLOAD_EXPIRATION,
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to generate bank presigned URL: {e}")
+        return response(500, {"error": "Failed to generate upload URL"})
+
+
+def handle_bank_process(event: Dict) -> Dict:
+    """
+    Process an uploaded bank statement PDF.
+
+    Request body:
+    {
+        "jobId": "uuid",
+        "s3Key": "bank/uuid/filename.pdf",
+        "outputFormat": "qbo"  // or "xero", "excel"
+    }
+    """
+    try:
+        body = json.loads(event.get("body", "{}"))
+    except json.JSONDecodeError:
+        return response(400, {"error": "Invalid JSON body"})
+
+    job_id = body.get("jobId")
+    s3_key = body.get("s3Key")
+    output_format = body.get("outputFormat", "qbo")
+
+    if not job_id or not s3_key:
+        return response(400, {"error": "jobId and s3Key are required"})
+
+    # Validate output format
+    valid_formats = ["qbo", "xero", "excel"]
+    if output_format not in valid_formats:
+        return response(400, {"error": f"Invalid output format. Valid: {valid_formats}"})
+
+    try:
+        # Download PDF from S3
+        logger.info(f"Downloading PDF for job {job_id}")
+        pdf_response = s3_client.get_object(Bucket=BANK_UPLOADS_BUCKET, Key=s3_key)
+        pdf_bytes = pdf_response["Body"].read()
+
+        # Import processor
+        try:
+            from services.bank_statement import BankStatementProcessor
+        except ImportError:
+            # Lambda flat structure
+            from bank_statement import BankStatementProcessor
+
+        # Process PDF
+        logger.info(f"Processing bank statement for job {job_id}")
+        from io import BytesIO
+        processor = BankStatementProcessor()
+        result = processor.process(
+            BytesIO(pdf_bytes),
+            output_format=output_format,
+            deduplicate=True,
+        )
+
+        if not result["success"]:
+            # Save error
+            error_key = f"bank/{job_id}/error.json"
+            s3_client.put_object(
+                Bucket=BANK_RESULTS_BUCKET,
+                Key=error_key,
+                Body=json.dumps({
+                    "error": result.get("error", "Unknown error"),
+                    "warnings": result.get("warnings", []),
+                }).encode("utf-8"),
+                ContentType="application/json",
+            )
+            return response(400, {
+                "success": False,
+                "error": result.get("error"),
+                "warnings": result.get("warnings", []),
+            })
+
+        # Save CSV result
+        output_key = f"bank/{job_id}/output_{output_format}.csv"
+        s3_client.put_object(
+            Bucket=BANK_RESULTS_BUCKET,
+            Key=output_key,
+            Body=result["csv_content"].encode("utf-8"),
+            ContentType="text/csv",
+            Metadata={
+                "job-id": job_id,
+                "format": output_format,
+                "bank": result["metadata"].get("detected_bank", "unknown"),
+            },
+        )
+
+        # Save metadata
+        meta_key = f"bank/{job_id}/metadata.json"
+        s3_client.put_object(
+            Bucket=BANK_RESULTS_BUCKET,
+            Key=meta_key,
+            Body=json.dumps(result["metadata"]).encode("utf-8"),
+            ContentType="application/json",
+        )
+
+        logger.info(f"Bank job {job_id} processed successfully")
+
+        return response(200, {
+            "success": True,
+            "jobId": job_id,
+            "transactionCount": result["metadata"].get("transaction_count", 0),
+            "detectedBank": result["metadata"].get("detected_bank"),
+            "warnings": result.get("warnings", []),
+            "outputFormat": output_format,
+        })
+
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            return response(404, {"error": "PDF file not found"})
+        logger.error(f"S3 error processing bank statement: {e}")
+        return response(500, {"error": "Storage error"})
+    except Exception as e:
+        logger.exception(f"Error processing bank statement: {e}")
+        return response(500, {"error": f"Processing failed: {str(e)}"})
+
+
+def handle_bank_job_status(event: Dict) -> Dict:
+    """
+    Get bank statement job status.
+
+    Path: GET /bank/job/{jobId}
+    """
+    path_params = event.get("pathParameters", {}) or {}
+    job_id = path_params.get("jobId")
+
+    if not job_id:
+        return response(400, {"error": "jobId is required"})
+
+    try:
+        # Check for metadata (indicates completed)
+        meta_key = f"bank/{job_id}/metadata.json"
+        try:
+            meta_response = s3_client.get_object(Bucket=BANK_RESULTS_BUCKET, Key=meta_key)
+            metadata = json.loads(meta_response["Body"].read().decode("utf-8"))
+
+            return response(200, {
+                "status": "completed",
+                "jobId": job_id,
+                "metadata": metadata,
+            })
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "NoSuchKey":
+                raise
+
+        # Check for error
+        error_key = f"bank/{job_id}/error.json"
+        try:
+            error_response = s3_client.get_object(Bucket=BANK_RESULTS_BUCKET, Key=error_key)
+            error_data = json.loads(error_response["Body"].read().decode("utf-8"))
+
+            return response(200, {
+                "status": "failed",
+                "jobId": job_id,
+                "error": error_data.get("error"),
+                "warnings": error_data.get("warnings", []),
+            })
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "NoSuchKey":
+                raise
+
+        # Job not found
+        return response(404, {"error": "Job not found"})
+
+    except Exception as e:
+        logger.error(f"Error getting bank job status: {e}")
+        return response(500, {"error": "Failed to get job status"})
+
+
+def handle_bank_download(event: Dict) -> Dict:
+    """
+    Get presigned download URL for bank statement result.
+
+    Path: GET /bank/job/{jobId}/download?format=qbo
+    """
+    path_params = event.get("pathParameters", {}) or {}
+    job_id = path_params.get("jobId")
+    query_params = event.get("queryStringParameters", {}) or {}
+    output_format = query_params.get("format", "qbo")
+
+    if not job_id:
+        return response(400, {"error": "jobId is required"})
+
+    try:
+        output_key = f"bank/{job_id}/output_{output_format}.csv"
+
+        # Verify file exists
+        try:
+            s3_client.head_object(Bucket=BANK_RESULTS_BUCKET, Key=output_key)
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                return response(404, {"error": f"Output file not found for format: {output_format}"})
+            raise
+
+        # Generate presigned download URL
+        download_url = s3_client.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": BANK_RESULTS_BUCKET,
+                "Key": output_key,
+                "ResponseContentDisposition": f'attachment; filename="bank_{job_id}_{output_format}.csv"',
+            },
+            ExpiresIn=DOWNLOAD_EXPIRATION,
+        )
+
+        logger.info(f"Generated bank download URL for job {job_id}")
+
+        return response(200, {
+            "downloadUrl": download_url,
+            "expiresIn": DOWNLOAD_EXPIRATION,
+            "format": output_format,
+        })
+
+    except Exception as e:
+        logger.error(f"Error generating bank download URL: {e}")
+        return response(500, {"error": "Failed to generate download URL"})
+
+
+def handle_list_banks(event: Dict) -> Dict:
+    """
+    List supported banks.
+
+    Path: GET /bank/banks
+    """
+    try:
+        try:
+            from services.bank_statement import BankStatementProcessor
+        except ImportError:
+            from bank_statement import BankStatementProcessor
+
+        processor = BankStatementProcessor()
+        banks = processor.get_supported_banks()
+        formats = processor.get_supported_formats()
+
+        return response(200, {
+            "banks": banks,
+            "formats": formats,
+        })
+
+    except ImportError:
+        # Return hardcoded list if module not available
+        return response(200, {
+            "banks": [
+                {"id": "chase", "name": "Chase"},
+                {"id": "bank_of_america", "name": "Bank of America"},
+                {"id": "wells_fargo", "name": "Wells Fargo"},
+                {"id": "citi", "name": "Citi"},
+            ],
+            "formats": [
+                {"id": "qbo", "name": "QuickBooks Online"},
+                {"id": "xero", "name": "Xero"},
+                {"id": "excel", "name": "Excel/Generic"},
+            ],
+        })
+
+    except Exception as e:
+        logger.error(f"Error listing banks: {e}")
+        return response(500, {"error": "Failed to list supported banks"})
+
+
 def handler(event: Dict, context: Any) -> Dict:
     """
     Main Lambda handler - routes requests to appropriate handlers.
@@ -640,6 +969,17 @@ def handler(event: Dict, context: Any) -> Dict:
     elif route_key == "POST /webhook":
         # Generic webhook endpoint (for future use)
         return response(200, {"message": "Webhook received"})
+    # Bank statement routes
+    elif route_key == "POST /bank/presigned-url":
+        return handle_bank_presigned_url(event)
+    elif route_key == "POST /bank/process":
+        return handle_bank_process(event)
+    elif route_key == "GET /bank/job/{jobId}":
+        return handle_bank_job_status(event)
+    elif route_key == "GET /bank/job/{jobId}/download":
+        return handle_bank_download(event)
+    elif route_key == "GET /bank/banks":
+        return handle_list_banks(event)
     else:
         logger.warning(f"Unknown route: {route_key}")
         return response(404, {"error": f"Route not found: {route_key}"})

@@ -122,6 +122,38 @@ resource "aws_apigatewayv2_route" "job_retry" {
   target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
 }
 
+# ===== Bank Statement Routes =====
+
+resource "aws_apigatewayv2_route" "bank_presigned_url" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /bank/presigned-url"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
+resource "aws_apigatewayv2_route" "bank_process" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /bank/process"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
+resource "aws_apigatewayv2_route" "bank_job_status" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /bank/job/{jobId}"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
+resource "aws_apigatewayv2_route" "bank_job_download" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /bank/job/{jobId}/download"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
+resource "aws_apigatewayv2_route" "bank_list" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /bank/banks"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
 # Lambda Permission for API Gateway
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowExecutionFromAPIGateway"

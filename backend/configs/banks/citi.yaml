@@ -1,0 +1,42 @@
+# configs/banks/citi.yaml
+bank:
+  name: "Citi"
+  aliases: ["Citibank", "Citibank, N.A.", "Citi Bank"]
+  version: "1.0.0"
+  updated_at: "2026-01-17"
+
+fingerprint:
+  logo_patterns: ["Citi", "Citibank", "citi.com"]
+  header_patterns: ["Account Number", "Statement Period", "Account Summary"]
+  unique_markers: ["Citibank, N.A."]
+
+table_detection:
+  header_row_keywords: ["Date", "Description", "Amount", "Balance"]
+  skip_rows_containing: ["Previous Balance", "New Balance", "Page", "Total", "TOTALS", "continued"]
+
+columns:
+  date:
+    names: ["Date", "Transaction Date", "Posted"]
+    format: "MM/DD"  # Citi often omits year
+  description:
+    names: ["Description", "Transaction Description"]
+    max_length: 255
+    multiline: true
+  amount:
+    names: ["Amount", "Credits", "Debits"]
+    debit_credit_mode: true
+  debit:
+    names: ["Debits", "Withdrawals", "Payments"]
+  credit:
+    names: ["Credits", "Deposits"]
+  balance:
+    names: ["Balance", "Running Balance"]
+
+normalization:
+  date_output: "YYYY-MM-DD"
+  amount_sign: "negative_for_debits"
+  infer_year_from_statement: true
+
+validation:
+  balance_reconciliation: true
+  date_sequence: true
