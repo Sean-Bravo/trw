@@ -7,6 +7,7 @@ import { JobStatus } from '@/hooks/useJobPolling';
 import { getJobInsights, AIInsights, retryJobWithExchange, getDownloadUrl, TaxSoftwareFormat } from '@/lib/upload-client';
 import { ExchangeSelector } from './ExchangeSelector';
 import { TaxSoftwareSelector } from './TaxSoftwareSelector';
+import { ProcessingTerminal } from './ProcessingTerminal';
 
 export type InsightStatus = 'idle' | 'detecting' | 'analyzing' | 'complete' | 'error';
 
@@ -299,6 +300,17 @@ export function AIInsightsPanel() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Processing Terminal - Shows during analysis and after completion */}
+      {(isProcessing || isComplete) && (
+        <div className="mb-5 relative">
+          <ProcessingTerminal
+            isProcessing={isProcessing}
+            exchange={exchange}
+            transactionCount={transactionsFound}
+          />
         </div>
       )}
 

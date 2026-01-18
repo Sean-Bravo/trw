@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 TIER_CONFIG = {
     "free": {
         "provider": "google",
-        "model": "gemini-2.0-flash",  # Latest stable flash model
+        "model": "gemini-2.0-flash-lite",  # Free tier with good limits
         "max_tokens": 1024,
     },
     "pro": {
@@ -97,8 +97,89 @@ class AnthropicProvider(AIProvider):
             }
 
 
+class OpenAIProvider(AIProvider):
+    """OpenAI provider for Free tier - uses REST API directly."""
+
+    def __init__(self, api_key: str, model: str, max_tokens: int):
+        self.api_key = api_key
+        self.model = model
+        self.max_tokens = max_tokens
+
+    def analyze(self, prompt: str, data: str) -> Dict[str, Any]:
+        try:
+            import urllib.request
+            import urllib.error
+
+            url = "https://api.openai.com/v1/chat/completions"
+
+            payload = {
+                "model": self.model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Transaction Data:\n{data}"
+                    }
+                ],
+                "max_tokens": self.max_tokens,
+                "temperature": 0.7,
+                "response_format": {"type": "json_object"}
+            }
+
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.api_key}"
+                },
+                method="POST"
+            )
+
+            with urllib.request.urlopen(req, timeout=60) as response:
+                result = json.loads(response.read().decode("utf-8"))
+
+            response_text = result["choices"][0]["message"]["content"]
+
+            try:
+                return {
+                    "success": True,
+                    "insights": json.loads(response_text),
+                    "model": self.model,
+                    "provider": "openai",
+                }
+            except json.JSONDecodeError:
+                return {
+                    "success": True,
+                    "insights": {"summary": response_text},
+                    "model": self.model,
+                    "provider": "openai",
+                }
+
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8") if e.fp else str(e)
+            logger.error(f"OpenAI API error: {e.code} - {error_body}")
+            return {
+                "success": False,
+                "error": f"HTTP {e.code}: {error_body}",
+                "model": self.model,
+                "provider": "openai",
+            }
+        except Exception as e:
+            logger.error(f"OpenAI provider error: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "model": self.model,
+                "provider": "openai",
+            }
+
+
 class GoogleProvider(AIProvider):
-    """Google Gemini provider for Free tier - uses REST API directly to avoid heavy SDK."""
+    """Google Gemini provider - uses REST API directly."""
 
     def __init__(self, api_key: str, model: str, max_tokens: int):
         self.api_key = api_key
@@ -125,7 +206,7 @@ class GoogleProvider(AIProvider):
                 "generationConfig": {
                     "maxOutputTokens": self.max_tokens,
                     "temperature": 0.7,
-                    "responseMimeType": "application/json",  # Force JSON response
+                    "responseMimeType": "application/json",
                 }
             }
 
@@ -139,7 +220,6 @@ class GoogleProvider(AIProvider):
             with urllib.request.urlopen(req, timeout=60) as response:
                 result = json.loads(response.read().decode("utf-8"))
 
-            # Check for safety blocking or empty responses
             if not result.get("candidates") or not result["candidates"][0].get("content"):
                 safety_feedback = result.get("promptFeedback", {})
                 logger.warning(f"Gemini response blocked or empty. Feedback: {safety_feedback}")
@@ -150,13 +230,9 @@ class GoogleProvider(AIProvider):
                     "provider": "google",
                 }
 
-            # Extract text from response
             response_text = result["candidates"][0]["content"]["parts"][0]["text"]
-
-            # Clean markdown backticks if present (fallback if JSON mode doesn't work)
             clean_json = re.sub(r"^```json\s*|\s*```$", "", response_text.strip(), flags=re.MULTILINE)
 
-            # Try to parse as JSON, fall back to text
             try:
                 return {
                     "success": True,
@@ -204,6 +280,13 @@ def get_ai_provider(tier: str, secrets: Dict[str, str]) -> Optional[AIProvider]:
             logger.warning("Anthropic API key not found, falling back to free tier")
             return get_ai_provider("free", secrets)
         return AnthropicProvider(api_key, model, max_tokens)
+
+    elif provider_type == "openai":
+        api_key = secrets.get("OPENAI_API_KEY")
+        if not api_key:
+            logger.warning("OpenAI API key not found")
+            return None
+        return OpenAIProvider(api_key, model, max_tokens)
 
     elif provider_type == "google":
         api_key = secrets.get("GOOGLE_GEMINI_API_KEY")
