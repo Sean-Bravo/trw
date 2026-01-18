@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 TIER_CONFIG = {
     "free": {
         "provider": "google",
-        "model": "gemini-2.0-flash",
+        "model": "gemini-1.5-flash",  # Stable model, 2.0-flash may not be available to all API keys
         "max_tokens": 1024,
     },
     "pro": {
@@ -110,6 +110,7 @@ class GoogleProvider(AIProvider):
         try:
             import urllib.request
             import urllib.error
+            import re
 
             url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
 
@@ -124,6 +125,7 @@ class GoogleProvider(AIProvider):
                 "generationConfig": {
                     "maxOutputTokens": self.max_tokens,
                     "temperature": 0.7,
+                    "responseMimeType": "application/json",  # Force JSON response
                 }
             }
 
@@ -137,14 +139,28 @@ class GoogleProvider(AIProvider):
             with urllib.request.urlopen(req, timeout=60) as response:
                 result = json.loads(response.read().decode("utf-8"))
 
+            # Check for safety blocking or empty responses
+            if not result.get("candidates") or not result["candidates"][0].get("content"):
+                safety_feedback = result.get("promptFeedback", {})
+                logger.warning(f"Gemini response blocked or empty. Feedback: {safety_feedback}")
+                return {
+                    "success": False,
+                    "error": "Response blocked by safety filters or empty response",
+                    "model": self.model,
+                    "provider": "google",
+                }
+
             # Extract text from response
             response_text = result["candidates"][0]["content"]["parts"][0]["text"]
+
+            # Clean markdown backticks if present (fallback if JSON mode doesn't work)
+            clean_json = re.sub(r"^```json\s*|\s*```$", "", response_text.strip(), flags=re.MULTILINE)
 
             # Try to parse as JSON, fall back to text
             try:
                 return {
                     "success": True,
-                    "insights": json.loads(response_text),
+                    "insights": json.loads(clean_json),
                     "model": self.model,
                     "provider": "google",
                 }
