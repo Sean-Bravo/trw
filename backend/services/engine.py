@@ -602,9 +602,12 @@ class BaseExchangeParser(ABC):
         pass
     
     def validate(self, df: pd.DataFrame) -> List[str]:
-        """Validate DataFrame has required columns."""
+        """Validate DataFrame has required columns after normalization and mapping."""
+        # Normalize columns first (includes COLUMN_MAPPING application)
+        df_normalized = self.normalize_columns(df)
         required = self.get_required_columns()
-        missing = validate_required_columns(df, required)
+        # Required columns should be post-mapping names
+        missing = validate_required_columns(df_normalized, required)
         if missing:
             return [f"{self.exchange_name}: Missing required columns: {', '.join(missing)}"]
         return []
@@ -639,7 +642,8 @@ class BinanceParser(BaseExchangeParser):
     }
 
     def get_required_columns(self) -> List[str]:
-        return ['date(utc)', 'pair']
+        # Return post-mapping column names (what columns look like after normalize_columns)
+        return ['date', 'pair']
     
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Binance CSV to universal schema."""
@@ -749,7 +753,8 @@ class CoinbaseParser(BaseExchangeParser):
     }
 
     def get_required_columns(self) -> List[str]:
-        return ['timestamp']
+        # Post-mapping name (timestamp -> date)
+        return ['date']
 
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Coinbase CSV to universal schema."""
@@ -944,12 +949,13 @@ class KrakenParser(BaseExchangeParser):
     }
     
     def get_required_columns(self) -> List[str]:
-        return ['time', 'type', 'asset', 'amount']
-    
+        # Post-mapping names (time -> date)
+        return ['date', 'type', 'asset', 'amount']
+
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Kraken CSV to universal schema."""
         df = self.normalize_columns(df)
-        
+
         if 'fee' not in df.columns:
             df['fee'] = 0.0
         if 'refid' not in df.columns:
@@ -1145,7 +1151,9 @@ class KuCoinParser(BaseExchangeParser):
         'direction': 'side',            # KuCoin uses "direction" (lowercase buy/sell)
         'price': 'price',
         'deal_price': 'price',          # KuCoin uses "deal_price"
+        'avg_filled_price': 'price',    # Web export format
         'amount': 'amount',
+        'filled_amount': 'amount',      # Web export format
         'fee': 'fee',
         'fee_currency': 'fee_currency',
     }
@@ -1260,8 +1268,9 @@ class BybitParser(BaseExchangeParser):
     }
 
     def get_required_columns(self) -> List[str]:
-        return ['symbol', 'side']
-    
+        # Post-mapping names (symbol -> pair)
+        return ['pair', 'side']
+
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Bybit CSV to universal schema."""
         df = self.normalize_columns(df)
@@ -1356,15 +1365,17 @@ class CashAppParser(BaseExchangeParser):
         'transaction_type': 'type',
         'asset_type': 'asset',
         'asset_amount': 'crypto_amount',
+        'bitcoin_amount': 'crypto_amount',  # Alternative: "Bitcoin Amount"
         'currency': 'fiat_currency',
         'amount': 'fiat_amount',
         'fee': 'fee',
         'status': 'status',
     }
-    
+
     def get_required_columns(self) -> List[str]:
-        return ['date', 'transaction type', 'asset type', 'amount']
-    
+        # Post-mapping names (transaction_type -> type, asset_type -> asset, amount -> fiat_amount)
+        return ['date', 'type', 'asset', 'fiat_amount']
+
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Cash App CSV to universal schema."""
         df = self.normalize_columns(df)
@@ -1497,15 +1508,18 @@ class RobinhoodParser(BaseExchangeParser):
     COLUMN_MAPPING = {
         'activity_date': 'date',
         'type': 'type',
+        'trans_code': 'type',           # Alternative: "Trans Code"
         'token': 'currency',
         'quantity_transacted': 'quantity',
+        'quantity': 'quantity',
         'price': 'price',
         'amount': 'amount',
     }
-    
+
     def get_required_columns(self) -> List[str]:
-        return ['activity date', 'type', 'token', 'quantity transacted']
-    
+        # Post-mapping names (activity_date -> date, token -> currency)
+        return ['date', 'type', 'currency']
+
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Robinhood CSV to universal schema."""
         df = self.normalize_columns(df)
@@ -1603,10 +1617,11 @@ class PayPalParser(BaseExchangeParser):
     exchange_name = "PayPal"
     
     # Fuzzy matching - multiple possible names per field
+    # Order matters - more specific/exact matches first
     COLUMN_VARIATIONS = {
-        'date': ['date', 'transaction_date', 'transaction date', 'datetime', 'created', 'timestamp', 'time'],
+        'date': ['date', 'transaction_date', 'transaction date', 'datetime', 'created', 'timestamp'],
         'time': ['time', 'timestamp', 'transaction time'],
-        'type': ['type', 'transaction_type', 'transaction type', 'description', 'activity', 'name'],
+        'type': ['type', 'transaction_type', 'transaction type', 'description', 'activity'],
         'status': ['status', 'transaction status', 'state'],
         'currency': ['currency', 'crypto_currency', 'crypto currency', 'coin', 'asset', 'token', 'cryptocurrency'],
         'gross': ['gross', 'amount', 'total', 'gross_amount', 'gross amount', 'transaction amount', 'value'],
@@ -1813,8 +1828,9 @@ class CryptoDotComParser(BaseExchangeParser):
     }
     
     def get_required_columns(self) -> List[str]:
-        return ['timestamp (utc)', 'transaction kind', 'currency', 'amount']
-    
+        # Post-mapping names (timestamp_utc_ -> date, transaction_kind -> kind)
+        return ['date', 'kind', 'currency', 'amount']
+
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Crypto.com CSV to universal schema."""
         df = self.normalize_columns(df)
@@ -2552,6 +2568,7 @@ class OKXParser(BaseExchangeParser):
     
     COLUMN_MAPPING = {
         'time': 'date',
+        'trade_time': 'date',           # Alternative: "Trade Time"
         'order_id': 'order_id',
         'instrument': 'pair',
         'instrument_id': 'pair',
@@ -2568,10 +2585,11 @@ class OKXParser(BaseExchangeParser):
         'order_state': 'status',
         'state': 'status',
     }
-    
+
     def get_required_columns(self) -> List[str]:
-        return ['time', 'side', 'instrument']
-    
+        # Post-mapping names (time/trade_time -> date, instrument/instrument_id -> pair)
+        return ['date', 'side', 'pair']
+
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform OKX CSV to universal schema."""
         df = self.normalize_columns(df)
