@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
-import { FileUploader } from '@/components/dashboard/FileUploader';
+import { UploadSection } from '@/components/dashboard/UploadSection';
 import { JobHistoryTable } from '@/components/dashboard/JobHistoryTable';
 import { AIInsightsPanel } from '@/components/dashboard/AIInsightsPanel';
 import { DiffViewer } from '@/components/dashboard/DiffViewer';
@@ -43,14 +43,8 @@ export default async function DashboardPage() {
 
           {/* Main Grid: Upload + AI Insights - Side by Side */}
           <div className="grid lg:grid-cols-2 gap-6 mb-8">
-            {/* Upload Section */}
-            <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-              <div className="mb-5">
-                <h2 className="text-lg font-semibold text-white mb-1">Upload CSV File</h2>
-                <p className="text-slate-400 text-sm">Drag and drop your CSV file or click to browse</p>
-              </div>
-              <FileUploader />
-            </div>
+            {/* Upload Section with Mode Selector */}
+            <UploadSection />
 
             {/* AI Insights Panel */}
             <AIInsightsPanel />

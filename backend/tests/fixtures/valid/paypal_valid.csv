@@ -1,4 +1,4 @@
 Date,Time,TimeZone,Name,Type,Status,Currency,Gross,Fee,Net,From Email Address,To Email Address,Transaction ID
-01/01/2024,12:00:00,PST,PayPal Crypto,General Crypto Buy,Completed,USD,-100.00,0.00,-100.00,user@example.com,,TXN123
-01/15/2024,14:30:00,PST,PayPal Crypto,General Crypto Sell,Completed,USD,500.00,10.00,490.00,user@example.com,,TXN456
-02/01/2024,09:00:00,PST,PayPal Crypto,Crypto Currency Purchase,Completed,USD,-250.00,2.50,-252.50,user@example.com,,TXN789
+01/01/2024,12:00:00,PST,PayPal Crypto,Crypto Bitcoin Buy,Completed,BTC,-100.00,0.00,-100.00,user@example.com,,TXN123
+01/15/2024,14:30:00,PST,PayPal Crypto,Crypto Bitcoin Sell,Completed,BTC,500.00,10.00,490.00,user@example.com,,TXN456
+02/01/2024,09:00:00,PST,PayPal Crypto,Crypto Ethereum Purchase,Completed,ETH,-250.00,2.50,-252.50,user@example.com,,TXN789
