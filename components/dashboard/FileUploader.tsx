@@ -2,18 +2,39 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { uploadCSVFile, validateFile, formatFileSize, UploadError } from '@/lib/upload-client';
 import { useJobContext } from '@/contexts/JobContext';
 
+interface DuplicateInfo {
+  filename: string;
+  uploadedAt: string;
+  status: string;
+}
+
 export function FileUploader() {
-  const { setActiveJob, refreshJobHistory } = useJobContext();
+  const { setActiveJob, refreshJobHistory, jobHistory } = useJobContext();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<'requesting' | 'uploading' | 'confirming' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateInfo | null>(null);
+
+  const checkForDuplicate = useCallback((filename: string): DuplicateInfo | null => {
+    const existingJob = jobHistory.find(
+      (job) => job.filename === filename
+    );
+    if (existingJob) {
+      return {
+        filename: existingJob.filename,
+        uploadedAt: existingJob.createdAt,
+        status: existingJob.status,
+      };
+    }
+    return null;
+  }, [jobHistory]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
@@ -25,12 +46,16 @@ export function FileUploader() {
       return;
     }
 
+    // Check for duplicate
+    const duplicate = checkForDuplicate(selectedFile.name);
+    setDuplicateWarning(duplicate);
+
     setFile(selectedFile);
     setError(null);
     setSuccess(false);
     setUploadProgress(0);
     setUploadStage(null);
-  }, []);
+  }, [checkForDuplicate]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -54,6 +79,7 @@ export function FileUploader() {
 
       setSuccess(true);
       setFile(null);
+      setDuplicateWarning(null);
       setUploadProgress(100);
       setUploadStage(null);
 
@@ -142,6 +168,24 @@ export function FileUploader() {
         </div>
       </div>
 
+      {/* Duplicate Warning */}
+      {duplicateWarning && file && (
+        <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <RefreshCw className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm text-amber-300 font-medium">File already uploaded</p>
+            <p className="text-xs text-amber-400/70 mt-1">
+              "{duplicateWarning.filename}" was uploaded on{' '}
+              {new Date(duplicateWarning.uploadedAt).toLocaleDateString()}
+              {' '}({duplicateWarning.status})
+            </p>
+            <p className="text-xs text-zinc-400 mt-2">
+              You can still upload again to reprocess with the latest settings.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Error */}
       {error && (
         <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
@@ -184,7 +228,7 @@ export function FileUploader() {
       {file && !success && (
         <div className="flex items-center justify-between pt-2">
           <button
-            onClick={() => { setFile(null); setError(null); }}
+            onClick={() => { setFile(null); setError(null); setDuplicateWarning(null); }}
             className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
             disabled={uploading}
           >
