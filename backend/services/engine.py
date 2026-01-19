@@ -3349,9 +3349,16 @@ def process_file(
             except Exception as e:
                 logger.debug(f"Could not generate fingerprint: {e}")
 
+        # Convert original DataFrame to list of dicts for diff view
+        # Limit to first 100 rows to avoid huge payloads
+        original_rows = df.head(100).fillna('').astype(str).to_dict('records')
+        original_columns = list(df.columns)
+
         return {
             "success": True,
             "records": records,
+            "original": original_rows,  # Raw data for diff view
+            "columns": original_columns,  # Column names
             "errors": [err.to_dict() for err in parse_errors[:max_errors]],
             "warnings": warnings,
             "meta": {

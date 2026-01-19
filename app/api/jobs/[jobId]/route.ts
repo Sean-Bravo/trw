@@ -40,21 +40,25 @@ export async function GET(
           );
         }
 
-        // If job is in terminal state, return from DB (no need to check Lambda)
+        // If job is in terminal state with result data, return from DB
+        // If succeeded but result is null, fall through to Lambda to get result.json
         if (['succeeded', 'failed', 'canceled'].includes(dbJob.status)) {
-          return NextResponse.json({
-            jobId: dbJob.id,
-            uploadId: dbJob.upload_id,
-            status: dbJob.status,
-            result: dbJob.result,
-            error: dbJob.error,
-            createdAt: dbJob.created_at,
-            startedAt: dbJob.started_at,
-            finishedAt: dbJob.finished_at,
-            filename: dbJob.upload.filename,
-            retryCount: (dbJob as { retry_count?: number }).retry_count || 0,
-            lastRetryAt: (dbJob as { last_retry_at?: string }).last_retry_at || null,
-          });
+          if (dbJob.status !== 'succeeded' || dbJob.result !== null) {
+            return NextResponse.json({
+              jobId: dbJob.id,
+              uploadId: dbJob.upload_id,
+              status: dbJob.status,
+              result: dbJob.result,
+              error: dbJob.error,
+              createdAt: dbJob.created_at,
+              startedAt: dbJob.started_at,
+              finishedAt: dbJob.finished_at,
+              filename: dbJob.upload.filename,
+              retryCount: (dbJob as { retry_count?: number }).retry_count || 0,
+              lastRetryAt: (dbJob as { last_retry_at?: string }).last_retry_at || null,
+            });
+          }
+          // succeeded with null result - fall through to Lambda to get result.json
         }
         // Non-terminal status (queued/running) - check Lambda for latest status
       }

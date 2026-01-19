@@ -238,11 +238,23 @@ def handle_job_status(event: Dict) -> Dict:
         try:
             s3_client.head_object(Bucket=RESULTS_BUCKET, Key=result_key)
             logger.info(f"Job {job_id} completed - found output.csv")
+
+            # Try to load result.json for diff data
+            result_data = None
+            try:
+                result_json_key = f"results/{job_id}/result.json"
+                result_obj = s3_client.get_object(Bucket=RESULTS_BUCKET, Key=result_json_key)
+                result_data = json.loads(result_obj["Body"].read().decode("utf-8"))
+                logger.info(f"Job {job_id} loaded result.json")
+            except ClientError:
+                logger.info(f"Job {job_id} no result.json found")
+
             return response(200, {
                 "jobId": job_id,
                 "status": "completed",
                 "progress": 100,
                 "filename": filename,
+                "result": result_data,
             })
         except ClientError as e:
             logger.info(f"Job {job_id} no output.csv: {e.response['Error']['Code']}")

@@ -234,17 +234,18 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | AWS Secrets Manager | Sensitive config | Managed by Terraform |
 | Stripe | Payments | `STRIPE_*` env vars |
 | Google OAuth | Social login | `GOOGLE_CLIENT_*` |
-| Sentry | Error tracking | `SENTRY_*` env vars |
+| Sentry | Error tracking | `SENTRY_*` env vars, tunnel via `/monitoring` |
 | AWS SES | Email | Managed by Terraform |
 
 ## Known Gotchas
 
-1. **Lambda concurrency** - SQS trigger limited to 10 concurrent executions
-2. **No VPC** - Lambdas connect directly to Neon (public internet) for faster cold starts
-3. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
-4. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
-5. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
-6. **Exchange detection fallback** - When classification fails, engine.py auto-tries GenericCSVParser if file has date+amount columns. Only shows manual selector if generic also fails.
+1. **Sentry tunnel** - Client errors route through `/monitoring` to bypass ad blockers. The `tunnelRoute` in `next.config.ts` creates rewrites, and `tunnel: "/monitoring"` in `instrumentation-client.ts` tells the SDK to use it. The `diagnoseSdkConnectivity()` check doesn't respect the tunnel and may show false warnings.
+2. **Lambda concurrency** - SQS trigger limited to 10 concurrent executions
+3. **No VPC** - Lambdas connect directly to Neon (public internet) for faster cold starts
+4. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
+5. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
+6. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
+7. **Exchange detection fallback** - When classification fails, engine.py auto-tries GenericCSVParser if file has date+amount columns. Only shows manual selector if generic also fails.
 
 ## Exchange Detection Flow
 
@@ -306,6 +307,8 @@ fingerprinting.py: detect_exchange_from_headers()
 - [x] **Format caching** - Converted files cached in S3 for subsequent downloads
 - [x] **Lightweight webhook Lambda** - Uses `format_converter.py` (no heavy deps) instead of full `engine.py`
 - [x] **Download trigger fix** - Changed from `link.click()` to `window.location.href` for S3 presigned URLs (browsers block programmatic clicks on cross-origin links)
+- [x] **AI Insights Panel** - Real-time insights display with tiered analysis (Gemini/Sonnet/Opus), quick stats, transaction breakdown, and actionable tax suggestions
+- [x] **Transformation Preview (Diff View)** - Side-by-side comparison of original exchange data → converted Koinly format. Shows first 3 rows with "Show more" option. Data saved to S3 as `result.json` containing `original`, `processed`, and `columns` arrays.
 
 ## What's Not Built Yet
 

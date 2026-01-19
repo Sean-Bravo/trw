@@ -1,0 +1,9 @@
+npm notice Access token expired or revoked. Please try logging in again.
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/@sentry/browser/-/browser-10.35.0.tgz - Not found
+npm error 404
+npm error 404  '@sentry/browser@https://registry.npmjs.org/@sentry/browser/-/browser-10.35.0.tgz' is not in this registry.
+npm error 404
+npm error 404 Note that you can also install from a
+npm error 404 tarball, folder, http url, or git url.
+npm error A complete log of this run can be found in: /Users/sean/.npm/_logs/2026-01-19T14_15_30_526Z-debug-0.log

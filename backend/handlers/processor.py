@@ -183,6 +183,10 @@ def process_csv(file_data: bytes, filename: str, exchange_name: str = None) -> D
             "meta": result.get("meta", {}),
             "errors": result.get("errors", []),
             "warnings": result.get("warnings", []),
+            # For diff view - original and processed data
+            "original": result.get("original", []),
+            "processed": records[:100],  # Limit to first 100 for diff view
+            "columns": result.get("columns", []),
         }
 
     except ImportError as e:
@@ -327,6 +331,23 @@ def upload_insights(bucket: str, job_id: str, insights: Dict):
         return None
 
 
+def upload_result_json(bucket: str, job_id: str, result_data: Dict):
+    """Upload result metadata (including diff data) to S3."""
+    key = f"results/{job_id}/result.json"
+    try:
+        s3_client.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=json.dumps(result_data, default=str).encode("utf-8"),
+            ContentType="application/json",
+        )
+        logger.info(f"Uploaded result.json to s3://{bucket}/{key}")
+        return key
+    except Exception as e:
+        logger.error(f"Failed to upload result.json: {e}")
+        return None
+
+
 def process_message(message: Dict) -> Dict[str, Any]:
     """Process a single SQS message."""
     job_id = message.get("job_id")
@@ -374,6 +395,15 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 if insights_result.get("success") or insights_result.get("quick_stats"):
                     upload_insights(RESULTS_BUCKET, job_id, insights_result)
                     insights = insights_result
+
+            # Upload result.json with diff data for frontend
+            upload_result_json(RESULTS_BUCKET, job_id, {
+                "record_count": result["record_count"],
+                "exchange": result.get("exchange"),
+                "original": result.get("original", []),
+                "processed": result.get("processed", []),
+                "columns": result.get("columns", []),
+            })
 
             logger.info(f"Job {job_id} completed successfully. {result['record_count']} records.")
 
