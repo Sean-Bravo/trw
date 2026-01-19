@@ -143,7 +143,10 @@ export function ProcessingTerminal({
     if (currentIndex < allLogs.length) {
       const delay = currentIndex === 0 ? 500 : Math.random() * 400 + 200; // 200-600ms between entries
       const timer = setTimeout(() => {
-        setLogs(prev => [...prev, allLogs[currentIndex]]);
+        const logEntry = allLogs[currentIndex];
+        if (logEntry) {
+          setLogs(prev => [...prev, logEntry]);
+        }
         setCurrentIndex(prev => prev + 1);
       }, delay);
       return () => clearTimeout(timer);
