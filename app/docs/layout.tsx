@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Container } from '@/components/layout/Container'
 import Link from 'next/link'
-import { Home, ChevronLeft } from 'lucide-react'
+import { Home, Menu, X } from 'lucide-react'
 import { DOCS_SECTIONS } from '@/lib/docs-config'
 import { SkipLink } from '@/components/docs/SkipLink'
 import { DocsSidebar } from '@/components/docs/DocsSidebar'
@@ -15,6 +15,7 @@ import { Logo } from '@/components/ui/Logo'
  */
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +27,11 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Close sidebar when route changes (for mobile)
+  useEffect(() => {
+    setSidebarOpen(false)
   }, [])
 
   return (
@@ -44,9 +50,22 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-700/50">
           <Container>
-            <div className="py-4 flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <Logo className="h-8 w-auto" />
+            <div className="py-3 sm:py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3 sm:gap-6">
+                {/* Mobile menu button */}
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                  aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+                >
+                  {sidebarOpen ? (
+                    <X className="h-5 w-5" />
+                  ) : (
+                    <Menu className="h-5 w-5" />
+                  )}
+                </button>
+                <Logo className="h-7 sm:h-8 w-auto" />
                 <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700" />
                 <Link
                   href="/"
@@ -71,19 +90,54 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       {/* Page Title Section */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <Container>
-          <div className="py-8">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Documentation</h1>
-            <p className="text-slate-400 dark:text-slate-300 mt-2">Learn how to use TaxFormatter</p>
+          <div className="py-6 sm:py-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Documentation</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 sm:mt-2 text-sm sm:text-base">
+              Everything you need to know about TaxFormatter. From uploading your first CSV to exporting tax-ready data.
+            </p>
           </div>
         </Container>
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
+      <div
+        className={`fixed top-0 left-0 z-40 h-full w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-in-out lg:hidden ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
+          <span className="font-semibold text-slate-900 dark:text-white">Navigation</span>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-4 overflow-y-auto h-[calc(100%-65px)]">
+          <DocsSidebar sections={DOCS_SECTIONS} onLinkClick={() => setSidebarOpen(false)} />
+        </div>
+      </div>
+
       <Container>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 py-12">
-          <DocsSidebar sections={DOCS_SECTIONS} />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 py-8 sm:py-12">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block">
+            <DocsSidebar sections={DOCS_SECTIONS} />
+          </div>
 
           {/* Main Content */}
-          <main id="main-content" className="lg:col-span-3">
+          <main id="main-content" className="lg:col-span-3 min-w-0">
             {children}
           </main>
         </div>

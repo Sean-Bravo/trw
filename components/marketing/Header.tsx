@@ -101,7 +101,14 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mt-2">
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mt-2 space-y-3">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full text-center py-3 text-slate-700 dark:text-slate-200 hover:text-[var(--color-primary-500)] transition-colors text-base font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              >
+                Sign In
+              </Link>
               <Button
                 variant="primary"
                 href="/signup"
