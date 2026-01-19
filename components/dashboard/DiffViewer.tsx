@@ -1,69 +1,46 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { GitCompare, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { GitCompare, ChevronDown, ChevronUp, Loader2, ArrowRight } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
 
-interface DiffRow {
-  original: string[];
-  formatted: string[];
-  changes: number[]; // indices of changed columns
-}
-
-// Generate diff rows by comparing original and processed data
-function generateDiffRows(
-  original: Record<string, unknown>[],
-  processed: Record<string, unknown>[],
-  columns: string[]
-): { rows: DiffRow[]; totalChanges: number } {
-  const rows: DiffRow[] = [];
-  let totalChanges = 0;
-
-  const maxRows = Math.min(original.length, processed.length, 10);
-
-  for (let i = 0; i < maxRows; i++) {
-    const origRow = original[i] || {};
-    const procRow = processed[i] || {};
-    const changes: number[] = [];
-
-    const origValues = columns.map((col) => String(origRow[col] ?? ''));
-    const procValues = columns.map((col) => String(procRow[col] ?? ''));
-
-    columns.forEach((col, idx) => {
-      if (origValues[idx] !== procValues[idx]) {
-        changes.push(idx);
-        totalChanges++;
-      }
-    });
-
-    if (changes.length > 0) {
-      rows.push({ original: origValues, formatted: procValues, changes });
-    }
-  }
-
-  return { rows, totalChanges };
-}
+// Koinly output columns (what we transform TO)
+const KOINLY_COLUMNS = [
+  'Date',
+  'Sent Amount',
+  'Sent Currency',
+  'Received Amount',
+  'Received Currency',
+  'Fee Amount',
+  'Fee Currency',
+  'Description',
+];
 
 export function DiffViewer() {
-  const { activeJob, isPolling } = useJobContext();
+  const { activeJob } = useJobContext();
   const [isExpanded, setIsExpanded] = useState(true);
   const [showAllRows, setShowAllRows] = useState(false);
 
-  // Generate diff data from job result
+  // Extract original and processed data from job result
   const diffData = useMemo(() => {
     if (!activeJob?.result) return null;
 
     const result = activeJob.result as Record<string, unknown>;
     const original = result['original'] as Record<string, unknown>[] | undefined;
     const processed = result['processed'] as Record<string, unknown>[] | undefined;
-    const columns = result['columns'] as string[] | undefined;
+    const originalColumns = result['columns'] as string[] | undefined;
 
-    if (!original || !processed || !columns || original.length === 0) {
+    if (!original || !processed || original.length === 0 || processed.length === 0) {
       return null;
     }
 
-    const { rows, totalChanges } = generateDiffRows(original, processed, columns);
-    return { headers: columns, rows, totalChanges };
+    return {
+      original,
+      processed,
+      originalColumns: originalColumns || Object.keys(original[0] || {}),
+      processedColumns: KOINLY_COLUMNS,
+      recordCount: processed.length,
+    };
   }, [activeJob?.result]);
 
   // Get detailed status message
@@ -139,9 +116,9 @@ export function DiffViewer() {
     );
   }
 
-  const { headers, rows, totalChanges } = diffData;
-  const displayRows = showAllRows ? rows : rows.slice(0, 5);
-  const hasMoreRows = rows.length > 5;
+  const { original, processed, originalColumns, processedColumns, recordCount } = diffData;
+  const displayCount = showAllRows ? Math.min(original.length, processed.length, 10) : 3;
+  const hasMoreRows = Math.min(original.length, processed.length) > 3;
 
   return (
     <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
@@ -152,9 +129,9 @@ export function DiffViewer() {
             <GitCompare className="w-5 h-5 text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Changes Preview</h2>
+            <h2 className="text-lg font-semibold text-white">Transformation Preview</h2>
             <p className="text-slate-400 text-sm">
-              <span className="text-emerald-400 font-medium">{totalChanges} fixes</span> applied to your data
+              <span className="text-emerald-400 font-medium">{recordCount} transactions</span> converted to Koinly format
             </p>
           </div>
         </div>
@@ -173,18 +150,20 @@ export function DiffViewer() {
       {isExpanded && (
         <>
           {/* Side by Side Tables */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Original */}
             <div>
-              <div className="text-xs font-medium text-red-400 uppercase tracking-wide mb-2 px-2">
-                Original
+              <div className="flex items-center gap-2 mb-2 px-2">
+                <div className="text-xs font-medium text-amber-400 uppercase tracking-wide">
+                  Original (Exchange Format)
+                </div>
               </div>
-              <div className="bg-red-500/5 border border-red-500/20 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto">
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto max-h-64">
                   <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-red-500/20">
-                        {headers.map((header, i) => (
+                    <thead className="sticky top-0 bg-slate-900/90">
+                      <tr className="border-b border-amber-500/20">
+                        {originalColumns.slice(0, 6).map((header, i) => (
                           <th
                             key={i}
                             className="px-3 py-2 text-left text-slate-400 font-medium whitespace-nowrap"
@@ -192,23 +171,28 @@ export function DiffViewer() {
                             {header}
                           </th>
                         ))}
+                        {originalColumns.length > 6 && (
+                          <th className="px-3 py-2 text-left text-slate-500 font-medium">
+                            +{originalColumns.length - 6}
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
-                      {displayRows.map((row, rowIdx) => (
-                        <tr key={rowIdx} className="border-b border-red-500/10 last:border-0">
-                          {row.original.map((cell, cellIdx) => (
+                      {original.slice(0, displayCount).map((row, rowIdx) => (
+                        <tr key={rowIdx} className="border-b border-amber-500/10 last:border-0">
+                          {originalColumns.slice(0, 6).map((col, cellIdx) => (
                             <td
                               key={cellIdx}
-                              className={`px-3 py-2 whitespace-nowrap ${
-                                row.changes.includes(cellIdx)
-                                  ? 'text-red-400 bg-red-500/10 line-through'
-                                  : 'text-slate-300'
-                              }`}
+                              className="px-3 py-2 whitespace-nowrap text-slate-300 max-w-32 truncate"
+                              title={String(row[col] ?? '')}
                             >
-                              {cell || <span className="text-slate-600 italic">empty</span>}
+                              {String(row[col] ?? '') || <span className="text-slate-600 italic">—</span>}
                             </td>
                           ))}
+                          {originalColumns.length > 6 && (
+                            <td className="px-3 py-2 text-slate-500">...</td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -217,17 +201,26 @@ export function DiffViewer() {
               </div>
             </div>
 
-            {/* Formatted */}
+            {/* Arrow indicator for desktop */}
+            <div className="hidden lg:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+              <div className="bg-indigo-500/20 rounded-full p-2">
+                <ArrowRight className="w-4 h-4 text-indigo-400" />
+              </div>
+            </div>
+
+            {/* Formatted (Koinly) */}
             <div>
-              <div className="text-xs font-medium text-emerald-400 uppercase tracking-wide mb-2 px-2">
-                Formatted
+              <div className="flex items-center gap-2 mb-2 px-2">
+                <div className="text-xs font-medium text-emerald-400 uppercase tracking-wide">
+                  Converted (Koinly Format)
+                </div>
               </div>
               <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-64">
                   <table className="w-full text-xs">
-                    <thead>
+                    <thead className="sticky top-0 bg-slate-900/90">
                       <tr className="border-b border-emerald-500/20">
-                        {headers.map((header, i) => (
+                        {processedColumns.map((header, i) => (
                           <th
                             key={i}
                             className="px-3 py-2 text-left text-slate-400 font-medium whitespace-nowrap"
@@ -238,18 +231,15 @@ export function DiffViewer() {
                       </tr>
                     </thead>
                     <tbody>
-                      {displayRows.map((row, rowIdx) => (
+                      {processed.slice(0, displayCount).map((row, rowIdx) => (
                         <tr key={rowIdx} className="border-b border-emerald-500/10 last:border-0">
-                          {row.formatted.map((cell, cellIdx) => (
+                          {processedColumns.map((col, cellIdx) => (
                             <td
                               key={cellIdx}
-                              className={`px-3 py-2 whitespace-nowrap ${
-                                row.changes.includes(cellIdx)
-                                  ? 'text-emerald-400 bg-emerald-500/10 font-medium'
-                                  : 'text-slate-300'
-                              }`}
+                              className="px-3 py-2 whitespace-nowrap text-emerald-300 max-w-32 truncate"
+                              title={String(row[col] ?? '')}
                             >
-                              {cell || <span className="text-slate-600 italic">empty</span>}
+                              {String(row[col] ?? '') || <span className="text-slate-600 italic">—</span>}
                             </td>
                           ))}
                         </tr>
@@ -268,7 +258,7 @@ export function DiffViewer() {
                 onClick={() => setShowAllRows(!showAllRows)}
                 className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
               >
-                {showAllRows ? 'Show less' : `Show ${rows.length - 5} more rows`}
+                {showAllRows ? 'Show less' : `Show more rows`}
               </button>
             </div>
           )}
@@ -276,12 +266,15 @@ export function DiffViewer() {
           {/* Legend */}
           <div className="mt-4 flex items-center justify-center gap-6 text-xs text-slate-500">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-red-500/20 border border-red-500/40" />
-              <span>Changed from</span>
+              <div className="w-3 h-3 rounded bg-amber-500/20 border border-amber-500/40" />
+              <span>Original exchange data</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ArrowRight className="w-3 h-3 text-slate-500" />
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/40" />
-              <span>Changed to</span>
+              <span>Tax-ready Koinly format</span>
             </div>
           </div>
         </>
