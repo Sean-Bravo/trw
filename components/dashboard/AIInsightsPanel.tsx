@@ -357,7 +357,7 @@ export function AIInsightsPanel() {
                 const details = exchangeDetails || defaultExchangeDetails;
                 return (
                   <>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
                       <div className="bg-slate-50 rounded-lg p-3 text-center">
                         <p className="text-xs text-slate-500 mb-1">Format</p>
                         <p className="text-sm font-semibold text-slate-800">{details.format}</p>
@@ -448,21 +448,21 @@ export function AIInsightsPanel() {
                 const details = transactionDetails || defaultTransactionDetails;
                 return (
                   <>
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                        <p className="text-2xl font-bold text-emerald-600">{details.buys}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="bg-emerald-50 rounded-lg p-2 sm:p-3 text-center">
+                        <p className="text-xl sm:text-2xl font-bold text-emerald-600">{details.buys}</p>
                         <p className="text-xs text-slate-500">Buys</p>
                       </div>
-                      <div className="bg-red-50 rounded-lg p-3 text-center">
-                        <p className="text-2xl font-bold text-red-600">{details.sells}</p>
+                      <div className="bg-red-50 rounded-lg p-2 sm:p-3 text-center">
+                        <p className="text-xl sm:text-2xl font-bold text-red-600">{details.sells}</p>
                         <p className="text-xs text-slate-500">Sells</p>
                       </div>
-                      <div className="bg-blue-50 rounded-lg p-3 text-center">
-                        <p className="text-2xl font-bold text-blue-600">{details.transfers}</p>
+                      <div className="bg-blue-50 rounded-lg p-2 sm:p-3 text-center">
+                        <p className="text-xl sm:text-2xl font-bold text-blue-600">{details.transfers}</p>
                         <p className="text-xs text-slate-500">Transfers</p>
                       </div>
-                      <div className="bg-amber-50 rounded-lg p-3 text-center">
-                        <p className="text-2xl font-bold text-amber-600">{details.fees}</p>
+                      <div className="bg-amber-50 rounded-lg p-2 sm:p-3 text-center">
+                        <p className="text-xl sm:text-2xl font-bold text-amber-600">{details.fees}</p>
                         <p className="text-xs text-slate-500">Fees</p>
                       </div>
                     </div>

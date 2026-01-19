@@ -11,7 +11,7 @@ export function DashboardStats() {
   const processing = jobHistory.filter((j) => j.status === 'queued' || j.status === 'running').length;
 
   return (
-    <div className="flex items-center gap-8 mb-8">
+    <div className="flex items-center gap-4 sm:gap-8 mb-8 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible scrollbar-hide">
       <CircleStat value={totalUploads} max={100} label="Uploads" color="blue" />
       <CircleStat value={completed} max={100} label="Completed" color="emerald" />
       <CircleStat value={processing} max={100} label="Processing" color="amber" />

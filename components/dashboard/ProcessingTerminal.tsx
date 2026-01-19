@@ -178,7 +178,7 @@ export function ProcessingTerminal({
       {/* Terminal Content */}
       <div
         ref={terminalRef}
-        className="p-4 font-mono text-sm max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+        className="p-3 sm:p-4 font-mono text-xs sm:text-sm max-h-48 sm:max-h-64 overflow-y-auto scrollbar-thin"
       >
         {logs.map((log, i) => (
           <div key={i} className="flex gap-4 py-0.5 animate-fadeIn">

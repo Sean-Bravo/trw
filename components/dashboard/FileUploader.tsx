@@ -2,110 +2,148 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, RefreshCw, X } from 'lucide-react';
 import { uploadCSVFile, validateFile, formatFileSize, UploadError } from '@/lib/upload-client';
 import { useJobContext } from '@/contexts/JobContext';
 
-interface DuplicateInfo {
-  filename: string;
-  uploadedAt: string;
-  status: string;
+interface FileWithProgress {
+  file: File;
+  id: string;
+  progress: number;
+  stage: 'pending' | 'requesting' | 'uploading' | 'confirming' | 'completed' | 'error';
+  error?: string;
+  isDuplicate?: boolean;
 }
 
 export function FileUploader() {
   const { setActiveJob, refreshJobHistory, jobHistory } = useJobContext();
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadStage, setUploadStage] = useState<'requesting' | 'uploading' | 'confirming' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateInfo | null>(null);
+  const [successCount, setSuccessCount] = useState(0);
 
-  const checkForDuplicate = useCallback((filename: string): DuplicateInfo | null => {
-    const existingJob = jobHistory.find(
-      (job) => job.filename === filename
-    );
-    if (existingJob) {
-      return {
-        filename: existingJob.filename,
-        uploadedAt: existingJob.createdAt,
-        status: existingJob.status,
-      };
-    }
-    return null;
+  const checkForDuplicate = useCallback((filename: string): boolean => {
+    return jobHistory.some((job) => job.filename === filename);
   }, [jobHistory]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const selectedFile = acceptedFiles[0];
-    if (!selectedFile) return;
+    const newFiles: FileWithProgress[] = [];
+    const errors: string[] = [];
 
-    const validation = validateFile(selectedFile);
-    if (!validation.valid) {
-      setError(validation.error || 'Invalid file');
-      return;
+    acceptedFiles.forEach((file) => {
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        errors.push(`${file.name}: ${validation.error}`);
+        return;
+      }
+
+      // Check if already in list
+      const alreadyAdded = files.some((f) => f.file.name === file.name && f.file.size === file.size);
+      if (alreadyAdded) return;
+
+      newFiles.push({
+        file,
+        id: `${file.name}-${Date.now()}-${Math.random()}`,
+        progress: 0,
+        stage: 'pending',
+        isDuplicate: checkForDuplicate(file.name),
+      });
+    });
+
+    if (errors.length > 0) {
+      setError(errors.join('\n'));
+    } else {
+      setError(null);
     }
 
-    // Check for duplicate
-    const duplicate = checkForDuplicate(selectedFile.name);
-    setDuplicateWarning(duplicate);
-
-    setFile(selectedFile);
-    setError(null);
-    setSuccess(false);
-    setUploadProgress(0);
-    setUploadStage(null);
-  }, [checkForDuplicate]);
+    if (newFiles.length > 0) {
+      setFiles((prev) => [...prev, ...newFiles]);
+      setSuccessCount(0);
+    }
+  }, [checkForDuplicate, files]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'text/csv': ['.csv'] },
-    maxFiles: 1,
-    multiple: false,
+    maxFiles: 10,
+    multiple: true,
   });
 
+  const removeFile = (id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
   const handleUpload = async () => {
-    if (!file) return;
+    if (files.length === 0) return;
 
     setUploading(true);
     setError(null);
-    setUploadProgress(0);
+    let completed = 0;
 
-    try {
-      const result = await uploadCSVFile(file, (stage, percent) => {
-        setUploadStage(stage);
-        setUploadProgress(percent);
-      });
+    // Process files sequentially
+    for (const fileItem of files) {
+      if (fileItem.stage === 'completed' || fileItem.stage === 'error') continue;
 
-      setSuccess(true);
-      setFile(null);
-      setDuplicateWarning(null);
-      setUploadProgress(100);
-      setUploadStage(null);
+      try {
+        // Update stage
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileItem.id ? { ...f, stage: 'requesting' as const, progress: 10 } : f
+          )
+        );
 
-      // Trigger job tracking and refresh history
-      setActiveJob(result.jobId);
-      refreshJobHistory();
+        const result = await uploadCSVFile(fileItem.file, (stage, percent) => {
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileItem.id ? { ...f, stage, progress: percent } : f
+            )
+          );
+        });
 
-      setTimeout(() => setSuccess(false), 5000);
-    } catch (err) {
-      const uploadError = err as UploadError;
+        // Mark completed
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileItem.id ? { ...f, stage: 'completed' as const, progress: 100 } : f
+          )
+        );
 
-      if (uploadError.code === 'RATE_LIMIT') {
-        const retryMinutes = Math.ceil((uploadError.retryAfter || 3600) / 60);
-        setError(`${uploadError.message} Please try again in ${retryMinutes} minutes.`);
-      } else if (uploadError.code === 'FILE_TOO_LARGE') {
-        setError('File size exceeds your tier limit. Upgrade for larger files.');
-      } else {
-        setError(uploadError.message || 'Upload failed. Please try again.');
+        completed++;
+        setActiveJob(result.jobId);
+      } catch (err) {
+        const uploadError = err as UploadError;
+        let errorMessage = uploadError.message || 'Upload failed';
+
+        if (uploadError.code === 'RATE_LIMIT') {
+          const retryMinutes = Math.ceil((uploadError.retryAfter || 3600) / 60);
+          errorMessage = `Rate limit exceeded. Try again in ${retryMinutes} min.`;
+        } else if (uploadError.code === 'FILE_TOO_LARGE') {
+          errorMessage = 'File too large for your tier.';
+        }
+
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileItem.id ? { ...f, stage: 'error' as const, error: errorMessage } : f
+          )
+        );
       }
+    }
 
-      setUploadProgress(0);
-      setUploadStage(null);
-    } finally {
-      setUploading(false);
+    setSuccessCount(completed);
+    refreshJobHistory();
+    setUploading(false);
+
+    // Clear completed files after delay
+    if (completed > 0) {
+      setTimeout(() => {
+        setFiles((prev) => prev.filter((f) => f.stage !== 'completed'));
+        setSuccessCount(0);
+      }, 3000);
     }
   };
+
+  const hasFiles = files.length > 0;
+  const pendingFiles = files.filter((f) => f.stage === 'pending' || f.stage === 'error');
+  const hasDuplicates = files.some((f) => f.isDuplicate);
 
   return (
     <div className="space-y-4">
@@ -114,11 +152,11 @@ export function FileUploader() {
         {...getRootProps()}
         className={`
           relative overflow-hidden cursor-pointer
-          border-2 border-dashed rounded-xl p-8 text-center
+          border-2 border-dashed rounded-xl p-6 sm:p-8 text-center
           transition-all duration-300
           ${isDragActive
             ? 'border-emerald-500 bg-emerald-500/5'
-            : file
+            : hasFiles
             ? 'border-emerald-500/50 bg-emerald-500/5'
             : 'border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/30'
           }
@@ -131,113 +169,152 @@ export function FileUploader() {
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent animate-shimmer" />
         )}
 
-        <div className="relative flex flex-col items-center space-y-4">
-          {file ? (
-            <>
-              <div className="w-14 h-14 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                <CheckCircle className="h-7 w-7 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-lg font-medium text-white">{file.name}</p>
-                <p className="text-sm text-zinc-500">{formatFileSize(file.size)}</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                isDragActive
-                  ? 'bg-emerald-500/20 border border-emerald-500/30'
-                  : 'bg-zinc-800/50 border border-zinc-700'
-              }`}>
-                <Upload className={`h-7 w-7 transition-colors ${
-                  isDragActive ? 'text-emerald-400' : 'text-zinc-500'
-                }`} />
-              </div>
-              <div>
-                <p className="text-lg font-medium text-white mb-1">
-                  {isDragActive ? 'Drop your file here' : 'Drag and drop your CSV'}
-                </p>
-                <p className="text-sm text-zinc-500">or click to browse</p>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-zinc-600">
-                <FileText className="h-4 w-4" />
-                <span>CSV files only • Max 50MB</span>
-              </div>
-            </>
+        <div className="relative flex flex-col items-center space-y-3 sm:space-y-4">
+          <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${
+            isDragActive
+              ? 'bg-emerald-500/20 border border-emerald-500/30'
+              : hasFiles
+              ? 'bg-emerald-500/20 border border-emerald-500/30'
+              : 'bg-zinc-800/50 border border-zinc-700'
+          }`}>
+            {hasFiles ? (
+              <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-400" />
+            ) : (
+              <Upload className={`h-6 w-6 sm:h-7 sm:w-7 transition-colors ${
+                isDragActive ? 'text-emerald-400' : 'text-zinc-500'
+              }`} />
+            )}
+          </div>
+          <div>
+            <p className="text-base sm:text-lg font-medium text-white mb-1">
+              {isDragActive
+                ? 'Drop your files here'
+                : hasFiles
+                ? `${files.length} file${files.length > 1 ? 's' : ''} selected`
+                : 'Drag and drop your CSV files'}
+            </p>
+            <p className="text-sm text-zinc-500">
+              {hasFiles ? 'Drop more or click to add' : 'or click to browse'}
+            </p>
+          </div>
+          {!hasFiles && (
+            <div className="flex items-center gap-2 text-xs text-zinc-600">
+              <FileText className="h-4 w-4" />
+              <span>CSV files only • Max 50MB each • Up to 10 files</span>
+            </div>
           )}
         </div>
       </div>
 
+      {/* File List */}
+      {hasFiles && (
+        <div className="space-y-2">
+          {files.map((fileItem) => (
+            <div
+              key={fileItem.id}
+              className={`flex items-center gap-3 p-3 rounded-lg border ${
+                fileItem.stage === 'completed'
+                  ? 'bg-emerald-500/10 border-emerald-500/20'
+                  : fileItem.stage === 'error'
+                  ? 'bg-red-500/10 border-red-500/20'
+                  : 'bg-zinc-800/50 border-zinc-700/50'
+              }`}
+            >
+              <FileText className={`h-5 w-5 flex-shrink-0 ${
+                fileItem.stage === 'completed'
+                  ? 'text-emerald-400'
+                  : fileItem.stage === 'error'
+                  ? 'text-red-400'
+                  : 'text-zinc-400'
+              }`} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white truncate">{fileItem.file.name}</p>
+                  {fileItem.isDuplicate && fileItem.stage === 'pending' && (
+                    <span className="text-xs text-amber-400 flex-shrink-0">↻ reprocess</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                  <span>{formatFileSize(fileItem.file.size)}</span>
+                  {fileItem.stage === 'error' && fileItem.error && (
+                    <span className="text-red-400">• {fileItem.error}</span>
+                  )}
+                  {fileItem.stage === 'completed' && (
+                    <span className="text-emerald-400">• Uploaded</span>
+                  )}
+                  {(fileItem.stage === 'requesting' || fileItem.stage === 'uploading' || fileItem.stage === 'confirming') && (
+                    <span className="text-cyan-400">• {fileItem.progress}%</span>
+                  )}
+                </div>
+                {/* Progress bar for active uploads */}
+                {(fileItem.stage === 'requesting' || fileItem.stage === 'uploading' || fileItem.stage === 'confirming') && (
+                  <div className="mt-1.5 w-full bg-zinc-700 rounded-full h-1 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-full transition-all duration-300"
+                      style={{ width: `${fileItem.progress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+              {/* Remove button (only for pending/error files) */}
+              {(fileItem.stage === 'pending' || fileItem.stage === 'error') && !uploading && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeFile(fileItem.id);
+                  }}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Duplicate Warning */}
-      {duplicateWarning && file && (
-        <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-          <RefreshCw className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-amber-300 font-medium">File already uploaded</p>
-            <p className="text-xs text-amber-400/70 mt-1">
-              "{duplicateWarning.filename}" was uploaded on{' '}
-              {new Date(duplicateWarning.uploadedAt).toLocaleDateString()}
-              {' '}({duplicateWarning.status})
-            </p>
-            <p className="text-xs text-zinc-400 mt-2">
-              You can still upload again to reprocess with the latest settings.
-            </p>
-          </div>
+      {hasDuplicates && !uploading && (
+        <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <RefreshCw className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-300">
+            Some files were previously uploaded. They will be reprocessed with current settings.
+          </p>
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-          <p className="text-sm text-red-300">{error}</p>
+        <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-red-300 whitespace-pre-line">{error}</p>
         </div>
       )}
 
       {/* Success */}
-      {success && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-          <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
-          <p className="text-sm text-emerald-300">Upload successful! Your file is being processed.</p>
-        </div>
-      )}
-
-      {/* Progress */}
-      {uploading && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-zinc-400">
-              {uploadStage === 'requesting' && 'Preparing secure upload...'}
-              {uploadStage === 'uploading' && 'Uploading to secure storage...'}
-              {uploadStage === 'confirming' && 'Triggering virus scanner...'}
-            </span>
-            <span className="text-zinc-500 font-mono">{uploadProgress}%</span>
-          </div>
-          <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-full transition-all duration-300 ease-out relative"
-              style={{ width: `${uploadProgress}%` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-            </div>
-          </div>
+      {successCount > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+          <CheckCircle className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+          <p className="text-xs text-emerald-300">
+            {successCount} file{successCount > 1 ? 's' : ''} uploaded successfully!
+          </p>
         </div>
       )}
 
       {/* Upload Button */}
-      {file && !success && (
+      {pendingFiles.length > 0 && (
         <div className="flex items-center justify-between pt-2">
           <button
-            onClick={() => { setFile(null); setError(null); setDuplicateWarning(null); }}
-            className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+            onClick={() => { setFiles([]); setError(null); }}
+            className="min-h-[44px] px-3 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
             disabled={uploading}
           >
-            Remove file
+            Clear all
           </button>
           <button
             onClick={handleUpload}
             disabled={uploading}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-500/20"
+            className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-500/20"
           >
             {uploading ? (
               <>
@@ -248,7 +325,7 @@ export function FileUploader() {
                 Processing...
               </>
             ) : (
-              'Upload & Process'
+              `Upload ${pendingFiles.length} file${pendingFiles.length > 1 ? 's' : ''}`
             )}
           </button>
         </div>

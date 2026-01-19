@@ -8,7 +8,7 @@ import { ArrowRight, Sparkles, Check } from 'lucide-react';
 
 export function Hero() {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-slate-50 dark:bg-slate-950 pb-16 md:pb-24">
       {/* Gradient Mesh Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Primary gradient blob */}

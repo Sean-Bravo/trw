@@ -255,6 +255,40 @@ body {
    ============================================================================ */
 
 @layer utilities {
+  /* Cross-browser scrollbar utilities */
+  .scrollbar-thin {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #334155 transparent; /* Firefox: thumb track */
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px; /* Chrome/Safari/Edge */
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #334155;
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: #475569;
+  }
+
+  /* Hide scrollbar while keeping scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
   /* Apply gauge animation - use on animated circle elements */
   .animate-gauge {
     animation: gauge-fill 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;

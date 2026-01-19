@@ -8,6 +8,7 @@ import { FileText, Book, Settings, HelpCircle } from 'lucide-react'
 
 interface DocsSidebarProps {
   sections: DocSection[]
+  onLinkClick?: () => void
 }
 
 const sectionIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -21,11 +22,11 @@ const sectionIcons: Record<string, React.ComponentType<{ className?: string }>> 
  * Sidebar navigation component for documentation pages
  * Shows all doc sections and pages with active state highlighting
  */
-export function DocsSidebar({ sections }: DocsSidebarProps) {
+export function DocsSidebar({ sections, onLinkClick }: DocsSidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside className="lg:col-span-1 h-fit sticky top-36" aria-label="Documentation navigation">
+    <aside className="h-fit lg:sticky lg:top-36" aria-label="Documentation navigation">
       <nav aria-label="Docs sidebar" className="space-y-6">
         {sections.map((section) => {
           const Icon = sectionIcons[section.slug] || FileText
@@ -49,11 +50,12 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
                     <li key={page.slug}>
                       <Link
                         href={href}
+                        onClick={onLinkClick}
                         className={cn(
-                          'block text-sm py-1.5 transition-all duration-200 relative',
+                          'block text-sm py-2 lg:py-1.5 transition-all duration-200 relative',
                           isActive
                             ? 'text-[var(--color-primary-600)] dark:text-[var(--color-primary-400)] font-semibold'
-                            : 'text-slate-400 dark:text-slate-300 hover:text-[var(--color-primary-500)]'
+                            : 'text-slate-600 dark:text-slate-300 hover:text-[var(--color-primary-500)]'
                         )}
                         aria-current={isActive ? 'page' : undefined}
                       >
