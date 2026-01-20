@@ -186,7 +186,19 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
           </Link>
         )}
         {job.status === 'succeeded' && (
-          <button className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all">
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch(`/api/jobs/${job.jobId}/download?type=formatted`);
+                if (!response.ok) throw new Error('Download failed');
+                const { url } = await response.json();
+                window.open(url, '_blank');
+              } catch (error) {
+                console.error('Download error:', error);
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all"
+          >
             <Download className="h-4 w-4" />
             Download
           </button>
