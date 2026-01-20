@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: https:",
               "font-src 'self' data: https://fonts.gstatic.com",
               "connect-src 'self' https://*.sentry.io https://*.amazonaws.com https://api.taxformatter.com https://www.google-analytics.com",
+              "worker-src 'self' blob:",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
