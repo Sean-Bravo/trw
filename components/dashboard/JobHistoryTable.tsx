@@ -129,15 +129,16 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
   return (
     <div
       onClick={onSelect}
-      className={`flex items-center justify-between p-4 rounded-xl transition-all duration-200 border cursor-pointer ${
+      className={`p-4 rounded-xl transition-all duration-200 border cursor-pointer ${
         isActive
           ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/15'
           : 'bg-zinc-800/30 hover:bg-zinc-800/50 border-zinc-800/50 hover:border-zinc-700/50'
       } group`}
     >
-      <div className="flex items-center gap-4 flex-1">
+      {/* Top row: Icon + Details + Actions (desktop) */}
+      <div className="flex items-center gap-4">
         {/* Status Icon */}
-        <div className={`${status.bg} p-2.5 rounded-lg border border-zinc-700/50`}>
+        <div className={`${status.bg} p-2.5 rounded-lg border border-zinc-700/50 flex-shrink-0`}>
           {status.icon}
         </div>
 
@@ -146,7 +147,7 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
           <p className="text-sm font-medium text-white truncate">
             {job.filename || 'Unnamed file'}
           </p>
-          <div className="flex items-center gap-4 mt-1 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-4 mt-1 flex-wrap">
             <span className={`text-xs font-medium ${status.color}`}>
               {status.text}
             </span>
@@ -154,12 +155,12 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
               {formatDate(job.createdAt)}
             </span>
             {exchangeDetected && (
-              <span className="text-xs text-cyan-400">
+              <span className="text-xs text-cyan-400 hidden sm:inline">
                 {exchangeDetected}
               </span>
             )}
             {transactionCount !== undefined && transactionCount > 0 && (
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-zinc-500 hidden sm:inline">
                 {transactionCount} transactions
               </span>
             )}
@@ -171,61 +172,105 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
             </p>
           )}
         </div>
+
+        {/* Actions - Desktop only (inline) */}
+        <div className="hidden sm:flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          {job.status === 'succeeded' && (
+            <>
+              <Link
+                href={`/dashboard/jobs/${job.jobId}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/30 transition-all"
+              >
+                <Eye className="h-4 w-4" />
+                View
+              </Link>
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`/api/jobs/${job.jobId}/download?type=formatted`);
+                    if (!response.ok) throw new Error('Download failed');
+                    const { url } = await response.json();
+                    window.open(url, '_blank');
+                  } catch (error) {
+                    console.error('Download error:', error);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </button>
+            </>
+          )}
+          {job.status === 'failed' && (
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={handleRetry}
+                disabled={isRetrying}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isRetrying ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-4 w-4" />
+                )}
+                {isRetrying ? 'Retrying...' : 'Retry'}
+              </button>
+              {retryCount > 0 && (
+                <span className="text-xs text-zinc-500">
+                  Tried {retryCount}x {lastRetryAt && `• ${formatDate(lastRetryAt)}`}
+                </span>
+              )}
+              {retryError && (
+                <span className="text-xs text-red-400">{retryError}</span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 flex-shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
-        {/* View button - always show for completed jobs */}
+      {/* Actions - Mobile only (below content) */}
+      <div className="flex sm:hidden items-center gap-2 mt-3 pt-3 border-t border-zinc-700/50" onClick={(e) => e.stopPropagation()}>
         {job.status === 'succeeded' && (
-          <Link
-            href={`/dashboard/jobs/${job.jobId}`}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/30 transition-all whitespace-nowrap"
-          >
-            <Eye className="h-4 w-4" />
-            <span className="hidden sm:inline">View</span>
-          </Link>
-        )}
-        {job.status === 'succeeded' && (
-          <button
-            onClick={async () => {
-              try {
-                const response = await fetch(`/api/jobs/${job.jobId}/download?type=formatted`);
-                if (!response.ok) throw new Error('Download failed');
-                const { url } = await response.json();
-                window.open(url, '_blank');
-              } catch (error) {
-                console.error('Download error:', error);
-              }
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all whitespace-nowrap"
-          >
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Download</span>
-          </button>
+          <>
+            <Link
+              href={`/dashboard/jobs/${job.jobId}`}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg"
+            >
+              <Eye className="h-4 w-4" />
+              View
+            </Link>
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch(`/api/jobs/${job.jobId}/download?type=formatted`);
+                  if (!response.ok) throw new Error('Download failed');
+                  const { url } = await response.json();
+                  window.open(url, '_blank');
+                } catch (error) {
+                  console.error('Download error:', error);
+                }
+              }}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg"
+            >
+              <Download className="h-4 w-4" />
+              Download
+            </button>
+          </>
         )}
         {job.status === 'failed' && (
-          <div className="flex flex-col items-end gap-1">
-            <button
-              onClick={handleRetry}
-              disabled={isRetrying}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            >
-              {isRetrying ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RotateCcw className="h-4 w-4" />
-              )}
-              <span className="hidden sm:inline">{isRetrying ? 'Retrying...' : 'Retry'}</span>
-            </button>
-            {retryCount > 0 && (
-              <span className="text-xs text-zinc-500">
-                Tried {retryCount}x {lastRetryAt && `• ${formatDate(lastRetryAt)}`}
-              </span>
+          <button
+            onClick={handleRetry}
+            disabled={isRetrying}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isRetrying ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RotateCcw className="h-4 w-4" />
             )}
-            {retryError && (
-              <span className="text-xs text-red-400">{retryError}</span>
-            )}
-          </div>
+            {isRetrying ? 'Retrying...' : 'Retry'}
+          </button>
         )}
       </div>
     </div>
