@@ -174,15 +174,15 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center gap-2 flex-shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
         {/* View button - always show for completed jobs */}
         {job.status === 'succeeded' && (
           <Link
             href={`/dashboard/jobs/${job.jobId}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/30 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/30 transition-all whitespace-nowrap"
           >
             <Eye className="h-4 w-4" />
-            View
+            <span className="hidden sm:inline">View</span>
           </Link>
         )}
         {job.status === 'succeeded' && (
@@ -197,10 +197,10 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
                 console.error('Download error:', error);
               }
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all whitespace-nowrap"
           >
             <Download className="h-4 w-4" />
-            Download
+            <span className="hidden sm:inline">Download</span>
           </button>
         )}
         {job.status === 'failed' && (
@@ -208,14 +208,14 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
             <button
               onClick={handleRetry}
               disabled={isRetrying}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {isRetrying ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <RotateCcw className="h-4 w-4" />
               )}
-              {isRetrying ? 'Retrying...' : 'Retry'}
+              <span className="hidden sm:inline">{isRetrying ? 'Retrying...' : 'Retry'}</span>
             </button>
             {retryCount > 0 && (
               <span className="text-xs text-zinc-500">
