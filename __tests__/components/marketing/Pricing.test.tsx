@@ -83,14 +83,15 @@ describe('Pricing Component', () => {
   });
 
   describe('Free Tier Features', () => {
-    it('shows format 1 CSV', () => {
+    it('shows 3 downloads per month', () => {
       render(<Pricing />);
-      expect(screen.getByText('Format 1 CSV File')).toBeInTheDocument();
+      expect(screen.getByText('3 Downloads')).toBeInTheDocument();
+      expect(screen.getByText('per Month')).toBeInTheDocument();
     });
 
-    it('shows preview limitation', () => {
+    it('shows full export', () => {
       render(<Pricing />);
-      expect(screen.getByText('Preview Output (5 rows)')).toBeInTheDocument();
+      expect(screen.getByText('Full Export Download')).toBeInTheDocument();
     });
 
     it('shows basic error detection', () => {
@@ -107,7 +108,7 @@ describe('Pricing Component', () => {
       expect(screen.getByText('CSV Uploads')).toBeInTheDocument();
     });
 
-    it('shows full export', () => {
+    it('shows full export capabilities', () => {
       render(<Pricing />);
       expect(screen.getByText('Full Export Capabilities')).toBeInTheDocument();
     });
@@ -124,44 +125,40 @@ describe('Pricing Component', () => {
       expect(screen.getByText('AI-Generated PDF Report')).toBeInTheDocument();
     });
 
-    it('shows line-by-line explanations', () => {
+    it('shows everything in Pro', () => {
       render(<Pricing />);
-      expect(screen.getByText('Line-by-Line Explanations')).toBeInTheDocument();
+      expect(screen.getByText('Everything')).toBeInTheDocument();
+      expect(screen.getByText('in Pro')).toBeInTheDocument();
     });
 
-    it('shows audit-ready notes', () => {
+    it('shows priority support', () => {
       render(<Pricing />);
-      expect(screen.getByText('Audit-Ready Notes')).toBeInTheDocument();
+      expect(screen.getByText('Priority Support')).toBeInTheDocument();
     });
   });
 
-  describe('CTA Links', () => {
+  describe('CTA Buttons', () => {
     it('free tier links to signup', () => {
       render(<Pricing />);
       const freeButton = screen.getByText('Try For Free');
       expect(freeButton.closest('a')).toHaveAttribute('href', '/signup');
     });
 
-    it('pro tier links to signup with plan param (annual)', () => {
+    it('pro tier shows coming soon (disabled)', () => {
       render(<Pricing />);
-      const proButton = screen.getByText('Get Pro Access');
-      expect(proButton.closest('a')).toHaveAttribute('href', '/signup?plan=pro&billing=annual');
+      const comingSoonButtons = screen.getAllByText('Coming Soon');
+      // Pro tier has Coming Soon button
+      expect(comingSoonButtons.length).toBeGreaterThanOrEqual(1);
+      // Pro button should be disabled
+      const proButton = comingSoonButtons[0].closest('button');
+      expect(proButton).toBeDisabled();
     });
 
-    it('pro tier updates link when toggled to monthly', () => {
+    it('premium tier shows coming soon (disabled)', () => {
       render(<Pricing />);
-
-      const toggleButton = screen.getByLabelText('Toggle billing period');
-      fireEvent.click(toggleButton);
-
-      const proButton = screen.getByText('Get Pro Access');
-      expect(proButton.closest('a')).toHaveAttribute('href', '/signup?plan=pro&billing=monthly');
-    });
-
-    it('premium tier links to signup with plan param', () => {
-      render(<Pricing />);
-      const premiumButton = screen.getByText('Get Premium Access');
-      expect(premiumButton.closest('a')).toHaveAttribute('href', '/signup?plan=premium&billing=annual');
+      const comingSoonButtons = screen.getAllByText('Coming Soon');
+      // Should have at least 2 Coming Soon buttons (Pro and Premium)
+      expect(comingSoonButtons.length).toBeGreaterThanOrEqual(2);
     });
   });
 
