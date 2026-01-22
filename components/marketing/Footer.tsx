@@ -34,7 +34,7 @@ export function Footer() {
 
       if (response.ok) {
         setStatus('success');
-        setMessage("Thanks! We'll notify you when we launch.");
+        setMessage("Thanks! You're subscribed.");
         setEmail('');
       } else {
         setStatus('error');
@@ -84,9 +84,9 @@ export function Footer() {
       <div className="py-12 border-b border-slate-800">
         <Container>
           <div className="max-w-md mx-auto text-center">
-            <h3 className="font-semibold text-lg mb-2">Join the Waitlist</h3>
+            <h3 className="font-semibold text-lg mb-2">Stay Updated</h3>
             <p className="text-sm text-slate-400 mb-4">
-              Get notified when we launch in Q1 2026.
+              Get crypto tax tips and product updates.
             </p>
             <form onSubmit={handleSubmit} className="flex gap-2">
               <div className="flex-1 relative">
@@ -106,7 +106,7 @@ export function Footer() {
                 disabled={status === 'loading' || status === 'success'}
                 className="px-5 py-2.5 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-primary-700)] text-white text-sm font-semibold rounded-full transition-colors"
               >
-                {status === 'loading' ? '...' : status === 'success' ? 'Done!' : 'Notify Me'}
+                {status === 'loading' ? '...' : status === 'success' ? 'Done!' : 'Subscribe'}
               </button>
             </form>
             {message && (
