@@ -18,10 +18,10 @@ export default function Home() {
       <main className="min-h-screen">
         <Header />
         <Hero />
-        <BankFeature />
         <HowItWorks />
         <SocialProof />
         <Integrations />
+        <BankFeature />
         <TrustEngine />
         <Pricing />
         <FAQ />
