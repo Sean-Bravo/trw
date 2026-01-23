@@ -28,14 +28,14 @@ export function BankFeature() {
             </div>
 
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
-              We conquered Crypto. <br />
+              Bonus: <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">
-                Now we're fixing your Books.
+                Bank Statement Converter
               </span>
             </h2>
 
             <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-              Same pain, different format. You used us to clean up messy crypto CSVs for tax season. Now, use us to turn <strong>PDF bank statements</strong> into clean, importable CSV files for QuickBooks Online & Xero.
+              Need to send statements to your accountant? Pro members also get our <strong>PDF bank statement converter</strong> — turn any bank PDF into clean CSV files for QuickBooks Online & Xero.
             </p>
 
             <ul className="space-y-4">
