@@ -131,7 +131,7 @@ const Pricing = () => {
               </div>
               {isAnnual && (
                 <p className="text-emerald-400 text-xs mt-2">
-                  ${pricing.pro.monthly}/mo billed annually
+                  ${Math.round(pricing.pro.annual / 12)}/mo billed annually
                 </p>
               )}
               <p className="text-slate-400 text-sm mt-4">
@@ -189,7 +189,7 @@ const Pricing = () => {
               </div>
               {isAnnual && (
                 <p className="text-emerald-400/70 text-xs mt-2">
-                  ${pricing.premium.monthly}/mo billed annually
+                  ${Math.round(pricing.premium.annual / 12)}/mo billed annually
                 </p>
               )}
               <p className="text-slate-400 text-sm mt-4">
