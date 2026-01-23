@@ -19,12 +19,12 @@ export function BankFeature() {
 
           {/* Left Column: The Copy */}
           <div className="space-y-8 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-medium uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-medium uppercase tracking-wider">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
               </span>
-              Pro Feature
+              Free During Launch
             </div>
 
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
@@ -35,7 +35,7 @@ export function BankFeature() {
             </h2>
 
             <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-              Need to send statements to your accountant? Pro members also get our <strong>PDF bank statement converter</strong> — turn any bank PDF into clean CSV files for QuickBooks Online & Xero.
+              Need to send statements to your accountant? Turn any <strong>PDF bank statement</strong> into clean CSV files for QuickBooks Online & Xero.
             </p>
 
             <ul className="space-y-4">

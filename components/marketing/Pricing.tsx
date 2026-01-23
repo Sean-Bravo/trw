@@ -83,7 +83,7 @@ const Pricing = () => {
             <ul className="space-y-4 mb-8">
               <li className="flex items-center gap-3 text-slate-300 text-sm">
                 <Check className="w-4 h-4 text-emerald-500" />
-                <span><strong>3 Downloads</strong> per Month</span>
+                <span><strong>Unlimited Downloads</strong> <span className="text-amber-400 text-xs">(Launch Promo)</span></span>
               </li>
               <li className="flex items-center gap-3 text-slate-300 text-sm">
                 <Check className="w-4 h-4 text-emerald-500" />
@@ -93,9 +93,9 @@ const Pricing = () => {
                 <Check className="w-4 h-4 text-emerald-500" />
                 <span>Basic Error Detection</span>
               </li>
-              <li className="flex items-center gap-3 text-slate-400 text-sm opacity-50">
-                <X className="w-4 h-4" />
-                <span>Unlimited Uploads</span>
+              <li className="flex items-center gap-3 text-slate-300 text-sm">
+                <Check className="w-4 h-4 text-emerald-500" />
+                <span>All Supported Exchanges</span>
               </li>
             </ul>
 
