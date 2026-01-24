@@ -1,0 +1,260 @@
+{
+  "projectName": "TaxFormatter",
+  "projectDescription": "Crypto CSV repair and tax categorization tool. Users upload messy exchange exports, we fix formatting issues, categorize transactions with AI, and export clean files for tax software.",
+  "framework": "next.js",
+  "version": "16.1.0",
+  "language": "typescript",
+  "testRunner": "jest",
+  "e2eRunner": "playwright",
+
+  "directories": {
+    "source": ["app", "components", "lib", "hooks", "contexts"],
+    "tests": ["__tests__", "e2e"],
+    "api": ["app/api"],
+    "backend": ["backend"]
+  },
+
+  "features": {
+    "authentication": {
+      "provider": "next-auth",
+      "version": "4.24.7",
+      "methods": ["email-password", "google-oauth", "2fa-totp", "backup-codes"],
+      "endpoints": [
+        "/api/auth/register",
+        "/api/auth/verify",
+        "/api/auth/resend-code",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password",
+        "/api/auth/[...nextauth]",
+        "/api/auth/refresh-session",
+        "/api/auth/2fa/setup",
+        "/api/auth/2fa/verify",
+        "/api/auth/2fa/status",
+        "/api/auth/2fa/check",
+        "/api/auth/2fa/login-verify",
+        "/api/auth/2fa/disable"
+      ]
+    },
+    "payments": {
+      "provider": "stripe",
+      "flows": ["checkout", "subscriptions", "webhooks", "customer-portal"],
+      "tiers": ["free", "pro", "premium"],
+      "endpoints": [
+        "/api/checkout",
+        "/api/customer-portal",
+        "/api/webhooks/stripe"
+      ]
+    },
+    "storage": {
+      "provider": "aws-s3",
+      "operations": ["presigned-upload", "presigned-download"],
+      "endpoints": [
+        "/api/uploads/presigned-url",
+        "/api/uploads/[uploadId]/confirm"
+      ]
+    },
+    "processing": {
+      "provider": "aws-lambda",
+      "queue": "aws-sqs",
+      "endpoints": [
+        "/api/jobs",
+        "/api/jobs/[jobId]",
+        "/api/jobs/[jobId]/download",
+        "/api/jobs/[jobId]/insights",
+        "/api/jobs/[jobId]/retry"
+      ]
+    },
+    "database": {
+      "provider": "neon-postgres",
+      "tables": [
+        "users",
+        "accounts",
+        "subscriptions",
+        "uploads",
+        "jobs",
+        "transactions",
+        "ai_cache",
+        "downloads"
+      ]
+    },
+    "ai": {
+      "providers": ["google-gemini", "anthropic-claude"],
+      "tiers": {
+        "free": "gemini-1.5-flash",
+        "pro": "claude-sonnet-4",
+        "premium": "claude-opus-4"
+      }
+    },
+    "bankStatement": {
+      "description": "Bank statement PDF to accounting CSV converter (Pro+ feature)",
+      "tierRequired": "pro",
+      "supportedBanks": ["Chase", "Bank of America", "Wells Fargo", "Citi"],
+      "exportFormats": ["qbo", "xero", "excel"],
+      "processing": {
+        "extraction": ["pdfplumber", "aws-textract"],
+        "fingerprinting": "yaml-configs",
+        "deduplication": true
+      },
+      "endpoints": [
+        "/api/bank/presigned-url",
+        "/api/bank/process",
+        "/api/bank/job/[jobId]",
+        "/api/bank/job/[jobId]/download",
+        "/api/bank/banks"
+      ],
+      "components": [
+        "BankPDFUploader",
+        "ModeSelector"
+      ],
+      "backend": {
+        "language": "python",
+        "modules": [
+          "backend/services/bank_statement/processor.py",
+          "backend/services/bank_statement/fingerprinter.py",
+          "backend/services/bank_statement/extractor.py",
+          "backend/services/bank_statement/normalizer.py",
+          "backend/services/bank_statement/duplicate_detector.py",
+          "backend/services/bank_statement/exporter.py"
+        ]
+      }
+    }
+  },
+
+  "criticalPaths": [
+    {
+      "name": "User Registration Flow",
+      "steps": ["Register", "Receive verification email", "Enter code", "Login"],
+      "priority": "critical"
+    },
+    {
+      "name": "CSV Upload & Processing",
+      "steps": ["Get presigned URL", "Upload to S3", "Confirm upload", "Poll status", "Download result"],
+      "priority": "critical"
+    },
+    {
+      "name": "Stripe Checkout Flow",
+      "steps": ["Select plan", "Create checkout session", "Complete payment", "Webhook received", "Subscription activated"],
+      "priority": "critical"
+    },
+    {
+      "name": "2FA Setup Flow",
+      "steps": ["Request setup", "Scan QR code", "Verify TOTP", "Save backup codes"],
+      "priority": "high"
+    },
+    {
+      "name": "2FA Login Flow",
+      "steps": ["Enter credentials", "Prompt for 2FA", "Verify code", "Grant access"],
+      "priority": "high"
+    },
+    {
+      "name": "Password Reset Flow",
+      "steps": ["Request reset", "Receive email", "Click link", "Enter new password"],
+      "priority": "high"
+    },
+    {
+      "name": "Job Retry Flow",
+      "steps": ["View failed job", "Select exchange override", "Retry processing", "Download result"],
+      "priority": "medium"
+    },
+    {
+      "name": "Bank Statement Upload Flow",
+      "steps": ["Toggle to Bank mode", "Select output format", "Upload PDF", "Poll status", "Download result"],
+      "priority": "high"
+    },
+    {
+      "name": "Bank Statement Format Selection",
+      "steps": ["Complete processing", "Select QBO/Xero/Excel", "Download converted file"],
+      "priority": "medium"
+    }
+  ],
+
+  "securityFocus": [
+    {
+      "type": "rate-limiting",
+      "config": {
+        "auth": "5 requests/15 minutes",
+        "api": "100 requests/minute",
+        "upload": "10 requests/hour"
+      }
+    },
+    {
+      "type": "input-validation",
+      "library": "zod",
+      "schemas": ["email", "password", "name", "fileUpload"]
+    },
+    {
+      "type": "sql-injection-prevention",
+      "method": "parameterized-queries"
+    },
+    {
+      "type": "xss-prevention",
+      "method": "input-sanitization"
+    },
+    {
+      "type": "csrf-protection",
+      "method": "token-validation"
+    }
+  ],
+
+  "supportedExchanges": [
+    "Coinbase",
+    "Kraken",
+    "Gemini",
+    "Binance",
+    "Robinhood",
+    "Crypto.com",
+    "PayPal",
+    "Cash App",
+    "Venmo",
+    "KuCoin",
+    "Bybit",
+    "FTX"
+  ],
+
+  "exportFormats": [
+    "Koinly Universal Template",
+    "TurboTax Form 8949",
+    "CoinLedger Universal",
+    "ZenLedger Custom CSV"
+  ],
+
+  "coverage": {
+    "target": 90,
+    "critical": 100,
+    "exclude": [
+      "node_modules",
+      ".next",
+      "coverage",
+      "public",
+      "backend/terraform"
+    ]
+  },
+
+  "testPriority": {
+    "critical": [
+      "lib/validation.ts",
+      "lib/rate-limit.ts",
+      "lib/auth-db.ts",
+      "lib/2fa.ts",
+      "app/api/auth/**",
+      "app/api/webhooks/stripe"
+    ],
+    "high": [
+      "app/api/uploads/**",
+      "app/api/jobs/**",
+      "app/api/bank/**",
+      "app/api/checkout",
+      "components/dashboard/BankPDFUploader.tsx",
+      "components/dashboard/ModeSelector.tsx",
+      "components/dashboard/**",
+      "lib/stripe.ts",
+      "backend/services/bank_statement/**"
+    ],
+    "medium": [
+      "components/ui/**",
+      "components/marketing/**",
+      "hooks/**",
+      "contexts/**"
+    ]
+  }
+}
