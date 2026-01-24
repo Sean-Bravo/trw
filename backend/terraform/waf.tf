@@ -376,6 +376,15 @@ resource "aws_wafv2_web_acl" "api" {
 }
 
 # =============================================================================
+# WAF ASSOCIATION WITH API GATEWAY
+# =============================================================================
+
+resource "aws_wafv2_web_acl_association" "api_gateway" {
+  resource_arn = aws_apigatewayv2_stage.prod.arn
+  web_acl_arn  = aws_wafv2_web_acl.api.arn
+}
+
+# =============================================================================
 # WAF LOGGING
 # =============================================================================
 
