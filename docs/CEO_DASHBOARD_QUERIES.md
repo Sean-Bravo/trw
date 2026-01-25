@@ -25,6 +25,19 @@ Copy/paste these queries into Neon console for your weekly metrics review.
 
 ---
 
+## DAILY CHECK (Until 100 Uploads)
+
+```sql
+SELECT COUNT(*) as total_uploads FROM uploads;
+```
+
+**At 100 uploads:**
+- Enable Stripe payment buttons
+- Review parser success/failure rates
+- Fix anything broken
+
+---
+
 ## MONDAY MORNING HEALTH CHECK (Run This First)
 
 ```sql
@@ -36,6 +49,18 @@ SELECT
   (SELECT COUNT(*) FROM jobs WHERE status = 'failed' AND created_at > NOW() - INTERVAL '7 days') as failed_jobs_7d,
   (SELECT COUNT(*) FROM downloads WHERE downloaded_at > NOW() - INTERVAL '7 days') as downloads_7d,
   (SELECT COUNT(*) FROM subscriptions WHERE tier != 'free' AND status = 'active') as paid_subscribers;
+```
+
+### What's breaking? (by exchange)
+```sql
+SELECT
+  result->>'exchange' as exchange,
+  COUNT(*) FILTER (WHERE status = 'failed') as failures,
+  COUNT(*) FILTER (WHERE status = 'succeeded') as successes
+FROM jobs
+WHERE created_at > NOW() - INTERVAL '7 days'
+GROUP BY result->>'exchange'
+ORDER BY failures DESC;
 ```
 
 ---
