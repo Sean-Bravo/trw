@@ -122,6 +122,12 @@ resource "aws_apigatewayv2_route" "job_retry" {
   target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
 }
 
+resource "aws_apigatewayv2_route" "delete_job" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "DELETE /delete/{jobId}"
+  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
+}
+
 # ===== Bank Statement Routes =====
 
 resource "aws_apigatewayv2_route" "bank_presigned_url" {

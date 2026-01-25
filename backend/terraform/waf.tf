@@ -377,12 +377,15 @@ resource "aws_wafv2_web_acl" "api" {
 
 # =============================================================================
 # WAF ASSOCIATION WITH API GATEWAY
+# NOTE: WAFv2 does NOT support HTTP APIs (API Gateway v2) directly.
+# To use WAF, you would need CloudFront in front of the API.
+# Keeping this commented for reference if CloudFront is added later.
 # =============================================================================
 
-resource "aws_wafv2_web_acl_association" "api_gateway" {
-  resource_arn = aws_apigatewayv2_stage.prod.arn
-  web_acl_arn  = aws_wafv2_web_acl.api.arn
-}
+# resource "aws_wafv2_web_acl_association" "api_gateway" {
+#   resource_arn = aws_apigatewayv2_stage.prod.arn
+#   web_acl_arn  = aws_wafv2_web_acl.api.arn
+# }
 
 # =============================================================================
 # WAF LOGGING
