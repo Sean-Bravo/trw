@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
               Privacy Policy
             </h1>
             <p className="text-slate-400 mb-12">
-              Last updated: January 10, 2025
+              Last updated: January 26, 2026
             </p>
 
             <div className="prose prose-invert prose-slate max-w-none space-y-8">
@@ -51,10 +51,10 @@ export default function PrivacyPolicyPage() {
                   When you upload CSV files for processing:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 mb-4">
-                  <li>CSV files are temporarily stored for processing only</li>
-                  <li>Files are automatically deleted within 24 hours of processing</li>
+                  <li>CSV files are stored encrypted for up to 1 year (or deleted immediately at your request)</li>
                   <li>We do not analyze, sell, or share the contents of your files</li>
                   <li>We never request or store exchange API keys, private keys, or wallet seed phrases</li>
+                  <li>Anonymized processing metadata (exchange detected, row count, error types) is retained to improve our service</li>
                 </ul>
 
                 <h3 className="text-xl font-medium text-slate-200 mb-3">Usage Data</h3>
@@ -85,11 +85,12 @@ export default function PrivacyPolicyPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">4. Data Retention</h2>
                 <p className="mb-4">
-                  We follow a strict data minimization policy:
+                  We follow a user-controlled data retention policy:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li><strong className="text-white">Uploaded files:</strong> Automatically deleted within 24 hours</li>
-                  <li><strong className="text-white">Processed output files:</strong> Available for download for 24 hours, then deleted</li>
+                  <li><strong className="text-white">Uploaded files:</strong> Retained for 1 year by default, or deleted immediately upon your request via the &quot;Delete after download&quot; option</li>
+                  <li><strong className="text-white">Processed output files:</strong> Available for re-download for 1 year, or deleted immediately if you choose</li>
+                  <li><strong className="text-white">Anonymized metadata:</strong> Exchange detected, row count, column headers, and processing duration are retained permanently to improve our service (no transaction amounts, wallet addresses, or PII)</li>
                   <li><strong className="text-white">Account data:</strong> Retained until you delete your account</li>
                   <li><strong className="text-white">Payment records:</strong> Retained as required by law for tax and accounting purposes</li>
                 </ul>

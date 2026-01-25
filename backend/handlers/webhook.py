@@ -1,6 +1,6 @@
 """
 Webhook Lambda Handler - API Gateway entry point
-Handles: presigned URLs, confirm upload, job status, download URLs, AI insights, retry
+Handles: presigned URLs, confirm upload, job status, download URLs, AI insights, retry, delete
 
 Routes:
 - POST /presigned-url - Generate S3 presigned URL for upload
@@ -9,6 +9,7 @@ Routes:
 - POST /job/{jobId}/retry - Retry a failed job
 - GET /download/{jobId} - Get presigned download URL
 - GET /insights/{jobId} - Get AI insights for job
+- DELETE /delete/{jobId} - Delete all files for a job (user-requested deletion)
 """
 
 import os
@@ -62,7 +63,7 @@ def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dic
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type,Authorization",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
     }
     if headers:
         default_headers.update(headers)
@@ -909,6 +910,72 @@ def handle_bank_download(event: Dict) -> Dict:
         return response(500, {"error": "Failed to generate download URL"})
 
 
+def handle_delete_job(event: Dict) -> Dict:
+    """
+    Delete all files associated with a job.
+    Called when user opts for "Delete after download".
+
+    Path: DELETE /delete/{jobId}
+
+    Response:
+    {
+        "success": true,
+        "jobId": "uuid",
+        "deletedFiles": ["uploads/...", "results/..."]
+    }
+    """
+    path_params = event.get("pathParameters", {}) or {}
+    job_id = path_params.get("jobId")
+
+    if not job_id:
+        return response(400, {"error": "jobId is required"})
+
+    deleted_files = []
+    errors = []
+
+    try:
+        # Delete from uploads bucket
+        try:
+            upload_result = s3_client.list_objects_v2(
+                Bucket=UPLOADS_BUCKET,
+                Prefix=f"uploads/{job_id}/",
+            )
+            for obj in upload_result.get("Contents", []):
+                s3_client.delete_object(Bucket=UPLOADS_BUCKET, Key=obj["Key"])
+                deleted_files.append(obj["Key"])
+                logger.info(f"Deleted upload file: {obj['Key']}")
+        except ClientError as e:
+            errors.append(f"Upload deletion error: {e}")
+            logger.error(f"Error deleting uploads for job {job_id}: {e}")
+
+        # Delete from results bucket
+        try:
+            result_result = s3_client.list_objects_v2(
+                Bucket=RESULTS_BUCKET,
+                Prefix=f"results/{job_id}/",
+            )
+            for obj in result_result.get("Contents", []):
+                s3_client.delete_object(Bucket=RESULTS_BUCKET, Key=obj["Key"])
+                deleted_files.append(obj["Key"])
+                logger.info(f"Deleted result file: {obj['Key']}")
+        except ClientError as e:
+            errors.append(f"Results deletion error: {e}")
+            logger.error(f"Error deleting results for job {job_id}: {e}")
+
+        logger.info(f"Job {job_id} deleted: {len(deleted_files)} files removed")
+
+        return response(200, {
+            "success": True,
+            "jobId": job_id,
+            "deletedFiles": deleted_files,
+            "errors": errors if errors else None,
+        })
+
+    except Exception as e:
+        logger.error(f"Error deleting job {job_id}: {e}")
+        return response(500, {"error": "Failed to delete job files"})
+
+
 def handle_list_banks(event: Dict) -> Dict:
     """
     List supported banks.
@@ -978,6 +1045,8 @@ def handler(event: Dict, context: Any) -> Dict:
         return handle_insights(event)
     elif route_key == "POST /job/{jobId}/retry":
         return handle_job_retry(event)
+    elif route_key == "DELETE /delete/{jobId}":
+        return handle_delete_job(event)
     elif route_key == "POST /webhook":
         # Generic webhook endpoint (for future use)
         return response(200, {"message": "Webhook received"})

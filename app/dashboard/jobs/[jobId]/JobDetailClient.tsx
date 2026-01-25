@@ -11,6 +11,8 @@ import {
   Clock,
   Loader2,
   AlertTriangle,
+  Trash2,
+  Info,
 } from 'lucide-react';
 import { SmartDiffTable } from '@/components/dashboard/SmartDiffTable';
 import { ViewToggle } from '@/components/dashboard/ViewToggle';
@@ -77,6 +79,9 @@ const STATUS_CONFIG = {
 
 export function JobDetailClient({ job, userTier, userName }: JobDetailClientProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('clean');
+  const [deleteAfterDownload, setDeleteAfterDownload] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
   const isPaidUser = userTier === 'pro' || userTier === 'premium';
   const statusConfig = STATUS_CONFIG[job.status];
   const StatusIcon = statusConfig.icon;
@@ -116,6 +121,26 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
 
       const { url } = await response.json();
       window.open(url, '_blank');
+
+      // If delete after download is checked, delete the upload
+      if (deleteAfterDownload && !isDeleted) {
+        setIsDeleting(true);
+        try {
+          const deleteResponse = await fetch(`/api/uploads/${job.uploadId}`, {
+            method: 'DELETE',
+          });
+
+          if (deleteResponse.ok) {
+            setIsDeleted(true);
+          } else {
+            console.error('Delete failed after download');
+          }
+        } catch (deleteError) {
+          console.error('Delete error:', deleteError);
+        } finally {
+          setIsDeleting(false);
+        }
+      }
     } catch (error) {
       console.error('Download error:', error);
     }
@@ -160,21 +185,56 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
 
           {/* Download buttons */}
           {job.status === 'succeeded' && (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleDownload('formatted')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors text-sm font-medium"
-              >
-                <Download className="w-4 h-4" />
-                Download CSV
-              </button>
-              <button
-                onClick={() => handleDownload('flagged')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 transition-colors text-sm font-medium border border-white/10"
-              >
-                <AlertTriangle className="w-4 h-4" />
-                Flagged Issues
-              </button>
+            <div className="flex flex-col items-end gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleDownload('formatted')}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  Download CSV
+                </button>
+                <button
+                  onClick={() => handleDownload('flagged')}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 transition-colors text-sm font-medium border border-white/10 disabled:opacity-50"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Flagged Issues
+                </button>
+              </div>
+
+              {/* Delete after download toggle */}
+              {!isDeleted ? (
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={deleteAfterDownload}
+                    onChange={(e) => setDeleteAfterDownload(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-red-500 focus:ring-red-500/20 focus:ring-offset-0"
+                  />
+                  <span className="text-sm text-slate-400 group-hover:text-slate-300 flex items-center gap-1.5">
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete my file after download
+                  </span>
+                  <div className="relative group/tooltip">
+                    <Info className="w-3.5 h-3.5 text-slate-500 hover:text-slate-400" />
+                    <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300 opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-10 shadow-xl">
+                      Your original file will be permanently removed. Anonymized processing metadata (exchange detected, row count) is retained to improve our service.
+                    </div>
+                  </div>
+                </label>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-emerald-400">
+                  <CheckCircle className="w-4 h-4" />
+                  File deleted successfully
+                </div>
+              )}
             </div>
           )}
         </div>

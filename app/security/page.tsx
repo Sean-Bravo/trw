@@ -21,7 +21,7 @@ import { Container } from '@/components/layout/Container';
 
 export const metadata: Metadata = {
   title: 'Security Center | TaxFormatter',
-  description: 'Zero-Knowledge architecture. No private keys, automatic 24-hour deletion, and SOC2 compliant infrastructure.',
+  description: 'Zero-Knowledge architecture. No private keys, user-controlled data retention, and SOC2 compliant infrastructure.',
 };
 
 export default function SecurityPage() {
@@ -43,7 +43,7 @@ export default function SecurityPage() {
               <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-emerald-500/5 border border-emerald-500/20 shadow-[0_0_15px_-3px_rgba(16,185,129,0.1)] backdrop-blur-sm animate-fade-in-up">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm font-mono font-medium text-emerald-400 tracking-wide">
-                  SYSTEM STATUS: SECURE
+                  STATUS: USER-CONTROLLED RETENTION
                 </span>
               </div>
               
@@ -56,15 +56,15 @@ export default function SecurityPage() {
               </h1>
               
               <p className="text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto mb-10">
-                TaxFormatter is built on a <span className="text-white font-medium">Zero-Knowledge</span> philosophy. 
-                We process your CSVs in a volatile memory sandbox, format them, and then 
-                <span className="text-red-400/80"> crypto-shred</span> them from existence.
+                TaxFormatter is built on a <span className="text-white font-medium">Zero-Knowledge</span> philosophy.
+                We process your CSVs in a volatile memory sandbox, format them, and give you
+                <span className="text-emerald-400/80"> full control</span> over when they&apos;re deleted.
               </p>
 
               {/* Stats/Trust Signals */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-slate-800 pt-8">
                 {[
-                    { label: "Data Retention", value: "0 Days" },
+                    { label: "Default Retention", value: "1 Year" },
                     { label: "Encryption", value: "AES-256" },
                     { label: "Wallet Access", value: "None" },
                     { label: "Infrastructure", value: "AWS" },
@@ -85,18 +85,18 @@ export default function SecurityPage() {
           <Container>
             <div className="grid md:grid-cols-3 gap-8">
               
-              {/* Feature 1: The Kill Switch */}
-              <div className="group bg-slate-900/40 p-8 rounded-2xl border border-slate-800 hover:border-red-500/40 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(239,68,68,0.1)] backdrop-blur-sm">
-                <div className="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-red-500/20">
-                  <Trash2 className="w-6 h-6 text-red-400" />
+              {/* Feature 1: User-Controlled Retention */}
+              <div className="group bg-slate-900/40 p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/40 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(16,185,129,0.1)] backdrop-blur-sm">
+                <div className="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-emerald-500/20">
+                  <Trash2 className="w-6 h-6 text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-red-300 transition-colors">
-                  The 24-Hour Kill Switch
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors">
+                  Your Data, Your Rules
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                  We treat your data like toxic waste. Files are processed and automatically 
-                  <strong className="text-slate-200"> permanently deleted</strong> from our servers after 24 hours. 
-                  Users can also trigger an instant "Hard Delete" manually.
+                  Your files are retained for <strong className="text-slate-200">1 year by default</strong> — so you can
+                  re-download outputs or reprocess if needed. Want it gone sooner? Toggle &quot;Delete after download&quot;
+                  and we&apos;ll permanently purge your file the moment your export completes.
                 </p>
               </div>
 
@@ -145,8 +145,8 @@ export default function SecurityPage() {
                   The Lifecycle of Your File
                 </h2>
                 <p className="text-slate-400 mb-10 leading-relaxed">
-                  Most tax software holds your data forever to "track your portfolio." 
-                  We are a formatting utility. We touch it, fix it, and forget it.
+                  Most tax software holds your data forever to &quot;track your portfolio.&quot;
+                  We are a formatting utility — you control how long we keep your files.
                 </p>
                 
                 <div className="space-y-8 relative">
@@ -179,13 +179,13 @@ export default function SecurityPage() {
 
                   {/* Step 3 */}
                   <div className="relative pl-12">
-                    <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-red-900/20 border border-red-500/50 text-red-500 flex items-center justify-center font-bold text-xs z-10 animate-pulse">3</div>
+                    <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-emerald-900/20 border border-emerald-500/50 text-emerald-500 flex items-center justify-center font-bold text-xs z-10">3</div>
                     <h4 className="font-semibold text-white flex items-center gap-2">
-                        <Trash2 className="w-4 h-4 text-red-400" />
-                        The Purge
+                        <Trash2 className="w-4 h-4 text-emerald-400" />
+                        You Decide
                     </h4>
                     <p className="text-sm text-slate-400 mt-2">
-                      Once you download your output, the original file, the output file, and the encryption keys are hard-deleted.
+                      Files are retained for 1 year by default, or deleted immediately if you toggle &quot;Delete after download.&quot; Anonymized metadata is kept to improve our service.
                     </p>
                   </div>
                 </div>
@@ -272,7 +272,7 @@ export default function SecurityPage() {
                 },
                 {
                   q: "What if the government asks for my data?",
-                  a: "Because we enforce a strict retention policy (deleting data after 24 hours), we generally have no transactional data to provide. We only retain basic account metadata."
+                  a: "We retain files for up to 1 year (or less if you choose immediate deletion). If served with a valid legal request, we can only provide what exists. We do not retain data longer than necessary and keep only anonymized processing metadata permanently."
                 },
                 {
                   q: "Is the code open source?",
