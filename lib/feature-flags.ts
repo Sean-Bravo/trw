@@ -6,7 +6,7 @@
  */
 
 // MVP Mode - Set to false when ready to enable paid tier restrictions
-export const MVP_MODE = process.env.NEXT_PUBLIC_MVP_MODE !== 'false';
+export const MVP_MODE = process.env['NEXT_PUBLIC_MVP_MODE'] !== 'false';
 
 /**
  * Check if a user has access to a feature based on their tier.
