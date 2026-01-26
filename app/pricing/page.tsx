@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { Header } from '@/components/marketing/Header';
+import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
 import { Pricing } from '@/components/marketing/Pricing';
 import { FAQ } from '@/components/marketing/FAQ';
 import { Footer } from '@/components/marketing/Footer';
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <>
-      <Header />
+      <HeaderWithSession />
       <main className="min-h-screen bg-[#020617]">
         <div className="pt-20">
           <Pricing />

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get jobs with upload info (filename)
+    // Get jobs with upload info (filename), excluding deleted uploads
     const jobs = await query<{
       id: string;
       upload_id: string;
@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
        FROM jobs j
        JOIN uploads u ON u.id = j.upload_id
        WHERE u.user_id = $1
+         AND u.deleted_at IS NULL
        ORDER BY j.created_at DESC
        LIMIT 50`,
       [session.user.id]

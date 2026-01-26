@@ -31,8 +31,21 @@ export function JobProvider({ userId, initialJobs = [], children }: JobProviderP
       setJobHistory((prev) => {
         const idx = prev.findIndex((j) => j.jobId === job.jobId);
         if (idx >= 0) {
+          const oldJob = prev[idx];
+          if (!oldJob) {
+            return [job, ...prev];
+          }
           const updated = [...prev];
           updated[idx] = job;
+
+          // If job just completed (was running/queued, now succeeded/failed), refresh full list
+          const wasProcessing = oldJob.status === 'running' || oldJob.status === 'queued';
+          const isNowComplete = job.status === 'succeeded' || job.status === 'failed';
+          if (wasProcessing && isNowComplete) {
+            // Refresh after a short delay to ensure stats update
+            setTimeout(() => refreshJobHistory(), 500);
+          }
+
           return updated;
         }
         // Add to history if not found (new job)
