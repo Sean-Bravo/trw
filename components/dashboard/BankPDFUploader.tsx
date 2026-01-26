@@ -36,6 +36,7 @@ export function BankPDFUploader() {
   const [result, setResult] = useState<ProcessResult | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('qbo');
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const pdfFile = acceptedFiles[0];
@@ -132,16 +133,43 @@ export function BankPDFUploader() {
   };
 
   const downloadResult = async () => {
-    if (!result?.jobId) return;
+    if (!result?.jobId || isDownloading) return;
 
+    console.log('[Download] Starting download for job:', result.jobId);
+    setIsDownloading(true);
     try {
-      const downloadRes = await fetch(`/api/bank/job/${result.jobId}/download?format=${outputFormat}`);
-      const { downloadUrl } = await downloadRes.json();
+      const url = `/api/bank/job/${result.jobId}/download?format=${outputFormat}`;
+      console.log('[Download] Fetching:', url);
+      const downloadRes = await fetch(url);
+      console.log('[Download] Response status:', downloadRes.status);
+      const data = await downloadRes.json();
+      console.log('[Download] Response data:', data);
 
-      // Open download in new tab
-      window.open(downloadUrl, '_blank');
+      if (!downloadRes.ok) {
+        console.error('[Download] API error:', data);
+        setErrorMessage(data.error || 'Download failed');
+        return;
+      }
+
+      if (!data.downloadUrl) {
+        console.error('[Download] No download URL in response:', data);
+        setErrorMessage('No download URL received');
+        return;
+      }
+
+      console.log('[Download] Navigating to download URL');
+      // Create a temporary link and click it to trigger download
+      const link = document.createElement('a');
+      link.href = data.downloadUrl;
+      link.download = `bank_${result.jobId}_${outputFormat}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
-      console.error('Download failed:', error);
+      console.error('[Download] Failed:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Download failed');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -271,10 +299,15 @@ export function BankPDFUploader() {
               <div className="mt-4 flex gap-3">
                 <button
                   onClick={downloadResult}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium text-sm transition-colors"
+                  disabled={isDownloading}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 disabled:cursor-wait text-white rounded-lg font-medium text-sm transition-colors"
                 >
-                  <Download className="w-4 h-4" />
-                  Download {outputFormat.toUpperCase()}
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  {isDownloading ? 'Downloading...' : `Download ${outputFormat.toUpperCase()}`}
                 </button>
                 <button
                   onClick={reset}
