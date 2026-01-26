@@ -1,0 +1,1383 @@
+{
+  "config": {
+    "configFile": "/sessions/fervent-epic-planck/mnt/trw/playwright.config.ts",
+    "rootDir": "/sessions/fervent-epic-planck/mnt/trw/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "playwright-report/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/sessions/fervent-epic-planck/mnt/trw/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/sessions/fervent-epic-planck/mnt/trw/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/sessions/fervent-epic-planck/mnt/trw/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/sessions/fervent-epic-planck/mnt/trw/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/sessions/fervent-epic-planck/mnt/trw/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/sessions/fervent-epic-planck/mnt/trw/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/sessions/fervent-epic-planck/mnt/trw/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/sessions/fervent-epic-planck/mnt/trw/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/sessions/fervent-epic-planck/mnt/trw/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/sessions/fervent-epic-planck/mnt/trw/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 2,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication",
+          "file": "auth.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "login page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-044302d895d44aeedc86",
+              "file": "auth.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "user sees error for wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-15094f9170be39ff1f64",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 7
+            },
+            {
+              "title": "signup page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-2c1f4ca39aa2864c224b",
+              "file": "auth.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "forgot password page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-fd249fdde033ff2180b6",
+              "file": "auth.spec.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "login page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-40f80eaf5c7316237da1",
+              "file": "auth.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "user sees error for wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-1379fbe1bb73a571009a",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 7
+            },
+            {
+              "title": "signup page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-0456b7c938db0e6e51d1",
+              "file": "auth.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "forgot password page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-0c2a5c47c90db2a699b7",
+              "file": "auth.spec.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "login page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-32f886263aa391d06ed1",
+              "file": "auth.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "user sees error for wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-c59e6e8b2d8b562dc0e1",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 7
+            },
+            {
+              "title": "signup page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-3535d00278c5cbb4de28",
+              "file": "auth.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "forgot password page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-8acf3cd856b5d5ff9ffc",
+              "file": "auth.spec.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "login page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-a6e6c6992574f60538ba",
+              "file": "auth.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "user sees error for wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-33a0fdf0549a8826cf59",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 7
+            },
+            {
+              "title": "signup page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-57a7ac8b0706ee366bec",
+              "file": "auth.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "forgot password page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-ece641acd51d13d1d499",
+              "file": "auth.spec.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "login page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-da5e81027814b05fc8c3",
+              "file": "auth.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "user sees error for wrong password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-54bdc2f4d2dee0728add",
+              "file": "auth.spec.ts",
+              "line": 16,
+              "column": 7
+            },
+            {
+              "title": "signup page loads and has form",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-0e307f0ebd2046775869",
+              "file": "auth.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "forgot password page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-ab2bebfe957f512012fa",
+              "file": "auth.spec.ts",
+              "line": 37,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "bank-statement.spec.ts",
+      "file": "bank-statement.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Bank statement flow",
+          "file": "bank-statement.spec.ts",
+          "line": 37,
+          "column": 6,
+          "specs": [
+            {
+              "title": "dashboard has mode selector for Crypto/Bank",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-4c88796b3ffa17e88f6e",
+              "file": "bank-statement.spec.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows Bank Statement option in mode selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-2a1e0a25887634fddfef",
+              "file": "bank-statement.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "free user can see mode selector options",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-0cbf8c5021cde30fc1cd",
+              "file": "bank-statement.spec.ts",
+              "line": 66,
+              "column": 7
+            },
+            {
+              "title": "dashboard has mode selector for Crypto/Bank",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-36932818168ac966aa98",
+              "file": "bank-statement.spec.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows Bank Statement option in mode selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-daee14bc1c5ac323d006",
+              "file": "bank-statement.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "free user can see mode selector options",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-d689b6375ed330e9578f",
+              "file": "bank-statement.spec.ts",
+              "line": 66,
+              "column": 7
+            },
+            {
+              "title": "dashboard has mode selector for Crypto/Bank",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-e8588c0b43a7efae434a",
+              "file": "bank-statement.spec.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows Bank Statement option in mode selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-8631d0fa57357b9168ff",
+              "file": "bank-statement.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "free user can see mode selector options",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-d7a1bfbe63f8fe69e706",
+              "file": "bank-statement.spec.ts",
+              "line": 66,
+              "column": 7
+            },
+            {
+              "title": "dashboard has mode selector for Crypto/Bank",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-b9339958b68124a28d7a",
+              "file": "bank-statement.spec.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows Bank Statement option in mode selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-7a46f87d676db157dd09",
+              "file": "bank-statement.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "free user can see mode selector options",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-80ff6cd142ba8c81c33a",
+              "file": "bank-statement.spec.ts",
+              "line": 66,
+              "column": 7
+            },
+            {
+              "title": "dashboard has mode selector for Crypto/Bank",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-c65ca29f793107a21377",
+              "file": "bank-statement.spec.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows Bank Statement option in mode selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-f36ddcee04de7b1bacdb",
+              "file": "bank-statement.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "free user can see mode selector options",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "c0ffbd126e44afce134c-c261f16a3e7b166c03fd",
+              "file": "bank-statement.spec.ts",
+              "line": 66,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "processing.spec.ts",
+      "file": "processing.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "CSV upload and download flow",
+          "file": "processing.spec.ts",
+          "line": 36,
+          "column": 6,
+          "specs": [
+            {
+              "title": "user can login and access dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-348eb73758908bce4b0f",
+              "file": "processing.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows upload section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-ecc510c12b72c45a7303",
+              "file": "processing.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows processing history section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-a214b8026c0d709a7746",
+              "file": "processing.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "file input exists and accepts CSV",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-7e1475afd19db29d0a14",
+              "file": "processing.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "user can upload a CSV file",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-ee7b10522a7e41df49b3",
+              "file": "processing.spec.ts",
+              "line": 89,
+              "column": 7
+            },
+            {
+              "title": "user can login and access dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-83979a183d62dad059f0",
+              "file": "processing.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows upload section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-4eb6da2981dff3357bd9",
+              "file": "processing.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows processing history section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-aa1ab3fa3a597b235ba6",
+              "file": "processing.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "file input exists and accepts CSV",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-979804ccf7bab317cce6",
+              "file": "processing.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "user can upload a CSV file",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-f83a15498de1be20f1a7",
+              "file": "processing.spec.ts",
+              "line": 89,
+              "column": 7
+            },
+            {
+              "title": "user can login and access dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-e4874391e85b80310f02",
+              "file": "processing.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows upload section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-9cfffaa77b4280cac6b4",
+              "file": "processing.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows processing history section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-0707d7e074275043696f",
+              "file": "processing.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "file input exists and accepts CSV",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-4e4be460c8a511887372",
+              "file": "processing.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "user can upload a CSV file",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-51effff782c57b082f55",
+              "file": "processing.spec.ts",
+              "line": 89,
+              "column": 7
+            },
+            {
+              "title": "user can login and access dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-5db18a8591bfdd56e8fb",
+              "file": "processing.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows upload section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-54caceb5f71a3947eef9",
+              "file": "processing.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows processing history section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-226dac1e14cf622d4b57",
+              "file": "processing.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "file input exists and accepts CSV",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-6fdd611d4703a7c11d8b",
+              "file": "processing.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "user can upload a CSV file",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-50ee1eed2b4d5405b0d1",
+              "file": "processing.spec.ts",
+              "line": 89,
+              "column": 7
+            },
+            {
+              "title": "user can login and access dashboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-2a1aa5f124e75e4c4d8b",
+              "file": "processing.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows upload section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-2973de892aead83f6ada",
+              "file": "processing.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "dashboard shows processing history section",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-14f8faed776ac75ae143",
+              "file": "processing.spec.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "file input exists and accepts CSV",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-7e43250c31008d1856cc",
+              "file": "processing.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "user can upload a CSV file",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "01a2c824ea3aa04346f9-a00bd97cd5c400f8ee12",
+              "file": "processing.spec.ts",
+              "line": 89,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-25T21:25:29.853Z",
+    "duration": 121.49700000000007,
+    "expected": 0,
+    "skipped": 60,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
