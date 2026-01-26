@@ -5,12 +5,10 @@
  * Set to false when ready to enforce paid tiers.
  */
 
-// MVP Mode - Set to false when ready to enable paid tier restrictions
-// Check both client-side (NEXT_PUBLIC_) and server-side (MVP_MODE) env vars
-// Default to TRUE during MVP - all features available to all users
-export const MVP_MODE =
-  process.env['NEXT_PUBLIC_MVP_MODE'] !== 'false' &&
-  process.env['MVP_MODE'] !== 'false';
+// MVP Mode - Hardcoded to TRUE during MVP phase
+// All users get access to all features for testing/data collection
+// Change to false when ready to enforce paid tier restrictions
+export const MVP_MODE = true;
 
 /**
  * Check if a user has access to a feature based on their tier.
