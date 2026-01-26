@@ -157,10 +157,21 @@ export function BankPDFUploader() {
         return;
       }
 
-      console.log('[Download] Opening S3 presigned URL');
-      // S3 presigned URL has ResponseContentDisposition: attachment header
-      // which forces browser to download instead of display
-      window.open(data.downloadUrl, '_blank');
+      console.log('[Download] Fetching file from S3');
+      // Fetch the file as blob to avoid popup blocker issues
+      const fileResponse = await fetch(data.downloadUrl);
+      const blob = await fileResponse.blob();
+
+      // Create object URL and trigger download
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `bank_${result.jobId}_${outputFormat}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      console.log('[Download] File download triggered');
     } catch (error) {
       console.error('[Download] Failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Download failed');
