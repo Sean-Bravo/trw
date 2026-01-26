@@ -127,7 +127,12 @@ package_lambdas() {
         cp -r "$SCRIPT_DIR/configs" "$BUILD_DIR/webhook/"
     fi
     if [ -f "$SCRIPT_DIR/requirements-webhook.txt" ]; then
-        pip install --quiet -r "$SCRIPT_DIR/requirements-webhook.txt" -t "$BUILD_DIR/webhook"
+        # Install with Linux platform for Lambda compatibility
+        pip install --quiet -r "$SCRIPT_DIR/requirements-webhook.txt" -t "$BUILD_DIR/webhook" \
+            --platform manylinux2014_x86_64 \
+            --implementation cp \
+            --python-version 312 \
+            --only-binary=:all:
     fi
     cd "$BUILD_DIR/webhook"
     zip -q -r "$BUILD_DIR/webhook.zip" .

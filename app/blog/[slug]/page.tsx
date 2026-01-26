@@ -2,7 +2,7 @@ import { allPosts } from '.contentlayer/generated'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { format } from 'date-fns'
-import { HeaderWithSession } from '@/components/marketing/HeaderWithSession'
+import { Header } from '@/components/marketing/Header'
 import { Footer } from '@/components/marketing/Footer'
 import { Container } from '@/components/layout/Container'
 import { Calendar, Clock, ArrowLeft, Hash } from 'lucide-react'
@@ -64,7 +64,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
         category={post.category}
         tags={post.tags}
       />
-      <HeaderWithSession />
+      <Header />
 
       <main className="min-h-screen bg-white dark:bg-slate-950">
 
