@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Download, Clock, CheckCircle, XCircle, Loader2, FileText, Eye, RotateCcw } from 'lucide-react';
+import { Download, Clock, CheckCircle, XCircle, Loader2, FileText, Eye, RotateCcw, Trash2 } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
 import { JobData } from '@/hooks/useJobPolling';
 
@@ -53,6 +54,35 @@ interface JobRowProps {
 function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/uploads/${job.uploadId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setIsDeleted(true);
+        setShowDeleteModal(false);
+        // Refresh the job list to remove deleted item and update counts
+        setTimeout(() => {
+          onRetrySuccess();
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleRetry = async () => {
     setIsRetrying(true);
@@ -175,7 +205,7 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
 
         {/* Actions - Desktop only (inline) */}
         <div className="hidden sm:flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-          {job.status === 'succeeded' && (
+          {job.status === 'succeeded' && !isDeleted && (
             <>
               <Link
                 href={`/dashboard/jobs/${job.jobId}`}
@@ -200,10 +230,17 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
                 <Download className="h-4 w-4" />
                 Download
               </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
             </>
           )}
-          {job.status === 'failed' && (
-            <div className="flex flex-col items-end gap-1">
+          {job.status === 'failed' && !isDeleted && (
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleRetry}
                 disabled={isRetrying}
@@ -216,6 +253,13 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
                 )}
                 {isRetrying ? 'Retrying...' : 'Retry'}
               </button>
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
               {retryCount > 0 && (
                 <span className="text-xs text-zinc-500">
                   Tried {retryCount}x {lastRetryAt && `• ${formatDate(lastRetryAt)}`}
@@ -226,12 +270,24 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
               )}
             </div>
           )}
+          {(job.status === 'queued' || job.status === 'canceled') && !isDeleted && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteModal(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </button>
+          )}
         </div>
       </div>
 
       {/* Actions - Mobile only (below content) */}
       <div className="flex sm:hidden items-center gap-2 mt-3 pt-3 border-t border-zinc-700/50" onClick={(e) => e.stopPropagation()}>
-        {job.status === 'succeeded' && (
+        {job.status === 'succeeded' && !isDeleted && (
           <>
             <Link
               href={`/dashboard/jobs/${job.jobId}`}
@@ -256,23 +312,106 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
               <Download className="h-4 w-4" />
               Download
             </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
           </>
         )}
-        {job.status === 'failed' && (
+        {job.status === 'failed' && !isDeleted && (
+          <>
+            <button
+              onClick={handleRetry}
+              disabled={isRetrying}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRetrying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4" />
+              )}
+              {isRetrying ? 'Retrying...' : 'Retry'}
+            </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </>
+        )}
+        {(job.status === 'queued' || job.status === 'canceled') && !isDeleted && (
           <button
-            onClick={handleRetry}
-            disabled={isRetrying}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-zinc-300 bg-zinc-800 border border-zinc-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteModal(true);
+            }}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg"
           >
-            {isRetrying ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RotateCcw className="h-4 w-4" />
-            )}
-            {isRetrying ? 'Retrying...' : 'Retry'}
+            <Trash2 className="h-4 w-4" />
+            Delete
           </button>
         )}
       </div>
+
+      {/* Delete Confirmation Modal - rendered via portal to document.body */}
+      {mounted && showDeleteModal && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowDeleteModal(false)}
+          />
+          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10">
+                <Trash2 className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Delete File</h3>
+                <p className="text-sm text-slate-400">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <p className="text-slate-300 mb-6">
+              Are you sure you want to permanently delete <span className="font-medium text-white">{job.filename}</span>?
+              This will remove your uploaded file and processed results forever.
+            </p>
+
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete Forever
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
