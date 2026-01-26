@@ -157,14 +157,9 @@ export function BankPDFUploader() {
         return;
       }
 
-      console.log('[Download] Navigating to download URL');
-      // Create a temporary link and click it to trigger download
-      const link = document.createElement('a');
-      link.href = data.downloadUrl;
-      link.download = `bank_${result.jobId}_${outputFormat}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      console.log('[Download] Opening download URL');
+      // Use window.open like the crypto download - works with S3 presigned URLs
+      window.open(data.downloadUrl, '_blank');
     } catch (error) {
       console.error('[Download] Failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Download failed');
