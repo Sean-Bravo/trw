@@ -157,17 +157,10 @@ export function BankPDFUploader() {
         return;
       }
 
-      console.log('[Download] Triggering download via anchor element');
-      // Create a hidden anchor and click it - more reliable than window.open
-      // S3 presigned URL with ResponseContentDisposition will force download
-      const link = document.createElement('a');
-      link.href = data.downloadUrl;
-      link.download = `bank_${result.jobId}_${outputFormat}.csv`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      console.log('[Download] Opening S3 presigned URL');
+      // S3 presigned URL has ResponseContentDisposition: attachment header
+      // which forces browser to download instead of display
+      window.open(data.downloadUrl, '_blank');
     } catch (error) {
       console.error('[Download] Failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Download failed');
