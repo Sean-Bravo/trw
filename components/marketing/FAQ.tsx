@@ -56,7 +56,7 @@ const faqItems: FAQItem[] = [
   },
   {
     question: "Is my data stored anywhere?",
-    answer: "Files are processed for formatting only. We're designed to minimize data retention—no persistent storage, no building a database of your trades. Process and forget.",
+    answer: "Your files are stored securely for up to 1 year so you can re-download results anytime. Want it gone sooner? Hit the delete button after downloading and it's permanently removed. We never build a database of your trades or share your data with anyone.",
     vibe: 'paranoid',
   },
   {
