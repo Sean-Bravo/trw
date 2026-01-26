@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SessionProvider } from 'next-auth/react';
 import { Header } from '@/components/marketing/Header';
 import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
@@ -126,7 +127,7 @@ export default function SamplesPage() {
   const selectedBank = SAMPLE_BANKS[selectedBankIndex]!;
 
   return (
-    <>
+    <SessionProvider>
       <Header />
       <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
         <Container>
@@ -327,7 +328,7 @@ export default function SamplesPage() {
         </Container>
       </main>
       <Footer />
-    </>
+    </SessionProvider>
   );
 }
 

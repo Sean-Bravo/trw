@@ -2,7 +2,7 @@ import { allPosts } from '.contentlayer/generated'
 import { compareDesc, format } from 'date-fns'
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { Header } from '@/components/marketing/Header'
+import { HeaderWithSession } from '@/components/marketing/HeaderWithSession'
 import { Footer } from '@/components/marketing/Footer'
 import { Container } from '@/components/layout/Container'
 import { ArrowRight, FileText, TrendingUp, Terminal, BookOpen } from 'lucide-react'
@@ -38,7 +38,7 @@ export default function BlogPage() {
 
   return (
     <>
-      <Header />
+      <HeaderWithSession />
       <main className="min-h-screen bg-white">
         <Container>
           {/* Minimalist Hero */}
