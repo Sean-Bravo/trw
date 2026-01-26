@@ -18,7 +18,7 @@ table_detection:
 columns:
   date:
     names: ["Date", "Transaction Date", "Post Date", "Posting Date"]
-    format: "MM/DD/YYYY"
+    format: "MM/DD"
   description:
     names: ["Description", "Transaction Description"]
     max_length: 255

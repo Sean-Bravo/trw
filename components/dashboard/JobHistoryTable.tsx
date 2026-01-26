@@ -8,7 +8,7 @@ import { useJobContext } from '@/contexts/JobContext';
 import { JobData } from '@/hooks/useJobPolling';
 
 export function JobHistoryTable() {
-  const { jobHistory, activeJob, setActiveJob, refreshJobHistory } = useJobContext();
+  const { jobHistory, activeJob, setActiveJob, clearActiveJob, refreshJobHistory } = useJobContext();
 
   if (jobHistory.length === 0) {
     return (
@@ -38,6 +38,13 @@ export function JobHistoryTable() {
             refreshJobHistory();
             setActiveJob(job.jobId);
           }}
+          onDeleteSuccess={() => {
+            // Clear active job first to stop polling, then refresh
+            if (activeJob?.jobId === job.jobId) {
+              clearActiveJob();
+            }
+            refreshJobHistory();
+          }}
         />
       ))}
     </div>
@@ -49,9 +56,10 @@ interface JobRowProps {
   isActive: boolean;
   onSelect: () => void;
   onRetrySuccess: () => void;
+  onDeleteSuccess: () => void;
 }
 
-function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
+function JobRow({ job, isActive, onSelect, onRetrySuccess, onDeleteSuccess }: JobRowProps) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -72,10 +80,8 @@ function JobRow({ job, isActive, onSelect, onRetrySuccess }: JobRowProps) {
       if (response.ok) {
         setIsDeleted(true);
         setShowDeleteModal(false);
-        // Refresh the job list to remove deleted item and update counts
-        setTimeout(() => {
-          onRetrySuccess();
-        }, 500);
+        // Clear polling and refresh the job list
+        onDeleteSuccess();
       }
     } catch (error) {
       console.error('Delete error:', error);
