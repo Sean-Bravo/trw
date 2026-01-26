@@ -157,9 +157,17 @@ export function BankPDFUploader() {
         return;
       }
 
-      console.log('[Download] Redirecting to download URL');
-      // Use window.location.href for S3 presigned URLs (browsers block programmatic clicks on cross-origin links)
-      window.location.href = data.downloadUrl;
+      console.log('[Download] Triggering download via anchor element');
+      // Create a hidden anchor and click it - more reliable than window.open
+      // S3 presigned URL with ResponseContentDisposition will force download
+      const link = document.createElement('a');
+      link.href = data.downloadUrl;
+      link.download = `bank_${result.jobId}_${outputFormat}.csv`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('[Download] Failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Download failed');
