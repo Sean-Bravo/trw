@@ -157,9 +157,9 @@ export function BankPDFUploader() {
         return;
       }
 
-      console.log('[Download] Opening download URL');
-      // Use window.open like the crypto download - works with S3 presigned URLs
-      window.open(data.downloadUrl, '_blank');
+      console.log('[Download] Redirecting to download URL');
+      // Use window.location.href for S3 presigned URLs (browsers block programmatic clicks on cross-origin links)
+      window.location.href = data.downloadUrl;
     } catch (error) {
       console.error('[Download] Failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Download failed');
