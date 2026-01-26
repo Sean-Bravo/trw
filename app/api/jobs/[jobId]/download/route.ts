@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { query, queryOne } from '@/lib/db';
+import { MVP_MODE } from '@/lib/feature-flags';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
-
-// MVP Mode: Unlimited downloads for all users to maximize feedback
-const MVP_UNLIMITED_DOWNLOADS = true;
 
 // Free tier limit (disabled during MVP)
 const FREE_TIER_MONTHLY_DOWNLOADS = 3;
@@ -50,7 +48,7 @@ export async function GET(
     const tier = subscription?.tier || 'free';
 
     // 3. For free tier, check monthly download limit (disabled during MVP)
-    if (!MVP_UNLIMITED_DOWNLOADS && tier === 'free') {
+    if (!MVP_MODE && tier === 'free') {
       // Check if this job was already downloaded (don't count twice)
       const existingDownload = await queryOne(
         `SELECT id FROM downloads WHERE user_id = $1 AND job_id = $2`,

@@ -98,9 +98,9 @@ variable "s3_lifecycle_days" {
 }
 
 variable "s3_expiration_days" {
-  description = "Days before deleting old S3 objects"
+  description = "Days before deleting old S3 objects (1 year retention)"
   type        = number
-  default     = 90
+  default     = 365
 }
 
 # Monitoring Configuration

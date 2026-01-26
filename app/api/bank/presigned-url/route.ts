@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
+import { canAccessBankStatements } from '@/lib/feature-flags';
 
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
@@ -30,8 +31,8 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id;
     const tier = session.user.subscriptionTier || 'free';
 
-    // Bank statements require Pro or Premium tier
-    if (tier === 'free') {
+    // Bank statements require Pro or Premium tier (bypassed during MVP)
+    if (!canAccessBankStatements(tier)) {
       return NextResponse.json(
         { error: 'Bank statement processing requires a Pro or Premium subscription' },
         { status: 403 }
