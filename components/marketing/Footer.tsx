@@ -141,6 +141,7 @@ export function Footer() {
                   { label: 'Features', href: '/#features' },
                   { label: 'Blog', href: '/blog' },
                   { label: 'Docs', href: '/docs' },
+                  { label: 'About', href: '/about' },
                 ].map((link) => (
                   <li key={link.label}>
                     <Link href={link.href} className="text-sm text-slate-400 hover:text-white transition-colors">
@@ -180,11 +181,6 @@ export function Footer() {
                 <li>
                   <Link href="/terms" className="text-sm text-slate-400 hover:text-white transition-colors">
                     Terms
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/about" className="text-sm text-slate-400 hover:text-white transition-colors">
-                    About
                   </Link>
                 </li>
               </ul>
