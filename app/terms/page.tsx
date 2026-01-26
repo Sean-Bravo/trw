@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
+import { Header } from '@/components/marketing/Header';
 import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function TermsOfServicePage() {
   return (
     <>
-      <HeaderWithSession />
+      <Header />
       <main className="min-h-screen bg-slate-950 text-slate-300 pt-32 pb-24">
         <Container>
           <div className="max-w-4xl mx-auto">

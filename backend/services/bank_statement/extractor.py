@@ -111,16 +111,29 @@ class TransactionExtractor:
 
         # Try table extraction first
         tables = page.extract_tables()
+        logger.info(f"Page {page_num}: Found {len(tables) if tables else 0} tables")
 
         if tables:
-            for table in tables:
+            for table_idx, table in enumerate(tables):
+                logger.info(f"Page {page_num}, Table {table_idx}: {len(table)} rows")
+                if table and len(table) > 0:
+                    # Log first few rows for debugging
+                    for row_idx, row in enumerate(table[:5]):
+                        logger.debug(f"  Row {row_idx}: {row}")
                 table_transactions = self._process_table(table, page_num)
+                logger.info(f"  Extracted {len(table_transactions)} transactions from table {table_idx}")
                 transactions.extend(table_transactions)
-        else:
+
+        # If no transactions from tables, try text extraction
+        if not transactions:
             # Fall back to text extraction
             text = page.extract_text()
             if text:
+                logger.info(f"Page {page_num}: Using text fallback, text length: {len(text)}")
+                # Log first 500 chars for debugging
+                logger.debug(f"  Text preview: {text[:500]}")
                 text_transactions = self._process_text(text, page_num)
+                logger.info(f"  Extracted {len(text_transactions)} transactions from text")
                 transactions.extend(text_transactions)
                 used_text_fallback = True
 
@@ -166,20 +179,25 @@ class TransactionExtractor:
             "header_row_keywords", ["Date", "Description", "Amount"]
         )
         keywords_lower = [kw.lower() for kw in keywords]
+        logger.debug(f"Looking for header keywords: {keywords_lower}")
 
         for i, row in enumerate(table[:10]):  # Check first 10 rows only
             row_text = " ".join(str(cell).lower() for cell in row if cell)
             matches = sum(1 for kw in keywords_lower if kw in row_text)
+            logger.debug(f"  Row {i}: '{row_text[:100]}' - {matches} keyword matches")
             # Require at least 2 keyword matches
             if matches >= 2:
+                logger.info(f"Found header row at index {i}: {row}")
                 return i
 
+        logger.warning(f"No header row found in table (checked {min(len(table), 10)} rows)")
         return None
 
     def _map_columns(self, headers: List[str]) -> Dict[str, int]:
         """Map config column names to actual column indices."""
         col_map = {}
         columns_config = self.config.get("columns", {})
+        logger.debug(f"Mapping columns from headers: {headers}")
 
         for field, field_config in columns_config.items():
             names = field_config.get("names", [field])
@@ -188,10 +206,12 @@ class TransactionExtractor:
                 for i, header in enumerate(headers):
                     if name_lower in header or header in name_lower:
                         col_map[field] = i
+                        logger.debug(f"  Mapped '{field}' to column {i} (header: '{header}')")
                         break
                 if field in col_map:
                     break
 
+        logger.info(f"Column mapping result: {col_map}")
         return col_map
 
     def _should_skip_row(self, row: List[Any]) -> bool:
@@ -312,6 +332,7 @@ class TransactionExtractor:
         multiline = self.config.get("columns", {}).get("description", {}).get(
             "multiline", True
         )
+        logger.debug(f"Processing {len(lines)} lines of text, date pattern: {self.date_pattern.pattern}")
 
         for line_num, line in enumerate(lines, start=1):
             line = line.strip()
@@ -320,6 +341,8 @@ class TransactionExtractor:
 
             # Check if line starts with a date
             date_match = self.date_pattern.match(line)
+            if line_num <= 20:
+                logger.debug(f"  Line {line_num}: date_match={bool(date_match)}, text='{line[:80]}'")
 
             if date_match:
                 # Save previous transaction
@@ -349,13 +372,28 @@ class TransactionExtractor:
         remainder = line[date_match.end() :].strip()
 
         # Try to extract amount from end of line
+        # Handle "AMOUNT BALANCE" pattern (two numbers at end, take the first)
+        # Example: "Card Purchase ... -52.79 554.99"
         amount = 0.0
-        amount_match = re.search(r"[-$,\d]+\.?\d*$", remainder)
-        if amount_match:
-            amount = self._clean_amount(amount_match.group())
-            description = remainder[: amount_match.start()].strip()
+
+        # Look for two numbers at the end (amount + balance pattern)
+        # Pattern: amount (possibly negative) followed by balance (positive)
+        two_amounts_match = re.search(
+            r"(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)$", remainder
+        )
+        if two_amounts_match:
+            # First number is amount, second is balance
+            amount = self._clean_amount(two_amounts_match.group(1))
+            description = remainder[: two_amounts_match.start()].strip()
+            logger.debug(f"Parsed two amounts: amount={amount}, balance={two_amounts_match.group(2)}, desc='{description[:50]}'")
         else:
-            description = remainder
+            # Fall back to single amount at end
+            amount_match = re.search(r"(-?[\d,$]+\.?\d*)$", remainder)
+            if amount_match:
+                amount = self._clean_amount(amount_match.group())
+                description = remainder[: amount_match.start()].strip()
+            else:
+                description = remainder
 
         return {
             "date": date_str,
