@@ -3,12 +3,12 @@
 import { useJobContext } from '@/contexts/JobContext';
 
 export function DashboardStats() {
-  const { jobHistory } = useJobContext();
+  const { unifiedHistory } = useJobContext();
 
-  // Calculate stats from job history
-  const totalUploads = jobHistory.length;
-  const completed = jobHistory.filter((j) => j.status === 'succeeded').length;
-  const processing = jobHistory.filter((j) => j.status === 'queued' || j.status === 'running').length;
+  // Calculate stats from unified history (crypto + bank jobs)
+  const totalUploads = unifiedHistory.length;
+  const completed = unifiedHistory.filter((j) => j.status === 'completed').length;
+  const processing = unifiedHistory.filter((j) => j.status === 'queued' || j.status === 'processing').length;
 
   return (
     <div className="flex items-center gap-4 sm:gap-8 mb-8 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible scrollbar-hide">

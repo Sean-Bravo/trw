@@ -119,8 +119,8 @@ export function BankPDFUploader() {
           detectedBank: processResult.detectedBank,
           warnings: processResult.warnings,
         });
-        // Refresh bank jobs list to show in history
-        refreshBankJobs();
+        // Refresh bank jobs list to show in history (small delay to ensure DB commit)
+        setTimeout(() => refreshBankJobs(), 300);
       } else {
         setStatus('error');
         setErrorMessage(processResult.error || 'Processing failed');
@@ -131,7 +131,7 @@ export function BankPDFUploader() {
           warnings: processResult.warnings,
         });
         // Still refresh to show failed job in history
-        refreshBankJobs();
+        setTimeout(() => refreshBankJobs(), 300);
       }
     } catch (error) {
       setStatus('error');
