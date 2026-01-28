@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'canceled';
+export type BankJobStatus = 'processing' | 'completed' | 'failed';
+export type JobType = 'crypto' | 'bank';
 
 export interface JobData {
   jobId: string;
@@ -16,6 +18,36 @@ export interface JobData {
   filename: string;
   retryCount?: number;
   lastRetryAt?: string | null;
+}
+
+export interface BankJobData {
+  jobId: string;
+  status: BankJobStatus;
+  filename: string;
+  detectedBank: string | null;
+  transactionCount: number | null;
+  outputFormat: string;
+  resultKey: string | null;
+  error: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface UnifiedJob {
+  id: string;
+  type: JobType;
+  filename: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'canceled';
+  createdAt: string;
+  error: string | null;
+  // Crypto-specific
+  result?: Record<string, unknown> | null;
+  uploadId?: string;
+  // Bank-specific
+  detectedBank?: string | null;
+  transactionCount?: number | null;
+  outputFormat?: string;
+  resultKey?: string | null;
 }
 
 interface UseJobPollingOptions {

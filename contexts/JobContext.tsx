@@ -1,15 +1,19 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { useJobPolling, JobData, JobStatus } from '@/hooks/useJobPolling';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react';
+import { useJobPolling, JobData, BankJobData, UnifiedJob } from '@/hooks/useJobPolling';
 
 interface JobContextValue {
   activeJob: JobData | null;
   jobHistory: JobData[];
+  bankJobs: BankJobData[];
+  unifiedHistory: UnifiedJob[];
   isPolling: boolean;
   setActiveJob: (jobId: string) => void;
   clearActiveJob: () => void;
   refreshJobHistory: () => Promise<void>;
+  refreshBankJobs: () => Promise<void>;
+  refreshAll: () => Promise<void>;
 }
 
 const JobContext = createContext<JobContextValue | null>(null);
@@ -23,6 +27,7 @@ interface JobProviderProps {
 export function JobProvider({ userId, initialJobs = [], children }: JobProviderProps) {
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [jobHistory, setJobHistory] = useState<JobData[]>(initialJobs);
+  const [bankJobs, setBankJobs] = useState<BankJobData[]>([]);
 
   // Poll the active job
   const { job: polledJob, isPolling } = useJobPolling(activeJobId, {
@@ -74,20 +79,74 @@ export function JobProvider({ userId, initialJobs = [], children }: JobProviderP
     }
   }, []);
 
+  const refreshBankJobs = useCallback(async () => {
+    try {
+      const response = await fetch('/api/bank/jobs');
+      if (response.ok) {
+        const data = await response.json();
+        setBankJobs(data.jobs || []);
+      }
+    } catch (err) {
+      console.error('[JobContext] Failed to refresh bank jobs:', err);
+    }
+  }, []);
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([refreshJobHistory(), refreshBankJobs()]);
+  }, [refreshJobHistory, refreshBankJobs]);
+
+  // Merge crypto and bank jobs into unified history
+  const unifiedHistory = useMemo((): UnifiedJob[] => {
+    const cryptoJobs: UnifiedJob[] = jobHistory.map((job) => ({
+      id: job.jobId,
+      type: 'crypto' as const,
+      filename: job.filename,
+      status: job.status === 'running' ? 'processing' : job.status === 'succeeded' ? 'completed' : job.status,
+      createdAt: job.createdAt,
+      error: job.error,
+      result: job.result,
+      uploadId: job.uploadId,
+    }));
+
+    const bankJobsUnified: UnifiedJob[] = bankJobs.map((job) => ({
+      id: job.jobId,
+      type: 'bank' as const,
+      filename: job.filename,
+      status: job.status,
+      createdAt: job.createdAt,
+      error: job.error,
+      detectedBank: job.detectedBank,
+      transactionCount: job.transactionCount,
+      outputFormat: job.outputFormat,
+      resultKey: job.resultKey,
+    }));
+
+    // Merge and sort by createdAt descending
+    return [...cryptoJobs, ...bankJobsUnified].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [jobHistory, bankJobs]);
+
   // Refresh history on mount
   useEffect(() => {
     if (initialJobs.length === 0) {
       refreshJobHistory();
     }
-  }, [initialJobs.length, refreshJobHistory]);
+    // Always fetch bank jobs on mount
+    refreshBankJobs();
+  }, [initialJobs.length, refreshJobHistory, refreshBankJobs]);
 
   const value: JobContextValue = {
     activeJob: polledJob,
     jobHistory,
+    bankJobs,
+    unifiedHistory,
     isPolling,
     setActiveJob,
     clearActiveJob,
     refreshJobHistory,
+    refreshBankJobs,
+    refreshAll,
   };
 
   return <JobContext.Provider value={value}>{children}</JobContext.Provider>;
