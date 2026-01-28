@@ -11,6 +11,7 @@ import {
   Loader2,
   Building2
 } from 'lucide-react';
+import { useJobContext } from '@/contexts/JobContext';
 
 interface ProcessResult {
   success: boolean;
@@ -30,6 +31,7 @@ const FORMAT_OPTIONS = [
 ];
 
 export function BankPDFUploader() {
+  const { refreshBankJobs } = useJobContext();
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'complete' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
@@ -101,6 +103,7 @@ export function BankPDFUploader() {
           jobId,
           s3Key: key,
           outputFormat,
+          filename: file.name,
         }),
       });
 
@@ -116,6 +119,8 @@ export function BankPDFUploader() {
           detectedBank: processResult.detectedBank,
           warnings: processResult.warnings,
         });
+        // Refresh bank jobs list to show in history
+        refreshBankJobs();
       } else {
         setStatus('error');
         setErrorMessage(processResult.error || 'Processing failed');
@@ -125,6 +130,8 @@ export function BankPDFUploader() {
           error: processResult.error,
           warnings: processResult.warnings,
         });
+        // Still refresh to show failed job in history
+        refreshBankJobs();
       }
     } catch (error) {
       setStatus('error');
@@ -157,21 +164,17 @@ export function BankPDFUploader() {
         return;
       }
 
-      console.log('[Download] Fetching file from S3');
-      // Fetch the file as blob to avoid popup blocker issues
-      const fileResponse = await fetch(data.downloadUrl);
-      const blob = await fileResponse.blob();
-
-      // Create object URL and trigger download
-      const blobUrl = window.URL.createObjectURL(blob);
+      console.log('[Download] Triggering download via anchor element');
+      // Create a hidden anchor and click it - more reliable than window.open
+      // S3 presigned URL with ResponseContentDisposition will force download
       const link = document.createElement('a');
-      link.href = blobUrl;
+      link.href = data.downloadUrl;
       link.download = `bank_${result.jobId}_${outputFormat}.csv`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-      console.log('[Download] File download triggered');
     } catch (error) {
       console.error('[Download] Failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Download failed');

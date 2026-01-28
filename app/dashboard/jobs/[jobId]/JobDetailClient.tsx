@@ -118,8 +118,8 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
       const response = await fetch(`/api/jobs/${job.id}/download?type=${type}`);
       if (!response.ok) throw new Error('Download failed');
 
-      const { downloadUrl } = await response.json();
-      window.open(downloadUrl, '_blank');
+      const { url } = await response.json();
+      window.open(url, '_blank');
     } catch (error) {
       console.error('Download error:', error);
     }

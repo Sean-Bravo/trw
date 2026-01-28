@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { canAccessBankStatements } from '@/lib/feature-flags';
-import { query, queryOne } from '@/lib/db';
+import { query } from '@/lib/db';
 
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       );
     } catch (dbError) {
       console.error('[Bank Process] DB insert error:', dbError);
-      // Continue even if DB insert fails - don't block processing
+      // Continue processing even if DB insert fails
     }
 
     // Validate output format
@@ -77,8 +77,7 @@ export async function POST(request: NextRequest) {
       // Update job status to failed
       try {
         await query(
-          `UPDATE bank_jobs SET status = 'failed', error = $1, completed_at = NOW()
-           WHERE id = $2`,
+          `UPDATE bank_jobs SET status = 'failed', error = $1, completed_at = NOW() WHERE id = $2`,
           [data.error || 'Processing failed', jobId]
         );
       } catch (dbError) {
@@ -97,7 +96,6 @@ export async function POST(request: NextRequest) {
 
     // Update job status to completed with metadata
     try {
-      const metadata = data.metadata || {};
       await query(
         `UPDATE bank_jobs
          SET status = 'completed',
@@ -107,9 +105,9 @@ export async function POST(request: NextRequest) {
              completed_at = NOW()
          WHERE id = $4`,
         [
-          metadata.detected_bank || null,
-          metadata.transaction_count || null,
-          `bank/${jobId}/output_${outputFormat || 'qbo'}.csv`,
+          data.detectedBank || null,
+          data.transactionCount || null,
+          data.resultKey || null,
           jobId
         ]
       );
