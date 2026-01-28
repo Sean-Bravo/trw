@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '../ui/Button';
 import { Logo } from '../ui/Logo';
 import Link from 'next/link';
@@ -9,8 +10,17 @@ import { ThemeToggle } from '../docs/ThemeToggle';
 import { trackSignUp } from '@/lib/analytics';
 
 export function Header() {
+  // useSession returns undefined if no SessionProvider - handle gracefully
+  let session = null;
+  try {
+    const sessionResult = useSession();
+    session = sessionResult?.data;
+  } catch {
+    // No SessionProvider in tree, session stays null
+  }
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const isLoggedIn = !!session?.user;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,21 +61,32 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="hidden md:block text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium"
-          >
-            Sign In
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="hidden md:block text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden md:block text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-medium"
+            >
+              Sign In
+            </Link>
+          )}
           <span className="hidden md:block"><ThemeToggle /></span>
-          <Button
-            variant="primary"
-            href="/signup"
-            onClick={() => trackSignUp()}
-            className="hidden md:inline-flex"
-          >
-            Get Started
-          </Button>
+          {!isLoggedIn && (
+            <Button
+              variant="primary"
+              href="/signup"
+              onClick={() => trackSignUp()}
+              className="hidden md:inline-flex"
+            >
+              Get Started
+            </Button>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -103,24 +124,36 @@ export function Header() {
               </Link>
             ))}
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mt-2 space-y-3">
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-center py-3 text-slate-700 dark:text-slate-200 hover:text-[var(--color-primary-500)] transition-colors text-base font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50"
-              >
-                Sign In
-              </Link>
-              <Button
-                variant="primary"
-                href="/signup"
-                className="w-full justify-center"
-                onClick={() => {
-                  trackSignUp()
-                  setMobileMenuOpen(false)
-                }}
-              >
-                Get Started
-              </Button>
+              {isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full text-center py-3 text-slate-700 dark:text-slate-200 hover:text-[var(--color-primary-500)] transition-colors text-base font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-center py-3 text-slate-700 dark:text-slate-200 hover:text-[var(--color-primary-500)] transition-colors text-base font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  >
+                    Sign In
+                  </Link>
+                  <Button
+                    variant="primary"
+                    href="/signup"
+                    className="w-full justify-center"
+                    onClick={() => {
+                      trackSignUp()
+                      setMobileMenuOpen(false)
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>
