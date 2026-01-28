@@ -149,3 +149,17 @@ export interface DbAiCache {
   expires_at: Date | null;
   created_at: Date;
 }
+
+export interface DbBankJob {
+  id: string;
+  user_id: string;
+  filename: string;
+  status: 'processing' | 'completed' | 'failed';
+  detected_bank: string | null;
+  transaction_count: number | null;
+  output_format: string;
+  result_key: string | null;
+  error: string | null;
+  created_at: Date;
+  completed_at: Date | null;
+}
