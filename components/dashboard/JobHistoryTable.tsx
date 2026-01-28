@@ -176,9 +176,10 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
       }
     } else {
       // Bank download - use blob fetch
+      if (isDownloading) return; // Prevent multiple clicks
       setIsDownloading(true);
       try {
-        const response = await fetch(`/api/bank/download?jobId=${job.id}`);
+        const response = await fetch(`/api/bank/job/${job.id}/download?format=${job.outputFormat || 'qbo'}`);
         if (!response.ok) throw new Error('Download failed');
         const data = await response.json();
 
