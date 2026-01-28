@@ -5,7 +5,7 @@ import { query, queryOne, DbBankJob } from '@/lib/db';
 
 /**
  * GET /api/bank/jobs/[jobId]
- * Get a single bank job
+ * Get a single bank job by ID
  */
 export async function GET(
   request: NextRequest,
@@ -20,10 +20,7 @@ export async function GET(
     const { jobId } = await params;
 
     const job = await queryOne<DbBankJob>(
-      `SELECT id, user_id, filename, status, detected_bank, transaction_count,
-              output_format, result_key, error, created_at, completed_at
-       FROM bank_jobs
-       WHERE id = $1 AND user_id = $2`,
+      `SELECT * FROM bank_jobs WHERE id = $1 AND user_id = $2`,
       [jobId, session.user.id]
     );
 
@@ -31,11 +28,21 @@ export async function GET(
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ job });
-
+    return NextResponse.json({
+      jobId: job.id,
+      status: job.status,
+      filename: job.filename,
+      detectedBank: job.detected_bank,
+      transactionCount: job.transaction_count,
+      outputFormat: job.output_format,
+      resultKey: job.result_key,
+      error: job.error,
+      createdAt: job.created_at,
+      completedAt: job.completed_at,
+    });
   } catch (error) {
-    console.error('[Bank Job] Error fetching job:', error);
-    return NextResponse.json({ error: 'Failed to fetch job' }, { status: 500 });
+    console.error('[Bank Job] Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -55,7 +62,7 @@ export async function DELETE(
 
     const { jobId } = await params;
 
-    // Verify ownership before delete
+    // Verify job belongs to user
     const job = await queryOne<DbBankJob>(
       `SELECT id FROM bank_jobs WHERE id = $1 AND user_id = $2`,
       [jobId, session.user.id]
@@ -65,18 +72,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    // Delete from database
-    await query(
-      `DELETE FROM bank_jobs WHERE id = $1`,
-      [jobId]
-    );
+    await query(`DELETE FROM bank_jobs WHERE id = $1`, [jobId]);
 
-    // Note: S3 files are deleted separately via Lambda or stay until TTL
-
-    return NextResponse.json({ success: true, jobId });
-
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Bank Job] Error deleting job:', error);
-    return NextResponse.json({ error: 'Failed to delete job' }, { status: 500 });
+    console.error('[Bank Job Delete] Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -3,9 +3,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from 'react';
 import { useJobPolling, JobData, BankJobData, UnifiedJob } from '@/hooks/useJobPolling';
 
-// Filter type for history view
-export type JobFilter = 'all' | 'crypto' | 'bank';
-
 interface JobContextValue {
   activeJob: JobData | null;
   jobHistory: JobData[];
@@ -25,28 +22,6 @@ interface JobProviderProps {
   userId: string;
   initialJobs?: JobData[];
   children: ReactNode;
-}
-
-// Helper to convert crypto job status to unified status
-function mapCryptoStatus(status: string): UnifiedJob['status'] {
-  switch (status) {
-    case 'queued': return 'queued';
-    case 'running': return 'processing';
-    case 'succeeded': return 'completed';
-    case 'failed': return 'failed';
-    case 'canceled': return 'canceled';
-    default: return 'processing';
-  }
-}
-
-// Helper to convert bank job status to unified status
-function mapBankStatus(status: string): UnifiedJob['status'] {
-  switch (status) {
-    case 'processing': return 'processing';
-    case 'completed': return 'completed';
-    case 'failed': return 'failed';
-    default: return 'processing';
-  }
 }
 
 export function JobProvider({ userId, initialJobs = [], children }: JobProviderProps) {
@@ -109,19 +84,7 @@ export function JobProvider({ userId, initialJobs = [], children }: JobProviderP
       const response = await fetch('/api/bank/jobs');
       if (response.ok) {
         const data = await response.json();
-        // Map DB fields to camelCase
-        const mapped = (data.jobs || []).map((job: Record<string, unknown>) => ({
-          jobId: job['id'],
-          status: job['status'],
-          filename: job['filename'],
-          detectedBank: job['detected_bank'],
-          transactionCount: job['transaction_count'],
-          outputFormat: job['output_format'],
-          error: job['error'],
-          createdAt: job['created_at'],
-          completedAt: job['completed_at'],
-        }));
-        setBankJobs(mapped);
+        setBankJobs(data.jobs || []);
       }
     } catch (err) {
       console.error('[JobContext] Failed to refresh bank jobs:', err);
@@ -132,30 +95,34 @@ export function JobProvider({ userId, initialJobs = [], children }: JobProviderP
     await Promise.all([refreshJobHistory(), refreshBankJobs()]);
   }, [refreshJobHistory, refreshBankJobs]);
 
-  // Unified history combining both job types, sorted by date
+  // Merge crypto and bank jobs into unified history
   const unifiedHistory = useMemo((): UnifiedJob[] => {
-    const cryptoUnified: UnifiedJob[] = jobHistory.map((job) => ({
+    const cryptoJobs: UnifiedJob[] = jobHistory.map((job) => ({
       id: job.jobId,
       type: 'crypto' as const,
       filename: job.filename,
-      status: mapCryptoStatus(job.status),
+      status: job.status === 'running' ? 'processing' : job.status === 'succeeded' ? 'completed' : job.status,
       createdAt: job.createdAt,
+      error: job.error,
       result: job.result,
+      uploadId: job.uploadId,
     }));
 
-    const bankUnified: UnifiedJob[] = bankJobs.map((job) => ({
+    const bankJobsUnified: UnifiedJob[] = bankJobs.map((job) => ({
       id: job.jobId,
       type: 'bank' as const,
       filename: job.filename,
-      status: mapBankStatus(job.status),
+      status: job.status,
       createdAt: job.createdAt,
+      error: job.error,
       detectedBank: job.detectedBank,
       transactionCount: job.transactionCount,
       outputFormat: job.outputFormat,
+      resultKey: job.resultKey,
     }));
 
-    // Combine and sort by date descending
-    return [...cryptoUnified, ...bankUnified].sort(
+    // Merge and sort by createdAt descending
+    return [...cryptoJobs, ...bankJobsUnified].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }, [jobHistory, bankJobs]);

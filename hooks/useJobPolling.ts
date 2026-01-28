@@ -27,25 +27,27 @@ export interface BankJobData {
   detectedBank: string | null;
   transactionCount: number | null;
   outputFormat: string;
+  resultKey: string | null;
   error: string | null;
   createdAt: string;
   completedAt: string | null;
 }
 
-// Unified job type for display in history
 export interface UnifiedJob {
   id: string;
   type: JobType;
   filename: string;
   status: 'queued' | 'processing' | 'completed' | 'failed' | 'canceled';
   createdAt: string;
+  error: string | null;
   // Crypto-specific
-  exchange?: string;
   result?: Record<string, unknown> | null;
+  uploadId?: string;
   // Bank-specific
   detectedBank?: string | null;
   transactionCount?: number | null;
   outputFormat?: string;
+  resultKey?: string | null;
 }
 
 interface UseJobPollingOptions {

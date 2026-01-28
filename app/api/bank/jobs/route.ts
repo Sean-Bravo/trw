@@ -15,19 +15,27 @@ export async function GET() {
     }
 
     const jobs = await query<DbBankJob>(
-      `SELECT id, user_id, filename, status, detected_bank, transaction_count,
-              output_format, result_key, error, created_at, completed_at
-       FROM bank_jobs
-       WHERE user_id = $1
-       ORDER BY created_at DESC
-       LIMIT 50`,
+      `SELECT * FROM bank_jobs WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
       [session.user.id]
     );
 
-    return NextResponse.json({ jobs });
+    // Transform to camelCase for frontend
+    const transformedJobs = jobs.map(job => ({
+      jobId: job.id,
+      status: job.status,
+      filename: job.filename,
+      detectedBank: job.detected_bank,
+      transactionCount: job.transaction_count,
+      outputFormat: job.output_format,
+      resultKey: job.result_key,
+      error: job.error,
+      createdAt: job.created_at,
+      completedAt: job.completed_at,
+    }));
 
+    return NextResponse.json({ jobs: transformedJobs });
   } catch (error) {
-    console.error('[Bank Jobs] Error fetching jobs:', error);
-    return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
+    console.error('[Bank Jobs] Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
