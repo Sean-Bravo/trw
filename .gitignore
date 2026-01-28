@@ -55,5 +55,8 @@ backend/**/__pycache__/
 backend/**/*.pyc
 *.zip
 
+# Debug scripts
+backend/debug_*.py
+
 # Sentry Config File
 .env.sentry-build-plugin
