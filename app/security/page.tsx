@@ -15,7 +15,7 @@ import {
   FileJson 
 } from 'lucide-react';
 
-import { Header } from '@/components/marketing/Header';
+import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
 import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
 
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export default function SecurityPage() {
   return (
     <>
-      <Header />
+      <HeaderWithSession />
       {/* Force dark theme logic for the Security Center feel, or adapt to system preference */}
       <main className="min-h-screen bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
         

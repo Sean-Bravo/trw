@@ -1,4 +1,4 @@
-import { Header } from '@/components/marketing/Header';
+import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
 import { Hero } from '@/components/marketing/Hero';
 import { BankFeature } from '@/components/marketing/BankFeature';
 import { HowItWorks } from '@/components/marketing/HowItWorks';
@@ -16,7 +16,7 @@ export default function Home() {
     <>
       <SoftwareApplicationSchema />
       <main className="min-h-screen">
-        <Header />
+        <HeaderWithSession />
         <Hero />
         <HowItWorks />
         <SocialProof />
