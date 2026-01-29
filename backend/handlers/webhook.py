@@ -893,6 +893,7 @@ def handle_bank_download(event: Dict) -> Dict:
                 "Bucket": BANK_RESULTS_BUCKET,
                 "Key": output_key,
                 "ResponseContentDisposition": f'attachment; filename="bank_{job_id}_{output_format}.csv"',
+                "ResponseContentType": "text/csv",
             },
             ExpiresIn=DOWNLOAD_EXPIRATION,
         )
