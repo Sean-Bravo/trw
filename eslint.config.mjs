@@ -75,6 +75,23 @@ export default [
     },
   },
   {
+    // Jest test files configuration
+    files: ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**/*.ts", "**/__tests__/**/*.tsx"],
+    languageOptions: {
+      globals: {
+        jest: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        test: "readonly",
+      },
+    },
+  },
+  {
     ignores: [
       ".next/**",
       "node_modules/**",
@@ -82,6 +99,7 @@ export default [
       "public/**",
       "*.config.{js,mjs,ts}",
       "postcss.config.mjs",
+      ".contentlayer/**",
     ],
   },
 ];
