@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+
+export type BillingPeriod = 'monthly' | 'annual'
 
 export function useCheckout() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
 
-  const checkout = async (plan: 'PRO' | 'PREMIUM') => {
+  const checkout = async (plan: 'PRO' | 'PREMIUM', billing: BillingPeriod = 'annual') => {
     setLoading(true)
     setError(null)
 
@@ -18,7 +18,7 @@ export function useCheckout() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, billing }),
       })
 
       const data = await response.json()

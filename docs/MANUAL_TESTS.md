@@ -131,15 +131,127 @@ Test with real CSV exports from each exchange:
 
 ---
 
+## Payment Flow Testing
+
+### Stripe Integration
+- [ ] Click "Get Pro Annual" button on pricing page
+- [ ] Redirects to Stripe Checkout (not error)
+- [ ] Test card `4242 4242 4242 4242` with any future expiry
+- [ ] Successful payment redirects to /success page
+- [ ] User subscription status updated in database
+- [ ] Webhook received (check server logs or Stripe dashboard)
+
+### Subscription Management
+- [ ] Pro user can access unlimited downloads
+- [ ] Premium user sees all premium features enabled
+- [ ] Customer portal link works (if implemented)
+- [ ] Cancellation flow works correctly
+
+### Billing Toggle
+- [ ] Toggle switches between Monthly/Annual pricing
+- [ ] Correct prices displayed for each tier
+- [ ] "Save 17%" badge appears on Annual selection
+- [ ] Button text updates to match billing period
+
+---
+
+## Cross-Browser Testing Results
+
+### Desktop Browsers
+| Browser | Version | OS | Landing | Upload | Process | Download | Auth | Payment | Tester | Date |
+|---------|---------|-----|---------|--------|---------|----------|------|---------|--------|------|
+| Chrome | | macOS | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Safari | | macOS | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Firefox | | macOS | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Chrome | | Windows | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Edge | | Windows | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Firefox | | Windows | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+
+### Mobile Browsers
+| Browser | Version | OS | Landing | Upload | Process | Download | Auth | Payment | Tester | Date |
+|---------|---------|-----|---------|--------|---------|----------|------|---------|--------|------|
+| Safari | | iOS 17+ | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Chrome | | iOS | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Chrome | | Android | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+| Samsung Internet | | Android | [ ] | [ ] | [ ] | [ ] | [ ] | [ ] | | |
+
+---
+
+## Beta User UAT Results
+
+### Tester Information
+| Name/ID | Email | User Type | Testing Period | Status |
+|---------|-------|-----------|----------------|--------|
+| | | Free | | Pending |
+| | | Free | | Pending |
+| | | Pro | | Pending |
+| | | Premium | | Pending |
+
+### Feedback Summary
+| Tester | Bugs Found | Feature Requests | Overall Rating | Would Recommend |
+|--------|------------|------------------|----------------|-----------------|
+| | | | /10 | Yes/No |
+| | | | /10 | Yes/No |
+| | | | /10 | Yes/No |
+| | | | /10 | Yes/No |
+
+### Critical Issues from Beta
+| Issue | Severity | Status | Resolution |
+|-------|----------|--------|------------|
+| | High/Med/Low | Open/Fixed | |
+
+---
+
+## Production Verification
+
+Run the verification script before launch:
+```bash
+./scripts/verify-production.sh
+```
+
+### Automated Checks
+- [ ] All health checks pass
+- [ ] Security headers present
+- [ ] Critical pages accessible
+- [ ] API endpoints respond correctly
+- [ ] SSL certificate valid (30+ days)
+
+### Manual Production Checks
+- [ ] Domain DNS resolving correctly
+- [ ] CDN caching working
+- [ ] Error tracking (Sentry) receiving events
+- [ ] Analytics (if configured) tracking page views
+- [ ] Contact form submissions working
+- [ ] Email sending working (signup, reset password)
+
+---
+
 ## Sign-Off
 
-| Area | Tester | Date | Pass/Fail |
-|------|--------|------|-----------|
-| Critical Blockers | | | |
-| AWS Infrastructure | | | |
-| Edge Cases | | | |
-| Browser Testing | | | |
+| Area | Tester | Date | Pass/Fail | Notes |
+|------|--------|------|-----------|-------|
+| Critical Blockers | | | | |
+| AWS Infrastructure | | | | |
+| Edge Cases | | | | |
+| Browser Testing (Desktop) | | | | |
+| Browser Testing (Mobile) | | | | |
+| Payment Flow | | | | |
+| Beta User UAT | | | | |
+| Production Verification | | | | |
+
+### Final Checklist
+- [ ] All critical blockers resolved
+- [ ] No P0 bugs outstanding
+- [ ] Production environment variables configured
+- [ ] Stripe live keys configured
+- [ ] Monitoring dashboards accessible
+- [ ] Support email configured
+- [ ] Legal pages (Terms, Privacy) reviewed
 
 **Launch Decision**: [ ] GO / [ ] NO-GO
+
+**Decision Made By**: _______________
+
+**Date**: _______________
 
 **Notes**:

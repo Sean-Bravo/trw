@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Check, Shield, Crown, Sparkles } from 'lucide-react';
+import { Check, Shield, Crown, Sparkles, Loader2 } from 'lucide-react';
+import { useCheckout } from '@/hooks/useCheckout';
 
 const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(true);
+  const { checkout, loading, error } = useCheckout();
 
   // Pricing configuration
   const pricing = {
@@ -163,10 +165,20 @@ const Pricing = () => {
             </ul>
 
             <button
-              disabled
-              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600/50 to-cyan-600/50 text-white/60 text-center font-bold rounded-xl cursor-not-allowed relative overflow-hidden"
+              onClick={() => checkout('PRO', isAnnual ? 'annual' : 'monthly')}
+              disabled={loading}
+              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-center font-bold rounded-xl transition-all duration-300 relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="relative z-10">Coming Soon</span>
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `Get Pro ${isAnnual ? 'Annual' : 'Monthly'}`
+                )}
+              </span>
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
@@ -221,13 +233,28 @@ const Pricing = () => {
             </ul>
 
             <button
-              disabled
-              className="block w-full py-3 px-4 bg-slate-800/50 text-white/50 text-center font-medium rounded-lg cursor-not-allowed border border-slate-700/50"
+              onClick={() => checkout('PREMIUM', isAnnual ? 'annual' : 'monthly')}
+              disabled={loading}
+              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white text-center font-medium rounded-lg transition-colors border border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Coming Soon
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                `Get Premium ${isAnnual ? 'Annual' : 'Monthly'}`
+              )}
             </button>
           </div>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mt-8 max-w-md mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-center">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
 
         {/* Footer Note */}
         <div className="mt-16 text-center">
