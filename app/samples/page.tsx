@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { SessionProvider } from 'next-auth/react';
-import { Header } from '@/components/marketing/Header';
+import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
 import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
 import { Download, FileText, ArrowRight, CheckCircle2, AlertTriangle, Sparkles, Building2, Table } from 'lucide-react';
@@ -128,7 +128,7 @@ export default function SamplesPage() {
 
   return (
     <SessionProvider>
-      <Header />
+      <HeaderWithSession />
       <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
         <Container>
           {/* Hero */}

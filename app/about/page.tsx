@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { Header } from '@/components/marketing/Header';
+import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
 import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
 import {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <Header />
+      <HeaderWithSession />
       <main className="min-h-screen bg-[#020617] text-slate-300 relative overflow-hidden">
         {/* Background ambient glows */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
