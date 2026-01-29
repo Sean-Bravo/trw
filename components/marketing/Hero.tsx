@@ -4,7 +4,7 @@ import React from 'react';
 import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
 import { trackSignUp } from '@/lib/analytics';
-import { ArrowRight, Sparkles, Check } from 'lucide-react';
+import { Sparkles, Check } from 'lucide-react';
 
 export function Hero() {
   return (

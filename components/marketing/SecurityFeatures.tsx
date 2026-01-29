@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Container } from '../layout/Container';
-import { ShieldCheck, Lock, Trash2, FileKey, ArrowRight, Cpu } from 'lucide-react';
+import { ShieldCheck, Trash2, FileKey, ArrowRight, Cpu } from 'lucide-react';
 import Link from 'next/link';
 
 const features = [

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Container } from '../layout/Container';
-import { Database, FileCheck, ArrowRight, Zap, Activity } from 'lucide-react';
+import { Database, FileCheck, Zap, Activity } from 'lucide-react';
 
 const exchanges = [
   'Coinbase_raw.csv', 'Binance_export.xlsx', 'Kraken_2025.csv',

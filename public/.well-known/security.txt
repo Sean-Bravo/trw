@@ -1,0 +1,11 @@
+# TaxFormatter Security Policy
+# https://securitytxt.org/
+
+Contact: mailto:security@taxformatter.com
+Expires: 2027-01-29T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://taxformatter.com/.well-known/security.txt
+Policy: https://taxformatter.com/security
+
+# If you discover a security vulnerability, please report it to us.
+# We appreciate your efforts to responsibly disclose your findings.

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Check, X, Shield, Crown, Sparkles } from 'lucide-react';
+import { Check, Shield, Crown, Sparkles } from 'lucide-react';
 
 const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(true);
