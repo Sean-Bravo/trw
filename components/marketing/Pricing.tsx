@@ -2,12 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Check, Shield, Crown, Sparkles, Loader2 } from 'lucide-react';
-import { useCheckout } from '@/hooks/useCheckout';
+import { Check, Shield, Crown, Sparkles } from 'lucide-react';
 
 const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(true);
-  const { checkout, loading, error } = useCheckout();
 
   // Pricing configuration
   const pricing = {
@@ -164,22 +162,12 @@ const Pricing = () => {
               </li>
             </ul>
 
-            <button
-              onClick={() => checkout('PRO', isAnnual ? 'annual' : 'monthly')}
-              disabled={loading}
-              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-center font-bold rounded-xl transition-all duration-300 relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+            <Link
+              href="/signup"
+              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-center font-bold rounded-xl transition-all duration-300 relative overflow-hidden"
             >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  `Get Pro ${isAnnual ? 'Annual' : 'Monthly'}`
-                )}
-              </span>
-            </button>
+              <span className="relative z-10">Start Free Beta</span>
+            </Link>
 
             <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
                <Shield className="w-3 h-3" />
@@ -232,29 +220,21 @@ const Pricing = () => {
               </li>
             </ul>
 
-            <button
-              onClick={() => checkout('PREMIUM', isAnnual ? 'annual' : 'monthly')}
-              disabled={loading}
-              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white text-center font-medium rounded-lg transition-colors border border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            <Link
+              href="/signup"
+              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white text-center font-medium rounded-lg transition-colors border border-slate-700"
             >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
-                </span>
-              ) : (
-                `Get Premium ${isAnnual ? 'Annual' : 'Monthly'}`
-              )}
-            </button>
+              Start Free Beta
+            </Link>
           </div>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <div className="mt-8 max-w-md mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-center">
-            <p className="text-red-400 text-sm">{error}</p>
-          </div>
-        )}
+        {/* Beta Notice */}
+        <div className="mt-8 max-w-md mx-auto p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-center">
+          <p className="text-amber-300 text-sm font-medium">
+            🚀 Free during beta! All features unlocked while we validate our parsers.
+          </p>
+        </div>
 
         {/* Footer Note */}
         <div className="mt-16 text-center">
