@@ -229,13 +229,6 @@ const Pricing = () => {
           </div>
         </div>
 
-        {/* Beta Notice */}
-        <div className="mt-8 max-w-md mx-auto p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg text-center">
-          <p className="text-amber-300 text-sm font-medium">
-            🚀 Free during beta! All features unlocked while we validate our parsers.
-          </p>
-        </div>
-
         {/* Footer Note */}
         <div className="mt-16 text-center">
             <p className="text-slate-400 text-sm">
