@@ -41,10 +41,10 @@ export function Header() {
   return (
     <>
       {/* Beta Banner */}
-      <div className="bg-indigo-500/10 border-b border-indigo-500/20 py-2">
+      <div className="bg-indigo-600 py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center gap-2 text-sm">
-          <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>
-          <span className="text-indigo-200">
+          <span className="flex h-2 w-2 rounded-full bg-white animate-pulse"></span>
+          <span className="text-indigo-100">
             <span className="font-semibold text-white">Public Beta:</span> All features unlocked while we validate parsers.
           </span>
         </div>
