@@ -254,7 +254,7 @@ If mismatch:
    - Original source of truth
    - Good for audits
 
-3. **Use Scheduled C if Self-Employed**
+3. **Use Schedule C if Self-Employed**
    - If crypto trading is business (frequent trader)
    - Different rules apply
    - TurboTax has self-employed section

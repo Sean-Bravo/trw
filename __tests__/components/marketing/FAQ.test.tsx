@@ -44,7 +44,7 @@ describe('FAQ Component', () => {
       render(<FAQ />);
       // First item's answer should be visible (on desktop)
       // May appear multiple times due to desktop/mobile layouts
-      expect(screen.getAllByText(/12 and counting/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/14 and counting/).length).toBeGreaterThan(0);
     });
 
     it('changes active question when clicked (desktop)', () => {

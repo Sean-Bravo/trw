@@ -102,7 +102,7 @@ export function Hero() {
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-[var(--color-accent-500)]" />
-              <span>Works with 12 exchanges</span>
+              <span>Works with 14 exchanges</span>
             </div>
           </div>
 

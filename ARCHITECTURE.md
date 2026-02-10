@@ -158,7 +158,7 @@ trw/
 
 ## Supported Exchanges
 
-The Python engine (`backend/services/engine.py`) parses 12 exchanges:
+The Python engine (`backend/services/engine.py`) parses 14 exchanges:
 
 | # | Exchange | Date Format | TZ | Notes |
 |---|----------|-------------|-----|-------|
@@ -174,6 +174,8 @@ The Python engine (`backend/services/engine.py`) parses 12 exchanges:
 | 10 | KuCoin | Unix timestamp (ms) or YYYY-MM-DD HH:MM:SS | UTC | 5/day limit, max 1 year |
 | 11 | Bybit | Unix timestamp (ms) or YYYY-MM-DD HH:mm:ss | UTC | ZIP archives, format changes frequently |
 | 12 | FTX | ISO 8601 + microseconds | UTC | Bankrupt - historical via claims.ftx.com |
+| 13 | Bitfinex | Various | UTC | Standard CSV export |
+| 14 | OKX | Various (time/trade_time columns) | UTC | Formerly OKEx, spot & derivatives |
 
 ### Implementation Notes
 
