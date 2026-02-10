@@ -83,7 +83,7 @@ describe('Hero Component', () => {
 
     it('shows exchange count', () => {
       render(<Hero />);
-      expect(screen.getByText(/Works with 12 exchanges/)).toBeInTheDocument();
+      expect(screen.getByText(/Works with 14 exchanges/)).toBeInTheDocument();
     });
   });
 

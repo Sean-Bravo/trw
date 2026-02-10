@@ -17,16 +17,21 @@ TaxFormatter currently supports these cryptocurrency exchanges:
 | **Kraken** | ✅ Full Support | Spot & Futures |
 | **KuCoin** | ✅ Full Support | Spot Trading |
 | **Bybit** | ✅ Full Support | Spot & Perpetual |
+| **Cash App** | ✅ Full Support | BTC only |
+| **Robinhood** | ✅ Full Support | Crypto transactions |
+| **PayPal** | ✅ Full Support | Crypto transactions |
+| **Venmo** | ✅ Full Support | Crypto transactions |
+| **Crypto.com** | ✅ Full Support | Spot & Futures |
+| **Gemini** | ✅ Full Support | All features |
+| **FTX** | ✅ Full Support | Historical/post-recovery data |
+| **Bitfinex** | ✅ Full Support | All features |
+| **OKX** | ✅ Full Support | All features |
 
 ## 🔄 Coming Soon
 
 | Exchange | ETA | Notes |
 |----------|-----|-------|
-| Crypto.com | Q1 2026 | Spot & Futures |
-| Gemini | Q1 2026 | All features |
-| FTX | Q1 2026 | Post-recovery data |
 | Huobi | Q2 2026 | Spot Trading |
-| OKX | Q2 2026 | All features |
 
 ## Don't See Your Exchange?
 

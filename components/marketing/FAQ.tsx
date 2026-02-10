@@ -36,7 +36,7 @@ const faqItems: FAQItem[] = [
   },
   {
     question: "What exchanges do you actually support?",
-    answer: "12 and counting: Coinbase, Kraken, Gemini, Binance, Robinhood, Crypto.com, PayPal, Cash App, Venmo, KuCoin, Bybit, and FTX (RIP, but we still process historical data). We detect formats automatically—no API keys, no account linking. New exchanges get added constantly based on what users throw at us.",
+    answer: "14 and counting: Coinbase, Kraken, Gemini, Binance, Robinhood, Crypto.com, PayPal, Cash App, Venmo, KuCoin, Bybit, FTX (RIP, but we still process historical data), Bitfinex, and OKX. We detect formats automatically—no API keys, no account linking. New exchanges get added constantly based on what users throw at us.",
     vibe: 'curious',
   },
   {
