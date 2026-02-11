@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Shield,
   Trash2,
+  Mail,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -136,9 +137,16 @@ export default function AboutPage() {
                 <h2 className="text-2xl font-semibold text-white mb-4">
                   Who's Behind This
                 </h2>
-                <p className="text-slate-400 leading-relaxed">
+                <p className="text-slate-400 leading-relaxed mb-4">
                   I'm Sean Palomino, founder of Quantum Transfer Group. I've been in the crypto space for years and got tired of the same CSV headaches every April. TaxFormatter is the tool I wished existed.
                 </p>
+                <a
+                  href="mailto:sean@taxformatter.com"
+                  className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>sean@taxformatter.com</span>
+                </a>
               </div>
             </div>
 
