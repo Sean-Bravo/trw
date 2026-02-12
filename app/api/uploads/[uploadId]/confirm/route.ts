@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { createUpload } from '@/lib/uploads-db';
 import { queryOne } from '@/lib/db';
+import { getClientIdentifier } from '@/lib/rate-limit';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
@@ -16,16 +17,10 @@ export async function POST(
   { params }: { params: Promise<{ uploadId: string }> }
 ) {
   try {
-    // 1. Authenticate user
+    // 1. Authenticate user (allow anonymous for /upload landing page)
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
+    const identifier = getClientIdentifier(request);
+    const userId = session?.user?.id || `anon-${identifier}`;
     const { uploadId } = await params;
 
     // 2. Parse request body

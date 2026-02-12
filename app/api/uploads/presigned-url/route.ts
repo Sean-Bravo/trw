@@ -22,17 +22,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 1. Authenticate user
+    // 1. Authenticate user (allow anonymous for /upload landing page)
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
-    const tier = session.user.subscriptionTier || 'free';
+    const userId = session?.user?.id || `anon-${identifier}`;
 
     // 2. Parse request body
     const body = await request.json();
