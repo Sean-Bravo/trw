@@ -77,6 +77,7 @@ trw/
 │   ├── dashboard/          # Protected user area
 │   ├── login/              # Auth pages
 │   ├── signup/
+│   ├── upload/              # Google Ads landing page (noindex, dark theme)
 │   └── [marketing pages]
 │
 ├── components/
@@ -314,6 +315,7 @@ fingerprinting.py: detect_exchange_from_headers()
 
 ## What's Not Built Yet
 
+- [x] **Google Ads landing page** - `/upload` route with conversion tracking (csv_upload_started, csv_upload_completed), noindex, dark theme, real upload flow
 - [ ] Bank statement PDF parsing (future feature)
 - [ ] Stripe payment integration (Pro/Premium buttons show "Coming Soon")
 
