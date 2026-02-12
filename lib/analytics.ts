@@ -22,7 +22,7 @@ declare global {
 export const trackPurchase = (transactionId: string, value: number, currency = 'USD') => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', 'conversion', {
-      send_to: `${process.env['NEXT_PUBLIC_GOOGLE_ADS_ID']}/purchase`,
+      send_to: `${process.env['NEXT_PUBLIC_GOOGLE_ADS_ID']}/${process.env['NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL']}`,
       transaction_id: transactionId,
       value: value,
       currency: currency,
