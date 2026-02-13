@@ -239,16 +239,16 @@ export default function UploadLandingPage() {
                 <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-accent-500/10 border-2 border-accent-500 flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6 text-accent-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-accent-400 mb-2">File uploaded!</h3>
+                <h3 className="text-lg font-semibold text-accent-400 mb-2">CSV received!</h3>
                 <p className="text-sm text-slate-400 mb-4">
-                  Your CSV is being processed. Sign in to your dashboard to download the fixed file.
+                  Your file is being processed by our parser. Create a free account to view results and download the fixed file.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link
                     href="/signup"
                     className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors"
                   >
-                    Create Account to Download
+                    Create Free Account
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <button
@@ -354,7 +354,7 @@ export default function UploadLandingPage() {
             onClick={() => fileInputRef.current?.click()}
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-primary-500 to-primary-700 text-white font-semibold text-base shadow-glow hover:shadow-[0_0_50px_-10px_rgba(99,91,255,0.4)] hover:-translate-y-0.5 transition-all duration-200"
           >
-            Upload Your Failed CSV
+            Fix My CSV for Free
             <ArrowRight className="w-4.5 h-4.5" />
           </button>
           <div className="mt-5 flex items-center justify-center gap-5 text-xs text-slate-500 flex-wrap">
