@@ -61,7 +61,7 @@ export const Post = defineDocumentType(() => ({
     },
     category: {
       type: 'enum',
-      options: ['crypto-tax', 'guides', 'updates', 'tax-tips', 'crypto-news'],
+      options: ['crypto-tax', 'guides', 'updates', 'tax-tips', 'crypto-news', 'bookkeeping'],
       default: 'guides',
     },
     tags: {
