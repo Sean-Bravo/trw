@@ -14,7 +14,7 @@ export async function GET(
   try {
     const { jobId } = await params;
     const { searchParams } = new URL(request.url);
-    const format = searchParams.get('format') || 'qbo';
+    const format = searchParams.get('format') || 'csv';
 
     if (!jobId) {
       return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });

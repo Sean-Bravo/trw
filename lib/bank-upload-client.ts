@@ -22,7 +22,7 @@ export interface BankProcessResponse {
   error?: string;
 }
 
-export type BankOutputFormat = 'qbo' | 'xero' | 'excel';
+export type BankOutputFormat = 'csv' | 'qbo' | 'xero' | 'excel';
 
 export interface BankUploadError {
   code: 'RATE_LIMIT' | 'FILE_TOO_LARGE' | 'INVALID_FILE_TYPE' | 'NETWORK_ERROR' | 'SERVER_ERROR';
@@ -152,7 +152,7 @@ export async function processBankStatement(
  */
 export async function uploadBankStatement(
   file: File,
-  outputFormat: BankOutputFormat = 'excel',
+  outputFormat: BankOutputFormat = 'csv',
   onProgress?: (stage: 'requesting' | 'uploading' | 'processing', percent: number) => void
 ): Promise<BankProcessResponse> {
   try {

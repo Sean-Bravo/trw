@@ -232,7 +232,7 @@ describe('UploadLandingPage', () => {
       await dropFileOnZone(file);
 
       await waitFor(() => {
-        expect(mockUploadBankStatement).toHaveBeenCalledWith(file, 'excel', expect.any(Function));
+        expect(mockUploadBankStatement).toHaveBeenCalledWith(file, 'csv', expect.any(Function));
       });
     });
 
@@ -257,7 +257,7 @@ describe('UploadLandingPage', () => {
       await selectFileViaInput(file);
 
       await waitFor(() => {
-        expect(mockUploadBankStatement).toHaveBeenCalledWith(file, 'excel', expect.any(Function));
+        expect(mockUploadBankStatement).toHaveBeenCalledWith(file, 'csv', expect.any(Function));
       });
     });
 
@@ -456,6 +456,39 @@ describe('UploadLandingPage', () => {
 
       const signupLink = await screen.findByText('Create Free Account');
       expect(signupLink.closest('a')).toHaveAttribute('href', '/signup');
+    });
+
+    it('renders format selector buttons on success', async () => {
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: 'Chase',
+        transactionCount: 42,
+        downloadUrl: 'https://s3.example.com/result.csv',
+        jobId: 'job-123',
+      });
+      render(<UploadLandingPage />);
+      await selectFileViaInput(createMockPDFFile());
+
+      // Format selector buttons in success state (CSV also appears in output format badges section)
+      expect((await screen.findAllByText('CSV')).length).toBeGreaterThanOrEqual(2);
+      // QBO only appears as format selector button (badge says "QuickBooks (QBO)")
+      expect(screen.getByRole('button', { name: 'QBO' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Xero' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Excel' })).toBeInTheDocument();
+    });
+
+    it('shows "Download CSV" by default', async () => {
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: 'Chase',
+        transactionCount: 42,
+        downloadUrl: 'https://s3.example.com/result.csv',
+        jobId: 'job-123',
+      });
+      render(<UploadLandingPage />);
+      await selectFileViaInput(createMockPDFFile());
+
+      expect(await screen.findByText('Download CSV')).toBeInTheDocument();
     });
 
     it('shows "Upload another file" button that resets to idle', async () => {
