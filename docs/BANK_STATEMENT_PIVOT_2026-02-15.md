@@ -40,7 +40,7 @@ First real upload (Chase statement) revealed the flow completed successfully but
 - **Badge:** "PROBLEM: Can't import your bank statement?"
 - **Upload zone:** "Drop your bank statement PDF here" (accepts `.pdf` only, 50MB limit)
 - **Pain cards:** QuickBooks / Xero / Excel error messages about bank statement PDFs
-- **Banks:** Chase, Bank of America, Wells Fargo, Citi, Capital One, US Bank, PNC, TD Bank, Regions, HSBC, BMO
+- **Banks:** Chase, Bank of America, Wells Fargo, Citi, Capital One, US Bank, PNC, TD Bank, Mercury, Navy Federal, Regions, HSBC, BMO (13 total)
 - **Output formats:** CSV, QuickBooks (QBO), Xero, Excel
 - **Bottom CTA:** "Convert My Statement for Free"
 
@@ -92,6 +92,88 @@ The bank statement backend was already built and deployed:
 
 The only changes needed were removing the auth gates, creating the client-side upload flow, and adding download URL generation to the Lambda response.
 
+### Commit `e54f822` — Mercury bank support (4 files)
+
+Mercury statement failed with "No transactions found in PDF".
+
+**Root causes:**
+1. No Mercury bank config existed — fell back to generic which failed
+2. Mercury uses Unicode minus sign (U+2212) in amounts like "−$60.47" — `_clean_amount()` didn't normalize it
+3. Mercury uses "Mon DD" date format (e.g., "May 03") — no date pattern supported this
+
+| File | Change |
+|---|---|
+| `backend/configs/banks/mercury.yaml` | **New.** Mercury bank config with fingerprint, logo patterns, "Mon DD" date format |
+| `backend/services/bank_statement/extractor.py` | Added "Mon DD" date pattern; normalized Unicode minus signs (U+2212, U+2013, U+2014) in `_clean_amount()` |
+| `app/upload/page.tsx` | Added Mercury to BANKS array (12 banks) |
+| `__tests__/components/UploadLandingPage.test.tsx` | Updated bank count assertion to 12 |
+
+**Result:** 4 transactions extracted from Mercury test statement. CSV has quality issues (junk header rows, balance vs amount, description contamination) — not yet fixed.
+
+### Commit `3d684c2` — Navy Federal bank support (6 files)
+
+Navy Federal statement failed with "No transactions found in PDF".
+
+**Root causes:**
+1. No Navy Federal config — generic fallback failed
+2. Uses MM-DD dates with hyphens ("01-08") instead of slashes
+3. Uses trailing minus for debits ("55,000.00-", "20.00 -")
+4. No structured tables — pdfplumber finds 0 tables on transaction pages, requires text extraction fallback
+5. Broken text from PDF rendering ("Wire Fe e" instead of "Wire Fee")
+
+| File | Change |
+|---|---|
+| `backend/configs/banks/navy_federal.yaml` | **New.** Navy Federal config with fingerprint (NCUA marker), MM-DD format, multiline descriptions |
+| `backend/services/bank_statement/extractor.py` | Added "MM-DD" date pattern to `_build_date_pattern()`; improved trailing minus regex in `_parse_text_line()` |
+| `backend/services/bank_statement/normalizer.py` | Added `%m-%d` format to `formats_to_try` for hyphen-separated dates |
+| `app/upload/page.tsx` | Added Navy Federal to BANKS array + upload zone subtitle (13 banks) |
+| `__tests__/components/UploadLandingPage.test.tsx` | Updated bank count assertion to 13 |
+| Lambda | Redeployed via `./deploy.sh deploy` |
+
+**Result:** 20 transactions extracted from Navy Federal test statement. CSV has quality issues (broken text, multiline descriptions, balance rows) — not yet fixed.
+
+---
+
+## Bank Processing Pipeline
+
+```
+PDF Upload → S3
+       ↓
+Lambda /bank/process
+       ↓
+pdfplumber extracts text + tables
+       ↓
+BankFingerprinter scores against YAML configs
+  (unique_markers: 20pts, logo_patterns: 10pts, header_patterns: 5pts)
+       ↓
+TransactionExtractor:
+  1. Try table extraction first (pdfplumber.extract_tables)
+  2. If no tables → text fallback (regex line parsing)
+       ↓
+TransactionNormalizer:
+  - Date normalization (multiple format support)
+  - Amount cleaning (Unicode minus, trailing minus, currency symbols)
+  - Deduplication
+       ↓
+Export CSV → S3
+       ↓
+Generate presigned download URL → return to frontend
+```
+
+## Supported Bank Configs
+
+| Bank | Config File | Date Format | Special Handling |
+|------|------------|-------------|------------------|
+| Chase | `chase.yaml` | MM/DD | Table extraction works well |
+| Bank of America | `bofa.yaml` | MM/DD/YYYY | Pre-existing config |
+| Wells Fargo | `wells_fargo.yaml` | MM/DD | Pre-existing config |
+| Citi | `citi.yaml` | MM/DD | Pre-existing config |
+| Capital One | `capital_one.yaml` | MM/DD/YYYY | Pre-existing config |
+| Mercury | `mercury.yaml` | Mon DD | Unicode minus signs, no tables |
+| Navy Federal | `navy_federal.yaml` | MM-DD | Trailing minus debits, broken PDF text, no tables |
+
+Banks without configs (Citi, US Bank, PNC, TD Bank, Regions, HSBC, BMO) rely on generic extraction — not yet tested.
+
 ## Testing
 
 52 tests passing — covers rendering, drag-and-drop, file validation, upload progress states, success/error flows, download button, conversion tracking events, and reset cycles.
@@ -100,9 +182,24 @@ The only changes needed were removing the auth gates, creating the client-side u
 npx jest --testPathPatterns=UploadLandingPage  # 52 passed, 1.3s
 ```
 
+## Known CSV Quality Issues
+
+### Mercury
+- Junk rows from header text parsed as transactions
+- Amount column showing balance instead of transaction amount
+- Description containing card icon data leaked from other columns
+
+### Navy Federal
+- Broken text from PDF rendering ("Wire Fe e" instead of "Wire Fee")
+- Multiline POS Debit descriptions have amounts leaking into description
+- "Beginning Balance" and "Ending Balance" parsed as transactions
+
 ## Next Steps
 
-1. **Update Google Ads Campaign 2** — swap crypto CSV keywords for bank statement keywords, update ad copy
-2. **Monitor S3** — verify PDFs land in the bank statement bucket from ad traffic
-3. **Stripe integration** — gate output downloads behind payment once free beta validates demand
-4. **Account linking** — let anonymous uploaders claim their processed files after signup
+1. **Test Bank of America** — has pre-existing `bofa.yaml` config, user testing soon
+2. **Fix Mercury CSV quality** — filter junk rows, correct amount column, clean descriptions
+3. **Fix Navy Federal CSV quality** — fix broken text, filter balance rows, handle multiline descriptions
+4. **Update Google Ads Campaign 2** — swap crypto CSV keywords for bank statement keywords, update ad copy
+5. **Monitor S3** — verify PDFs land in the bank statement bucket from ad traffic
+6. **Stripe integration** — gate output downloads behind payment once free beta validates demand
+7. **Account linking** — let anonymous uploaders claim their processed files after signup
