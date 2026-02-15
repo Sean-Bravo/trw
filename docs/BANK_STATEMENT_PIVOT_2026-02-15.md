@@ -147,6 +147,28 @@ Users could only download CSV. Now the success state shows a format selector (CS
 | `backend/handlers/webhook.py` | Added `csv` to valid formats, default changed from `qbo` to `csv`, Lambda now generates all 4 format files (`output_csv.csv`, `output_qbo.csv`, `output_xero.csv`, `output_excel.csv`) after extraction |
 | `__tests__/components/UploadLandingPage.test.tsx` | 54 tests (2 new: format selector buttons render, "Download CSV" default label) |
 
+### Commit `66d965d` — 5 SEO blog posts + bookkeeping category (7 files)
+
+Added 5 bank statement / bookkeeping blog posts to `/blog` for SEO. All published, spaced one week apart (Feb 15 → Mar 15).
+
+| File | Change |
+|---|---|
+| `content/blog/quickbooks-csv-import-failed-troubleshooting.mdx` | **New.** QuickBooks CSV import troubleshooting guide (featured) |
+| `content/blog/why-bank-csv-export-breaks.mdx` | **New.** Why bank CSV exports break on import (featured) |
+| `content/blog/freelancer-bank-statement-tax-guide.mdx` | **New.** Freelancer bank statement tax guide |
+| `content/blog/convert-pdf-bank-statement-to-csv.mdx` | **New.** PDF bank statement to CSV conversion guide |
+| `content/blog/hidden-cost-manual-bank-statement-data-entry.mdx` | **New.** Hidden cost of manual bank data entry |
+| `contentlayer.config.ts` | Added `bookkeeping` to category enum |
+| `app/blog/page.tsx` | Added bookkeeping category style (amber/orange) |
+
+**Deployment issue:** After pushing, Vercel auto-deployed but the blog posts did not appear in production. The individual post URLs returned 404.
+
+**Root cause:** Vercel restored its build cache from the previous deployment (`Restored build cache from previous deployment (6fLMpvxR...)`). The cached `.contentlayer/generated/` directory contained only the old 6 posts. The `withContentlayer` Next.js plugin saw the existing cache and skipped regeneration, so the 5 new `.mdx` files were never processed. The build completed successfully with only 6 blog slugs.
+
+**Fix:** Ran `vercel --prod` from CLI to trigger a clean production deploy. Contentlayer regenerated from scratch, processed all 11 `.mdx` files, and the build output showed `[+8 more paths]` under `/blog/[slug]` (11 total). All 5 new post URLs now return 200.
+
+**Lesson:** When adding new content files that contentlayer processes, Vercel's build cache can serve stale contentlayer output. If new content doesn't appear after deploy, trigger a manual redeploy (`vercel --prod`) to bust the cache.
+
 ---
 
 ## Bank Processing Pipeline
