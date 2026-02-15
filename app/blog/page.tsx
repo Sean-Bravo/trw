@@ -25,6 +25,7 @@ const CATEGORY_STYLES: Record<string, { color: string; bg: string; icon: React.C
   'guides': { color: 'text-blue-600', bg: 'bg-blue-50', icon: BookOpen },
   'tax-tips': { color: 'text-emerald-600', bg: 'bg-emerald-50', icon: FileText },
   'updates': { color: 'text-slate-400', bg: 'bg-slate-50', icon: Terminal },
+  'bookkeeping': { color: 'text-amber-600', bg: 'bg-amber-50', icon: FileText },
   'default': { color: 'text-blue-600', bg: 'bg-blue-50', icon: FileText },
 }
 
