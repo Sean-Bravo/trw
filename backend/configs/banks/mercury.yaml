@@ -1,0 +1,37 @@
+# configs/banks/mercury.yaml
+bank:
+  name: "Mercury"
+  aliases: ["Mercury Bank", "Mercury Financial"]
+  version: "1.0.0"
+  updated_at: "2026-02-15"
+
+fingerprint:
+  logo_patterns: ["Mercury", "mercury.com"]
+  header_patterns: ["All Transactions", "End of Day Balance"]
+  unique_markers: ["Choice Financial Group", "Banking services provided by Choice Financial Group"]
+
+table_detection:
+  header_row_keywords: ["Date", "Description", "Type", "Amount", "Balance"]
+  skip_rows_containing: ["Total", "Page", "Banking services", "Mercury |"]
+
+columns:
+  date:
+    names: ["Date", "Date (UTC)"]
+    format: "Mon DD"
+  description:
+    names: ["Description"]
+    max_length: 255
+    multiline: false
+  amount:
+    names: ["Amount"]
+    debit_credit_mode: false
+  balance:
+    names: ["End of Day Balance", "Balance"]
+
+normalization:
+  date_output: "YYYY-MM-DD"
+  amount_sign: "negative_for_debits"
+
+validation:
+  balance_reconciliation: true
+  date_sequence: true
