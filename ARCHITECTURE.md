@@ -77,7 +77,7 @@ trw/
 │   ├── dashboard/          # Protected user area
 │   ├── login/              # Auth pages
 │   ├── signup/
-│   ├── upload/              # Google Ads landing page (noindex, dark theme)
+│   ├── upload/              # Bank statement PDF → CSV converter (public landing page)
 │   └── [marketing pages]
 │
 ├── components/
@@ -224,6 +224,12 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | `backend/services/format_converter.py` | Lightweight tax format conversion (Koinly→TurboTax/CoinLedger/ZenLedger) |
 | `backend/services/fingerprinting.py` | Exchange format detection |
 | `backend/services/ai_insights.py` | Tiered AI insights (Gemini/Sonnet/Opus) |
+| `app/upload/page.tsx` | Bank statement upload landing page (13 banks, anonymous access) |
+| `lib/bank-upload-client.ts` | Bank upload client (presigned URL → S3 PUT → process) |
+| `backend/services/bank_statement/extractor.py` | PDF transaction extraction (tables + text fallback) |
+| `backend/services/bank_statement/normalizer.py` | Date/amount normalization + deduplication |
+| `backend/services/bank_statement/fingerprinter.py` | Bank detection via YAML config scoring |
+| `backend/configs/banks/*.yaml` | Bank-specific configs (fingerprint, date format, columns) |
 
 ## External Dependencies
 
@@ -318,35 +324,33 @@ fingerprinting.py: detect_exchange_from_headers()
 
 - [x] **Google Ads landing page** - `/upload` route with conversion tracking (csv_upload_started, csv_upload_completed), noindex, dark theme, real upload flow
 - [x] **Anonymous uploads** - `/upload` works without auth; presigned-url and confirm routes fall back to `anon-{ip}` userId for zero-friction parser validation
-- [ ] Bank statement PDF parsing (future feature)
+- [x] **Bank statement PDF → CSV** — `/upload` page converts bank statement PDFs to clean CSV. Supports Chase, Mercury, Navy Federal (tested), plus Bank of America, Wells Fargo, Citi, Capital One (configs exist). Uses pdfplumber + YAML-driven bank configs + BankFingerprinter scoring.
 - [ ] Stripe payment integration (Pro/Premium buttons show "Coming Soon")
 
 ## Future Features
 
-### Bank Statement Formatter
+### Bank Statement Formatter (LIVE)
 
-A PDF-to-CSV converter feature for importing bank statements into QBO/Xero.
+PDF-to-CSV converter at `/upload`. Users drop a bank statement PDF and get a clean CSV back with a presigned S3 download link.
 
-**Workflow:** PDF Upload → Extraction → Normalization → Format for QBO/Xero → CSV Download
+**Pipeline:** PDF → pdfplumber → BankFingerprinter (YAML configs) → TransactionExtractor (tables or text fallback) → TransactionNormalizer → CSV → S3 presigned download URL
 
-**Tech Stack:**
-- `pdfplumber` / `Tabula-py` for digital PDFs
-- AWS Textract for scanned PDFs (OCR) - integrates with existing AWS infra
-- Pandas for data cleaning and export
+**Supported Banks (tested):**
+| Bank | Config | Date Format | Notes |
+|------|--------|-------------|-------|
+| Chase | `chase.yaml` | MM/DD | Table extraction |
+| Mercury | `mercury.yaml` | Mon DD | Unicode minus signs, text fallback |
+| Navy Federal | `navy_federal.yaml` | MM-DD | Trailing minus debits, text fallback |
 
-**Key Logic:**
-- Transaction detection via regex (date patterns like `^\d{2}/\d{2}/\d{4}`)
-- Multiline description handling (append non-date lines to previous row)
-- Date normalization with `dateparser` library
-- Credit/Debit logic: separate columns → single signed Amount
+**Additional configs (untested):** Bank of America, Wells Fargo, Citi, Capital One
 
-**Output Formats:**
-- Xero CSV: `*Date`, `*Amount`, `Payee`, `Description`, `Reference`, `Check Number`
-- QBO CSV: `Date`, `Description`, `Amount` (negative=expense, positive=income)
+**Key backend files:**
+- `backend/configs/banks/*.yaml` — YAML-driven bank configs (fingerprint, date format, column mapping)
+- `backend/services/bank_statement/fingerprinter.py` — Scoring: unique_markers (20pts), logo_patterns (10pts), header_patterns (5pts)
+- `backend/services/bank_statement/extractor.py` — Table extraction first, text regex fallback
+- `backend/services/bank_statement/normalizer.py` — Date/amount normalization, deduplication
 
-**MVP Scope:** Digital PDFs only (no OCR), `pdfplumber` extraction, simple upload→download flow
-
-**Access:** Pro/Premium tiers only (not available to free users)
+**Access:** Free (anonymous uploads allowed, no auth required)
 
 ## Related Docs
 
