@@ -184,9 +184,9 @@ describe('UploadLandingPage', () => {
       expect(screen.getByText('Supported banks')).toBeInTheDocument();
     });
 
-    it('renders all 11 bank tags', () => {
+    it('renders all 12 bank tags', () => {
       render(<UploadLandingPage />);
-      const banks = ['Chase', 'Bank of America', 'Wells Fargo', 'Citi', 'Capital One', 'US Bank', 'PNC', 'TD Bank', 'Regions', 'HSBC', 'BMO'];
+      const banks = ['Chase', 'Bank of America', 'Wells Fargo', 'Citi', 'Capital One', 'US Bank', 'PNC', 'TD Bank', 'Mercury', 'Regions', 'HSBC', 'BMO'];
       banks.forEach((name) => {
         expect(screen.getAllByText(name).length).toBeGreaterThanOrEqual(1);
       });
