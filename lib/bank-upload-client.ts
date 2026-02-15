@@ -12,10 +12,12 @@ export interface BankPresignedUrlResponse {
 
 export interface BankProcessResponse {
   success: boolean;
+  jobId?: string;
   detectedBank: string | null;
   transactionCount: number | null;
   downloadUrl?: string;
   resultKey?: string;
+  outputFormat?: string;
   warnings?: string[];
   error?: string;
 }

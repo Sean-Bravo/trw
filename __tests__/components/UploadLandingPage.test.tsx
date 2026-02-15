@@ -402,19 +402,55 @@ describe('UploadLandingPage', () => {
   // UPLOAD SUCCESS
   // =========================================================================
   describe('Upload Success', () => {
-    beforeEach(() => {
-      mockUploadBankStatement.mockResolvedValue({ success: true, detectedBank: 'Chase', transactionCount: 42 });
-    });
-
-    it('shows success state after upload completes', async () => {
+    it('shows transaction count and detected bank after upload completes', async () => {
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: 'Chase',
+        transactionCount: 42,
+        downloadUrl: 'https://s3.example.com/result.csv',
+      });
       render(<UploadLandingPage />);
       await selectFileViaInput(createMockPDFFile());
 
-      expect(await screen.findByText('Statement received!')).toBeInTheDocument();
-      expect(await screen.findByText(/Create a free account to view results/)).toBeInTheDocument();
+      expect(await screen.findByText('42 transactions extracted!')).toBeInTheDocument();
+      expect(await screen.findByText('Detected: Chase')).toBeInTheDocument();
+      expect(await screen.findByText(/Your file is ready/)).toBeInTheDocument();
     });
 
-    it('shows "Create Free Account" link to /signup', async () => {
+    it('shows fallback heading when transactionCount is missing', async () => {
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: null,
+        transactionCount: null,
+        downloadUrl: 'https://s3.example.com/result.csv',
+      });
+      render(<UploadLandingPage />);
+      await selectFileViaInput(createMockPDFFile());
+
+      expect(await screen.findByText('Statement converted!')).toBeInTheDocument();
+    });
+
+    it('shows "Download CSV" button when downloadUrl is returned', async () => {
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: 'Chase',
+        transactionCount: 42,
+        downloadUrl: 'https://s3.example.com/result.csv',
+      });
+      render(<UploadLandingPage />);
+      await selectFileViaInput(createMockPDFFile());
+
+      const downloadLink = await screen.findByText('Download CSV');
+      expect(downloadLink.closest('a')).toHaveAttribute('href', 'https://s3.example.com/result.csv');
+      expect(downloadLink.closest('a')).toHaveAttribute('download');
+    });
+
+    it('shows "Create Free Account" fallback when no downloadUrl', async () => {
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: 'Chase',
+        transactionCount: 42,
+      });
       render(<UploadLandingPage />);
       await selectFileViaInput(createMockPDFFile());
 
@@ -424,6 +460,12 @@ describe('UploadLandingPage', () => {
 
     it('shows "Upload another file" button that resets to idle', async () => {
       const user = userEvent.setup();
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: 'Chase',
+        transactionCount: 42,
+        downloadUrl: 'https://s3.example.com/result.csv',
+      });
       render(<UploadLandingPage />);
       await selectFileViaInput(createMockPDFFile());
 
@@ -608,7 +650,12 @@ describe('UploadLandingPage', () => {
   describe('Reset Flow', () => {
     it('completes full cycle: idle → upload → success → reset → idle', async () => {
       const user = userEvent.setup();
-      mockUploadBankStatement.mockResolvedValue({ success: true, detectedBank: 'Chase', transactionCount: 42 });
+      mockUploadBankStatement.mockResolvedValue({
+        success: true,
+        detectedBank: 'Chase',
+        transactionCount: 42,
+        downloadUrl: 'https://s3.example.com/result.csv',
+      });
 
       render(<UploadLandingPage />);
 
@@ -619,7 +666,7 @@ describe('UploadLandingPage', () => {
       await selectFileViaInput(createMockPDFFile());
 
       // Success state
-      expect(await screen.findByText('Statement received!')).toBeInTheDocument();
+      expect(await screen.findByText('42 transactions extracted!')).toBeInTheDocument();
 
       // Reset
       const resetButton = screen.getByText('Upload another file');

@@ -14,6 +14,7 @@ import {
   FileText,
   ArrowRight,
   AlertCircle,
+  Download,
 } from 'lucide-react';
 
 const BANKS = [
@@ -55,6 +56,10 @@ export default function UploadLandingPage() {
   const [progressLabel, setProgressLabel] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [detectedBank, setDetectedBank] = useState<string | null>(null);
+  const [transactionCount, setTransactionCount] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Capture UTM params on mount
@@ -80,7 +85,7 @@ export default function UploadLandingPage() {
     trackConversion('bank_upload_started');
 
     try {
-      await uploadBankStatement(file, 'excel', (stage, percent) => {
+      const result = await uploadBankStatement(file, 'excel', (stage, percent) => {
         setProgress(percent);
         switch (stage) {
           case 'requesting':
@@ -94,6 +99,16 @@ export default function UploadLandingPage() {
             break;
         }
       });
+
+      // Capture result for download
+      if (result.downloadUrl) {
+        setDownloadUrl(result.downloadUrl);
+      } else if (result.jobId) {
+        // Fallback: fetch download URL from the download endpoint
+        setJobId(result.jobId);
+      }
+      if (result.detectedBank) setDetectedBank(result.detectedBank);
+      if (result.transactionCount) setTransactionCount(result.transactionCount);
 
       setState('success');
       trackConversion('bank_upload_completed');
@@ -123,6 +138,10 @@ export default function UploadLandingPage() {
     setProgress(0);
     setProgressLabel('');
     setErrorMsg('');
+    setDownloadUrl(null);
+    setJobId(null);
+    setDetectedBank(null);
+    setTransactionCount(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -239,18 +258,39 @@ export default function UploadLandingPage() {
                 <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-accent-500/10 border-2 border-accent-500 flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6 text-accent-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-accent-400 mb-2">Statement received!</h3>
+                <h3 className="text-lg font-semibold text-accent-400 mb-2">
+                  {transactionCount
+                    ? `${transactionCount} transactions extracted!`
+                    : 'Statement converted!'}
+                </h3>
+                {detectedBank && (
+                  <p className="text-xs text-slate-500 font-mono mb-3">
+                    Detected: {detectedBank}
+                  </p>
+                )}
                 <p className="text-sm text-slate-400 mb-4">
-                  Your bank statement is being processed. Create a free account to view results and download the converted file.
+                  Your file is ready. Download your converted spreadsheet below.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors"
-                  >
-                    Create Free Account
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  {downloadUrl ? (
+                    <a
+                      href={downloadUrl}
+                      download
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-accent-500 hover:bg-accent-600 text-white text-sm font-semibold transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download CSV
+                    </a>
+                  ) : (
+                    <Link
+                      href="/signup"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors"
+                    >
+                      Create Free Account
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  )}
                   <button
                     onClick={(e) => { e.stopPropagation(); reset(); }}
                     className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
