@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Logo } from '@/components/ui/Logo';
-import { uploadCSVFile, validateFile, formatFileSize } from '@/lib/upload-client';
+import { uploadBankStatement, validateBankFile } from '@/lib/bank-upload-client';
 import { trackConversion } from '@/lib/analytics';
 import Link from 'next/link';
 import {
@@ -16,34 +16,34 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-const EXCHANGES = [
-  'Coinbase', 'Binance', 'Kraken', 'Crypto.com', 'KuCoin',
-  'Gemini', 'Bybit', 'Robinhood', 'Bitfinex', 'Gate.io', 'OKX',
+const BANKS = [
+  'Chase', 'Bank of America', 'Wells Fargo', 'Citi', 'Capital One',
+  'US Bank', 'PNC', 'TD Bank', 'Regions', 'HSBC', 'BMO',
 ];
 
-const TAX_PLATFORMS = ['TurboTax', 'Koinly', 'CoinLedger', 'ZenLedger'];
+const OUTPUT_FORMATS = ['CSV', 'QuickBooks (QBO)', 'Xero', 'Excel'];
 
-const ERROR_CARDS = [
-  { source: 'TurboTax', msg: '"We could not import this CSV file"' },
-  { source: 'Koinly', msg: '"Invalid format: missing required headers"' },
-  { source: 'CoinLedger', msg: '"CSV validation failed — unexpected columns"' },
+const PAIN_CARDS = [
+  { source: 'QuickBooks', msg: '"We couldn\'t read your bank statement PDF"' },
+  { source: 'Xero', msg: '"Import failed — unexpected file format"' },
+  { source: 'Excel', msg: '"Unable to extract transactions from PDF"' },
 ];
 
 const FEATURES = [
   {
     icon: Search,
-    title: 'Auto-detects your exchange',
-    desc: 'Drop the CSV. We figure out if it\'s Coinbase, Binance, Kraken, or 11 others.',
+    title: 'Auto-detects your bank',
+    desc: 'Drop the PDF. We detect if it\'s Chase, Bank of America, Wells Fargo, or 8 others.',
   },
   {
     icon: Activity,
-    title: 'Fixes formatting errors',
-    desc: 'Bad dates, missing headers, broken delimiters, duplicate rows — all cleaned up.',
+    title: 'Extracts every transaction',
+    desc: 'Dates, descriptions, amounts, running balances — all pulled from the PDF automatically.',
   },
   {
     icon: FileText,
-    title: 'Exports to your tax software',
-    desc: 'Get a clean file formatted for TurboTax, Koinly, CoinLedger, or ZenLedger.',
+    title: 'Exports to your format',
+    desc: 'Get a clean file formatted for QuickBooks, Xero, Excel, or plain CSV.',
   },
 ];
 
@@ -67,7 +67,7 @@ export default function UploadLandingPage() {
   }, []);
 
   const handleFile = useCallback(async (file: File) => {
-    const validation = validateFile(file);
+    const validation = validateBankFile(file);
     if (!validation.valid) {
       setState('error');
       setErrorMsg(validation.error || 'Invalid file');
@@ -77,26 +77,26 @@ export default function UploadLandingPage() {
     setState('uploading');
     setProgress(0);
     setErrorMsg('');
-    trackConversion('csv_upload_started');
+    trackConversion('bank_upload_started');
 
     try {
-      await uploadCSVFile(file, (stage, percent) => {
+      await uploadBankStatement(file, 'excel', (stage, percent) => {
         setProgress(percent);
         switch (stage) {
           case 'requesting':
-            setProgressLabel('Detecting exchange format...');
+            setProgressLabel('Detecting bank format...');
             break;
           case 'uploading':
-            setProgressLabel('Uploading & parsing transactions...');
+            setProgressLabel('Uploading your statement...');
             break;
-          case 'confirming':
-            setProgressLabel(percent >= 100 ? 'Complete!' : 'Validating data fields...');
+          case 'processing':
+            setProgressLabel(percent >= 100 ? 'Complete!' : 'Extracting transactions...');
             break;
         }
       });
 
       setState('success');
-      trackConversion('csv_upload_completed');
+      trackConversion('bank_upload_completed');
     } catch (err: unknown) {
       setState('error');
       const msg = err && typeof err === 'object' && 'message' in err
@@ -158,20 +158,20 @@ export default function UploadLandingPage() {
       <main className="relative z-10">
         {/* Hero */}
         <section className="text-center px-4 pt-12 pb-8 max-w-3xl mx-auto">
-          {/* Error badge */}
+          {/* Pain badge */}
           <div className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-1.5 text-xs font-mono text-red-400 mb-7">
             <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse-subtle" />
-            ERROR: We could not import this CSV
+            PROBLEM: Can&apos;t import your bank statement?
           </div>
 
           <h1 className="font-poppins text-3xl sm:text-5xl font-bold leading-tight tracking-tight mb-5">
-            Upload your broken CSV.
+            Upload your bank statement.
             <br />
-            Get a <em className="not-italic text-primary-400">fixed</em> file back.
+            Get a <em className="not-italic text-primary-400">clean CSV</em> back.
           </h1>
 
           <p className="text-base sm:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
-            Your exchange exported garbage. We clean it, fix the formatting errors, and make it import&#8209;ready for TurboTax, Koinly, CoinLedger, and ZenLedger.
+            Your bank gave you a PDF. Your accounting software needs a spreadsheet. We extract every transaction and convert to CSV, QuickBooks, Xero, or Excel format.
           </p>
         </section>
 
@@ -193,7 +193,7 @@ export default function UploadLandingPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv"
+              accept=".pdf"
               className="hidden"
               onChange={onFileChange}
             />
@@ -204,12 +204,12 @@ export default function UploadLandingPage() {
                 <div className="mx-auto mb-5 w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
                   <Upload className="w-6 h-6 text-primary-400" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1.5">Drop your failed CSV here</h3>
+                <h3 className="text-lg font-semibold mb-1.5">Drop your bank statement PDF here</h3>
                 <p className="text-sm text-slate-500">
-                  or <span className="text-primary-400 underline underline-offset-2 decoration-primary-400/30">browse files</span> — .csv up to 50MB
+                  or <span className="text-primary-400 underline underline-offset-2 decoration-primary-400/30">browse files</span> — .pdf up to 50MB
                 </p>
                 <p className="mt-4 text-xs text-slate-600 font-mono">
-                  Coinbase · Binance · Kraken · Crypto.com · 10 more
+                  Chase · Bank of America · Wells Fargo · Citi · 7 more
                 </p>
               </>
             )}
@@ -239,9 +239,9 @@ export default function UploadLandingPage() {
                 <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-accent-500/10 border-2 border-accent-500 flex items-center justify-center">
                   <CheckCircle2 className="w-6 h-6 text-accent-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-accent-400 mb-2">CSV received!</h3>
+                <h3 className="text-lg font-semibold text-accent-400 mb-2">Statement received!</h3>
                 <p className="text-sm text-slate-400 mb-4">
-                  Your file is being processed by our parser. Create a free account to view results and download the fixed file.
+                  Your bank statement is being processed. Create a free account to view results and download the converted file.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link
@@ -280,13 +280,13 @@ export default function UploadLandingPage() {
           </div>
         </section>
 
-        {/* Error showcase */}
+        {/* Pain point showcase */}
         <section className="max-w-3xl mx-auto px-4 pb-16">
           <h2 className="text-center text-xs font-medium text-slate-500 uppercase tracking-widest mb-6">
-            Seeing one of these? We can help.
+            Sound familiar? We can help.
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {ERROR_CARDS.map((card) => (
+            {PAIN_CARDS.map((card) => (
               <div
                 key={card.source}
                 className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 font-mono text-xs transition-colors hover:border-slate-700"
@@ -319,13 +319,13 @@ export default function UploadLandingPage() {
           </div>
         </section>
 
-        {/* Exchanges */}
+        {/* Supported banks */}
         <section className="max-w-3xl mx-auto px-4 pb-16 text-center">
           <h2 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-5">
-            Supported exchanges
+            Supported banks
           </h2>
           <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {EXCHANGES.map((name) => (
+            {BANKS.map((name) => (
               <span
                 key={name}
                 className="rounded-lg border border-slate-800 bg-slate-900/60 px-3.5 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:border-slate-700 hover:text-slate-200"
@@ -335,9 +335,9 @@ export default function UploadLandingPage() {
             ))}
           </div>
           <div className="flex items-center justify-center gap-2 text-xs text-slate-500 flex-wrap">
-            Exports to
+            Converts to
             <span className="text-primary-400">→</span>
-            {TAX_PLATFORMS.map((name) => (
+            {OUTPUT_FORMATS.map((name) => (
               <span
                 key={name}
                 className="rounded-md border border-accent-500/15 bg-accent-500/10 px-2.5 py-1 text-accent-400 font-medium"
@@ -354,7 +354,7 @@ export default function UploadLandingPage() {
             onClick={() => fileInputRef.current?.click()}
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-primary-500 to-primary-700 text-white font-semibold text-base shadow-glow hover:shadow-[0_0_50px_-10px_rgba(99,91,255,0.4)] hover:-translate-y-0.5 transition-all duration-200"
           >
-            Fix My CSV for Free
+            Convert My Statement for Free
             <ArrowRight className="w-4.5 h-4.5" />
           </button>
           <div className="mt-5 flex items-center justify-center gap-5 text-xs text-slate-500 flex-wrap">

@@ -22,14 +22,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Authenticate user
+    // Authenticate user (allow anonymous for /upload landing page)
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const userId = session.user.id;
-    const tier = session.user.subscriptionTier || 'free';
+    const userId = session?.user?.id || `anon-${identifier}`;
+    const tier = session?.user?.subscriptionTier || 'free';
 
     // Bank statements require Pro or Premium tier (bypassed during MVP)
     if (!canAccessBankStatements(tier)) {
