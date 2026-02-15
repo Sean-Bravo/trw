@@ -714,13 +714,13 @@ def handle_bank_process(event: Dict) -> Dict:
 
     job_id = body.get("jobId")
     s3_key = body.get("s3Key")
-    output_format = body.get("outputFormat", "qbo")
+    output_format = body.get("outputFormat", "csv")
 
     if not job_id or not s3_key:
         return response(400, {"error": "jobId and s3Key are required"})
 
     # Validate output format
-    valid_formats = ["qbo", "xero", "excel"]
+    valid_formats = ["csv", "qbo", "xero", "excel"]
     if output_format not in valid_formats:
         return response(400, {"error": f"Invalid output format. Valid: {valid_formats}"})
 
@@ -765,7 +765,14 @@ def handle_bank_process(event: Dict) -> Dict:
                 "warnings": result.get("warnings", []),
             })
 
-        # Save CSV result
+        # Save CSV result in all formats
+        # The PDF extraction is expensive; exporting to different CSV formats is cheap
+        from services.bank_statement.exporter import TransactionExporter
+        all_formats = ["csv", "qbo", "xero", "excel"]
+        exporter = TransactionExporter()
+        normalized_txns = result.get("transactions", [])
+
+        # Save requested format first (already generated)
         output_key = f"bank/{job_id}/output_{output_format}.csv"
         s3_client.put_object(
             Bucket=BANK_RESULTS_BUCKET,
@@ -778,6 +785,27 @@ def handle_bank_process(event: Dict) -> Dict:
                 "bank": result["metadata"].get("detected_bank", "unknown"),
             },
         )
+
+        # Generate and save remaining formats
+        for fmt in all_formats:
+            if fmt == output_format:
+                continue
+            try:
+                fmt_csv = exporter.export(normalized_txns, fmt)
+                fmt_key = f"bank/{job_id}/output_{fmt}.csv"
+                s3_client.put_object(
+                    Bucket=BANK_RESULTS_BUCKET,
+                    Key=fmt_key,
+                    Body=fmt_csv.encode("utf-8"),
+                    ContentType="text/csv",
+                    Metadata={
+                        "job-id": job_id,
+                        "format": fmt,
+                        "bank": result["metadata"].get("detected_bank", "unknown"),
+                    },
+                )
+            except Exception as fmt_err:
+                logger.warning(f"Failed to generate {fmt} format: {fmt_err}")
 
         # Save metadata
         meta_key = f"bank/{job_id}/metadata.json"

@@ -15,7 +15,9 @@ import {
   ArrowRight,
   AlertCircle,
   Download,
+  RefreshCw,
 } from 'lucide-react';
+import type { BankOutputFormat } from '@/lib/bank-upload-client';
 
 const BANKS = [
   'Chase', 'Bank of America', 'Wells Fargo', 'Citi', 'Capital One',
@@ -23,6 +25,13 @@ const BANKS = [
 ];
 
 const OUTPUT_FORMATS = ['CSV', 'QuickBooks (QBO)', 'Xero', 'Excel'];
+
+const FORMAT_OPTIONS: { id: BankOutputFormat; label: string; short: string }[] = [
+  { id: 'csv', label: 'CSV', short: 'CSV' },
+  { id: 'qbo', label: 'QuickBooks (QBO)', short: 'QBO' },
+  { id: 'xero', label: 'Xero', short: 'Xero' },
+  { id: 'excel', label: 'Excel', short: 'Excel' },
+];
 
 const PAIN_CARDS = [
   { source: 'QuickBooks', msg: '"We couldn\'t read your bank statement PDF"' },
@@ -60,6 +69,8 @@ export default function UploadLandingPage() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [detectedBank, setDetectedBank] = useState<string | null>(null);
   const [transactionCount, setTransactionCount] = useState<number | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<BankOutputFormat>('csv');
+  const [isChangingFormat, setIsChangingFormat] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Capture UTM params on mount
@@ -85,7 +96,7 @@ export default function UploadLandingPage() {
     trackConversion('bank_upload_started');
 
     try {
-      const result = await uploadBankStatement(file, 'excel', (stage, percent) => {
+      const result = await uploadBankStatement(file, selectedFormat, (stage, percent) => {
         setProgress(percent);
         switch (stage) {
           case 'requesting':
@@ -101,11 +112,9 @@ export default function UploadLandingPage() {
       });
 
       // Capture result for download
+      if (result.jobId) setJobId(result.jobId);
       if (result.downloadUrl) {
         setDownloadUrl(result.downloadUrl);
-      } else if (result.jobId) {
-        // Fallback: fetch download URL from the download endpoint
-        setJobId(result.jobId);
       }
       if (result.detectedBank) setDetectedBank(result.detectedBank);
       if (result.transactionCount) setTransactionCount(result.transactionCount);
@@ -119,7 +128,27 @@ export default function UploadLandingPage() {
         : 'Upload failed. Please try again.';
       setErrorMsg(msg);
     }
-  }, []);
+  }, [selectedFormat]);
+
+  const handleFormatChange = useCallback(async (format: BankOutputFormat) => {
+    setSelectedFormat(format);
+    if (!jobId) return;
+
+    setIsChangingFormat(true);
+    try {
+      const res = await fetch(`/api/bank/job/${jobId}/download?format=${format}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.downloadUrl) {
+          setDownloadUrl(data.downloadUrl);
+        }
+      }
+    } catch {
+      // Keep existing download URL if format switch fails
+    } finally {
+      setIsChangingFormat(false);
+    }
+  }, [jobId]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -142,6 +171,8 @@ export default function UploadLandingPage() {
     setJobId(null);
     setDetectedBank(null);
     setTransactionCount(null);
+    setSelectedFormat('csv');
+    setIsChangingFormat(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -269,8 +300,27 @@ export default function UploadLandingPage() {
                   </p>
                 )}
                 <p className="text-sm text-slate-400 mb-4">
-                  Your file is ready. Download your converted spreadsheet below.
+                  Your file is ready. Pick a format and download below.
                 </p>
+
+                {/* Format selector */}
+                <div className="flex justify-center gap-1.5 mb-4" onClick={(e) => e.stopPropagation()}>
+                  {FORMAT_OPTIONS.map((fmt) => (
+                    <button
+                      key={fmt.id}
+                      onClick={() => handleFormatChange(fmt.id)}
+                      disabled={isChangingFormat}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        selectedFormat === fmt.id
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200 border border-slate-700'
+                      }`}
+                    >
+                      {fmt.short}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   {downloadUrl ? (
                     <a
@@ -279,8 +329,12 @@ export default function UploadLandingPage() {
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-accent-500 hover:bg-accent-600 text-white text-sm font-semibold transition-colors"
                     >
-                      <Download className="w-4 h-4" />
-                      Download CSV
+                      {isChangingFormat ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
+                      Download {FORMAT_OPTIONS.find(f => f.id === selectedFormat)?.short ?? 'CSV'}
                     </a>
                   ) : (
                     <Link
