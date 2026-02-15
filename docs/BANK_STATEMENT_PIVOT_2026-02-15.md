@@ -8,7 +8,7 @@ Bank statement conversion has **~19,450 monthly searches** across high-intent ke
 
 ## What Changed
 
-### Commit `917c34d` — 7 files, 6 logical changes
+### Commit `917c34d` — Landing page pivot (7 files)
 
 | File | Change |
 |---|---|
@@ -19,6 +19,20 @@ Bank statement conversion has **~19,450 monthly searches** across high-intent ke
 | `lib/bank-upload-client.ts` | New file: 3-step bank upload client (presigned URL → S3 PUT → process) |
 | `__tests__/components/UploadLandingPage.test.tsx` | Full rewrite: 50 tests updated for bank statement assertions |
 | `ARCHITECTURE.md` | Updated to reflect bank statement pivot |
+
+### Commit `b3da1a9` — Download fix (5 files)
+
+First real upload (Chase statement) revealed the flow completed successfully but never gave the user a downloadable file.
+
+**Root cause:** Lambda `/bank/process` processed the PDF and saved the CSV to S3 but did not return a `downloadUrl` in the response. The page discarded the result and showed a "Create Free Account" CTA instead of a download button.
+
+| File | Change |
+|---|---|
+| `backend/handlers/webhook.py` | Lambda now generates a presigned S3 download URL and returns `downloadUrl` + `resultKey` in the `/bank/process` response |
+| `app/api/bank/job/[jobId]/download/route.ts` | Removed auth gate — anonymous downloads allowed (gated by knowing the UUID) |
+| `app/upload/page.tsx` | Captures result; shows transaction count, detected bank, and a **Download CSV** button |
+| `lib/bank-upload-client.ts` | Added `jobId` and `outputFormat` to `BankProcessResponse` type |
+| `__tests__/components/UploadLandingPage.test.tsx` | 52 tests (2 new: download button + fallback when no URL) |
 
 ### Landing Page Copy
 
@@ -35,10 +49,19 @@ Bank statement conversion has **~19,450 monthly searches** across high-intent ke
 ```
 User drops PDF → validateBankFile() → POST /api/bank/presigned-url
   → S3 presigned PUT (application/pdf) → POST /api/bank/process
-  → Lambda (pdfplumber extracts transactions) → returns CSV/QBO/Excel
+  → Lambda (pdfplumber extracts transactions) → returns downloadUrl
+  → Page shows "Download CSV" button with presigned S3 link
 ```
 
 Progress labels: "Detecting bank format..." → "Uploading your statement..." → "Extracting transactions..."
+
+### Success State
+
+After processing completes, the page displays:
+- **Transaction count:** "42 transactions extracted!" (or "Statement converted!" if count unavailable)
+- **Detected bank:** "Detected: Chase" (if identified)
+- **Download button:** Green "Download CSV" button with presigned S3 URL
+- **Fallback:** "Create Free Account" link if `downloadUrl` is not returned (e.g., Lambda version mismatch)
 
 ### Anonymous Access Pattern
 
@@ -67,14 +90,14 @@ The bank statement backend was already built and deployed:
 - **S3 bucket** for bank statement PDF storage
 - **Feature flag** `canAccessBankStatements()` — returns true when `MVP_MODE=true`
 
-The only changes needed were removing the auth gates and creating the client-side upload flow.
+The only changes needed were removing the auth gates, creating the client-side upload flow, and adding download URL generation to the Lambda response.
 
 ## Testing
 
-50 tests passing — covers rendering, drag-and-drop, file validation, upload progress states, success/error flows, conversion tracking events, and reset cycles.
+52 tests passing — covers rendering, drag-and-drop, file validation, upload progress states, success/error flows, download button, conversion tracking events, and reset cycles.
 
 ```bash
-npx jest --testPathPatterns=UploadLandingPage  # 50 passed, 1.3s
+npx jest --testPathPatterns=UploadLandingPage  # 52 passed, 1.3s
 ```
 
 ## Next Steps
