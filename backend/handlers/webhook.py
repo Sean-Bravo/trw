@@ -790,6 +790,18 @@ def handle_bank_process(event: Dict) -> Dict:
 
         logger.info(f"Bank job {job_id} processed successfully")
 
+        # Generate presigned download URL so caller can download immediately
+        download_url = s3_client.generate_presigned_url(
+            ClientMethod="get_object",
+            Params={
+                "Bucket": BANK_RESULTS_BUCKET,
+                "Key": output_key,
+                "ResponseContentDisposition": f'attachment; filename="bank_{job_id}_{output_format}.csv"',
+                "ResponseContentType": "text/csv",
+            },
+            ExpiresIn=DOWNLOAD_EXPIRATION,
+        )
+
         return response(200, {
             "success": True,
             "jobId": job_id,
@@ -797,6 +809,8 @@ def handle_bank_process(event: Dict) -> Dict:
             "detectedBank": result["metadata"].get("detected_bank"),
             "warnings": result.get("warnings", []),
             "outputFormat": output_format,
+            "resultKey": output_key,
+            "downloadUrl": download_url,
         })
 
     except ClientError as e:

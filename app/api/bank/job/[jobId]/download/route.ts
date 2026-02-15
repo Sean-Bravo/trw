@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * GET /api/bank/job/[jobId]/download
  * Get presigned download URL for bank statement result
+ * Anonymous access allowed — download is gated by knowing the jobId (UUID)
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { jobId } = await params;
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format') || 'qbo';
