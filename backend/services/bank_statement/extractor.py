@@ -43,6 +43,7 @@ class TransactionExtractor:
             "DD/MM/YYYY": r"\d{1,2}/\d{1,2}/\d{4}",
             "YYYY-MM-DD": r"\d{4}-\d{1,2}-\d{1,2}",
             "M/D/YYYY": r"\d{1,2}/\d{1,2}/\d{4}",
+            "Mon DD": r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}",
         }
 
         pattern_str = patterns.get(date_format, r"\d{1,2}/\d{1,2}(?:/\d{2,4})?")
@@ -304,6 +305,9 @@ class TransactionExtractor:
             return 0.0
 
         text = str(value).strip()
+
+        # Normalize Unicode minus signs (U+2212, U+2013 en-dash, U+2014 em-dash) to ASCII hyphen
+        text = text.replace("\u2212", "-").replace("\u2013", "-").replace("\u2014", "-")
 
         # Remove currency symbols, commas, spaces
         text = re.sub(r"[$,\s]", "", text)
