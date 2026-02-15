@@ -60,7 +60,8 @@ Progress labels: "Detecting bank format..." → "Uploading your statement..." �
 After processing completes, the page displays:
 - **Transaction count:** "42 transactions extracted!" (or "Statement converted!" if count unavailable)
 - **Detected bank:** "Detected: Chase" (if identified)
-- **Download button:** Green "Download CSV" button with presigned S3 URL
+- **Format selector:** 4 buttons — CSV (default), QBO, Xero, Excel. Switching fetches a new presigned URL instantly (all formats pre-generated)
+- **Download button:** Green "Download CSV" button (label updates to match selected format)
 - **Fallback:** "Create Free Account" link if `downloadUrl` is not returned (e.g., Lambda version mismatch)
 
 ### Anonymous Access Pattern
@@ -132,6 +133,20 @@ Navy Federal statement failed with "No transactions found in PDF".
 
 **Result:** 20 transactions extracted from Navy Federal test statement. CSV has quality issues (broken text, multiline descriptions, balance rows) — not yet fixed.
 
+### Commit `fe285be` — Output format selector (5 files)
+
+Users could only download CSV. Now the success state shows a format selector (CSV, QBO, Xero, Excel) with CSV as the default.
+
+**Key design decision:** Lambda now generates all 4 format outputs during processing. PDF extraction is the expensive step; re-exporting normalized transactions to different CSV column layouts is trivial. This means format switching on the frontend is instant — just fetches a new presigned URL from S3.
+
+| File | Change |
+|---|---|
+| `app/upload/page.tsx` | Added `FORMAT_OPTIONS` array, `selectedFormat`/`isChangingFormat` state, format selector buttons in success state, `handleFormatChange()` fetches new download URL via `/api/bank/job/{jobId}/download?format=xxx` |
+| `lib/bank-upload-client.ts` | Added `csv` to `BankOutputFormat` type, default changed from `excel` to `csv` |
+| `app/api/bank/job/[jobId]/download/route.ts` | Default format changed from `qbo` to `csv` |
+| `backend/handlers/webhook.py` | Added `csv` to valid formats, default changed from `qbo` to `csv`, Lambda now generates all 4 format files (`output_csv.csv`, `output_qbo.csv`, `output_xero.csv`, `output_excel.csv`) after extraction |
+| `__tests__/components/UploadLandingPage.test.tsx` | 54 tests (2 new: format selector buttons render, "Download CSV" default label) |
+
 ---
 
 ## Bank Processing Pipeline
@@ -155,9 +170,9 @@ TransactionNormalizer:
   - Amount cleaning (Unicode minus, trailing minus, currency symbols)
   - Deduplication
        ↓
-Export CSV → S3
+Export all 4 formats (CSV, QBO, Xero, Excel) → S3
        ↓
-Generate presigned download URL → return to frontend
+Generate presigned download URL for requested format → return to frontend
 ```
 
 ## Supported Bank Configs
@@ -176,10 +191,10 @@ Banks without configs (Citi, US Bank, PNC, TD Bank, Regions, HSBC, BMO) rely on 
 
 ## Testing
 
-52 tests passing — covers rendering, drag-and-drop, file validation, upload progress states, success/error flows, download button, conversion tracking events, and reset cycles.
+54 tests passing — covers rendering, drag-and-drop, file validation, upload progress states, success/error flows, format selector, download button, conversion tracking events, and reset cycles.
 
 ```bash
-npx jest --testPathPatterns=UploadLandingPage  # 52 passed, 1.3s
+npx jest --testPathPatterns=UploadLandingPage  # 54 passed, 1.1s
 ```
 
 ## Known CSV Quality Issues
