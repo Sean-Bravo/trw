@@ -40,6 +40,7 @@ class TransactionExtractor:
         patterns = {
             "MM/DD/YYYY": r"\d{1,2}/\d{1,2}/\d{4}",
             "MM/DD": r"\d{1,2}/\d{1,2}",
+            "MM-DD": r"\d{1,2}-\d{1,2}",
             "DD/MM/YYYY": r"\d{1,2}/\d{1,2}/\d{4}",
             "YYYY-MM-DD": r"\d{4}-\d{1,2}-\d{1,2}",
             "M/D/YYYY": r"\d{1,2}/\d{1,2}/\d{4}",
@@ -378,23 +379,32 @@ class TransactionExtractor:
         # Try to extract amount from end of line
         # Handle "AMOUNT BALANCE" pattern (two numbers at end, take the first)
         # Example: "Card Purchase ... -52.79 554.99"
+        # Navy Federal: "Wire Fee 20.00 - 55,231.59" or "Withdrawal 55,000.00- 231.59"
         amount = 0.0
 
         # Look for two numbers at the end (amount + balance pattern)
-        # Pattern: amount (possibly negative) followed by balance (positive)
+        # Supports: "20.00 - 55,231.59", "55,000.00- 231.59", "-52.79 554.99"
         two_amounts_match = re.search(
-            r"(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)$", remainder
+            r"(-?[\d,]+\.?\d*)\s*-?\s+(-?[\d,]+\.?\d*)$", remainder
         )
         if two_amounts_match:
             # First number is amount, second is balance
-            amount = self._clean_amount(two_amounts_match.group(1))
+            # Check for trailing minus on amount (e.g., "20.00 -" or "55,000.00-")
+            amount_str = two_amounts_match.group(1)
+            pre_match = remainder[: two_amounts_match.end(1)]
+            if pre_match.rstrip().endswith("-") or remainder[two_amounts_match.end(1):two_amounts_match.start(2)].strip() == "-":
+                amount_str = "-" + amount_str
+            amount = self._clean_amount(amount_str)
             description = remainder[: two_amounts_match.start()].strip()
             logger.debug(f"Parsed two amounts: amount={amount}, balance={two_amounts_match.group(2)}, desc='{description[:50]}'")
         else:
-            # Fall back to single amount at end
-            amount_match = re.search(r"(-?[\d,$]+\.?\d*)$", remainder)
+            # Fall back to single amount at end (with optional trailing minus)
+            amount_match = re.search(r"(-?[\d,$]+\.?\d*)\s*-?$", remainder)
             if amount_match:
-                amount = self._clean_amount(amount_match.group())
+                amount_str = amount_match.group(1)
+                if remainder[amount_match.end(1):].strip() == "-":
+                    amount_str = "-" + amount_str
+                amount = self._clean_amount(amount_str)
                 description = remainder[: amount_match.start()].strip()
             else:
                 description = remainder

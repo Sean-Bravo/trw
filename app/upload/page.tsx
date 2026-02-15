@@ -19,7 +19,7 @@ import {
 
 const BANKS = [
   'Chase', 'Bank of America', 'Wells Fargo', 'Citi', 'Capital One',
-  'US Bank', 'PNC', 'TD Bank', 'Mercury', 'Regions', 'HSBC', 'BMO',
+  'US Bank', 'PNC', 'TD Bank', 'Mercury', 'Navy Federal', 'Regions', 'HSBC', 'BMO',
 ];
 
 const OUTPUT_FORMATS = ['CSV', 'QuickBooks (QBO)', 'Xero', 'Excel'];
@@ -228,7 +228,7 @@ export default function UploadLandingPage() {
                   or <span className="text-primary-400 underline underline-offset-2 decoration-primary-400/30">browse files</span> — .pdf up to 50MB
                 </p>
                 <p className="mt-4 text-xs text-slate-600 font-mono">
-                  Chase · Bank of America · Wells Fargo · Mercury · 8 more
+                  Chase · Bank of America · Wells Fargo · Navy Federal · 9 more
                 </p>
               </>
             )}

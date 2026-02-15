@@ -1,0 +1,39 @@
+# configs/banks/navy_federal.yaml
+bank:
+  name: "Navy Federal"
+  aliases: ["Navy Federal Credit Union", "NFCU"]
+  version: "1.0.0"
+  updated_at: "2026-02-15"
+
+fingerprint:
+  logo_patterns: ["Navy Federal", "navyfederal.org"]
+  header_patterns: ["Statement of Account", "Access No."]
+  unique_markers: ["Insured by NCUA", "Navy Federal Credit Union"]
+
+table_detection:
+  # Navy Federal uses text-based layout, not structured tables
+  # Headers have broken text: "Transact ion Detai l" and "Amount($)"
+  header_row_keywords: ["Date", "Transaction", "Detail", "Amount", "Balance"]
+  skip_rows_containing: ["Beginning Balance", "Ending Balance", "Page", "Statement Period", "Year to Date", "Disclosure", "annual percentage", "Your account earned", "Joint Owner"]
+
+columns:
+  date:
+    names: ["Date"]
+    format: "MM-DD"
+  description:
+    names: ["Transaction Detail", "Description"]
+    max_length: 255
+    multiline: true
+  amount:
+    names: ["Amount", "Amount($)"]
+    debit_credit_mode: false
+  balance:
+    names: ["Balance", "Balance($)"]
+
+normalization:
+  date_output: "YYYY-MM-DD"
+  amount_sign: "negative_for_debits"
+
+validation:
+  balance_reconciliation: false
+  date_sequence: true

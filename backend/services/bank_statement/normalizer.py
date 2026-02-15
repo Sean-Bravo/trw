@@ -89,7 +89,8 @@ class TransactionNormalizer:
         formats_to_try = [
             "%m/%d/%Y",
             "%m/%d/%y",
-            "%m/%d",  # No year
+            "%m/%d",  # No year (slash)
+            "%m-%d",  # No year (hyphen, e.g. Navy Federal)
             "%d/%m/%Y",
             "%d/%m/%y",
             "%Y-%m-%d",
