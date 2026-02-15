@@ -249,6 +249,7 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 5. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
 6. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
 7. **Exchange detection fallback** - When classification fails, engine.py auto-tries GenericCSVParser if file has date+amount columns. Only shows manual selector if generic also fails.
+8. **Anonymous uploads** - `/upload` landing page allows uploads without auth. Both `presigned-url` and `confirm` routes fall back to `anon-{ip}` as userId when no session exists. Rate limiting still applies per IP. Anonymous jobs are persisted to Neon DB and processed by Lambda normally — users just can't access results without creating an account.
 
 ## Exchange Detection Flow
 
@@ -316,6 +317,7 @@ fingerprinting.py: detect_exchange_from_headers()
 ## What's Not Built Yet
 
 - [x] **Google Ads landing page** - `/upload` route with conversion tracking (csv_upload_started, csv_upload_completed), noindex, dark theme, real upload flow
+- [x] **Anonymous uploads** - `/upload` works without auth; presigned-url and confirm routes fall back to `anon-{ip}` userId for zero-friction parser validation
 - [ ] Bank statement PDF parsing (future feature)
 - [ ] Stripe payment integration (Pro/Premium buttons show "Coming Soon")
 

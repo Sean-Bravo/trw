@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { canAccessBankStatements } from '@/lib/feature-flags';
+import { getClientIdentifier } from '@/lib/rate-limit';
 import { query } from '@/lib/db';
 
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
@@ -12,13 +13,11 @@ const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformat
  */
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
+    // Authenticate user (allow anonymous for /upload landing page)
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const tier = session.user.subscriptionTier || 'free';
+    const identifier = getClientIdentifier(request);
+    const userId = session?.user?.id || `anon-${identifier}`;
+    const tier = session?.user?.subscriptionTier || 'free';
 
     // Bank statements require Pro or Premium tier (bypassed during MVP)
     if (!canAccessBankStatements(tier)) {
@@ -37,16 +36,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Create bank job record in database (status: processing)
-    try {
-      await query(
-        `INSERT INTO bank_jobs (id, user_id, filename, status, output_format)
-         VALUES ($1, $2, $3, 'processing', $4)
-         ON CONFLICT (id) DO NOTHING`,
-        [jobId, session.user.id, filename || 'bank_statement.pdf', outputFormat || 'qbo']
-      );
-    } catch (dbError) {
-      console.error('[Bank Process] DB insert error:', dbError);
-      // Continue processing even if DB insert fails
+    // Skip for anonymous users — bank_jobs.user_id has FK to users(id)
+    if (session?.user?.id) {
+      try {
+        await query(
+          `INSERT INTO bank_jobs (id, user_id, filename, status, output_format)
+           VALUES ($1, $2, $3, 'processing', $4)
+           ON CONFLICT (id) DO NOTHING`,
+          [jobId, session.user.id, filename || 'bank_statement.pdf', outputFormat || 'qbo']
+        );
+      } catch (dbError) {
+        console.error('[Bank Process] DB insert error:', dbError);
+      }
     }
 
     // Validate output format
@@ -74,14 +75,16 @@ export async function POST(request: NextRequest) {
     if (!lambdaResponse.ok) {
       console.error('[Bank Process] Lambda error:', data);
 
-      // Update job status to failed
-      try {
-        await query(
-          `UPDATE bank_jobs SET status = 'failed', error = $1, completed_at = NOW() WHERE id = $2`,
-          [data.error || 'Processing failed', jobId]
-        );
-      } catch (dbError) {
-        console.error('[Bank Process] DB update error:', dbError);
+      // Update job status to failed (skip for anonymous users)
+      if (session?.user?.id) {
+        try {
+          await query(
+            `UPDATE bank_jobs SET status = 'failed', error = $1, completed_at = NOW() WHERE id = $2`,
+            [data.error || 'Processing failed', jobId]
+          );
+        } catch (dbError) {
+          console.error('[Bank Process] DB update error:', dbError);
+        }
       }
 
       return NextResponse.json(
@@ -94,28 +97,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update job status to completed with metadata
-    try {
-      await query(
-        `UPDATE bank_jobs
-         SET status = 'completed',
-             detected_bank = $1,
-             transaction_count = $2,
-             result_key = $3,
-             completed_at = NOW()
-         WHERE id = $4`,
-        [
-          data.detectedBank || null,
-          data.transactionCount || null,
-          data.resultKey || null,
-          jobId
-        ]
-      );
-    } catch (dbError) {
-      console.error('[Bank Process] DB update error:', dbError);
+    // Update job status to completed with metadata (skip for anonymous users)
+    if (session?.user?.id) {
+      try {
+        await query(
+          `UPDATE bank_jobs
+           SET status = 'completed',
+               detected_bank = $1,
+               transaction_count = $2,
+               result_key = $3,
+               completed_at = NOW()
+           WHERE id = $4`,
+          [
+            data.detectedBank || null,
+            data.transactionCount || null,
+            data.resultKey || null,
+            jobId
+          ]
+        );
+      } catch (dbError) {
+        console.error('[Bank Process] DB update error:', dbError);
+      }
     }
 
-    console.log(`[Bank Process] Job ${jobId} processed successfully`);
+    console.log(`[Bank Process] Job ${jobId} processed successfully for user ${userId}`);
 
     return NextResponse.json(data);
 
