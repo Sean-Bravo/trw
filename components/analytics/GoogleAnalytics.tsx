@@ -2,9 +2,10 @@ import Script from 'next/script';
 
 export function GoogleAnalytics() {
   const measurementId = process.env['NEXT_PUBLIC_GA_MEASUREMENT_ID'] || 'G-1B5PK7TZ87';
+  const adsId = process.env['NEXT_PUBLIC_GOOGLE_ADS_ID'];
   const isProduction = process.env['NODE_ENV'] === 'production';
 
-  // Only load GA in production
+  // Only load in production
   if (!isProduction) {
     return null;
   }
@@ -24,6 +25,7 @@ export function GoogleAnalytics() {
           gtag('config', '${measurementId}', {
             page_path: window.location.pathname,
           });
+          ${adsId ? `gtag('config', '${adsId}');` : ''}
         `}
       </Script>
     </>
