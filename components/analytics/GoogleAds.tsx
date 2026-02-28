@@ -1,31 +1,5 @@
-import Script from 'next/script'
-
+// Google Ads config is now handled in GoogleAnalytics.tsx to avoid duplicate gtag.js loads.
+// This component is kept for backwards compatibility with layout.tsx imports.
 export function GoogleAds() {
-  const adsId = process.env['NEXT_PUBLIC_GOOGLE_ADS_ID']
-
-  if (!adsId) {
-    return null
-  }
-
-  return (
-    <>
-      {/* Google Ads Global Site Tag (gtag.js) */}
-      <Script
-        strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${adsId}`}
-      />
-      <Script
-        id="google-ads-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${adsId}');
-          `,
-        }}
-      />
-    </>
-  )
+  return null
 }
