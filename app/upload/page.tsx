@@ -372,6 +372,20 @@ export default function UploadLandingPage() {
               </>
             )}
           </div>
+
+          {/* Example hint */}
+          <div className="mt-4 rounded-lg border border-slate-800/60 bg-slate-900/40 px-4 py-3">
+            <p className="text-xs text-slate-500 mb-2">
+              What&apos;s a bank statement PDF? It&apos;s the monthly statement your bank emails you or you download from online banking. It looks like this:
+            </p>
+            <div className="font-mono text-[10px] text-slate-600 leading-relaxed bg-slate-950/50 rounded px-3 py-2 border border-slate-800/40">
+              <div className="text-slate-500 mb-1">Chase Checking ····4829 &nbsp;|&nbsp; Jan 1 – Jan 31, 2025</div>
+              <div>01/03 &nbsp; PAYROLL DEPOSIT &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3,200.00</div>
+              <div>01/05 &nbsp; WHOLE FOODS #10092 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -87.43</div>
+              <div>01/07 &nbsp; TRANSFER TO SAVINGS &nbsp;&nbsp;&nbsp;&nbsp; -500.00</div>
+              <div className="text-slate-700">...</div>
+            </div>
+          </div>
         </section>
 
         {/* Pain point showcase */}
