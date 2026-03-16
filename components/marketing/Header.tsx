@@ -40,16 +40,6 @@ export function Header() {
 
   return (
     <>
-      {/* Beta Banner */}
-      <div className="bg-indigo-600 py-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center gap-2 text-sm">
-          <span className="flex h-2 w-2 rounded-full bg-white animate-pulse"></span>
-          <span className="text-indigo-100">
-            <span className="font-semibold text-white">Public Beta:</span><span className="hidden sm:inline"> All features unlocked while we validate parsers.</span><span className="sm:hidden"> All features unlocked.</span>
-          </span>
-        </div>
-      </div>
-
       <header className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm'

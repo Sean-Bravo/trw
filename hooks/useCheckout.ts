@@ -23,6 +23,12 @@ export function useCheckout() {
 
       const data = await response.json()
 
+      if (response.status === 401) {
+        // Not signed in — redirect to signup with return plan info
+        window.location.href = `/signup?plan=${plan.toLowerCase()}&billing=${billing}`
+        return
+      }
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create checkout session')
       }

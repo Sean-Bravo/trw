@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Check, Shield, Crown, Sparkles } from 'lucide-react';
+import { useCheckout } from '@/hooks/useCheckout';
 
 const Pricing = () => {
   const [isAnnual, setIsAnnual] = useState(true);
+  const { checkout, loading } = useCheckout();
 
   // Pricing configuration
   const pricing = {
@@ -162,12 +164,13 @@ const Pricing = () => {
               </li>
             </ul>
 
-            <Link
-              href="/signup"
-              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-center font-bold rounded-xl transition-all duration-300 relative overflow-hidden"
+            <button
+              onClick={() => checkout('PRO', isAnnual ? 'annual' : 'monthly')}
+              disabled={loading}
+              className="block w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-center font-bold rounded-xl transition-all duration-300 relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="relative z-10">Start Free Beta</span>
-            </Link>
+              <span className="relative z-10">{loading ? 'Loading...' : 'Get Pro Pass'}</span>
+            </button>
 
             <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400">
                <Shield className="w-3 h-3" />
@@ -220,12 +223,13 @@ const Pricing = () => {
               </li>
             </ul>
 
-            <Link
-              href="/signup"
-              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white text-center font-medium rounded-lg transition-colors border border-slate-700"
+            <button
+              onClick={() => checkout('PREMIUM', isAnnual ? 'annual' : 'monthly')}
+              disabled={loading}
+              className="block w-full py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white text-center font-medium rounded-lg transition-colors border border-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Start Free Beta
-            </Link>
+              {loading ? 'Loading...' : 'Get Premium'}
+            </button>
           </div>
         </div>
 
