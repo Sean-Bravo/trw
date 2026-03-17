@@ -102,6 +102,38 @@ Add `handle_v1_parse(event)` to the existing `handler()` router.
 
 The `summary` field is free to generate and makes agent integrations dramatically better — agents show it directly to users.
 
+**Error response format:**
+
+Parser failures need structured error codes so API callers know whether to retry, try a different format, or give up:
+
+```json
+{
+  "status": "error",
+  "code": "unsupported_bank",
+  "message": "Could not detect bank format. The PDF structure doesn't match any of the 13 supported banks.",
+  "suggestion": "Check /v1/supported-sources for supported banks, or contact support to request a new parser.",
+  "metadata": {
+    "processing_time_ms": 892
+  }
+}
+```
+
+**Error codes (documented in API docs):**
+
+| Code | HTTP | Meaning | Retryable? |
+|------|------|---------|------------|
+| `unsupported_bank` | 422 | PDF doesn't match any known bank format | No — request new parser |
+| `unsupported_exchange` | 422 | CSV doesn't match any known exchange format | No — request new parser |
+| `parse_error` | 422 | Recognized format but parsing failed (corrupt data, unexpected columns) | Maybe — check file integrity |
+| `invalid_file_type` | 400 | Not a PDF or CSV/XLSX | No |
+| `file_too_large` | 400 | Exceeds size limit | No — split file |
+| `file_empty` | 400 | Empty or unreadable file | No |
+| `rate_limited` | 429 | Exceeded RPM limit | Yes — wait and retry |
+| `invalid_api_key` | 401 | Key missing, malformed, or revoked | No |
+| `internal_error` | 500 | Unexpected server error | Yes — retry with backoff |
+
+The `suggestion` field gives the caller actionable next steps. This is especially useful for agents — they can surface the suggestion directly to the user.
+
 **Additional endpoints:**
 - `GET /v1/supported-sources` — list supported banks + exchanges (no auth)
 - `GET /v1/usage` — current usage for this API key
@@ -137,7 +169,9 @@ curl -X POST https://api.taxformatter.com/v1/parse \
 
 ---
 
-## Phase 2: Agent Client (MCP Server)
+## Phase 2: Agent Client (MCP Server) — Fast Follow
+
+Ship after REST API is stable and parsers are validated. The MCP server is a thin wrapper around `/v1/parse` — once the REST API works, the MCP package is a weekend project.
 
 ### Step 8 — MCP Server Package
 **New directory:** `packages/mcp-server/`
@@ -192,10 +226,11 @@ packages/mcp-server/
 
 Then: "Parse the bank statement at ~/Downloads/chase_jan.pdf" just works.
 
-### Step 9 — Publish + Registry Listings
+### Step 9 — Publish + Discovery
 - Publish `@taxformatter/mcp-server` to npm
-- Submit to mcp.so and Smithery registries
-- Free developer discovery channel
+- Submit to mcp.so and Smithery registries (free discovery)
+- Show HN post announcing both the REST API and MCP server
+- Skip RapidAPI — mediocre DX, takes a cut, own docs page with free tier converts better
 
 ### Step 10 — Agent Tool Definitions Page
 **New page:** `app/docs/api/agent-tools/page.tsx`
@@ -242,6 +277,21 @@ Copy-pasteable JSON tool definitions for OpenAI and Anthropic tool-use formats. 
 | `backend/terraform/api_gateway.tf` | Add 4 routes |
 | `backend/terraform/lambda.tf` | Increase timeout + memory |
 | `packages/mcp-server/` | New — entire MCP server package |
+
+## Timeline
+
+| When | What |
+|------|------|
+| Now → April 15 | Run Google Ads, validate parsers with real uploads (crypto tax season) |
+| April–May | Analyze parser success rates, fix edge cases in engine.py |
+| May–June | Build REST API (Steps 1–7), API docs, key management |
+| June | Soft launch: free tier, Show HN, API docs page live |
+| July | MCP server package (Steps 8–10) — fast follow once REST API is stable |
+| July–August | Paid tiers, Stripe billing, developer dashboard UI |
+| September+ | Enterprise outreach, Python/Node SDKs, partnership conversations |
+| January 2027 | Ramp crypto API marketing for next tax season |
+
+---
 
 ## Verification
 
