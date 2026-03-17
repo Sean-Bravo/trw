@@ -97,10 +97,10 @@ export default function RootLayout({
       <head>
         <OrganizationSchema />
         <WebSiteSchema />
-        <GoogleAnalytics />
-        <GoogleAds />
       </head>
       <body className="antialiased">
+        <GoogleAnalytics />
+        <GoogleAds />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
