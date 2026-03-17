@@ -19,15 +19,7 @@ export function BankFeature() {
 
           {/* Left Column: The Copy */}
           <div className="space-y-8 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-medium uppercase tracking-wider">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-              </span>
-              Free During Launch
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
+<h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
               Bonus: <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">
                 Bank Statement Converter
