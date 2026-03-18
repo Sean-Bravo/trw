@@ -162,8 +162,38 @@ const TrustEngine = () => {
           </div>
         </div>
 
+        {/* API Trust Guarantees */}
+        <div className="mt-20 max-w-3xl mx-auto">
+          <div className="rounded-xl border border-slate-800/80 bg-slate-900/30 p-6">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-emerald-400" />
+              API data handling
+            </h3>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <div className="text-[13px] font-semibold text-slate-200">Stateless processing</div>
+                <p className="text-[12px] text-slate-500 leading-relaxed">
+                  Every API request runs in an isolated Lambda. File content lives in RAM only — never written to disk, never cached. The instance is wiped after response.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="text-[13px] font-semibold text-slate-200">No payload logging</div>
+                <p className="text-[12px] text-slate-500 leading-relaxed">
+                  We log metadata only: API key hash, status code, byte size, processing time. Your file content and transaction data never touch our logs or database.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="text-[13px] font-semibold text-slate-200">TLS everywhere</div>
+                <p className="text-[12px] text-slate-500 leading-relaxed">
+                  All API traffic is encrypted in transit via TLS 1.3. API keys are SHA-256 hashed at rest — we can't read your key, only verify it.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom Bar: The Compliance Strip */}
-        <div className="mt-24 pt-8 border-t border-slate-800/50 relative">
+        <div className="mt-12 pt-8 border-t border-slate-800/50 relative">
           {/* Subtle glow effect on the border */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent"></div>
           
