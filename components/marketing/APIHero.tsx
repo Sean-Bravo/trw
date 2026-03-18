@@ -113,7 +113,7 @@ export function APIHero() {
                 href="/signup"
                 showArrow
                 onClick={() => trackSignUp()}
-                className="text-[15px] px-7 py-3 h-12"
+                className="text-[15px] px-7 py-3 h-12 !bg-emerald-500 hover:!bg-emerald-400 !border-emerald-500"
               >
                 Get API Key
               </Button>
@@ -126,22 +126,18 @@ export function APIHero() {
               </Button>
             </div>
 
-            {/* Stats row */}
-            <div className="flex gap-8 animate-fade-in-up" style={{ animationDelay: '320ms' }}>
+            {/* Stats bar */}
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-white/3 border border-white/6 backdrop-blur-sm animate-fade-in-up" style={{ animationDelay: '320ms' }}>
               {[
-                { value: '14', label: 'Exchanges', icon: Terminal },
-                { value: '<2s', label: 'Avg Latency', icon: Zap },
-                { value: 'MCP', label: 'Agent Ready', icon: Bot },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/4 border border-white/6">
-                    <stat.icon className="w-4 h-4 text-slate-500" />
-                  </div>
-                  <div>
-                    <div className="text-[15px] font-semibold text-white">{stat.value}</div>
-                    <div className="text-[11px] text-slate-500 uppercase tracking-wider">{stat.label}</div>
-                  </div>
-                </div>
+                '14 exchanges',
+                '7+ banks',
+                '4 output formats',
+                '<2s response',
+              ].map((stat, i) => (
+                <React.Fragment key={stat}>
+                  {i > 0 && <span className="text-slate-700">·</span>}
+                  <span className="text-[13px] text-slate-400 font-medium">{stat}</span>
+                </React.Fragment>
               ))}
             </div>
           </div>

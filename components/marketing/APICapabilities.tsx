@@ -102,22 +102,22 @@ export function APICapabilities() {
 
           {/* Pipeline visual: Input → Engine → Output */}
           <div className="max-w-5xl mx-auto mb-20">
-            <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-6 items-start">
+            <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-6 items-stretch">
 
               {/* LEFT: Inputs */}
-              <div>
+              <div className="flex flex-col">
                 {/* Exchanges */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 rounded-full bg-[#635bff]" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Crypto Exchanges</h3>
-                    <span className="text-[11px] text-slate-500 font-mono">{exchanges.length} supported</span>
+                    <span className="text-[11px] text-slate-500 font-mono">{exchanges.length}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="flex flex-wrap gap-1.5">
                     {exchanges.map((ex) => (
                       <div
                         key={ex.name}
-                        className="flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-white/2 border border-white/5 hover:border-[#635bff]/20 hover:bg-[#635bff]/4 transition-all group"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-[#635bff]/20 hover:bg-[#635bff]/4 transition-all group"
                       >
                         <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors">{ex.name}</span>
                         <span className="text-[10px] text-slate-600 font-mono">{ex.format}</span>
@@ -131,17 +131,17 @@ export function APICapabilities() {
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Bank PDFs</h3>
-                    <span className="text-[11px] text-slate-500 font-mono">{banks.length}+ supported</span>
+                    <span className="text-[11px] text-slate-500 font-mono">{banks.length}+</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="flex flex-wrap gap-1.5">
                     {banks.map((bank) => (
                       <div
                         key={bank.name}
-                        className="flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-white/2 border border-white/5 hover:border-emerald-500/20 hover:bg-emerald-500/4 transition-all group"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-emerald-500/20 hover:bg-emerald-500/4 transition-all group"
                       >
                         <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors">{bank.name}</span>
                         {bank.status === 'tested' && (
-                          <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">Tested</span>
+                          <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">✓</span>
                         )}
                       </div>
                     ))}
@@ -150,28 +150,28 @@ export function APICapabilities() {
               </div>
 
               {/* CENTER: Arrow connector */}
-              <div className="hidden lg:flex flex-col items-center justify-center py-20">
-                <div className="w-px h-16 bg-linear-to-b from-transparent via-slate-600 to-slate-600" />
+              <div className="hidden lg:flex flex-col items-center justify-center">
+                <div className="w-px flex-1 bg-linear-to-b from-transparent via-slate-600 to-slate-600" />
                 <div className="my-4 w-14 h-14 rounded-xl bg-white/4 border border-white/8 flex items-center justify-center">
                   <Zap className="w-6 h-6 text-amber-400" />
                 </div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-widest my-2 font-semibold">Engine</div>
-                <div className="w-px h-16 bg-linear-to-b from-slate-600 via-slate-600 to-transparent" />
+                <div className="w-px flex-1 bg-linear-to-b from-slate-600 via-slate-600 to-transparent" />
               </div>
 
               {/* RIGHT: Outputs + Features */}
-              <div>
+              <div className="flex flex-col">
                 {/* Output formats */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 rounded-full bg-sky-400" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Output Formats</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="flex flex-wrap gap-1.5">
                     {outputFormats.map((fmt) => (
                       <div
                         key={fmt}
-                        className="px-3.5 py-2.5 rounded-lg bg-white/2 border border-white/5 text-[13px] text-slate-300 font-medium text-center"
+                        className="px-3 py-2 rounded-lg bg-white/2 border border-white/5 text-[13px] text-slate-300 font-medium"
                       >
                         {fmt}
                       </div>
@@ -183,11 +183,11 @@ export function APICapabilities() {
                 </div>
 
                 {/* Feature list */}
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1">
                   {features.map((feat) => (
                     <div
                       key={feat.title}
-                      className="flex items-start gap-3 px-4 py-3 rounded-lg bg-linear-to-r bg-white/1 hover:bg-white/3 transition-all group"
+                      className="flex items-start gap-3 px-4 py-3 rounded-lg bg-white/1 hover:bg-white/3 transition-all group"
                     >
                       <feat.icon className={`w-4 h-4 mt-0.5 ${feat.accent} shrink-0`} />
                       <div>

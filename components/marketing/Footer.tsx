@@ -68,7 +68,7 @@ export function Footer() {
               Get your API key and parse your first file — free, no credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="primary" href="/signup">
+              <Button variant="primary" href="/signup" className="!bg-emerald-500 hover:!bg-emerald-400 !border-emerald-500">
                 Get API Key
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>

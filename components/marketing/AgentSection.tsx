@@ -54,7 +54,7 @@ export function AgentSection() {
       <Container>
         <div className="relative z-10">
           {/* Header */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/4 border border-white/6">
               <Bot className="w-4 h-4 text-[#635bff]" />
               <span className="text-[13px] font-medium text-slate-400">Model Context Protocol</span>
@@ -63,11 +63,26 @@ export function AgentSection() {
               Give your AI agent
               <br />
               <span className="bg-gradient-to-r from-[#635bff] to-[#00d4aa] bg-clip-text text-transparent">
-                financial superpowers.
+                financial sight.
               </span>
             </h2>
-            <p className="text-slate-400 max-w-xl mx-auto text-lg">
-              Install our MCP server and any compatible AI agent — Claude, GPT, or custom builds — can parse crypto CSVs and bank statements natively.
+            <p className="text-slate-400 max-w-lg mx-auto text-lg mb-6">
+              One install. Your agent can parse crypto CSVs and bank statements without you writing a single line of integration code.
+            </p>
+
+            {/* Prominent install command */}
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-[#111b2e] border border-white/8">
+              <span className="text-slate-500 text-sm">$</span>
+              <code className="text-[15px] font-mono text-emerald-400">npx @taxformatter/mcp-server</code>
+              <button
+                onClick={() => navigator.clipboard.writeText('npx @taxformatter/mcp-server')}
+                className="ml-2 text-slate-500 hover:text-white transition-colors text-xs border border-white/10 rounded px-2 py-1"
+              >
+                Copy
+              </button>
+            </div>
+            <p className="text-[12px] text-slate-600 mt-3">
+              Works with Claude Code, Cursor, Windsurf, and any MCP-compatible client.
             </p>
           </div>
 
