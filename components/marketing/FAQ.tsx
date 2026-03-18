@@ -25,49 +25,49 @@ interface FAQItem {
 
 const faqItems: FAQItem[] = [
   {
-    question: "What are the 'Big 4' banks for PDF conversion?",
-    answer: "Chase, Bank of America, Wells Fargo, and Citi. These are the four most common bank statement formats we see, and Pro users get unlimited PDF-to-Excel conversions for all of them. These banks cover roughly 80% of US business banking, so most users never need more.",
+    question: "How does the API detect which exchange a CSV came from?",
+    answer: "Header fingerprinting. Every exchange exports slightly different column names and ordering. We hash the headers against our registry of 14 known formats and match instantly. If we can't match, we fall back to a generic parser that looks for date + amount columns. You can also pass the exchange name explicitly to skip detection.",
     vibe: 'curious',
   },
   {
-    question: "What if my bank isn't in the Big 4?",
-    answer: "Premium users get access to all 50+ supported banks including Capital One, US Bank, PNC, TD Bank, American Express, Discover, Mercury, Relay, Brex, HSBC, and more. Premium also lets you request new bank formats—we'll add your bank within 48 hours if it's not already supported.",
-    vibe: 'hopeful',
-  },
-  {
-    question: "What exchanges do you actually support?",
-    answer: "14 and counting: Coinbase, Kraken, Gemini, Binance, Robinhood, Crypto.com, PayPal, Cash App, Venmo, KuCoin, Bybit, FTX (RIP, but we still process historical data), Bitfinex, and OKX. We detect formats automatically—no API keys, no account linking. New exchanges get added constantly based on what users throw at us.",
+    question: "What does the MCP server actually do?",
+    answer: "It wraps our REST API as three MCP tools that any compatible AI agent (Claude, GPT, custom builds) can call natively. Your agent can read a CSV from disk, base64-encode it, POST it to /v1/parse, and get structured transactions back — all without you writing any integration code. Just add our npx package to your MCP config and go.",
     vibe: 'curious',
   },
   {
-    question: "Will this work with my tax software?",
-    answer: "Almost certainly. We export directly to TurboTax, TaxAct, H&R Block, Koinly, CoinTracker, TokenTax, CoinLedger, and ZenLedger. If yours isn't listed, we also generate IRS Form 8949—the universal format that everything accepts.",
-    vibe: 'hopeful',
-  },
-  {
-    question: "Do you connect to my exchange accounts?",
-    answer: "No. Hard no. We don't want your API keys. You upload a CSV, we clean it, you download the result. That's it. No account access, no OAuth flows, no storing credentials.",
+    question: "Do you store the files I send through the API?",
+    answer: "No. Files are processed in-memory inside the Lambda and discarded immediately after the response is sent. Nothing touches disk, nothing gets logged, nothing persists. We track usage counts and byte totals for billing, but never the file contents or transaction data.",
     vibe: 'paranoid',
   },
   {
-    question: "Can I upload files from multiple exchanges?",
-    answer: "Yes. Upload CSVs from Coinbase, Kraken, and that random DEX you tried once—all in the same session. We'll consolidate everything into one clean, tax-ready export.",
-    vibe: 'frustrated',
-  },
-  {
-    question: "Is my data stored anywhere?",
-    answer: "Your files are stored securely for up to 1 year so you can re-download results anytime. Want it gone sooner? Hit the delete button after downloading and it's permanently removed. We never build a database of your trades or share your data with anyone.",
-    vibe: 'paranoid',
-  },
-  {
-    question: "My tax software isn't on your list. Now what?",
-    answer: "Use the Form 8949 export. It's the IRS standard for reporting crypto disposals in the US. Any legitimate tax software can import it directly or accept the data with minimal manual entry.",
+    question: "What happens when I hit my monthly quota?",
+    answer: "We don't hard-block you. Requests keep working but we set an X-Api-Overage header on responses so your app knows you're over. No surprise 403s killing your users' experience. Upgrade your tier or wait for the month to roll over.",
     vibe: 'worried',
   },
   {
-    question: "Does TaxFormatter calculate my capital gains?",
-    answer: "No. We're a formatting tool, not tax software. We take your broken exchange CSV, fix the errors, and export it in a format your tax platform can actually import. The cost basis math (FIFO, LIFO, HIFO) happens in TurboTax, Koinly, or whatever you use to file. Think of us as the translator between your exchange and your tax software.",
+    question: "Can the API parse bank statement PDFs too?",
+    answer: "Yes. Send a PDF with filename ending in .pdf and we'll route it to the bank statement processor automatically. We support Chase, Mercury, Navy Federal, Bank of America, Wells Fargo, Citi, and Capital One. The API auto-detects the bank from the PDF content — no configuration needed.",
+    vibe: 'hopeful',
+  },
+  {
+    question: "What output formats does the API support?",
+    answer: "Four: Koinly (universal template), TurboTax (Form 8949), CoinLedger (manual import), and ZenLedger (custom CSV). Pass output_format in your request. Default is Koinly. All formats normalize dates, amounts, and transaction types to match what each tax platform expects.",
     vibe: 'curious',
+  },
+  {
+    question: "How fast is it?",
+    answer: "Typical CSV parsing completes in under 1 second. Bank statement PDFs take 1-2 seconds depending on page count. The API Lambda has a 120-second timeout and 1GB memory, so even large files (up to 10MB) process without issues. We include processing_time_ms in every response so you can monitor latency.",
+    vibe: 'skeptic',
+  },
+  {
+    question: "What if auto-detection picks the wrong exchange?",
+    answer: "Pass the exchange parameter explicitly in your request to override auto-detection. If you're not sure which exchange it is, hit GET /v1/sources first to see all supported formats. The API also returns a detected_source field in every response so you can verify what it matched.",
+    vibe: 'frustrated',
+  },
+  {
+    question: "Is there a free tier?",
+    answer: "Yes. 10 files per month, 10 requests per minute, all 14 exchanges, all output formats. No credit card, no trial period, no gotchas. It's enough to build and test your integration. When you need more volume, upgrade to Growth ($99/mo for 500 files) or Business ($249/mo for 2,000 files).",
+    vibe: 'hopeful',
   },
 ];
 
@@ -120,13 +120,13 @@ export function FAQ() {
           <div className="relative">
             <div className="mb-16 sm:mb-24 sm:text-center sm:mx-auto max-w-3xl">
               <p className="text-emerald-400 font-mono text-sm tracking-wider mb-4 uppercase">
-                No corporate speak
+                Before you integrate
               </p>
               <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1]">
-                Stuff you're actually wondering.
+                Things devs actually ask.
               </h2>
               <p className="text-zinc-500 text-lg mt-6 tracking-tight">
-                 Straight answers to the questions we get asked the most.
+                 No fluff. Real answers about the API, MCP server, and how it all works.
               </p>
             </div>
 
@@ -224,18 +224,6 @@ export function FAQ() {
               })}
             </div>
 
-            <div className="mt-20 sm:mt-24 text-center border-t border-white/10 pt-12">
-              <p className="text-zinc-400 text-lg">
-                Still confused?{' '}
-                <a 
-                  href="mailto:support@taxformatter.com" 
-                  className="text-white hover:text-emerald-400 underline underline-offset-4 transition-colors font-medium"
-                >
-                  Just email us
-                </a>
-                . We actually respond.
-              </p>
-            </div>
           </div>
         </Container>
       </section>

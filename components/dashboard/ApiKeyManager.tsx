@@ -121,7 +121,7 @@ export function ApiKeyManager() {
       {createdKey && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-emerald-300 text-sm font-medium mb-2">
                 API key created. Copy it now — it won&apos;t be shown again.
@@ -132,7 +132,7 @@ export function ApiKeyManager() {
                 </code>
                 <button
                   onClick={copyKey}
-                  className="flex-shrink-0 p-1.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 transition-colors"
+                  className="shrink-0 p-1.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 transition-colors"
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-emerald-400" />
@@ -202,7 +202,7 @@ export function ApiKeyManager() {
 
               return (
                 <div key={key.id} className="px-6 py-4 flex items-center gap-4">
-                  <Key className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  <Key className="w-5 h-5 text-gray-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-white font-medium text-sm">{key.name}</span>
