@@ -22,11 +22,11 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: "TaxFormatter - Crypto Taxes, Simplified",
+    default: "TaxFormatter — Crypto CSV Parsing API & MCP Server",
     template: "%s | TaxFormatter",
   },
-  description: "Fix broken crypto CSV files in 30 seconds with AI-powered repair. Clean, format, and export to any tax platform including TurboTax, Koinly, CoinLedger & ZenLedger. No manual editing required.",
-  keywords: ["crypto tax", "CSV repair", "tax software", "cryptocurrency", "tax filing", "TurboTax", "tax platform", "crypto accounting", "tax formatter"],
+  description: "Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 7+ banks, 4 tax formats. One API call. MCP server for AI agents.",
+  keywords: ["crypto API", "CSV parsing API", "MCP server", "crypto tax API", "exchange parser", "bank statement API", "TurboTax API", "Koinly API", "fintech API", "AI agent tools"],
   authors: [{ name: "TaxFormatter" }],
   creator: "TaxFormatter",
   publisher: "TaxFormatter",
@@ -38,23 +38,23 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://taxformatter.com",
-    title: "TaxFormatter - AI-Powered Crypto Tax CSV Repair in 30 Seconds",
-    description: "Fix broken crypto CSV files in 30 seconds with AI-powered repair. Clean, format, and export to any tax platform including TurboTax, Koinly, CoinLedger & ZenLedger. No manual editing required.",
+    title: "TaxFormatter — Crypto CSV Parsing API & MCP Server",
+    description: "Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 7+ banks, 4 tax formats. One API call. MCP server for AI agents.",
     siteName: "TaxFormatter",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "TaxFormatter - Crypto Tax CSV Repair Tool",
+        alt: "TaxFormatter API — Parse any crypto CSV instantly",
         type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TaxFormatter - AI-Powered Crypto Tax CSV Repair in 30 Seconds",
-    description: "Fix broken crypto CSV files in 30 seconds with AI-powered repair. Clean, format, and export to any tax platform including TurboTax, Koinly, CoinLedger & ZenLedger.",
+    title: "TaxFormatter — Crypto CSV Parsing API & MCP Server",
+    description: "Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 7+ banks, 4 tax formats. One API call. MCP server for AI agents.",
     images: ["/og-image.png"],
     creator: "@taxformatter",
   },
