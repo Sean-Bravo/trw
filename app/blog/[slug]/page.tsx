@@ -24,6 +24,14 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
     return { title: 'Post Not Found' }
   }
 
+  const ogParams = new URLSearchParams({
+    title: post.title,
+    description: post.description,
+    category: post.category,
+    readingTime: String(post.readingTime),
+  })
+  const ogImageUrl = `https://taxformatter.com/api/og?${ogParams.toString()}`
+
   return {
     title: `${post.title} | TaxFormatter`,
     description: post.description,
@@ -34,11 +42,13 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
       publishedTime: post.date,
       authors: [post.author],
       url: `https://taxformatter.com${post.url}`,
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: post.title }],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.description,
+      images: [ogImageUrl],
     },
     alternates: {
       canonical: `https://taxformatter.com${post.url}`,
