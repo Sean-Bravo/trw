@@ -31,9 +31,9 @@ export function Header() {
   }, []);
 
   const navLinks = [
-    { href: '/#features', label: 'Features' },
+    { href: '/docs/api', label: 'API' },
     { href: '/#pricing', label: 'Pricing' },
-    { href: '/security', label: 'Security' },
+    { href: '/#capabilities', label: 'Exchanges' },
     { href: '/blog', label: 'Blog' },
     { href: '/docs', label: 'Docs' },
   ];

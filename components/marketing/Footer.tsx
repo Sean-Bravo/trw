@@ -62,61 +62,23 @@ export function Footer() {
         <Container>
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-poppins text-3xl sm:text-4xl font-bold mb-4">
-              Ready to Fix Your CSVs?
+              Start parsing in minutes.
             </h2>
             <p className="text-lg text-slate-400 mb-8">
-              Join thousands of crypto traders who've simplified their tax filing.
+              Get your API key and parse your first file — free, no credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="primary" href="/signup">
-                Get Started Free
+                Get API Key
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-              <Button variant="secondary" href="/docs" className="border-slate-700 text-white hover:bg-slate-800">
-                View Docs
-              </Button>
-            </div>
-          </div>
-        </Container>
-      </div>
-
-      {/* Newsletter Section */}
-      <div className="py-12 border-b border-slate-800">
-        <Container>
-          <div className="max-w-md mx-auto text-center">
-            <h3 className="font-semibold text-lg mb-2">Stay Updated</h3>
-            <p className="text-sm text-slate-400 mb-4">
-              Get crypto tax tips and product updates.
-            </p>
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <div className="flex-1 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  disabled={status === 'loading' || status === 'success'}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-full text-white text-sm text-center placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent disabled:opacity-50"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={status === 'loading' || status === 'success'}
-                className="px-5 py-2.5 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-primary-700)] text-white text-sm font-semibold rounded-full transition-colors"
+              <Link
+                href="/docs"
+                className="inline-flex items-center justify-center h-10 px-6 rounded-full text-sm font-semibold text-white border-2 border-slate-600 bg-slate-800 hover:bg-slate-700 hover:-translate-y-0.5 transition-all duration-300"
               >
-                {status === 'loading' ? '...' : status === 'success' ? 'Done!' : 'Subscribe'}
-              </button>
-            </form>
-            {message && (
-              <div className={`mt-3 flex items-center justify-center gap-2 text-sm ${
-                status === 'success' ? 'text-[var(--color-accent-400)]' : 'text-red-400'
-              }`}>
-                {status === 'success' && <CheckCircle2 className="w-4 h-4" />}
-                {message}
-              </div>
-            )}
+                Read API Docs
+              </Link>
+            </div>
           </div>
         </Container>
       </div>

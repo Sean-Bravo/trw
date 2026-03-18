@@ -1,11 +1,10 @@
 import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
-import { Hero } from '@/components/marketing/Hero';
-import { BankFeature } from '@/components/marketing/BankFeature';
-import { HowItWorks } from '@/components/marketing/HowItWorks';
-import { SocialProof } from '@/components/marketing/SocialProof';
-import { Integrations } from '@/components/marketing/Integrations';
+import { APIHero } from '@/components/marketing/APIHero';
+import { APIDemo } from '@/components/marketing/APIDemo';
+import { AgentSection } from '@/components/marketing/AgentSection';
+import { APICapabilities } from '@/components/marketing/APICapabilities';
+import { APIPricing } from '@/components/marketing/APIPricing';
 import TrustEngine from '@/components/marketing/TrustEngine';
-import { Pricing } from '@/components/marketing/Pricing';
 import { FAQ } from '@/components/marketing/FAQ';
 import { Footer } from '@/components/marketing/Footer';
 import { SoftwareApplicationSchema } from '@/components/seo/SoftwareApplicationSchema';
@@ -17,13 +16,12 @@ export default function Home() {
       <SoftwareApplicationSchema />
       <main className="min-h-screen">
         <HeaderWithSession />
-        <Hero />
-        <HowItWorks />
-        <SocialProof />
-        <Integrations />
-        <BankFeature />
+        <APIHero />
+        <APIDemo />
+        <AgentSection />
+        <APICapabilities />
+        <APIPricing />
         <TrustEngine />
-        <Pricing />
         <FAQ />
         <Footer />
       </main>

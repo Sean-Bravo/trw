@@ -23,9 +23,9 @@ export class TaxFormatterClient {
       filename,
     };
 
-    if (options?.exchange) body.exchange = options.exchange;
-    if (options?.bank) body.bank = options.bank;
-    if (options?.output_format) body.output_format = options.output_format;
+    if (options?.exchange) body['exchange'] = options.exchange;
+    if (options?.bank) body['bank'] = options.bank;
+    if (options?.output_format) body['output_format'] = options.output_format;
 
     const res = await fetch(`${API_BASE}/v1/parse`, {
       method: 'POST',
