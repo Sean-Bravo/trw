@@ -1,0 +1,118 @@
+---
+title: "TaxFormatter MCP Server: Let AI Agents Parse Financial Files"
+description: "Use the @taxformatter/mcp-server npm package to give Claude, Cursor, Windsurf, and other AI agents the ability to parse crypto CSVs and bank statement PDFs through natural language."
+date: 2026-03-18
+author: "TaxFormatter Team"
+category: "guides"
+tags: ["MCP", "AI agents", "Claude", "Cursor", "developer", "Model Context Protocol", "automation"]
+image: "/blog/mcp-server-agents.jpg"
+published: true
+featured: false
+---
+
+## AI Agents Need Structured Data, Not Raw Files
+
+You're building an AI-powered accounting assistant, a tax prep copilot, or an automated bookkeeping workflow. Your agent needs to understand what's inside a Coinbase CSV or a Chase bank statement — but LLMs can't reliably parse messy financial files on their own.
+
+The TaxFormatter MCP Server bridges that gap. It gives any MCP-compatible AI agent three tools for working with financial files, backed by the same parsing engine that handles 14 crypto exchanges and 50+ bank formats.
+
+## What Is MCP?
+
+The Model Context Protocol is an open standard that lets AI agents call external tools. Instead of the agent trying to parse a CSV itself (and hallucinating transaction amounts), it delegates to a specialized service and gets structured data back.
+
+Think of it like giving your AI agent a calculator instead of asking it to do math in its head.
+
+## Installation
+
+```bash
+npm install -g @taxformatter/mcp-server
+```
+
+Then configure it in your MCP client. For Claude Code, add this to your MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "taxformatter": {
+      "command": "npx",
+      "args": ["@taxformatter/mcp-server"],
+      "env": {
+        "TAXFORMATTER_API_KEY": "tf_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+For Cursor, Windsurf, or any other MCP-compatible client, the configuration follows the same pattern — point to the package and provide your API key.
+
+## The Three Tools
+
+### `parse_crypto_csv`
+
+Accepts a file path to a crypto exchange CSV and returns structured transaction data. The agent can then reason about the transactions, calculate totals, identify tax events, or feed the data into downstream tools.
+
+**What an agent conversation looks like:**
+
+> **User:** "Parse my Coinbase export and tell me how many sell transactions I had in Q4 2025."
+>
+> **Agent:** Uses `parse_crypto_csv` → gets 847 transactions → filters to Q4 sells → "You had 23 sell transactions in Q4 2025 totaling $12,450 in proceeds."
+
+The agent never touches the raw CSV. It gets clean, typed transaction objects with normalized dates, amounts, and categories.
+
+### `parse_bank_statement`
+
+Same idea, but for bank statement PDFs. Handles OCR, multi-page extraction, wrapped descriptions, and date normalization. Returns a transactions array the agent can work with immediately.
+
+**Example flow:**
+
+> **User:** "Look at my Chase statement and find all transactions over $500."
+>
+> **Agent:** Uses `parse_bank_statement` → extracts 134 transactions → filters by amount → returns 8 transactions over $500 with dates and descriptions.
+
+### `list_supported_sources`
+
+Returns the full list of supported crypto exchanges and bank formats. Useful when an agent needs to tell a user whether their file type is supported before attempting a parse.
+
+## Why Not Just Give the Agent the Raw File?
+
+Three reasons.
+
+**Accuracy.** LLMs struggle with tabular data, especially when formats vary across exchanges. A Binance CSV looks nothing like a Kraken CSV. The MCP server uses deterministic parsers that handle each format correctly, so the agent works with verified data instead of best guesses.
+
+**Speed.** Parsing a 5,000-row CSV with an LLM is slow and expensive in tokens. The API processes it in under 2 seconds and returns structured JSON that the agent consumes instantly.
+
+**Reliability.** Edge cases kill naive parsing — duplicate transactions, missing dates, split columns, OCR artifacts in scanned PDFs. The TaxFormatter engine has handled millions of these edge cases. Your agent doesn't need to.
+
+## Real-World Use Cases
+
+### Automated Tax Prep Workflows
+
+An AI agent walks a user through tax filing: "Upload your exchange exports." The agent calls `parse_crypto_csv` for each file, aggregates all transactions, calculates short-term and long-term gains, and generates a tax summary. No manual CSV cleanup required.
+
+### Bookkeeping Copilots
+
+A bookkeeper asks their AI assistant: "Categorize last month's Chase transactions." The agent parses the PDF, returns structured transactions, and applies the bookkeeper's categorization rules — all through conversation.
+
+### Fintech App Integrations
+
+Your app's AI assistant can handle file imports through natural language. A user says "import my Kraken history" and the agent handles the rest — parsing, validation, and ingestion into your system.
+
+## Rate Limits and Pricing
+
+The MCP server uses the same API tiers as direct REST calls. Every `parse_crypto_csv` or `parse_bank_statement` call counts as one file against your monthly quota. The free tier (10 files/month) is enough to build and test your agent integration.
+
+See [API pricing](/blog/taxformatter-api-getting-started#api-tiers-and-rate-limits) for the full tier breakdown.
+
+## Getting Started
+
+1. **Get an API key** at [taxformatter.com/dashboard/developer](https://www.taxformatter.com/dashboard/developer)
+2. **Install the package:** `npm install -g @taxformatter/mcp-server`
+3. **Configure your MCP client** with the server command and your API key
+4. **Test it:** Ask your agent to parse a sample CSV
+
+The full package documentation is in the [README on npm](https://www.npmjs.com/package/@taxformatter/mcp-server), and the underlying API reference lives at [taxformatter.com/docs/api](https://www.taxformatter.com/docs/api).
+
+---
+
+*Building an agent integration? We'd love to hear about it — reach out at support@taxformatter.com.*
