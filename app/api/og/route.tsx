@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     'bookkeeping': { bg: '#FFFBEB', text: '#92400E', accent: '#F59E0B' },
   }
 
-  const colors = categoryColors[category] || categoryColors['guides']
+  const colors = categoryColors[category] ?? { bg: '#EFF6FF', text: '#1E40AF', accent: '#3B82F6' }
   const shortDesc = description.length > 130 ? description.slice(0, 130) + '...' : description
 
   return new ImageResponse(
