@@ -1,0 +1,129 @@
+---
+title: "What Is an API? And What Are MCP Servers? A Simple Guide for Non-Developers"
+description: "APIs and MCP servers explained in plain English. Learn what an API does, why every app you use depends on them, and why MCP servers are the next big thing letting AI assistants like Claude and ChatGPT take actions for you."
+date: 2026-03-18
+author: "TaxFormatter Team"
+category: "guides"
+tags: ["API", "MCP server", "AI agents", "beginners guide", "what is an API", "Model Context Protocol", "LLM", "Claude", "artificial intelligence"]
+image: "/blog/what-is-api-mcp-explained.jpg"
+published: true
+featured: false
+---
+
+## What Is an API? The Restaurant Analogy
+
+Imagine you're at a restaurant. You sit down, look at the menu, and tell the waiter what you want. The waiter walks to the kitchen, gives the chef your order, and brings back your food.
+
+You never go into the kitchen. You don't need to know how the stove works or where the ingredients come from. You just place an order and get a result.
+
+**That's exactly what an API does.**
+
+API stands for Application Programming Interface. It's the waiter between two pieces of software. One app asks for something, the API carries that request to another app, and brings back the answer.
+
+## APIs Are Already Everywhere in Your Life
+
+You use APIs dozens of times a day without realizing it.
+
+When you check the weather on your phone, the weather app sends a request through an API to a service that has the forecast data. The API brings back today's temperature and whether you need an umbrella.
+
+When you pay for something with Apple Pay or Google Pay, an API carries your payment details to the bank, confirms the transaction, and sends back an approval. All in about two seconds.
+
+When you log into a website using "Sign in with Google," that website is using Google's API to verify who you are — without ever seeing your password.
+
+Every time you book a flight, order food delivery, check your bank balance, or stream a song, APIs are doing the work behind the scenes. They're the invisible messengers that make modern apps talk to each other.
+
+## Why Should You Care About APIs?
+
+Because they determine what your software can do.
+
+If an app has an API, other apps can connect to it. Your accounting software can pull in your bank transactions automatically. Your calendar can create a video call link the moment you schedule a meeting. Your tax tool can read your crypto exchange data without you copying and pasting anything.
+
+If an app doesn't have an API, you're stuck doing everything manually. Copy, paste, re-type, upload, download. Over and over.
+
+APIs are the reason modern software feels connected. Without them, every app would be an island.
+
+## Now Enter AI — And a New Problem
+
+AI assistants like Claude, ChatGPT, and Gemini are incredibly good at understanding what you ask and generating helpful responses. But for a long time, they had a major limitation.
+
+**They couldn't actually do anything.**
+
+You could ask an AI to "check my bank statement for transactions over $500" — and it would explain *how* to do that. But it couldn't actually open your bank statement, read it, and give you the answer.
+
+AI could talk. It couldn't act.
+
+That's the problem MCP servers solve.
+
+## What Is an MCP Server?
+
+MCP stands for Model Context Protocol. Don't worry about the technical name — here's what it actually means.
+
+An MCP server is a bridge that lets an AI assistant use tools and services on your behalf. It gives AI the ability to take actions, not just give advice.
+
+Going back to the restaurant analogy: without MCP, AI is like a very knowledgeable food critic sitting at your table. It can describe every dish, recommend the perfect meal, and explain cooking techniques in detail. But it can't actually order food for you.
+
+**With MCP, the food critic can now talk to the waiter.** It can place orders, ask the kitchen questions, and bring you exactly what you need.
+
+In practical terms, an MCP server connects an AI assistant to an API. It translates between the way humans talk and the way software systems communicate.
+
+## How MCP Servers Work (Simply)
+
+Here's the flow in plain language:
+
+**You say:** "Parse my Coinbase CSV and tell me how many transactions I had last year."
+
+**The AI thinks:** "I need to read a financial file. I have access to a tool that can do that."
+
+**The MCP server:** Takes the file, sends it to the right API, gets back structured data.
+
+**The AI responds:** "You had 847 transactions last year — 412 buys, 389 sells, and 46 transfers."
+
+You asked a question in normal English. The AI used a tool to get the real answer. The MCP server made the connection between the two.
+
+## Why MCP Servers Are Exploding in Popularity
+
+Three things came together at the right time.
+
+**AI got really good at understanding requests.** Large language models like Claude can now reliably figure out what you need and which tool to use. Two years ago, this wasn't consistent enough to be useful. Now it is.
+
+**The MCP standard created a universal plug.** Before MCP, every AI tool connection was custom-built. Connecting Claude to one service required different code than connecting it to another. MCP created a single standard — like how USB-C replaced a dozen different charging cables. Build one MCP server, and it works with Claude, Cursor, Windsurf, and any other MCP-compatible AI client.
+
+**People realized AI advice isn't enough.** The novelty of chatting with AI has worn off. Users want AI that does things — books appointments, processes files, sends messages, analyzes data. MCP is what makes that possible.
+
+## What Can MCP Servers Actually Do?
+
+The range is growing fast. Here are real examples of what AI agents can do today through MCP servers:
+
+**File processing.** An AI assistant can read your bank statement PDF and extract every transaction into a spreadsheet. No manual data entry.
+
+**Data analysis.** Ask an AI to look at your sales numbers and find trends. The MCP server connects it to your data source, and the AI does the analysis.
+
+**Code assistance.** Developers use MCP servers to let AI read their codebase, run tests, and suggest fixes — then actually apply those fixes.
+
+**Communication.** AI agents can draft and send messages, check your calendar, or create tasks in project management tools — all through MCP connections.
+
+The key idea is that MCP turns AI from a conversation partner into a capable assistant that can interact with the digital tools you already use.
+
+## How TaxFormatter Uses This
+
+At TaxFormatter, we built an MCP server that gives AI agents the ability to parse messy financial files.
+
+If you're using an AI assistant that supports MCP, you can say something like "read my Coinbase CSV and summarize my trades" — and the AI will use our MCP server to parse the file, clean the data, and give you a clear answer.
+
+No manual upload. No reformatting. No switching between apps. You talk to your AI assistant, and it handles the rest using real parsing tools behind the scenes.
+
+Our MCP server supports crypto exchange CSVs from 14 exchanges and bank statement PDFs from over 50 banks. The AI doesn't guess at your transaction data — it uses our parsing engine to get it right.
+
+## The Bigger Picture
+
+APIs made software talk to software. MCP servers make AI talk to software.
+
+This matters because it changes what non-technical people can accomplish. You don't need to know how to write code to use an API anymore — you just need an AI assistant with the right MCP connections.
+
+Need to process 12 months of bank statements? You used to need a developer or a lot of patience. Now you describe what you need in plain English, and an AI agent with MCP tools handles it.
+
+We're still in the early days. The number of available MCP servers is growing weekly, and AI assistants are getting better at using them. But the direction is clear: the future of AI isn't just answering questions — it's getting things done.
+
+---
+
+*Want to see MCP in action with your financial files? Try the [TaxFormatter API](/blog/taxformatter-api-getting-started) or set up the [MCP server](/blog/taxformatter-mcp-server-ai-agents) with your AI assistant.*

@@ -173,8 +173,10 @@ def handle_v1_parse(event: Dict, key_record: Dict) -> Dict:
         ip_address=get_client_ip(event),
     )
 
-    # Add overage header if applicable
-    extra_headers = {}
+    # Add processing time and overage headers
+    extra_headers = {
+        "X-TF-Processing-Time": str(processing_time_ms),
+    }
     from services.api_auth import check_monthly_quota
     _, usage, is_overage = check_monthly_quota(key_record["id"], key_record["monthly_quota"])
     if is_overage:
