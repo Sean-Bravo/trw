@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg4" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ECFDF5"/>
+      <stop offset="50%" stop-color="#F0F9FF"/>
+      <stop offset="100%" stop-color="#EEF2FF"/>
+    </linearGradient>
+    <linearGradient id="green1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="blue4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg4)"/>
+  <pattern id="grid4" width="48" height="48" patternUnits="userSpaceOnUse">
+    <circle cx="24" cy="24" r="1" fill="#64748B" opacity="0.08"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#grid4)"/>
+
+  <!-- Section label: API -->
+  <text x="300" y="80" font-family="sans-serif" font-size="16" fill="#059669" font-weight="700" letter-spacing="2" text-anchor="middle" opacity="0.6">WHAT IS AN API?</text>
+
+  <!-- Restaurant analogy -->
+  <!-- You (customer) -->
+  <g transform="translate(80, 130)">
+    <rect width="160" height="160" rx="20" fill="white" stroke="#D1FAE5" stroke-width="2" filter="drop-shadow(0 4px 16px rgba(0,0,0,0.06))"/>
+    <text x="80" y="70" font-family="sans-serif" font-size="48" text-anchor="middle">👤</text>
+    <text x="80" y="108" font-family="sans-serif" font-size="16" fill="#1E293B" font-weight="700" text-anchor="middle">You</text>
+    <text x="80" y="128" font-family="sans-serif" font-size="12" fill="#94A3B8" text-anchor="middle">(The Customer)</text>
+  </g>
+
+  <!-- Arrow 1: Order -->
+  <g transform="translate(255, 190)">
+    <line x1="0" y1="0" x2="80" y2="0" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+    <polygon points="80,0 70,-6 70,6" fill="#10B981"/>
+    <text x="40" y="-12" font-family="sans-serif" font-size="11" fill="#059669" font-weight="600" text-anchor="middle">order</text>
+  </g>
+
+  <!-- API (waiter) -->
+  <g transform="translate(350, 130)">
+    <rect width="160" height="160" rx="20" fill="url(#green1)" filter="drop-shadow(0 4px 16px rgba(16,185,129,0.2))"/>
+    <text x="80" y="65" font-family="sans-serif" font-size="44" text-anchor="middle">🤵</text>
+    <text x="80" y="103" font-family="sans-serif" font-size="18" fill="white" font-weight="800" text-anchor="middle">API</text>
+    <text x="80" y="125" font-family="sans-serif" font-size="12" fill="#D1FAE5" text-anchor="middle">(The Waiter)</text>
+  </g>
+
+  <!-- Arrow 2: Request -->
+  <g transform="translate(525, 190)">
+    <line x1="0" y1="0" x2="80" y2="0" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+    <polygon points="80,0 70,-6 70,6" fill="#10B981"/>
+    <text x="40" y="-12" font-family="sans-serif" font-size="11" fill="#059669" font-weight="600" text-anchor="middle">request</text>
+  </g>
+
+  <!-- Kitchen (service) -->
+  <g transform="translate(620, 130)">
+    <rect width="160" height="160" rx="20" fill="white" stroke="#D1FAE5" stroke-width="2" filter="drop-shadow(0 4px 16px rgba(0,0,0,0.06))"/>
+    <text x="80" y="70" font-family="sans-serif" font-size="48" text-anchor="middle">🍳</text>
+    <text x="80" y="108" font-family="sans-serif" font-size="16" fill="#1E293B" font-weight="700" text-anchor="middle">Service</text>
+    <text x="80" y="128" font-family="sans-serif" font-size="12" fill="#94A3B8" text-anchor="middle">(The Kitchen)</text>
+  </g>
+
+  <!-- Return arrows -->
+  <g transform="translate(255, 250)">
+    <line x1="80" y1="0" x2="0" y2="0" stroke="#10B981" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" opacity="0.5"/>
+    <polygon points="0,0 10,-5 10,5" fill="#10B981" opacity="0.5"/>
+    <text x="40" y="16" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">food</text>
+  </g>
+  <g transform="translate(525, 250)">
+    <line x1="80" y1="0" x2="0" y2="0" stroke="#10B981" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" opacity="0.5"/>
+    <polygon points="0,0 10,-5 10,5" fill="#10B981" opacity="0.5"/>
+    <text x="40" y="16" font-family="sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">response</text>
+  </g>
+
+  <!-- Divider -->
+  <line x1="60" y1="360" x2="1140" y2="360" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="8 8"/>
+
+  <!-- Section label: MCP -->
+  <text x="900" y="80" font-family="sans-serif" font-size="16" fill="#2563EB" font-weight="700" letter-spacing="2" text-anchor="middle" opacity="0.6">+ MCP SERVER</text>
+
+  <!-- Now the AI can use APIs -->
+  <!-- Speech bubble from user -->
+  <g transform="translate(60, 400)">
+    <rect width="320" height="80" rx="16" fill="white" stroke="#E2E8F0" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.05))"/>
+    <text x="24" y="36" font-family="sans-serif" font-size="14" fill="#64748B" font-style="italic">"Parse my Coinbase CSV and</text>
+    <text x="24" y="58" font-family="sans-serif" font-size="14" fill="#64748B" font-style="italic">summarize my trades"</text>
+    <text x="296" y="68" font-family="sans-serif" font-size="22">💬</text>
+  </g>
+
+  <!-- Arrow to AI -->
+  <g transform="translate(395, 435)">
+    <line x1="0" y1="0" x2="50" y2="0" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+    <polygon points="50,0 42,-5 42,5" fill="#94A3B8"/>
+  </g>
+
+  <!-- AI Agent -->
+  <g transform="translate(460, 400)">
+    <rect width="120" height="80" rx="16" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="1.5"/>
+    <text x="60" y="38" font-family="sans-serif" font-size="30" text-anchor="middle">🤖</text>
+    <text x="60" y="62" font-family="sans-serif" font-size="13" fill="#4F46E5" font-weight="700" text-anchor="middle">AI Agent</text>
+  </g>
+
+  <!-- Arrow to MCP -->
+  <g transform="translate(595, 435)">
+    <line x1="0" y1="0" x2="50" y2="0" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round"/>
+    <polygon points="50,0 42,-5 42,5" fill="#8B5CF6"/>
+  </g>
+
+  <!-- MCP Server -->
+  <g transform="translate(660, 395)">
+    <rect width="130" height="90" rx="16" fill="#8B5CF6" filter="drop-shadow(0 4px 12px rgba(139,92,246,0.25))"/>
+    <text x="65" y="38" font-family="sans-serif" font-size="22" text-anchor="middle">🔌</text>
+    <text x="65" y="60" font-family="sans-serif" font-size="14" fill="white" font-weight="700" text-anchor="middle">MCP</text>
+    <text x="65" y="78" font-family="sans-serif" font-size="11" fill="#DDD6FE" text-anchor="middle">Server</text>
+  </g>
+
+  <!-- Arrow to API -->
+  <g transform="translate(805, 435)">
+    <line x1="0" y1="0" x2="50" y2="0" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+    <polygon points="50,0 42,-5 42,5" fill="#3B82F6"/>
+  </g>
+
+  <!-- API -->
+  <g transform="translate(870, 400)">
+    <rect width="120" height="80" rx="16" fill="url(#blue4)" filter="drop-shadow(0 4px 12px rgba(59,130,246,0.2))"/>
+    <text x="60" y="42" font-family="sans-serif" font-size="18" fill="white" font-weight="800" text-anchor="middle">API</text>
+    <text x="60" y="62" font-family="sans-serif" font-size="11" fill="#BFDBFE" text-anchor="middle">/v1/parse</text>
+  </g>
+
+  <!-- Result arrow -->
+  <g transform="translate(1005, 435)">
+    <line x1="0" y1="0" x2="50" y2="0" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/>
+    <polygon points="50,0 42,-5 42,5" fill="#16A34A"/>
+  </g>
+
+  <!-- Result -->
+  <g transform="translate(1070, 400)">
+    <rect width="80" height="80" rx="16" fill="#DCFCE7" stroke="#BBF7D0" stroke-width="1.5"/>
+    <text x="40" y="42" font-family="sans-serif" font-size="28" text-anchor="middle">✅</text>
+    <text x="40" y="64" font-family="sans-serif" font-size="11" fill="#16A34A" font-weight="600" text-anchor="middle">Done!</text>
+  </g>
+
+  <!-- Bottom annotation -->
+  <g transform="translate(460, 520)">
+    <rect width="480" height="56" rx="12" fill="white" stroke="#E2E8F0" stroke-width="1" opacity="0.9"/>
+    <text x="240" y="24" font-family="sans-serif" font-size="13" fill="#64748B" text-anchor="middle">MCP lets AI agents use APIs — so you talk in English,</text>
+    <text x="240" y="44" font-family="sans-serif" font-size="13" fill="#64748B" text-anchor="middle">and the AI handles the technical parts for you.</text>
+  </g>
+
+  <!-- Right side: real-world examples -->
+  <g transform="translate(860, 120)">
+    <rect width="280" height="200" rx="16" fill="white" stroke="#E2E8F0" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.05))"/>
+    <text x="20" y="32" font-family="sans-serif" font-size="13" fill="#94A3B8" font-weight="600">APIs you use daily:</text>
+
+    <text x="20" y="64" font-family="sans-serif" font-size="22">🌤️</text>
+    <text x="52" y="66" font-family="sans-serif" font-size="13" fill="#1E293B">Weather on your phone</text>
+
+    <text x="20" y="98" font-family="sans-serif" font-size="22">💳</text>
+    <text x="52" y="100" font-family="sans-serif" font-size="13" fill="#1E293B">Apple Pay / Google Pay</text>
+
+    <text x="20" y="132" font-family="sans-serif" font-size="22">🔐</text>
+    <text x="52" y="134" font-family="sans-serif" font-size="13" fill="#1E293B">Sign in with Google</text>
+
+    <text x="20" y="166" font-family="sans-serif" font-size="22">🎵</text>
+    <text x="52" y="168" font-family="sans-serif" font-size="13" fill="#1E293B">Spotify streaming music</text>
+
+    <text x="20" y="192" font-family="sans-serif" font-size="11" fill="#94A3B8">...all powered by APIs</text>
+  </g>
+
+  <!-- Decorative -->
+  <circle cx="40" cy="560" r="30" fill="#10B981" opacity="0.06"/>
+  <circle cx="1170" cy="580" r="40" fill="#3B82F6" opacity="0.05"/>
+</svg>
