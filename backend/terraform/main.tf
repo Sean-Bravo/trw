@@ -59,6 +59,7 @@ locals {
   webhook_lambda   = "${var.project_name}-${var.environment}-webhook"
   scanner_lambda   = "${var.project_name}-${var.environment}-scanner"
   processor_lambda = "${var.project_name}-${var.environment}-processor"
+  api_lambda       = "${var.project_name}-${var.environment}-api"
 
   # Security group names (kept for potential future use)
   lambda_sg_name = "${var.project_name}-${var.environment}-lambda-sg"
@@ -101,6 +102,11 @@ output "scanner_lambda_function_name" {
 output "processor_lambda_function_name" {
   description = "Processor Lambda function name"
   value       = aws_lambda_function.processor.function_name
+}
+
+output "api_lambda_function_name" {
+  description = "API Lambda function name"
+  value       = aws_lambda_function.api.function_name
 }
 
 output "api_gateway_url" {

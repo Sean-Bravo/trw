@@ -160,7 +160,51 @@ resource "aws_apigatewayv2_route" "bank_list" {
   target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
 }
 
-# Lambda Permission for API Gateway
+# ===== Developer API Routes (/v1/*) =====
+
+# API Lambda Integration
+resource "aws_apigatewayv2_integration" "api" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.api.invoke_arn
+  payload_format_version = "2.0"
+  timeout_milliseconds   = 120000
+}
+
+resource "aws_apigatewayv2_route" "v1_parse" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "POST /v1/parse"
+  target    = "integrations/${aws_apigatewayv2_integration.api.id}"
+}
+
+resource "aws_apigatewayv2_route" "v1_sources" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /v1/sources"
+  target    = "integrations/${aws_apigatewayv2_integration.api.id}"
+}
+
+resource "aws_apigatewayv2_route" "v1_usage" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /v1/usage"
+  target    = "integrations/${aws_apigatewayv2_integration.api.id}"
+}
+
+resource "aws_apigatewayv2_route" "v1_health" {
+  api_id    = aws_apigatewayv2_api.main.id
+  route_key = "GET /v1/health"
+  target    = "integrations/${aws_apigatewayv2_integration.api.id}"
+}
+
+# Lambda Permission for API Gateway (API Lambda)
+resource "aws_lambda_permission" "api_gateway_api" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.api.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
+}
+
+# Lambda Permission for API Gateway (Webhook Lambda)
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"

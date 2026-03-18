@@ -33,7 +33,27 @@ export const PRICING = {
   },
 } as const
 
+// API Developer Tier Price IDs
+export const STRIPE_API_PRICES = {
+  STARTER: {
+    monthly: process.env['STRIPE_PRICE_API_STARTER_MONTHLY'] || 'price_api_starter_monthly',
+  },
+  GROWTH: {
+    monthly: process.env['STRIPE_PRICE_API_GROWTH_MONTHLY'] || 'price_api_growth_monthly',
+  },
+  BUSINESS: {
+    monthly: process.env['STRIPE_PRICE_API_BUSINESS_MONTHLY'] || 'price_api_business_monthly',
+  },
+} as const
+
+export const API_PRICING = {
+  STARTER: { monthly: 29, quota: 100, rpm: 30 },
+  GROWTH: { monthly: 99, quota: 500, rpm: 60 },
+  BUSINESS: { monthly: 249, quota: 2000, rpm: 120 },
+} as const
+
 export type StripePlan = keyof typeof STRIPE_PRICES
+export type StripeApiPlan = keyof typeof STRIPE_API_PRICES
 export type BillingPeriod = 'monthly' | 'annual'
 
 // Helper to get price ID for a plan and billing period

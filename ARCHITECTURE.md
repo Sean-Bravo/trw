@@ -63,6 +63,26 @@ Download converts to selected format on-the-fly
 User downloads formatted CSV (persists after sign out)
 ```
 
+## Developer API Flow
+
+```
+Developer / AI Agent
+       ↓
+POST /v1/parse (X-API-Key header)
+       ↓
+API Gateway → API Lambda (120s timeout, 1024MB)
+       ↓
+api_auth.py validates key (SHA-256 hash lookup in Neon)
+       ↓
+Rate limit check (in-memory RPM) + monthly quota check
+       ↓
+Detect file type: .csv → engine.py | .pdf → BankStatementProcessor
+       ↓
+Process synchronously → Return JSON response
+       ↓
+Log to api_requests, increment api_usage
+```
+
 ## Directory Structure
 
 ```
@@ -121,14 +141,18 @@ trw/
 │   └── ENV.md              # Environment variable docs
 │
 ├── db/
-│   └── schema.sql          # PostgreSQL DDL
+│   ├── schema.sql          # PostgreSQL DDL
+│   └── migrations/         # Incremental migrations
+│
+├── packages/
+│   └── mcp-server/         # @taxformatter/mcp-server npm package
 │
 └── docs/                   # Documentation
 ```
 
 ## Database Schema
 
-8 tables in Neon PostgreSQL:
+11 tables in Neon PostgreSQL:
 
 | Table | Purpose |
 |-------|---------|
@@ -140,6 +164,9 @@ trw/
 | `transactions` | Parsed transactions (for AI features) |
 | `ai_cache` | Cached AI categorizations |
 | `downloads` | Free tier download tracking (3/month limit) |
+| `api_keys` | Developer API keys (hash, tier, quota, RPM limit) |
+| `api_usage` | Daily usage rollups per API key |
+| `api_requests` | Per-request log for debugging/analytics |
 
 ## Subscription Tiers
 
@@ -230,6 +257,12 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | `backend/services/bank_statement/normalizer.py` | Date/amount normalization + deduplication |
 | `backend/services/bank_statement/fingerprinter.py` | Bank detection via YAML config scoring |
 | `backend/configs/banks/*.yaml` | Bank-specific configs (fingerprint, date format, columns) |
+| `backend/handlers/api.py` | Developer API Lambda handler (/v1/parse, /v1/sources, /v1/usage) |
+| `backend/services/api_auth.py` | API key validation, rate limiting, usage tracking |
+| `lib/api-keys.ts` | API key generation, CRUD, tier management |
+| `app/api/developer/keys/route.ts` | API key create/list endpoints |
+| `app/dashboard/developer/page.tsx` | Developer dashboard (key management, usage) |
+| `packages/mcp-server/` | @taxformatter/mcp-server npm package for AI agents |
 
 ## External Dependencies
 
