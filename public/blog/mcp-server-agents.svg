@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F5F3FF"/>
+      <stop offset="100%" stop-color="#EDE9FE"/>
+    </linearGradient>
+    <linearGradient id="purple1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="blue2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg2)"/>
+
+  <!-- Subtle grid -->
+  <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse">
+    <circle cx="20" cy="20" r="1" fill="#7C3AED" opacity="0.08"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#grid2)"/>
+
+  <!-- Center: MCP Server hub -->
+  <g transform="translate(600, 315)">
+    <!-- Outer ring -->
+    <circle r="100" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-dasharray="8 6" opacity="0.3">
+      <animateTransform attributeName="transform" type="rotate" values="0;360" dur="60s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="75" fill="white" stroke="#DDD6FE" stroke-width="2" filter="drop-shadow(0 8px 24px rgba(139,92,246,0.15))"/>
+    <circle r="56" fill="url(#purple1)"/>
+
+    <!-- MCP icon (connection hub) -->
+    <circle r="8" fill="white"/>
+    <line x1="0" y1="-8" x2="0" y2="-24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="8" x2="0" y2="24" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-8" y1="0" x2="-24" y2="0" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="8" y1="0" x2="24" y2="0" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-6" y1="-6" x2="-18" y2="-18" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="6" y1="-6" x2="18" y2="-18" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-6" y1="6" x2="-18" y2="18" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="6" y1="6" x2="18" y2="18" stroke="white" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Small dots at ends -->
+    <circle cx="0" cy="-24" r="4" fill="white"/>
+    <circle cx="0" cy="24" r="4" fill="white"/>
+    <circle cx="-24" cy="0" r="4" fill="white"/>
+    <circle cx="24" cy="0" r="4" fill="white"/>
+
+    <!-- Label -->
+    <text y="50" font-family="sans-serif" font-size="14" fill="white" font-weight="700" text-anchor="middle">MCP</text>
+  </g>
+
+  <!-- Left side: AI Agents -->
+
+  <!-- Claude agent -->
+  <g transform="translate(160, 180)">
+    <rect width="200" height="90" rx="14" fill="white" stroke="#DDD6FE" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.06))"/>
+    <circle cx="40" cy="45" r="22" fill="#F5F3FF"/>
+    <text x="32" y="52" font-family="sans-serif" font-size="20">🤖</text>
+    <text x="74" y="38" font-family="sans-serif" font-size="15" fill="#1E293B" font-weight="700">Claude</text>
+    <text x="74" y="56" font-family="sans-serif" font-size="12" fill="#94A3B8">AI Assistant</text>
+  </g>
+
+  <!-- Cursor agent -->
+  <g transform="translate(120, 330)">
+    <rect width="200" height="90" rx="14" fill="white" stroke="#DDD6FE" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.06))"/>
+    <circle cx="40" cy="45" r="22" fill="#EEF2FF"/>
+    <text x="32" y="52" font-family="sans-serif" font-size="20">⚡</text>
+    <text x="74" y="38" font-family="sans-serif" font-size="15" fill="#1E293B" font-weight="700">Cursor</text>
+    <text x="74" y="56" font-family="sans-serif" font-size="12" fill="#94A3B8">Code Editor AI</text>
+  </g>
+
+  <!-- Windsurf agent -->
+  <g transform="translate(160, 470)">
+    <rect width="200" height="90" rx="14" fill="white" stroke="#DDD6FE" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.06))"/>
+    <circle cx="40" cy="45" r="22" fill="#F0FDF4"/>
+    <text x="32" y="52" font-family="sans-serif" font-size="20">🌊</text>
+    <text x="74" y="38" font-family="sans-serif" font-size="15" fill="#1E293B" font-weight="700">Windsurf</text>
+    <text x="74" y="56" font-family="sans-serif" font-size="12" fill="#94A3B8">AI IDE</text>
+  </g>
+
+  <!-- Right side: Tools/APIs -->
+
+  <!-- Parse CSV tool -->
+  <g transform="translate(840, 150)">
+    <rect width="240" height="80" rx="14" fill="white" stroke="#DBEAFE" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.06))"/>
+    <rect x="16" y="16" width="48" height="48" rx="10" fill="#DBEAFE"/>
+    <text x="26" y="47" font-family="monospace" font-size="12" fill="#2563EB" font-weight="700">CSV</text>
+    <text x="78" y="38" font-family="sans-serif" font-size="14" fill="#1E293B" font-weight="700">parse_crypto_csv</text>
+    <text x="78" y="56" font-family="sans-serif" font-size="11" fill="#94A3B8">14 exchanges supported</text>
+  </g>
+
+  <!-- Parse PDF tool -->
+  <g transform="translate(870, 280)">
+    <rect width="260" height="80" rx="14" fill="white" stroke="#FEF3C7" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.06))"/>
+    <rect x="16" y="16" width="48" height="48" rx="10" fill="#FEF3C7"/>
+    <text x="25" y="47" font-family="monospace" font-size="12" fill="#D97706" font-weight="700">PDF</text>
+    <text x="78" y="38" font-family="sans-serif" font-size="14" fill="#1E293B" font-weight="700">parse_bank_statement</text>
+    <text x="78" y="56" font-family="sans-serif" font-size="11" fill="#94A3B8">50+ banks • OCR support</text>
+  </g>
+
+  <!-- List sources tool -->
+  <g transform="translate(840, 410)">
+    <rect width="260" height="80" rx="14" fill="white" stroke="#DCFCE7" stroke-width="1.5" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.06))"/>
+    <rect x="16" y="16" width="48" height="48" rx="10" fill="#DCFCE7"/>
+    <text x="22" y="44" font-family="monospace" font-size="10" fill="#16A34A" font-weight="700">LIST</text>
+    <text x="78" y="38" font-family="sans-serif" font-size="14" fill="#1E293B" font-weight="700">list_supported_sources</text>
+    <text x="78" y="56" font-family="sans-serif" font-size="11" fill="#94A3B8">Query available formats</text>
+  </g>
+
+  <!-- Connection lines: Agents → MCP -->
+  <line x1="360" y1="225" x2="525" y2="290" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="320" y1="375" x2="525" y2="330" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="360" y1="515" x2="525" y2="360" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Connection lines: MCP → Tools -->
+  <line x1="675" y1="280" x2="840" y2="200" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="675" y1="315" x2="870" y2="320" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+  <line x1="675" y1="350" x2="840" y2="440" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Animated data dots on lines -->
+  <circle r="4" fill="#8B5CF6">
+    <animateMotion dur="3s" repeatCount="indefinite" path="M360,225 L525,290"/>
+  </circle>
+  <circle r="4" fill="#3B82F6">
+    <animateMotion dur="2.5s" repeatCount="indefinite" path="M675,280 L840,200"/>
+  </circle>
+
+  <!-- Labels -->
+  <text x="200" y="140" font-family="sans-serif" font-size="16" fill="#7C3AED" font-weight="700" opacity="0.6">AI CLIENTS</text>
+  <text x="900" y="120" font-family="sans-serif" font-size="16" fill="#2563EB" font-weight="700" opacity="0.6">TOOLS</text>
+
+  <!-- Decorative -->
+  <circle cx="50" cy="100" r="40" fill="#8B5CF6" opacity="0.04"/>
+  <circle cx="1150" cy="560" r="50" fill="#3B82F6" opacity="0.04"/>
+</svg>
