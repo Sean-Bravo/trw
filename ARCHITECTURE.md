@@ -4,7 +4,7 @@
 
 ## What This Is
 
-A crypto CSV repair and tax categorization tool. Users upload messy exchange exports, we fix formatting issues, categorize transactions with AI, and export clean files for tax software (Koinly, TurboTax, CoinLedger, ZenLedger).
+A developer API platform for parsing crypto exchange CSVs and bank statement PDFs into structured, tax-ready data. The core engine supports 14 exchanges and 7+ banks with auto-detection, date normalization, and format conversion. Exposed via REST API and MCP server for AI agents. Also available as a consumer dashboard for individual uploads.
 
 ## Tech Stack
 
@@ -15,7 +15,8 @@ A crypto CSV repair and tax categorization tool. Users upload messy exchange exp
 | Database | Neon (PostgreSQL) |
 | File Storage | AWS S3 (presigned URLs) |
 | Job Queue | AWS SQS |
-| Processing | AWS Lambda (Python) |
+| Processing | AWS Lambda (Python, 4 functions) |
+| MCP Server | `@taxformatter/mcp-server` npm package |
 | Payments | Stripe |
 | Email | Nodemailer (SendGrid/SES) |
 | Monitoring | Sentry |
@@ -93,8 +94,10 @@ trw/
 │   │   ├── uploads/        # Presigned URL generation
 │   │   ├── jobs/           # Job status + download
 │   │   ├── checkout/       # Stripe checkout
-│   │   └── webhooks/       # Stripe webhooks
+│   │   ├── webhooks/       # Stripe webhooks
+│   │   └── developer/      # API key CRUD, usage, subscribe endpoints
 │   ├── dashboard/          # Protected user area
+│   │   └── developer/      # API key management UI
 │   ├── login/              # Auth pages
 │   ├── signup/
 │   ├── upload/              # Bank statement PDF → CSV converter (public landing page)
@@ -112,6 +115,7 @@ trw/
 │   ├── 2fa.ts              # TOTP/backup codes
 │   ├── validation.ts       # Input validation (Zod)
 │   ├── stripe.ts           # Stripe helpers
+│   ├── api-keys.ts         # API key generation, SHA-256 hashing, CRUD
 │   └── email.ts            # Email sending
 │
 ├── backend/                # Python backend
@@ -124,7 +128,10 @@ trw/
 │   ├── handlers/           # AWS Lambda handlers
 │   │   ├── webhook.py      # API Gateway (presigned URLs, job status, downloads, insights)
 │   │   ├── scanner.py      # S3 trigger (file validation)
-│   │   └── processor.py    # SQS trigger (CSV processing + AI insights)
+│   │   ├── processor.py    # SQS trigger (CSV processing + AI insights)
+│   │   └── api.py          # Developer API (/v1/parse, /v1/sources, /v1/usage, /v1/health)
+│   ├── services/
+│   │   └── api_auth.py     # API key validation, rate limiting, usage tracking
 │   ├── terraform/          # Infrastructure as Code
 │   │   ├── main.tf         # Core config + outputs
 │   │   ├── lambda.tf       # Lambda functions + IAM
@@ -138,6 +145,7 @@ trw/
 │   ├── requirements-webhook.txt   # Minimal deps (psycopg2 only)
 │   ├── requirements-scanner.txt   # No external deps
 │   ├── requirements-processor.txt # Full deps (pandas, anthropic)
+│   ├── requirements-api.txt      # API Lambda deps
 │   └── ENV.md              # Environment variable docs
 │
 ├── db/
@@ -170,11 +178,22 @@ trw/
 
 ## Subscription Tiers
 
+### Consumer (Dashboard)
+
 | Tier | Price | Features |
 |------|-------|----------|
 | Free | $0 | 3 downloads/month, full export, Google Gemini AI |
 | Pro | $89/year | Unlimited downloads, Claude Sonnet AI |
 | Premium | $189/year | All Pro + Claude Opus AI, priority support |
+
+### Developer (API)
+
+| Tier | Price | Quota | RPM |
+|------|-------|-------|-----|
+| Free | $0 | 10 files/month | 5 |
+| Growth | $29/month | 500 files/month | 30 |
+| Business | $99/month | 2,000 files/month | 60 |
+| Enterprise | $249/month | 10,000 files/month | 120 |
 
 ## AI Tiers
 
@@ -271,7 +290,7 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | Neon | PostgreSQL database | `DATABASE_URL` |
 | AWS S3 | File storage (uploads, results) | Managed by Terraform |
 | AWS SQS | Job queue | Managed by Terraform |
-| AWS Lambda | Python processing (3 functions) | Managed by Terraform |
+| AWS Lambda | Python processing (4 functions: scanner, processor, webhook, api) | Managed by Terraform |
 | AWS API Gateway | Lambda HTTP API | `api.taxformatter.com` |
 | AWS Secrets Manager | Sensitive config | Managed by Terraform |
 | Stripe | Payments | `STRIPE_*` env vars |
@@ -288,7 +307,9 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 5. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
 6. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
 7. **Exchange detection fallback** - When classification fails, engine.py auto-tries GenericCSVParser if file has date+amount columns. Only shows manual selector if generic also fails.
-8. **Anonymous uploads** - `/upload` landing page allows uploads without auth. Both `presigned-url` and `confirm` routes fall back to `anon-{ip}` as userId when no session exists. Rate limiting still applies per IP. Anonymous jobs are persisted to Neon DB and processed by Lambda normally — users just can't access results without creating an account.
+8. **Anonymous uploads** - `/upload` landing page allows uploads without auth.
+9. **API rate limiting is per-instance** - In-memory RPM limiting in `api_auth.py` only tracks within a single Lambda instance. At high concurrency, actual RPM may exceed the configured limit. Move to Redis/Upstash or API Gateway Usage Plans when this matters.
+10. **API Lambda is synchronous** - Unlike the consumer flow (async via SQS), the API Lambda processes files inline. The 120s timeout handles most files but large PDFs (50+ pages) may need an async endpoint in the future. Both `presigned-url` and `confirm` routes fall back to `anon-{ip}` as userId when no session exists. Rate limiting still applies per IP. Anonymous jobs are persisted to Neon DB and processed by Lambda normally — users just can't access results without creating an account.
 
 ## Exchange Detection Flow
 
@@ -352,15 +373,27 @@ fingerprinting.py: detect_exchange_from_headers()
 - [x] **Download trigger fix** - Changed from `link.click()` to `window.location.href` for S3 presigned URLs (browsers block programmatic clicks on cross-origin links)
 - [x] **AI Insights Panel** - Real-time insights display with tiered analysis (Gemini/Sonnet/Opus), quick stats, transaction breakdown, and actionable tax suggestions
 - [x] **Transformation Preview (Diff View)** - Side-by-side comparison of original exchange data → converted Koinly format. Shows first 3 rows with "Show more" option. Data saved to S3 as `result.json` containing `original`, `processed`, and `columns` arrays.
+- [x] **Google Ads landing page** - `/upload` route with conversion tracking, noindex, dark theme, real upload flow
+- [x] **Anonymous uploads** - `/upload` works without auth; presigned-url and confirm routes fall back to `anon-{ip}` userId
+- [x] **Bank statement PDF → CSV** — `/upload` page converts bank statement PDFs to clean CSV (Chase, Mercury, Navy Federal tested)
+- [x] **Developer REST API** — `/v1/parse`, `/v1/sources`, `/v1/usage`, `/v1/health` via API Lambda (120s, 1024MB)
+- [x] **API key management** — `tf_live_` prefixed keys, SHA-256 hashing, CRUD via `/api/developer/keys`
+- [x] **API auth + rate limiting** — `api_auth.py` with in-memory RPM limits, monthly quota tracking
+- [x] **Developer dashboard** — API key management UI, usage bars, quick-start curl snippets
+- [x] **MCP server** — `@taxformatter/mcp-server` npm package with 3 tools (parse_crypto_csv, parse_bank_statement, list_supported_sources)
+- [x] **API billing** — Stripe checkout for API tiers (Free/Growth/Business/Enterprise)
+- [x] **Landing page redesign** — API-first marketing (APIHero, APIDemo, AgentSection, APICapabilities, APIPricing)
+- [x] **API docs** — `content/docs/api/index.md` with full endpoint reference
+- [x] **Test coverage** — 160 tests across API routes, MCP server, key management
 
 ## What's Not Built Yet
 
-- [x] **Google Ads landing page** - `/upload` route with conversion tracking (csv_upload_started, csv_upload_completed), noindex, dark theme, real upload flow
-- [x] **Anonymous uploads** - `/upload` works without auth; presigned-url and confirm routes fall back to `anon-{ip}` userId for zero-friction parser validation
-- [x] **Bank statement PDF → CSV** — `/upload` page converts bank statement PDFs to clean CSV. Supports Chase, Mercury, Navy Federal (tested), plus Bank of America, Wells Fargo, Citi, Capital One (configs exist). Uses pdfplumber + YAML-driven bank configs + BankFingerprinter scoring.
-- [ ] Stripe payment integration (Pro/Premium buttons show "Coming Soon")
+- [ ] Stripe payment integration for consumer tiers (Pro/Premium buttons show "Coming Soon")
+- [ ] `/v1/parse/async` endpoint for large PDFs (reuse SQS infrastructure)
+- [ ] Redis/Upstash rate limiting for global RPM enforcement across Lambda instances
+- [ ] npm publish `@taxformatter/mcp-server` to registry
 
-## Future Features
+## Feature Details
 
 ### Bank Statement Formatter (LIVE)
 
@@ -385,8 +418,33 @@ PDF-to-CSV converter at `/upload`. Users drop a bank statement PDF and get a cle
 
 **Access:** Free (anonymous uploads allowed, no auth required)
 
+### MCP Server (LIVE)
+
+NPM package at `packages/mcp-server/` exposing 3 tools for AI agents:
+
+| Tool | Description |
+|------|-------------|
+| `parse_crypto_csv` | Parse exchange CSVs — auto-detects source, returns structured transactions |
+| `parse_bank_statement` | Extract transactions from bank statement PDFs |
+| `list_supported_sources` | Query all supported exchanges, banks, and output formats |
+
+**Install:** `npx @taxformatter/mcp-server`
+**Compatible with:** Claude Code, Cursor, Windsurf, any MCP client
+
+### API Data Handling
+
+- **Stateless processing** — file content lives in Lambda RAM only, never written to disk or cached
+- **No payload logging** — `api_requests` table logs metadata only (key hash, status, byte size, timing)
+- **API keys** — SHA-256 hashed at rest, prefixed `tf_live_` for identification
+- **TLS 1.3** — all API traffic encrypted in transit
+
 ## Related Docs
 
 - `BACKEND_ARCHITECTURE.md` - Detailed AWS/Lambda specs
 - `db/schema.sql` - Full database DDL
+- `db/migrations/006_add_api_keys.sql` - API tables migration
+- `content/docs/api/index.md` - API reference documentation
+- `packages/mcp-server/README.md` - MCP server setup guide
+- `TaxFormatter_Pivot_Summary.md` - Consumer → API pivot summary
+- `TaxFormatter_API_Build_Complete.md` - Full build manifest
 - `docs/` - Setup guides (Stripe, Sentry, etc.)
