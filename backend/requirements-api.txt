@@ -1,0 +1,10 @@
+# API Lambda - dependencies for CSV processing + bank statement parsing
+# Same as processor but without AI SDK (API doesn't run AI insights)
+numpy==1.26.4
+pandas==2.1.4
+chardet>=5.0.0
+psycopg2-binary>=2.9.0
+
+# Bank statement processing
+pdfplumber>=0.10.0
+PyYAML>=6.0

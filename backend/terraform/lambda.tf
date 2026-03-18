@@ -86,6 +86,26 @@ resource "aws_iam_role" "processor" {
   tags = local.common_tags
 }
 
+# API Lambda Role
+resource "aws_iam_role" "api" {
+  name = "${var.project_name}-${var.environment}-api-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
 # ===== IAM POLICY ATTACHMENTS =====
 
 # Basic Lambda execution role (CloudWatch Logs)
@@ -148,6 +168,38 @@ resource "aws_iam_role_policy" "webhook" {
           "sqs:SendMessage"
         ]
         Resource = aws_sqs_queue.processing.arn
+      }
+    ]
+  })
+}
+
+# API Lambda Policies
+resource "aws_iam_role_policy_attachment" "api_basic" {
+  role       = aws_iam_role.api.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy" "api" {
+  name = "${var.project_name}-${var.environment}-api-policy"
+  role = aws_iam_role.api.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = "${aws_s3_bucket.results.arn}/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.app_secrets.arn
       }
     ]
   })
@@ -275,6 +327,13 @@ resource "aws_cloudwatch_log_group" "scanner" {
   tags = local.common_tags
 }
 
+resource "aws_cloudwatch_log_group" "api" {
+  name              = "/aws/lambda/${local.api_lambda}"
+  retention_in_days = var.log_retention_days
+
+  tags = local.common_tags
+}
+
 resource "aws_cloudwatch_log_group" "processor" {
   name              = "/aws/lambda/${local.processor_lambda}"
   retention_in_days = var.log_retention_days
@@ -396,6 +455,46 @@ resource "aws_lambda_function" "processor" {
   depends_on = [
     aws_cloudwatch_log_group.processor,
     aws_iam_role_policy_attachment.processor_basic
+  ]
+
+  lifecycle {
+    ignore_changes = [
+      filename,
+      source_code_hash,
+    ]
+  }
+}
+
+# API Lambda Function (Developer API — /v1/* routes)
+resource "aws_lambda_function" "api" {
+  filename         = "${path.module}/lambda_placeholder.zip"
+  function_name    = local.api_lambda
+  role             = aws_iam_role.api.arn
+  handler          = "api.handler"
+  runtime          = var.lambda_runtime
+  timeout          = 120
+  memory_size      = 1024
+  source_code_hash = filebase64sha256("${path.module}/lambda_placeholder.zip")
+
+  environment {
+    variables = {
+      ENVIRONMENT    = var.environment
+      UPLOADS_BUCKET = aws_s3_bucket.uploads.id
+      RESULTS_BUCKET = aws_s3_bucket.results.id
+      SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+    }
+  }
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = local.api_lambda
+    }
+  )
+
+  depends_on = [
+    aws_cloudwatch_log_group.api,
+    aws_iam_role_policy_attachment.api_basic
   ]
 
   lifecycle {

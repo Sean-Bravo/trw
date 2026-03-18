@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
 import { updateSubscription, findUserByStripeCustomerId, findUserByEmailWithSubscription } from '@/lib/auth-db'
-import { queryOne } from '@/lib/db'
+import { queryOne, execute } from '@/lib/db'
 import { sendSubscriptionEmail } from '@/lib/email'
+import { API_TIERS, type ApiTier } from '@/lib/api-keys'
 
 // Disable body parsing for webhooks
 export const runtime = 'nodejs'
@@ -50,15 +51,34 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         const plan = session.metadata?.['plan'] as 'pro' | 'premium' | undefined
+        const apiTier = session.metadata?.['api_tier'] as ApiTier | undefined
+        const apiKeyId = session.metadata?.['api_key_id'] as string | undefined
         const customerId = session.customer as string
         const subscriptionId = session.subscription as string | undefined
 
         console.log('Payment successful:', {
           customer: session.customer_email,
           plan,
+          apiTier,
           amount: session.amount_total,
         })
 
+        // Handle API tier subscription
+        if (apiTier && apiKeyId && subscriptionId) {
+          const tierConfig = API_TIERS[apiTier]
+          if (tierConfig) {
+            await execute(
+              `UPDATE api_keys
+               SET tier = $1, monthly_quota = $2, rate_limit_rpm = $3, stripe_subscription_id = $4
+               WHERE id = $5`,
+              [apiTier, tierConfig.monthly_quota, tierConfig.rate_limit_rpm, subscriptionId, apiKeyId]
+            )
+            console.log(`[Stripe] Updated API key ${apiKeyId} to tier ${apiTier}`)
+          }
+          break
+        }
+
+        // Handle consumer subscription
         // Find user by email or stripe customer ID
         let user = await findUserByStripeCustomerId(customerId)
         if (!user && session.customer_email) {
@@ -142,6 +162,24 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
+        // Check if this is an API tier subscription
+        const apiKey = await queryOne<{ id: string }>(
+          `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
+          [subscription.id]
+        )
+        if (apiKey) {
+          const freeTier = API_TIERS['free']
+          await execute(
+            `UPDATE api_keys
+             SET tier = 'free', monthly_quota = $1, rate_limit_rpm = $2, stripe_subscription_id = NULL
+             WHERE id = $3`,
+            [freeTier.monthly_quota, freeTier.rate_limit_rpm, apiKey.id]
+          )
+          console.log(`[Stripe] API key ${apiKey.id} downgraded to free tier`)
+          break
+        }
+
+        // Consumer subscription cancellation
         const user = await findUserByStripeCustomerId(customerId)
         if (user) {
           await updateSubscription(

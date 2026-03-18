@@ -166,6 +166,33 @@ package_lambdas() {
     cd "$BUILD_DIR/processor"
     zip -q -r "$BUILD_DIR/processor.zip" .
 
+    # Package API Lambda (full deps for CSV + bank parsing, no AI)
+    log_info "Packaging API Lambda..."
+    mkdir -p "$BUILD_DIR/api"
+    cp "$HANDLERS_DIR/api.py" "$BUILD_DIR/api/"
+
+    # Copy services directory (engine.py, format_converter.py, bank_statement/, api_auth.py)
+    if [ -d "$SERVICES_DIR" ]; then
+        cp -r "$SERVICES_DIR" "$BUILD_DIR/api/"
+    fi
+
+    # Copy bank configs
+    if [ -d "$SCRIPT_DIR/configs" ]; then
+        cp -r "$SCRIPT_DIR/configs" "$BUILD_DIR/api/"
+    fi
+
+    # Install API dependencies
+    if [ -f "$SCRIPT_DIR/requirements-api.txt" ]; then
+        pip install --quiet -r "$SCRIPT_DIR/requirements-api.txt" -t "$BUILD_DIR/api" \
+            --platform manylinux2014_x86_64 \
+            --implementation cp \
+            --python-version 312 \
+            --only-binary=:all:
+    fi
+
+    cd "$BUILD_DIR/api"
+    zip -q -r "$BUILD_DIR/api.zip" .
+
     deactivate
 
     log_info "Lambda packages created:"
@@ -181,10 +208,11 @@ deploy_lambdas() {
     WEBHOOK_FUNCTION=$(terraform output -raw webhook_lambda_function_name 2>/dev/null || echo "")
     SCANNER_FUNCTION=$(terraform output -raw scanner_lambda_function_name 2>/dev/null || echo "")
     PROCESSOR_FUNCTION=$(terraform output -raw processor_lambda_function_name 2>/dev/null || echo "")
+    API_FUNCTION=$(terraform output -raw api_lambda_function_name 2>/dev/null || echo "")
     AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
     LAMBDA_BUCKET="taxformatter-prod-lambda-${AWS_ACCOUNT_ID}"
 
-    if [ -z "$WEBHOOK_FUNCTION" ] || [ -z "$SCANNER_FUNCTION" ] || [ -z "$PROCESSOR_FUNCTION" ]; then
+    if [ -z "$WEBHOOK_FUNCTION" ] || [ -z "$SCANNER_FUNCTION" ] || [ -z "$PROCESSOR_FUNCTION" ] || [ -z "$API_FUNCTION" ]; then
         log_error "Could not get function names from Terraform. Run 'terraform apply' first."
         exit 1
     fi
@@ -220,6 +248,16 @@ deploy_lambdas() {
         aws lambda update-function-code --function-name "$PROCESSOR_FUNCTION" --s3-bucket "$LAMBDA_BUCKET" --s3-key processor.zip --query 'FunctionArn' --output text
     else
         aws lambda update-function-code --function-name "$PROCESSOR_FUNCTION" --zip-file "fileb://$BUILD_DIR/processor.zip" --query 'FunctionArn' --output text
+    fi
+
+    # Deploy API
+    API_SIZE=$(stat -f%z "$BUILD_DIR/api.zip" 2>/dev/null || stat -c%s "$BUILD_DIR/api.zip")
+    log_info "Deploying API Lambda: $API_FUNCTION ($(du -h "$BUILD_DIR/api.zip" | cut -f1))"
+    if [ "$API_SIZE" -gt "$SIZE_LIMIT" ]; then
+        aws s3 cp "$BUILD_DIR/api.zip" "s3://$LAMBDA_BUCKET/api.zip" --quiet
+        aws lambda update-function-code --function-name "$API_FUNCTION" --s3-bucket "$LAMBDA_BUCKET" --s3-key api.zip --query 'FunctionArn' --output text
+    else
+        aws lambda update-function-code --function-name "$API_FUNCTION" --zip-file "fileb://$BUILD_DIR/api.zip" --query 'FunctionArn' --output text
     fi
 
     log_info "Lambda functions deployed successfully!"
