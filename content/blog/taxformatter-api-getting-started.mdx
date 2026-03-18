@@ -1,0 +1,119 @@
+---
+title: "TaxFormatter API: Parse Crypto CSVs and Bank Statements in One API Call"
+description: "Learn how to integrate TaxFormatter's REST API to parse broken crypto exchange CSVs and bank statement PDFs into structured JSON. Supports 14 exchanges, 50+ banks, and returns clean transaction data in seconds."
+date: 2026-03-18
+author: "TaxFormatter Team"
+category: "guides"
+tags: ["API", "developer", "crypto CSV", "bank statement", "REST API", "integration", "fintech"]
+image: "/blog/api-getting-started.jpg"
+published: true
+featured: true
+---
+
+## The Problem Every Fintech Developer Knows
+
+You're building an accounting integration, a portfolio tracker, or a tax prep workflow. Somewhere in that pipeline, a user hands you a CSV from Coinbase or a PDF statement from Chase.
+
+The CSV has mangled dates, missing columns, and duplicate rows. The PDF is a scanned image with wrapped transaction descriptions. Your code breaks. Your users complain.
+
+You could write a custom parser for every exchange and every bank. Or you could send one API call and get clean, structured JSON back.
+
+That's what the TaxFormatter API does.
+
+## What the API Returns
+
+Send a file. Get transactions.
+
+The `/v1/parse` endpoint accepts a base64-encoded CSV or PDF and returns a JSON response with normalized transactions, metadata about the source, and any warnings the engine detected during processing.
+
+Each transaction in the response includes a standardized date, transaction type (buy, sell, transfer, deposit, withdrawal), amount, currency, and the original description from the source file. For crypto files, you also get cost basis fields and exchange-specific metadata.
+
+The engine handles the ugly work: date normalization across formats, duplicate detection, column mapping for 14 crypto exchanges, OCR extraction for scanned bank PDFs, and multi-line description merging.
+
+## Quick Start
+
+### 1. Get Your API Key
+
+Sign up at [taxformatter.com/dashboard/developer](https://www.taxformatter.com/dashboard/developer) and create an API key. Keys use the `tf_live_` prefix and are hashed with SHA-256 on our side — we never store the raw key after creation.
+
+### 2. Parse a Crypto CSV
+
+```bash
+curl -X POST https://api.taxformatter.com/v1/parse \
+  -H "X-API-Key: tf_live_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "file": "'$(base64 -w 0 coinbase_2025.csv)'",
+    "filename": "coinbase_2025.csv"
+  }'
+```
+
+The response includes a `transactions` array with every row cleaned and normalized, a `source` field identifying the detected exchange, and a `warnings` array flagging anything the engine corrected automatically (like removed duplicates or inferred dates).
+
+### 3. Parse a Bank Statement PDF
+
+Same endpoint, different file:
+
+```bash
+curl -X POST https://api.taxformatter.com/v1/parse \
+  -H "X-API-Key: tf_live_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "file": "'$(base64 -w 0 chase_statement.pdf)'",
+    "filename": "chase_statement.pdf"
+  }'
+```
+
+The API detects file type from the extension and routes PDFs through the `BankStatementProcessor` with OCR support. CSVs go through the core `engine.py` parser.
+
+## Supported Sources
+
+### Crypto Exchanges (14)
+Coinbase, Coinbase Pro, Binance, Binance US, Kraken, KuCoin, Gemini, Crypto.com, Bitfinex, Bitstamp, Gate.io, OKX, Bybit, and Uphold.
+
+### Banks (50+)
+Chase, Bank of America, Wells Fargo, Citibank, Capital One, Mercury, Relay, Brex, HSBC, Barclays, and dozens more. The engine adapts to new bank formats automatically — if your users upload a statement we haven't seen before, the AI parser handles it.
+
+Check the full list anytime:
+
+```bash
+curl https://api.taxformatter.com/v1/sources \
+  -H "X-API-Key: tf_live_your_key_here"
+```
+
+## API Tiers and Rate Limits
+
+The free tier gives you 10 files per month and 10 requests per minute — enough to prototype and test your integration. Paid tiers scale from there:
+
+- **Starter ($29/mo):** 100 files/month, 30 RPM
+- **Growth ($99/mo):** 500 files/month, 60 RPM
+- **Scale ($249/mo):** 2,000 files/month, 120 RPM
+
+Every tier includes both crypto CSV and bank PDF parsing. Usage tracking is available via the `/v1/usage` endpoint or the developer dashboard.
+
+## Error Handling
+
+The API returns standard HTTP status codes. A `400` means the file couldn't be parsed (unsupported format, corrupted data). A `429` means you've hit your rate limit or monthly quota. A `401` means the API key is invalid or revoked.
+
+Every error response includes a `message` field with a human-readable explanation and an `error_code` for programmatic handling. Rate limit responses include `Retry-After` headers.
+
+## Integration Patterns
+
+### Accounting Platforms
+Accept user-uploaded CSVs, send them to `/v1/parse`, map the returned transactions to your internal schema. No more writing per-exchange parsers.
+
+### Tax Prep Software
+Ingest a user's full transaction history across exchanges and bank accounts. The API normalizes everything into a consistent format, making cost basis calculation and gain/loss reporting straightforward.
+
+### Portfolio Trackers
+Parse historical CSV exports to backfill transaction data. The API handles the messy reality of exchange-specific formats so your import flow just works.
+
+## What's Next
+
+The API documentation lives at [taxformatter.com/docs/api](https://www.taxformatter.com/docs/api) with full endpoint references, response schemas, and language-specific examples for Python, Node.js, and Go.
+
+If you're building with AI agents, check out the [TaxFormatter MCP Server](/blog/taxformatter-mcp-server-ai-agents) — it wraps the same API for use with Claude, Cursor, and any MCP-compatible client.
+
+---
+
+*Questions about the API? Reach out at support@taxformatter.com or open an issue on GitHub.*
