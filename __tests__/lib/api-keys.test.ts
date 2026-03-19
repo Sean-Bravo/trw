@@ -92,7 +92,7 @@ describe('createApiKey', () => {
     );
   });
 
-  it('inserts with free tier defaults (rpm=10, quota=10)', async () => {
+  it('inserts with starter tier defaults (rpm=30, quota=100)', async () => {
     mockQuery.mockResolvedValue([{ count: '0' }]);
     mockQueryOne.mockResolvedValue({ id: 'key-id' });
 
@@ -101,9 +101,9 @@ describe('createApiKey', () => {
     const insertCall = mockQueryOne.mock.calls[0];
     const params = insertCall[1];
     // params: [userId, name, prefix, hash, tier, rate_limit_rpm, monthly_quota]
-    expect(params[4]).toBe('free');
-    expect(params[5]).toBe(10); // rate_limit_rpm
-    expect(params[6]).toBe(10); // monthly_quota
+    expect(params[4]).toBe('starter');
+    expect(params[5]).toBe(30); // rate_limit_rpm
+    expect(params[6]).toBe(100); // monthly_quota
   });
 
   it('returns { key, id, prefix }', async () => {
@@ -230,7 +230,7 @@ describe('validateApiKey', () => {
       id: 'key-1',
       is_active: true,
       expires_at: null,
-      tier: 'free',
+      tier: 'starter',
     };
     mockQueryOne.mockResolvedValue(validKey);
 

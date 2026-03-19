@@ -65,8 +65,8 @@ const faqItems: FAQItem[] = [
     vibe: 'frustrated',
   },
   {
-    question: "Is there a free tier?",
-    answer: "Yes. 10 files per month, 10 requests per minute, all 14 exchanges, all output formats. No credit card, no trial period, no gotchas. It's enough to build and test your integration. When you need more volume, upgrade to Growth ($99/mo for 500 files) or Business ($249/mo for 2,000 files).",
+    question: "What's the cheapest plan?",
+    answer: "Starter is $29/month — 100 files, 30 requests per minute, all 14 exchanges, all output formats. Enough to build and ship a real integration. When you need more volume, upgrade to Growth ($99/mo for 500 files) or Business ($249/mo for 2,000 files).",
     vibe: 'hopeful',
   },
 ];

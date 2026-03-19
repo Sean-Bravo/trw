@@ -7,18 +7,18 @@ import Link from 'next/link';
 
 const tiers = [
   {
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Try the API. No credit card required.',
+    name: 'Starter',
+    price: '$29',
+    period: '/ month',
+    description: 'For solo developers and small projects.',
     features: [
-      '10 files / month',
-      '10 requests / minute',
+      '100 files / month',
+      '30 requests / minute',
       'All 14 exchanges',
       'Auto-detection',
       'JSON response',
     ],
-    cta: 'Get Free Key',
+    cta: 'Get Started',
     ctaHref: '/signup',
     style: 'bg-white/2 border-white/6',
     checkColor: 'text-slate-500',
@@ -78,7 +78,7 @@ export function APIPricing() {
               Pay for what you parse.
             </h2>
             <p className="text-slate-400 max-w-lg mx-auto text-lg">
-              Start free. Scale as you grow. No hidden fees.
+              Simple plans that scale with you. No hidden fees.
             </p>
           </div>
 
