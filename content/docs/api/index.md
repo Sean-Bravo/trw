@@ -20,10 +20,10 @@ All requests (except `/v1/health` and `/v1/sources`) require an API key via the 
 curl -X POST https://api.taxformatter.com/v1/parse \
   -H "X-API-Key: tf_live_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{ "file_content": "<base64>", "filename": "coinbase.csv" }'
+  -d '{ "file_content": "'$(base64 -i coinbase_2024.csv)'", "filename": "coinbase_2024.csv" }'
 ```
 
-Get your API key at [taxformatter.com/dashboard/developer](/dashboard/developer).
+No credit card required. Get your free API key at [taxformatter.com/dashboard/developer](/dashboard/developer) — 10 free parses/month.
 
 ## Endpoints
 
@@ -78,6 +78,50 @@ Send a base64-encoded file and get structured transaction data back. The API aut
 }
 ```
 
+### Code Examples
+
+**Python**
+
+```python
+import requests
+import base64
+
+with open("coinbase_2024.csv", "rb") as f:
+    encoded = base64.b64encode(f.read()).decode()
+
+response = requests.post(
+    "https://api.taxformatter.com/v1/parse",
+    headers={"X-API-Key": "tf_live_your_key_here"},
+    json={"file_content": encoded, "filename": "coinbase_2024.csv"}
+)
+
+data = response.json()
+print(f"{data['metadata']['transaction_count']} transactions parsed")
+print(f"Processing time: {response.headers['X-TF-Processing-Time']}ms")
+```
+
+**Node.js**
+
+```javascript
+import { readFileSync } from "fs";
+
+const file = readFileSync("coinbase_2024.csv");
+const res = await fetch("https://api.taxformatter.com/v1/parse", {
+  method: "POST",
+  headers: {
+    "X-API-Key": "tf_live_your_key_here",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    file_content: file.toString("base64"),
+    filename: "coinbase_2024.csv",
+  }),
+});
+
+const data = await res.json();
+console.log(`${data.metadata.transaction_count} transactions parsed`);
+```
+
 ### Error Response
 
 ```json
@@ -104,6 +148,8 @@ Send a base64-encoded file and get structured transaction data back. The API aut
 | `internal_error` | 500 | Server error (retry with backoff) |
 
 ## Rate Limits
+
+No credit card required. Start with the free tier — [get your API key here](/dashboard/developer).
 
 | Tier | Files/month | Requests/minute | Price |
 |------|-------------|-----------------|-------|
@@ -136,4 +182,9 @@ Add to `~/.claude/mcp.json`:
 }
 ```
 
-Then ask: "Parse the bank statement at ~/Downloads/chase_jan.pdf"
+Then ask your agent:
+
+- "Parse the bank statement at ~/Downloads/chase_jan.pdf"
+- "Parse my Coinbase export and format it for Koinly"
+- "I have a Kraken CSV from 2024, normalize it for TurboTax"
+- "List all supported exchanges and output formats"
