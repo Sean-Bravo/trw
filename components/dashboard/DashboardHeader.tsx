@@ -14,7 +14,8 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const initial = ((user.name || user.email || 'U')[0] || 'U').toUpperCase();
-  const tier = user.subscriptionTier || 'free';
+  const rawTier = user.subscriptionTier || 'free';
+  const tierLabel = rawTier === 'free' ? 'Starter' : rawTier;
 
   return (
     <header className="sticky top-0 z-50 bg-[#030712]/80 backdrop-blur-xl border-b border-zinc-800/50">
@@ -39,7 +40,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                   {user.email}
                 </p>
                 <p className="text-xs text-zinc-500 capitalize">
-                  {tier} Plan
+                  {tierLabel} Plan
                 </p>
               </div>
               {/* Avatar */}
@@ -96,7 +97,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                     {user.email}
                   </p>
                   <p className="text-xs text-zinc-500 capitalize">
-                    {tier} Plan
+                    {tierLabel} Plan
                   </p>
                 </div>
               </div>
