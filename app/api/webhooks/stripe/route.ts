@@ -168,14 +168,14 @@ export async function POST(request: NextRequest) {
           [subscription.id]
         )
         if (apiKey) {
-          const freeTier = API_TIERS['free']
+          const starterTier = API_TIERS['starter']
           await execute(
             `UPDATE api_keys
-             SET tier = 'free', monthly_quota = $1, rate_limit_rpm = $2, stripe_subscription_id = NULL
+             SET tier = 'starter', monthly_quota = $1, rate_limit_rpm = $2, stripe_subscription_id = NULL
              WHERE id = $3`,
-            [freeTier.monthly_quota, freeTier.rate_limit_rpm, apiKey.id]
+            [starterTier.monthly_quota, starterTier.rate_limit_rpm, apiKey.id]
           )
-          console.log(`[Stripe] API key ${apiKey.id} downgraded to free tier`)
+          console.log(`[Stripe] API key ${apiKey.id} downgraded to starter tier`)
           break
         }
 

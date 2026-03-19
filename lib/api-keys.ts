@@ -3,7 +3,7 @@ import { query, queryOne, execute } from './db';
 
 // --- Types ---
 
-export type ApiTier = 'free' | 'starter' | 'growth' | 'business';
+export type ApiTier = 'starter' | 'growth' | 'business';
 
 export interface DbApiKey {
   id: string;
@@ -32,7 +32,6 @@ export interface DbApiUsage {
 }
 
 export const API_TIERS = {
-  free:     { monthly_quota: 10,   rate_limit_rpm: 10,  price: 0 },
   starter:  { monthly_quota: 100,  rate_limit_rpm: 30,  price: 29 },
   growth:   { monthly_quota: 500,  rate_limit_rpm: 60,  price: 99 },
   business: { monthly_quota: 2000, rate_limit_rpm: 120, price: 249 },
@@ -71,7 +70,7 @@ export async function createApiKey(
   }
 
   const { key, prefix, hash } = generateApiKey();
-  const tier: ApiTier = 'free';
+  const tier: ApiTier = 'starter';
   const tierConfig = API_TIERS[tier];
 
   const result = await queryOne<{ id: string }>(

@@ -15,7 +15,7 @@ export interface MockApiKey {
   name: string;
   key_prefix: string;
   key_hash: string;
-  tier: 'free' | 'starter' | 'growth' | 'business';
+  tier: 'starter' | 'growth' | 'business';
   is_active: boolean;
   rate_limit_rpm: number;
   monthly_quota: number;
@@ -36,14 +36,13 @@ export interface MockApiUsage {
 }
 
 const TIER_DEFAULTS = {
-  free: { monthly_quota: 10, rate_limit_rpm: 10 },
   starter: { monthly_quota: 100, rate_limit_rpm: 30 },
   growth: { monthly_quota: 500, rate_limit_rpm: 60 },
   business: { monthly_quota: 2000, rate_limit_rpm: 120 },
 } as const;
 
 export const createMockApiKey = (overrides?: Partial<MockApiKey>): MockApiKey => {
-  const tier = overrides?.tier ?? 'free';
+  const tier = overrides?.tier ?? 'starter';
   const defaults = TIER_DEFAULTS[tier];
   return {
     id: generateId(),

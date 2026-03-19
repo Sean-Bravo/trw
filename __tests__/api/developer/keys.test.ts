@@ -100,7 +100,7 @@ describe('GET /api/developer/keys', () => {
 
   it('maps multiple keys correctly', async () => {
     const keys = [
-      createMockApiKey({ tier: 'free' }),
+      createMockApiKey({ tier: 'starter' }),
       createMockApiKey({ tier: 'growth', is_active: false }),
     ];
     mockGetServerSession.mockResolvedValue({ user: { id: 'user-1' } });
@@ -110,7 +110,7 @@ describe('GET /api/developer/keys', () => {
     const data = await response.json();
 
     expect(data.keys).toHaveLength(2);
-    expect(data.keys[0].tier).toBe('free');
+    expect(data.keys[0].tier).toBe('starter');
     expect(data.keys[1].isActive).toBe(false);
   });
 

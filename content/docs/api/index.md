@@ -23,7 +23,7 @@ curl -X POST https://api.taxformatter.com/v1/parse \
   -d '{ "file_content": "'$(base64 -i coinbase_2024.csv)'", "filename": "coinbase_2024.csv" }'
 ```
 
-No credit card required. Get your free API key at [taxformatter.com/dashboard/developer](/dashboard/developer) — 10 free parses/month.
+Get your API key at [taxformatter.com/dashboard/developer](/dashboard/developer). Starter plan: $29/mo for 100 parses.
 
 ## Endpoints
 
@@ -149,11 +149,10 @@ console.log(`${data.metadata.transaction_count} transactions parsed`);
 
 ## Rate Limits
 
-No credit card required. Start with the free tier — [get your API key here](/dashboard/developer).
+Start with the Starter plan — [get your API key here](/dashboard/developer).
 
 | Tier | Files/month | Requests/minute | Price |
 |------|-------------|-----------------|-------|
-| Free | 10 | 10 | $0 |
 | Starter | 100 | 30 | $29/mo |
 | Growth | 500 | 60 | $99/mo |
 | Business | 2,000 | 120 | $249/mo |
