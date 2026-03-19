@@ -58,6 +58,46 @@ export function ApiKeyManager() {
     fetchKeys();
   }, [fetchKeys]);
 
+  // Auto-subscribe flow: if pending_api_tier cookie exists, create key + redirect to Stripe
+  useEffect(() => {
+    const match = document.cookie.match(/(?:^|; )pending_api_tier=([^;]+)/);
+    if (!match) return;
+    const tier = match[1];
+    // Clear cookie immediately to prevent re-triggering
+    document.cookie = 'pending_api_tier=;path=/;max-age=0';
+
+    const autoSubscribe = async () => {
+      try {
+        // Create an API key first
+        const createRes = await fetch('/api/developer/keys', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'My API Key' }),
+        });
+        const createData = await createRes.json();
+        if (!createRes.ok) throw new Error(createData.error);
+
+        // Start Stripe checkout for the selected tier
+        const subRes = await fetch('/api/developer/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tier, apiKeyId: createData.id }),
+        });
+        const subData = await subRes.json();
+        if (!subRes.ok) throw new Error(subData.error);
+
+        if (subData.url) {
+          window.location.href = subData.url;
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to start checkout');
+        fetchKeys(); // Refresh to show the created key
+      }
+    };
+
+    autoSubscribe();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const createKey = async () => {
     if (!newKeyName.trim()) return;
     setCreating(true);

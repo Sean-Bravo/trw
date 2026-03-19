@@ -117,8 +117,9 @@ function VerifyForm() {
         // Verification succeeded but sign-in failed - redirect to login
         setTimeout(() => router.push('/login'), 1500);
       } else {
-        // Redirect to dashboard
-        setTimeout(() => router.push('/dashboard'), 1000);
+        // Redirect to developer page if API tier pending, otherwise dashboard
+        const hasPendingTier = document.cookie.includes('pending_api_tier=');
+        setTimeout(() => router.push(hasPendingTier ? '/dashboard/developer' : '/dashboard'), 1000);
       }
     } catch (err: any) {
       setError(err.message || 'Verification failed');
