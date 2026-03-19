@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const apiTier = searchParams.get('api_tier');
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -60,7 +62,10 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password');
       } else {
-        router.push('/dashboard');
+        if (apiTier) {
+          document.cookie = `pending_api_tier=${apiTier};path=/;max-age=3600;samesite=lax`;
+        }
+        router.push(apiTier ? '/dashboard/developer' : '/dashboard');
       }
     } catch {
       setError('Something went wrong');
@@ -70,7 +75,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Logo className="h-12 w-auto" />
@@ -80,7 +85,7 @@ export default function LoginPage() {
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
           Or{' '}
-          <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+          <Link href={apiTier ? `/signup?api_tier=${apiTier}` : '/signup'} className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
             create a new account
           </Link>
         </p>
@@ -90,7 +95,12 @@ export default function LoginPage() {
         <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200 dark:border-gray-700">
           {/* Google Sign In */}
           <button
-            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+            onClick={() => {
+              if (apiTier) {
+                document.cookie = `pending_api_tier=${apiTier};path=/;max-age=3600;samesite=lax`;
+              }
+              signIn('google', { callbackUrl: apiTier ? '/dashboard/developer' : '/dashboard' });
+            }}
             className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -182,6 +192,16 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <Suspense fallback={<div className="text-center text-gray-500">Loading...</div>}>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 }
