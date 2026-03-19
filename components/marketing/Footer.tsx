@@ -91,7 +91,7 @@ export function Footer() {
             <div className="col-span-2 md:col-span-1">
               <Logo variant="light" className="mb-4" />
               <p className="text-sm text-slate-400 leading-relaxed">
-                AI-Powered software that validates, cleans, and formats cryptocurrency transaction CSV files for compatibility with tax and accounting software.
+                AI-Powered software with API and MCP server that validates, cleans, and formats crypto transaction CSVs and bank statement PDFs for compatibility with tax and accounting software.
               </p>
             </div>
 
