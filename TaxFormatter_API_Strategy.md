@@ -75,14 +75,13 @@ Based on competitor research, per-page/per-file pricing is the standard in this 
 
 | Tier | Price | Files/month | Per-file cost | Target customer |
 |---|---|---|---|---|
-| Free | $0 | 10 files | $0 | Developers evaluating |
-| Starter | $29/mo | 100 files | $0.29 | Solo bookkeepers, small apps |
+| Starter | $29/mo | 100 files | $0.29 | Developers evaluating, solo bookkeepers |
 | Growth | $99/mo | 500 files | $0.20 | Accounting firms, growing apps |
 | Business | $249/mo | 2,000 files | $0.12 | Fintech SaaS, large firms |
 | Enterprise | Custom | Unlimited | Negotiated | Lenders, banks, large platforms |
 
 **Why this model:**
-- Free tier gets developers in the door and validates more parsers
+- Starter tier gets developers in the door and validates more parsers
 - Per-file is simple to understand and track
 - Tiers incentivize volume (which validates more parsers)
 - Undercuts DocuClipper ($29/mo for only 60 pages) significantly
@@ -124,7 +123,7 @@ Based on competitor research, per-page/per-file pricing is the standard in this 
 
 ### Phase 2: Soft launch API (post-parser validation)
 - Wrap engine.py in a REST API (you're already on Next.js, so an API route or separate FastAPI service)
-- Offer free tier (10 files/month) to get developers trying it
+- Offer Starter tier ($29/mo, 100 files/month) to get developers trying it
 - List on RapidAPI marketplace for discovery
 - Post on Hacker News "Show HN", Product Hunt, and r/accounting
 
@@ -205,7 +204,7 @@ Response:
 | Now → April 15 | Run Google Ads, validate parsers with real uploads (crypto heavy for tax season) |
 | April–May | Analyze parser success rates, fix edge cases in engine.py |
 | May–June | Build API layer, docs, API key management, usage tracking |
-| June | Soft launch: free tier, RapidAPI listing, Show HN |
+| June | Soft launch: Starter tier, RapidAPI listing, Show HN |
 | July–August | Paid tiers, developer marketing, API-specific Google Ads |
 | September+ | Enterprise outreach, partnership conversations |
 | January 2027 | Ramp crypto API marketing for next tax season |

@@ -65,7 +65,7 @@ export function Footer() {
               Start parsing in minutes.
             </h2>
             <p className="text-lg text-slate-400 mb-8">
-              Get your API key and parse your first file — free, no credit card required.
+              Get your API key and start parsing files in minutes. Plans start at $29/mo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="primary" href="/signup" className="!bg-emerald-500 hover:!bg-emerald-400 !border-emerald-500">

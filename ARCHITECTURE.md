@@ -190,10 +190,9 @@ trw/
 
 | Tier | Price | Quota | RPM |
 |------|-------|-------|-----|
-| Free | $0 | 10 files/month | 5 |
-| Growth | $29/month | 500 files/month | 30 |
-| Business | $99/month | 2,000 files/month | 60 |
-| Enterprise | $249/month | 10,000 files/month | 120 |
+| Starter | $29/month | 100 files/month | 30 |
+| Growth | $99/month | 500 files/month | 60 |
+| Business | $249/month | 2,000 files/month | 120 |
 
 ## AI Tiers
 
