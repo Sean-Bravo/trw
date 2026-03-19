@@ -47,7 +47,7 @@ variable "openai_api_key" {
 }
 
 variable "google_gemini_api_key" {
-  description = "Google Gemini API key (optional for free tier)"
+  description = "Google Gemini API key (optional for Starter tier)"
   type        = string
   sensitive   = true
   default     = ""

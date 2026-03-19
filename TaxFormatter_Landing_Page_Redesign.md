@@ -31,7 +31,7 @@ APIHero → APIDemo → AgentSection → APICapabilities → APIPricing → Trus
 | **APIDemo** | `components/marketing/APIDemo.tsx` | Tabbed code examples in Python, Node.js, and cURL with syntax highlighting and copy-to-clipboard. Feature chips below (auto-detect, base64 in/JSON out, 4 formats, etc.) |
 | **AgentSection** | `components/marketing/AgentSection.tsx` | MCP server setup: shows `claude_desktop_config.json` config, a natural language prompt example, and 3 tool cards (`parse_crypto_csv`, `parse_bank_statement`, `list_supported_sources`) with npm link |
 | **APICapabilities** | `components/marketing/APICapabilities.tsx` | Grid of all 14 supported exchanges, 7+ banks, 4 output formats. Six feature cards: auto-detection, PDF parsing, structured errors, ephemeral processing, sub-2s response, enterprise ready |
-| **APIPricing** | `components/marketing/APIPricing.tsx` | Three API tiers — Free ($0, 10 files/mo), Growth ($99, 500 files/mo, highlighted), Business ($249, 2,000 files/mo). Includes "Not a developer?" callout linking to the consumer dashboard |
+| **APIPricing** | `components/marketing/APIPricing.tsx` | Three API tiers — Starter ($29/mo, 100 files/mo), Growth ($99/mo, 500 files/mo, highlighted), Business ($249/mo, 2,000 files/mo). Includes "Not a developer?" callout linking to the consumer dashboard |
 
 ### Files Modified
 
