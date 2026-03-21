@@ -151,7 +151,7 @@ The 5 failures are all in two areas:
 
 2. **Server Actions** (2 failures) — All server logic uses API routes instead. This is fine architecturally — the API routes serve both the web frontend and future mobile/CLI clients. Server Actions would only help for simple form submissions.
 
-### Worth Addressing
+### Evaluated & Declined
 
-- Standardize error response shape to `{ success, data, error }` across all API routes
-- Consider Server Actions for simple auth forms (login, signup, forgot-password)
+- **Response standardization** — Error responses are already consistent (`{ error: "..." }` everywhere). Success shapes vary by route but each is consumed by a specific frontend component. Refactoring 40+ routes + all consumers for a convention change is high churn, low value. Decision: apply `{ success, data, error }` to new routes only going forward.
+- **Server Actions** — Evaluated for auth forms. No performance improvement over API routes, and API routes already serve both web and future mobile/CLI clients. Not adopting.
