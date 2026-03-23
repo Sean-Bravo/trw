@@ -360,7 +360,7 @@ export interface AIInsights {
     estimated_events?: number;    // Legacy field name
     estimated_taxable_events?: number;  // New field name
   };
-  tier?: 'free' | 'pro' | 'premium';
+  tier?: string;
   model?: string;
   provider?: string;
   ai_error?: string;

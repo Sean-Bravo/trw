@@ -14,8 +14,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const initial = ((user.name || user.email || 'U')[0] || 'U').toUpperCase();
-  const rawTier = user.subscriptionTier || 'free';
-  const tierLabel = rawTier === 'free' ? 'Starter' : rawTier;
+  const tierLabel = 'Starter';
 
   return (
     <header className="sticky top-0 z-50 bg-[#030712]/80 backdrop-blur-xl border-b border-zinc-800/50">

@@ -1,15 +1,15 @@
 import { Metadata } from 'next';
 import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
-import { Pricing } from '@/components/marketing/Pricing';
+import { APIPricing } from '@/components/marketing/APIPricing';
 import { FAQ } from '@/components/marketing/FAQ';
 import { Footer } from '@/components/marketing/Footer';
 
 export const metadata: Metadata = {
-  title: 'Pricing | TaxFormatter',
-  description: 'Simple, transparent pricing. No hidden fees. Pay for what you need to file your crypto taxes this year.',
+  title: 'Pricing | TaxFormatter API',
+  description: 'Simple API pricing that scales with you. Parse crypto CSVs and bank statement PDFs programmatically.',
   openGraph: {
-    title: 'Pricing | TaxFormatter',
-    description: 'Simple, transparent pricing. No hidden fees. Pay for what you need to file your crypto taxes this year.',
+    title: 'Pricing | TaxFormatter API',
+    description: 'Simple API pricing that scales with you. Parse crypto CSVs and bank statement PDFs programmatically.',
   },
 };
 
@@ -19,7 +19,7 @@ export default function PricingPage() {
       <HeaderWithSession />
       <main className="min-h-screen bg-[#020617]">
         <div className="pt-20">
-          <Pricing />
+          <APIPricing />
           <FAQ />
         </div>
       </main>

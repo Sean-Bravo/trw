@@ -2,7 +2,7 @@
 
 ## Summary
 
-First live API test session. Deployed the API Lambda, ran real curl tests, fixed two bugs, and improved developer UX.
+First live API test session. Deployed the API Lambda, ran real curl tests, fixed two bugs, and improved developer UX. Then removed all consumer pricing tiers (Pro/Premium) — TaxFormatter is now API-only billing with Starter/Growth/Business tiers.
 
 ---
 
@@ -105,6 +105,60 @@ Tested against `https://api.taxformatter.com/v1/parse` using fixture files:
 - Real Coinbase CSV export tested (January 2026 statement) — correctly identified as header-only/no transactions after fix
 - Anthropic API keys (`sk-ant-...`) are unrelated to TaxFormatter API keys (`tf_live_...`) — different systems
 - Gmail plus addressing works for test accounts: `email+test1@gmail.com`
+
+---
+
+### 6. Remove Consumer Pricing Tiers — Go API-Only
+
+**Decision:** Consumer tiers (Free/$0, Pro/$9mo, Premium/$19mo) are dead. All billing is now through API tiers only:
+
+| Tier | Price | Quota | RPM |
+|------|-------|-------|-----|
+| Starter | $29/mo | 100 files | 30 |
+| Growth | $99/mo | 500 files | 60 |
+| Business | $249/mo | 2,000 files | 120 |
+
+Stripe products already created (Mar 19). Consumer upload features are free for all users.
+
+**Files changed (~25):**
+
+| Category | What changed |
+|----------|-------------|
+| `lib/stripe.ts` | Removed `STRIPE_PRICES`, `PRICING`, `STRIPE_PLANS`, `StripePlan`, `BillingPeriod`, `getPriceId()`. Only API tier exports remain. |
+| `app/api/checkout/route.ts` | Returns 410 Gone — points to `/api/developer/subscribe` |
+| `app/api/webhooks/stripe/route.ts` | Removed consumer subscription handling. API key tier webhooks only. |
+| `hooks/useCheckout.ts` | Now accepts `ApiTier` + `apiKeyId`, routes through `/api/developer/subscribe` |
+| `lib/feature-flags.ts` | All consumer features return `true`. Removed `MVP_MODE`. |
+| `lib/auth-db.ts` | Removed `subscriptionTier`, `stripeCustomerId` from `UserWithSubscription`. Removed `updateSubscription()`, `findUserByStripeCustomerId()`. |
+| `types/next-auth.d.ts` | Removed `subscriptionTier`, `stripeCustomerId` from session/user types |
+| `app/api/auth/[...nextauth]/route.ts` | Removed all `subscriptionTier` JWT/session logic |
+| `app/api/auth/register/route.ts` | Removed `subscriptionTier` from response |
+| `app/api/auth/verify/route.ts` | Same |
+| `app/api/auth/refresh-session/route.ts` | Same |
+| `app/api/bank/process/route.ts` | Removed tier check — bank statements free for all |
+| `app/api/bank/presigned-url/route.ts` | Same |
+| `app/api/jobs/[jobId]/download/route.ts` | Removed `MVP_MODE` import and download limit check |
+| `app/api/user/downloads/route.ts` | Tier type loosened to `string` |
+| `components/marketing/Pricing.tsx` | Gutted — re-exports `APIPricing` |
+| `app/pricing/page.tsx` | Uses `APIPricing` directly, updated meta |
+| `app/success/page.tsx` | Hardcoded $89 → $29 (Starter) |
+| `components/premium/PremiumFeatureGuard.tsx` | Always renders children (no gating) |
+| `components/premium/UpgradePrompt.tsx` | Dead code (no importers) |
+| `components/dashboard/DashboardHeader.tsx` | Tier display hardcoded to "Starter" |
+| `app/dashboard/settings/SettingsClient.tsx` | Plan display hardcoded to "Starter" |
+| `app/dashboard/jobs/[jobId]/JobDetailClient.tsx` | `isPaidUser` always true |
+| `components/dashboard/AIInsightsPanel.tsx` | Simplified tier badge styling |
+| `lib/email.ts` | Removed `sendSubscriptionEmail()` |
+| `lib/db.ts`, `lib/upload-client.ts` | Tier types loosened from union to `string` |
+| `.env.local` | Replaced consumer price vars with API tier price vars |
+
+**Not yet updated:** Test files still reference old tiers (next chunk).
+
+**Still needed to go live with Stripe:**
+1. Get `price_` IDs from Stripe Dashboard for each product
+2. Set real keys in Vercel env vars (`STRIPE_SECRET_KEY`, `STRIPE_PRICE_API_*_MONTHLY`, `STRIPE_WEBHOOK_SECRET`)
+3. Register webhook endpoint in Stripe Dashboard
+4. Test full checkout flow with test cards
 
 ---
 

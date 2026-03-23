@@ -64,7 +64,6 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
-            subscriptionTier: user.subscriptionTier
           };
         } catch (error) {
           console.error('[Auth] Login error:', error);
@@ -128,34 +127,18 @@ export const authOptions: NextAuthOptions = {
             token.id = dbUser.id;
             token.email = user.email;
             token.name = user.name;
-
-            // Get full user with subscription
-            const fullUser = await findUserById(dbUser.id);
-            token['subscriptionTier'] = fullUser?.subscriptionTier || 'free';
           }
         } else {
           // Credentials provider - user.id is already the database ID
           token.id = user.id;
           token.email = user.email;
           token.name = user.name;
-
-          // User already has subscriptionTier from login response
-          token['subscriptionTier'] = (user as { subscriptionTier?: string }).subscriptionTier || 'free';
         }
       }
 
       // Add access token for OAuth providers
       if (account) {
         token.accessToken = account.access_token;
-      }
-
-      // Handle session refresh
-      if (trigger === "update" && token.id) {
-        const dbUser = await findUserById(token.id as string);
-
-        if (dbUser) {
-          token['subscriptionTier'] = dbUser.subscriptionTier;
-        }
       }
 
       return token;
@@ -167,7 +150,6 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
-        session.user.subscriptionTier = (token['subscriptionTier'] as "free" | "pro" | "premium") || 'free';
       }
 
       return session;

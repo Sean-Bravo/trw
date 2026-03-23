@@ -1,66 +1,31 @@
 /**
  * Feature Flags for TaxFormatter
  *
- * MVP_MODE: When true, all users get access to all features regardless of tier.
- * Set to false when ready to enforce paid tiers.
+ * Consumer tiers (Pro/Premium) have been removed.
+ * All consumer features are available to all users.
+ * API features are gated by API key tier (Starter/Growth/Business) in lib/api-keys.ts.
  */
 
-// MVP Mode - Hardcoded to TRUE during MVP phase
-// All users get access to all features for testing/data collection
-// Change to false when ready to enforce paid tier restrictions
-export const MVP_MODE = true;
-
-/**
- * Check if a user has access to a feature based on their tier.
- * During MVP, all features are available to all tiers.
- */
+// All consumer features are now free — no tier gating
 export function hasFeatureAccess(
-  userTier: 'free' | 'pro' | 'premium' | string | undefined,
-  requiredTier: 'free' | 'pro' | 'premium'
+  _userTier: string | undefined,
+  _requiredTier: string
 ): boolean {
-  // During MVP, everyone gets all features
-  if (MVP_MODE) {
-    return true;
-  }
-
-  const tier = userTier || 'free';
-  const tierLevels: Record<string, number> = {
-    free: 0,
-    pro: 1,
-    premium: 2,
-  };
-
-  const userLevel = tierLevels[tier] ?? 0;
-  const requiredLevel = tierLevels[requiredTier] ?? 0;
-
-  return userLevel >= requiredLevel;
+  return true
 }
 
-/**
- * Get effective tier for display purposes.
- * During MVP, shows actual tier but features work as premium.
- */
-export function getEffectiveTier(userTier: string | undefined): string {
-  return userTier || 'free';
+export function getEffectiveTier(_userTier: string | undefined): string {
+  return 'free'
 }
 
-/**
- * Check if bank statement feature is available
- */
-export function canAccessBankStatements(userTier: string | undefined): boolean {
-  return hasFeatureAccess(userTier, 'pro');
+export function canAccessBankStatements(_userTier: string | undefined): boolean {
+  return true
 }
 
-/**
- * Check if AI insights feature is available
- */
-export function canAccessAIInsights(userTier: string | undefined): boolean {
-  return hasFeatureAccess(userTier, 'pro');
+export function canAccessAIInsights(_userTier: string | undefined): boolean {
+  return true
 }
 
-/**
- * Check if priority processing is available
- */
-export function canAccessPriorityProcessing(userTier: string | undefined): boolean {
-  return hasFeatureAccess(userTier, 'premium');
+export function canAccessPriorityProcessing(_userTier: string | undefined): boolean {
+  return true
 }

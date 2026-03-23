@@ -2,20 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { query, queryOne } from '@/lib/db';
-import { MVP_MODE } from '@/lib/feature-flags';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
-// Free tier limit (disabled during MVP)
-const FREE_TIER_MONTHLY_DOWNLOADS = 3;
-
-interface DownloadCount {
-  count: string;
-}
 
 interface Subscription {
-  tier: 'free' | 'pro' | 'premium';
+  tier: 'free';
 }
 
 /**
@@ -46,40 +39,6 @@ export async function GET(
     );
 
     const tier = subscription?.tier || 'free';
-
-    // 3. For free tier, check monthly download limit (disabled during MVP)
-    if (!MVP_MODE && tier === 'free') {
-      // Check if this job was already downloaded (don't count twice)
-      const existingDownload = await queryOne(
-        `SELECT id FROM downloads WHERE user_id = $1 AND job_id = $2`,
-        [userId, jobId]
-      );
-
-      if (!existingDownload) {
-        // Count downloads this month
-        const result = await queryOne<DownloadCount>(
-          `SELECT COUNT(*) as count FROM downloads
-           WHERE user_id = $1
-           AND downloaded_at >= date_trunc('month', CURRENT_TIMESTAMP)`,
-          [userId]
-        );
-
-        const monthlyDownloads = parseInt(result?.count || '0', 10);
-
-        if (monthlyDownloads >= FREE_TIER_MONTHLY_DOWNLOADS) {
-          return NextResponse.json(
-            {
-              error: 'Monthly download limit reached',
-              message: `Free tier allows ${FREE_TIER_MONTHLY_DOWNLOADS} downloads per month. Upgrade to Pro for unlimited downloads.`,
-              limit: FREE_TIER_MONTHLY_DOWNLOADS,
-              used: monthlyDownloads,
-              upgradeUrl: '/pricing'
-            },
-            { status: 403 }
-          );
-        }
-      }
-    }
 
     // Get file type and format from query params
     const { searchParams } = new URL(request.url);

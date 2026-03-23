@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import Stripe from 'stripe'
-import { updateSubscription, findUserByStripeCustomerId, findUserByEmailWithSubscription } from '@/lib/auth-db'
 import { queryOne, execute } from '@/lib/db'
-import { sendSubscriptionEmail } from '@/lib/email'
 import { API_TIERS, type ApiTier } from '@/lib/api-keys'
 
 // Disable body parsing for webhooks
@@ -50,15 +48,12 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        const plan = session.metadata?.['plan'] as 'pro' | 'premium' | undefined
         const apiTier = session.metadata?.['api_tier'] as ApiTier | undefined
         const apiKeyId = session.metadata?.['api_key_id'] as string | undefined
-        const customerId = session.customer as string
         const subscriptionId = session.subscription as string | undefined
 
         console.log('Payment successful:', {
           customer: session.customer_email,
-          plan,
           apiTier,
           amount: session.amount_total,
         })
@@ -75,43 +70,6 @@ export async function POST(request: NextRequest) {
             )
             console.log(`[Stripe] Updated API key ${apiKeyId} to tier ${apiTier}`)
           }
-          break
-        }
-
-        // Handle consumer subscription
-        // Find user by email or stripe customer ID
-        let user = await findUserByStripeCustomerId(customerId)
-        if (!user && session.customer_email) {
-          user = await findUserByEmailWithSubscription(session.customer_email)
-        }
-
-        if (user && plan) {
-          // Get subscription end date from Stripe
-          let periodEnd: Date | undefined
-          if (subscriptionId) {
-            const stripeSub = await stripe.subscriptions.retrieve(subscriptionId, {
-              expand: ['items.data']
-            })
-            const firstItem = stripeSub.items?.data?.[0]
-            if (firstItem?.current_period_end) {
-              periodEnd = new Date(firstItem.current_period_end * 1000)
-            }
-          }
-
-          await updateSubscription(
-            user.id,
-            plan,
-            'active',
-            customerId,
-            subscriptionId,
-            periodEnd
-          )
-          console.log(`[Stripe] Updated subscription for user ${user.id} to ${plan}`)
-
-          // Send subscription confirmation email
-          if (session.customer_email) {
-            await sendSubscriptionEmail(session.customer_email, plan)
-          }
         }
 
         break
@@ -119,50 +77,25 @@ export async function POST(request: NextRequest) {
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
-        const customerId = subscription.customer as string
 
-        const user = await findUserByStripeCustomerId(customerId)
-        if (user) {
-          // Map Stripe status to our status
-          const statusMap: Record<string, 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused'> = {
-            'active': 'active',
-            'trialing': 'trialing',
-            'past_due': 'past_due',
-            'canceled': 'canceled',
-            'unpaid': 'past_due',
-            'paused': 'paused',
+        // Update API key tier status if this is an API subscription
+        const updatedKey = await queryOne<{ id: string }>(
+          `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
+          [subscription.id]
+        )
+        if (updatedKey) {
+          const isPastDue = subscription.status === 'past_due' || subscription.status === 'unpaid'
+          if (isPastDue) {
+            console.log(`[Stripe] API key ${updatedKey.id} subscription past due: ${subscription.status}`)
           }
-          const status = statusMap[subscription.status] || 'active'
-          // Get period end from subscription items
-          const firstItem = subscription.items?.data?.[0]
-          const periodEnd = firstItem?.current_period_end
-            ? new Date(firstItem.current_period_end * 1000)
-            : undefined
-
-          // Get current tier from our DB
-          const currentSub = await queryOne<{ tier: string }>(
-            `SELECT tier FROM subscriptions WHERE user_id = $1`,
-            [user.id]
-          )
-
-          await updateSubscription(
-            user.id,
-            (currentSub?.tier as 'pro' | 'premium') || 'pro',
-            status,
-            customerId,
-            subscription.id,
-            periodEnd
-          )
-          console.log(`[Stripe] Subscription updated for user ${user.id}: ${status}`)
         }
         break
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
-        const customerId = subscription.customer as string
 
-        // Check if this is an API tier subscription
+        // Downgrade API key to starter tier
         const apiKey = await queryOne<{ id: string }>(
           `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
           [subscription.id]
@@ -176,21 +109,6 @@ export async function POST(request: NextRequest) {
             [starterTier.monthly_quota, starterTier.rate_limit_rpm, apiKey.id]
           )
           console.log(`[Stripe] API key ${apiKey.id} downgraded to starter tier`)
-          break
-        }
-
-        // Consumer subscription cancellation
-        const user = await findUserByStripeCustomerId(customerId)
-        if (user) {
-          await updateSubscription(
-            user.id,
-            'free',
-            'canceled',
-            customerId,
-            undefined,
-            undefined
-          )
-          console.log(`[Stripe] Subscription canceled for user ${user.id}`)
         }
         break
       }
