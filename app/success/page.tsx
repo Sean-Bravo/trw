@@ -23,7 +23,7 @@ function SuccessContent() {
   }, [searchParams])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center py-12">
+    <div className="min-h-screen bg-linear-to-b from-white to-gray-50 flex items-center justify-center py-12">
       <Container>
         <div className="max-w-2xl mx-auto text-center">
           <div className="mb-8 flex justify-center">
@@ -75,7 +75,7 @@ function SuccessContent() {
 export default function SuccessPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-white to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="rounded-full bg-green-100 p-6 inline-block mb-4">
             <CheckCircle className="w-16 h-16 text-green-600" />

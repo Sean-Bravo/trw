@@ -433,9 +433,9 @@ export function AIInsightsPanel() {
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
-                isComplete ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' :
-                status === 'analyzing' ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
-                'bg-gradient-to-r from-blue-400 to-blue-600'
+                isComplete ? 'bg-linear-to-r from-emerald-400 to-emerald-600' :
+                status === 'analyzing' ? 'bg-linear-to-r from-amber-400 to-amber-600' :
+                'bg-linear-to-r from-blue-400 to-blue-600'
               }`}
               style={{ width: `${isComplete ? 100 : progress}%` }}
             />
@@ -495,7 +495,7 @@ export function AIInsightsPanel() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                 taxFlags && taxFlags.count > 0
                   ? 'bg-orange-100'
                   : isComplete
@@ -542,7 +542,7 @@ export function AIInsightsPanel() {
               {taxFlags?.issues?.length ? (
                 taxFlags.issues.map((issue, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm bg-white rounded-lg p-3">
-                    <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                     <span className="text-slate-700">{issue}</span>
                   </div>
                 ))
@@ -562,13 +562,13 @@ export function AIInsightsPanel() {
         {isComplete && (aiInsights?.ai_insights || insightsLoading) && (
           <button
             onClick={() => setExpandedPanel(expandedPanel === 'ai' ? null : 'ai')}
-            className={`w-full rounded-xl p-4 shadow-lg transition-all text-left hover:shadow-xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-400/30 ${
+            className={`w-full rounded-xl p-4 shadow-lg transition-all text-left hover:shadow-xl bg-linear-to-br from-indigo-50 to-purple-50 border-2 border-indigo-400/30 ${
               expandedPanel === 'ai' ? 'ring-2 ring-indigo-400/50' : ''
             }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center shrink-0">
                   {insightsLoading ? (
                     <Loader2 className="w-5 h-5 text-white animate-spin" />
                   ) : (
@@ -655,7 +655,7 @@ export function AIInsightsPanel() {
                     <div className="space-y-2">
                       {aiInsights.ai_insights.what_to_do_next.map((step: string, i: number) => (
                         <div key={i} className="flex items-start gap-2 text-sm">
-                          <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 text-xs font-bold flex items-center justify-center shrink-0">
                             {i + 1}
                           </span>
                           <span className="text-slate-700">{step}</span>
@@ -674,7 +674,7 @@ export function AIInsightsPanel() {
                     <div className="space-y-2">
                       {aiInsights.ai_insights.data_notes.map((note: string, i: number) => (
                         <div key={i} className="flex items-start gap-2 text-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 flex-shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-2 shrink-0" />
                           <span className="text-slate-600">{note}</span>
                         </div>
                       ))}
@@ -691,7 +691,7 @@ export function AIInsightsPanel() {
                     <div className="space-y-2">
                       {aiInsights.ai_insights.tax_tips.map((tip: string, i: number) => (
                         <div key={i} className="flex items-start gap-2 text-sm">
-                          <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                          <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 text-xs font-bold flex items-center justify-center shrink-0">
                             {i + 1}
                           </span>
                           <span className="text-slate-700">{tip}</span>
@@ -725,7 +725,7 @@ export function AIInsightsPanel() {
 
         {/* Download Section - Shows when job is complete */}
         {isComplete && (
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 shadow-lg border-2 border-emerald-400/30">
+          <div className="bg-linear-to-br from-emerald-50 to-teal-50 rounded-xl p-4 shadow-lg border-2 border-emerald-400/30">
             <TaxSoftwareSelector
               onDownload={handleDownload}
               isDownloading={isDownloading}
@@ -760,7 +760,7 @@ export function AIInsightsPanel() {
         {hasError && error && !isDetectionFailure && (
           <div className="bg-red-50 rounded-xl p-4 shadow-lg border-2 border-red-400/50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
               </div>
               <div>
