@@ -224,7 +224,7 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
       {job.status === 'failed' && job.error && (
         <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
           <div className="flex items-start gap-3">
-            <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
             <div>
               <h3 className="font-medium text-red-400">Processing Failed</h3>
               <p className="text-red-300/70 text-sm mt-1">{job.error}</p>
@@ -248,7 +248,7 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
 
       {/* Data table */}
       {job.status === 'succeeded' && (
-        <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+        <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
           {/* View toggle header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <h2 className="text-lg font-semibold text-white">Data Preview</h2>

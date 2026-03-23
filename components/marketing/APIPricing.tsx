@@ -67,7 +67,7 @@ export function APIPricing() {
   return (
     <section className="py-28 bg-[#0b1121] relative overflow-hidden" id="pricing">
       {/* Background */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-225 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
 
       <Container>
         <div className="relative z-10">
@@ -92,7 +92,7 @@ export function APIPricing() {
                 }`}
               >
                 {tier.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#635bff] to-[#818cf8] text-[11px] font-bold text-white tracking-wide shadow-lg">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-linear-to-r from-[#635bff] to-primary-400 text-[11px] font-bold text-white tracking-wide shadow-lg">
                     {tier.badge}
                   </div>
                 )}
@@ -119,7 +119,7 @@ export function APIPricing() {
                   href={tier.ctaHref}
                   className={`block w-full py-3.5 px-4 text-center font-semibold rounded-xl text-[14px] transition-all ${
                     tier.highlight
-                      ? 'bg-gradient-to-r from-[#635bff] to-[#818cf8] text-white hover:opacity-90 shadow-lg shadow-[#635bff]/20'
+                      ? 'bg-linear-to-r from-[#635bff] to-primary-400 text-white hover:opacity-90 shadow-lg shadow-[#635bff]/20'
                       : 'bg-white/4 text-slate-300 border border-white/8 hover:bg-white/6 hover:border-white/12'
                   }`}
                 >

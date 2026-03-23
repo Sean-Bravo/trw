@@ -282,7 +282,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 <button
                   onClick={startSetup}
                   disabled={loading}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -298,7 +298,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               {step === 'setup' && (
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">1</div>
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">1</div>
                     <div>
                       <h3 className="font-medium text-white mb-2">Scan QR Code</h3>
                       <p className="text-zinc-500 text-sm mb-4">
@@ -313,7 +313,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-700 text-white flex items-center justify-center text-sm font-bold">2</div>
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-zinc-700 text-white flex items-center justify-center text-sm font-bold">2</div>
                     <div className="flex-1">
                       <h3 className="font-medium text-white mb-2">Or Enter Code Manually</h3>
                       <p className="text-zinc-500 text-sm mb-3">
@@ -347,7 +347,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               {step === 'verify' && (
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">3</div>
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">3</div>
                     <div className="flex-1">
                       <h3 className="font-medium text-white mb-2">Enter Verification Code</h3>
                       <p className="text-zinc-500 text-sm mb-4">
@@ -375,7 +375,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <button
                       onClick={verifyAndEnable}
                       disabled={loading || verificationCode.length !== 6}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all disabled:opacity-50"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all disabled:opacity-50"
                     >
                       {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                       Verify & Enable
@@ -387,7 +387,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               {step === 'backup' && (
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
                       <Key className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
@@ -421,7 +421,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   <div className="flex justify-end">
                     <button
                       onClick={finishSetup}
-                      className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all"
+                      className="px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all"
                     >
                       I've Saved My Codes
                     </button>
@@ -433,7 +433,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
             <div className="mt-6 pt-6 border-t border-zinc-800">
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
                     <Key className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
@@ -467,7 +467,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 <div className="flex justify-end">
                   <button
                     onClick={closeRegenerateCodes}
-                    className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all"
+                    className="px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all"
                   >
                     I've Saved My Codes
                   </button>

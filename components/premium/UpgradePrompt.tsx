@@ -31,7 +31,7 @@ export function UpgradePrompt({ feature, requiredTier }: UpgradePromptProps) {
     <div className="flex flex-col items-center justify-center py-16 px-6">
       <div className="relative">
         {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 blur-2xl rounded-full" />
+        <div className="absolute inset-0 bg-linear-to-r from-cyan-500/20 to-blue-500/20 blur-2xl rounded-full" />
 
         {/* Lock icon */}
         <div className="relative flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-800/80 border border-white/10 mb-6">
