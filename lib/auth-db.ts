@@ -7,8 +7,6 @@ export interface UserWithSubscription {
   email: string;
   name: string | null;
   emailVerified: boolean;
-  subscriptionTier: 'free' | 'pro' | 'premium';
-  stripeCustomerId: string | null;
   createdAt: Date;
 }
 
@@ -34,13 +32,9 @@ export async function findUserByEmailWithSubscription(email: string): Promise<Us
     name: string | null;
     email_verified: boolean;
     created_at: Date;
-    tier: 'free' | 'pro' | 'premium' | null;
-    stripe_customer_id: string | null;
   }>(
-    `SELECT u.id, u.email, u.name, u.email_verified, u.created_at,
-            s.tier, s.stripe_customer_id
+    `SELECT u.id, u.email, u.name, u.email_verified, u.created_at
      FROM users u
-     LEFT JOIN subscriptions s ON s.user_id = u.id
      WHERE u.email = $1`,
     [email.toLowerCase()]
   );
@@ -52,8 +46,6 @@ export async function findUserByEmailWithSubscription(email: string): Promise<Us
     email: result.email,
     name: result.name,
     emailVerified: result.email_verified ?? false,
-    subscriptionTier: result.tier || 'free',
-    stripeCustomerId: result.stripe_customer_id,
     createdAt: result.created_at,
   };
 }
@@ -68,13 +60,9 @@ export async function findUserById(id: string): Promise<UserWithSubscription | n
     name: string | null;
     email_verified: boolean;
     created_at: Date;
-    tier: 'free' | 'pro' | 'premium' | null;
-    stripe_customer_id: string | null;
   }>(
-    `SELECT u.id, u.email, u.name, u.email_verified, u.created_at,
-            s.tier, s.stripe_customer_id
+    `SELECT u.id, u.email, u.name, u.email_verified, u.created_at
      FROM users u
-     LEFT JOIN subscriptions s ON s.user_id = u.id
      WHERE u.id = $1`,
     [id]
   );
@@ -86,8 +74,6 @@ export async function findUserById(id: string): Promise<UserWithSubscription | n
     email: result.email,
     name: result.name,
     emailVerified: result.email_verified ?? false,
-    subscriptionTier: result.tier || 'free',
-    stripeCustomerId: result.stripe_customer_id,
     createdAt: result.created_at,
   };
 }
@@ -145,8 +131,6 @@ export async function createUser(
     email: user.email,
     name: user.name,
     emailVerified: user.email_verified,
-    subscriptionTier: 'free',
-    stripeCustomerId: null,
     createdAt: user.created_at,
   };
 }
@@ -270,52 +254,6 @@ export async function findOrCreateOAuthUser(
   return fullUser;
 }
 
-/**
- * Update user subscription from Stripe webhook
- */
-export async function updateSubscription(
-  userId: string,
-  tier: 'free' | 'pro' | 'premium',
-  status?: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused',
-  stripeCustomerId?: string,
-  stripeSubscriptionId?: string,
-  currentPeriodEnd?: Date
-): Promise<void> {
-  await execute(
-    `INSERT INTO subscriptions (user_id, tier, status, stripe_customer_id, stripe_subscription_id, current_period_end)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (user_id) DO UPDATE
-     SET tier = EXCLUDED.tier,
-         status = EXCLUDED.status,
-         stripe_customer_id = COALESCE(EXCLUDED.stripe_customer_id, subscriptions.stripe_customer_id),
-         stripe_subscription_id = COALESCE(EXCLUDED.stripe_subscription_id, subscriptions.stripe_subscription_id),
-         current_period_end = COALESCE(EXCLUDED.current_period_end, subscriptions.current_period_end)`,
-    [
-      userId,
-      tier,
-      status || 'active',
-      stripeCustomerId || null,
-      stripeSubscriptionId || null,
-      currentPeriodEnd || null,
-    ]
-  );
-}
-
-/**
- * Find user by Stripe customer ID
- */
-export async function findUserByStripeCustomerId(
-  stripeCustomerId: string
-): Promise<UserWithSubscription | null> {
-  const result = await queryOne<{ user_id: string }>(
-    `SELECT user_id FROM subscriptions WHERE stripe_customer_id = $1`,
-    [stripeCustomerId]
-  );
-
-  if (!result) return null;
-
-  return findUserById(result.user_id);
-}
 
 /**
  * Check if email exists

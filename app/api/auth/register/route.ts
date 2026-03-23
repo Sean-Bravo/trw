@@ -77,8 +77,7 @@ export async function POST(request: NextRequest) {
           id: user.id,
           email: user.email,
           name: user.name,
-          emailVerified: user.emailVerified,
-          subscriptionTier: user.subscriptionTier
+          emailVerified: user.emailVerified
         },
         message: 'User created. Please check your email for verification code.',
         requiresVerification: true

@@ -2,30 +2,29 @@
 
 import { useState } from 'react'
 
-export type BillingPeriod = 'monthly' | 'annual'
+export type ApiTier = 'starter' | 'growth' | 'business'
 
 export function useCheckout() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const checkout = async (plan: 'PRO' | 'PREMIUM', billing: BillingPeriod = 'annual') => {
+  const checkout = async (tier: ApiTier, apiKeyId: string) => {
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch('/api/checkout', {
+      const response = await fetch('/api/developer/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan, billing }),
+        body: JSON.stringify({ tier, apiKeyId }),
       })
 
       const data = await response.json()
 
       if (response.status === 401) {
-        // Not signed in — redirect to signup with return plan info
-        window.location.href = `/signup?plan=${plan.toLowerCase()}&billing=${billing}`
+        window.location.href = `/signup?plan=${tier}`
         return
       }
 
@@ -34,7 +33,6 @@ export function useCheckout() {
       }
 
       if (data.url) {
-        // Redirect to Stripe Checkout
         window.location.href = data.url
       } else {
         throw new Error('No checkout URL returned')

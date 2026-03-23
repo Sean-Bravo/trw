@@ -34,7 +34,7 @@ interface JobData {
 
 interface JobDetailClientProps {
   job: JobData;
-  userTier: 'free' | 'pro' | 'premium';
+  userTier: string;
   userName: string;
 }
 
@@ -81,7 +81,7 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const isPaidUser = userTier === 'pro' || userTier === 'premium';
+  const isPaidUser = true; // All features are free — API billing is separate
   const statusConfig = STATUS_CONFIG[job.status];
   const StatusIcon = statusConfig.icon;
 

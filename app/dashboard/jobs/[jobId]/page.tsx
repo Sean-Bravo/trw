@@ -53,7 +53,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
           filename: job.upload.filename,
           s3Key: job.upload.s3_key,
         }}
-        userTier={session.user.subscriptionTier || 'free'}
+        userTier="free"
         userName={session.user.name || session.user.email?.split('@')[0] || 'User'}
       />
     </div>

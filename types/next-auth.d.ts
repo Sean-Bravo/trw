@@ -7,8 +7,6 @@ declare module 'next-auth' {
       name?: string | null;
       email?: string | null;
       image?: string | null;
-      subscriptionTier?: 'free' | 'pro' | 'premium';
-      stripeCustomerId?: string;
     };
   }
 
@@ -17,8 +15,6 @@ declare module 'next-auth' {
     email?: string | null;
     name?: string | null;
     image?: string | null;
-    subscriptionTier?: 'free' | 'pro' | 'premium';
-    stripeCustomerId?: string;
   }
 }
 

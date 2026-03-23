@@ -579,11 +579,7 @@ export function AIInsightsPanel() {
                   <p className="font-semibold text-slate-800 flex items-center gap-2">
                     AI Analysis
                     {aiInsights?.tier && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        aiInsights.tier === 'premium' ? 'bg-purple-100 text-purple-600' :
-                        aiInsights.tier === 'pro' ? 'bg-indigo-100 text-indigo-600' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
                         {aiInsights.tier.charAt(0).toUpperCase() + aiInsights.tier.slice(1)}
                       </span>
                     )}

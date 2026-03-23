@@ -487,7 +487,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
             </div>
             <div>
               <label className="text-zinc-500 text-sm">Plan</label>
-              <p className="text-white capitalize">{user.subscriptionTier || 'Free'}</p>
+              <p className="text-white">Starter</p>
             </div>
           </div>
         </div>

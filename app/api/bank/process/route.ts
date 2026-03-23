@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { canAccessBankStatements } from '@/lib/feature-flags';
 import { getClientIdentifier } from '@/lib/rate-limit';
 import { query } from '@/lib/db';
 
@@ -17,15 +16,6 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     const identifier = getClientIdentifier(request);
     const userId = session?.user?.id || `anon-${identifier}`;
-    const tier = session?.user?.subscriptionTier || 'free';
-
-    // Bank statements require Pro or Premium tier (bypassed during MVP)
-    if (!canAccessBankStatements(tier)) {
-      return NextResponse.json(
-        { error: 'Bank statement processing requires a Pro or Premium subscription' },
-        { status: 403 }
-      );
-    }
 
     // Parse request body
     const body = await request.json();

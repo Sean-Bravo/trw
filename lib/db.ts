@@ -96,7 +96,7 @@ export interface DbAccount {
 export interface DbSubscription {
   id: string;
   user_id: string;
-  tier: 'free' | 'pro' | 'premium';
+  tier: string;
   status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused';
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;

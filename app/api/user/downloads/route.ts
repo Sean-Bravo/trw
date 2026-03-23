@@ -14,7 +14,7 @@ interface DownloadCount {
 }
 
 interface Subscription {
-  tier: 'free' | 'pro' | 'premium';
+  tier: string;
 }
 
 /**

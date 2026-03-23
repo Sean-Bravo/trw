@@ -23,7 +23,6 @@ export async function GET() {
         id: session.user?.id,
         email: session.user?.email,
         name: session.user?.name,
-        subscriptionTier: session.user?.subscriptionTier,
       },
       message: 'Session refreshed successfully',
     });

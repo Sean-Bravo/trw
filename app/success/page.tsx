@@ -18,7 +18,7 @@ function SuccessContent() {
       // Track the purchase conversion
       // You can get the actual amount from Stripe webhook or session data
       // For now, we'll track with a default value
-      trackPurchase(sessionId, 89) // Default to Pro plan price
+      trackPurchase(sessionId, 29) // Default to Starter API tier price
     }
   }, [searchParams])
 
