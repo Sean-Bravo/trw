@@ -46,7 +46,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               </div>
               {/* Avatar */}
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full opacity-50 group-hover:opacity-100 transition-opacity blur-sm" />
+                <div className="absolute -inset-0.5 bg-linear-to-r from-emerald-500 to-cyan-500 rounded-full opacity-50 group-hover:opacity-100 transition-opacity blur-sm" />
                 <div className="relative h-9 w-9 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-emerald-400 font-semibold text-sm">
                   {initial}
                 </div>
@@ -89,13 +89,13 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             <div className="pt-4 border-t border-zinc-800 mt-2">
               <div className="flex items-center gap-3 px-3 py-2 mb-3">
                 <div className="relative">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full opacity-50 blur-sm" />
+                  <div className="absolute -inset-0.5 bg-linear-to-r from-emerald-500 to-cyan-500 rounded-full opacity-50 blur-sm" />
                   <div className="relative h-8 w-8 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-emerald-400 font-semibold text-sm">
                     {initial}
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white truncate max-w-[180px]">
+                  <p className="text-sm font-medium text-white truncate max-w-45">
                     {user.email}
                   </p>
                   <p className="text-xs text-zinc-500 capitalize">
