@@ -2971,8 +2971,10 @@ class ParserRegistry:
 
         return None
     
-    def get_parser(self, exchange: str) -> Optional[BaseExchangeParser]:
+    def get_parser(self, exchange: Optional[str]) -> Optional[BaseExchangeParser]:
         """Get parser instance for given exchange."""
+        if not exchange:
+            return None
         return self.parsers.get(exchange.lower())
     
     def list_supported_exchanges(self) -> List[str]:
@@ -3152,8 +3154,8 @@ def process_file(
         else:
             df, meta = load_csv_to_df(input_data)
 
-        if df is None or df.empty:
-            error_msg = meta.get("error", "CSV file is empty")
+        if df is None or df.empty or len(df) == 0:
+            error_msg = meta.get("error") or "CSV file has no transaction rows (header only or empty)"
             return {
                 "success": False,
                 "records": [],

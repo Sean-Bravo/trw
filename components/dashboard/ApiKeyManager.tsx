@@ -298,7 +298,15 @@ export function ApiKeyManager() {
 
       {/* Quick start */}
       <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <h2 className="text-lg font-medium text-white mb-4">Quick Start</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-medium text-white">Quick Start</h2>
+          <a
+            href="/docs/api"
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            Full API docs →
+          </a>
+        </div>
         <pre className="bg-black/30 rounded-lg p-4 text-sm text-gray-300 font-mono overflow-x-auto">
 {`curl -X POST https://api.taxformatter.com/v1/parse \\
   -H "X-API-Key: YOUR_API_KEY" \\
@@ -309,6 +317,9 @@ export function ApiKeyManager() {
     "output_format": "koinly"
   }'`}
         </pre>
+        <p className="text-xs text-gray-500 mt-3">
+          Replace <code className="text-gray-400">YOUR_API_KEY</code> with the key you created above.
+        </p>
       </div>
     </div>
   );

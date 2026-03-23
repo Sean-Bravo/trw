@@ -27,6 +27,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
             <NavLink href="/dashboard" active>Dashboard</NavLink>
+            <NavLink href="/dashboard/developer">Developer</NavLink>
             <NavLink href="/dashboard/settings">Settings</NavLink>
             <NavLink href="/docs">Docs</NavLink>
           </nav>
@@ -82,6 +83,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         <div className="md:hidden border-t border-zinc-800/50 bg-[#030712]/95 backdrop-blur-xl">
           <nav className="flex flex-col px-4 py-4 space-y-1">
             <MobileNavLink href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</MobileNavLink>
+            <MobileNavLink href="/dashboard/developer" onClick={() => setMobileMenuOpen(false)}>Developer</MobileNavLink>
             <MobileNavLink href="/dashboard/settings" onClick={() => setMobileMenuOpen(false)}>Settings</MobileNavLink>
             <MobileNavLink href="/docs" onClick={() => setMobileMenuOpen(false)}>Docs</MobileNavLink>
             <div className="pt-4 border-t border-zinc-800 mt-2">
