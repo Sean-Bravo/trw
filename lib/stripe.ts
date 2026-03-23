@@ -12,13 +12,13 @@ export const stripe = new Stripe(stripeSecretKey, {
 // See docs/STRIPE_SETUP.md for instructions
 export const STRIPE_API_PRICES = {
   STARTER: {
-    monthly: process.env['STRIPE_PRICE_API_STARTER_MONTHLY'] || 'price_api_starter_monthly',
+    monthly: process.env['STRIPE_API_PRICE_STARTER'] || 'price_api_starter',
   },
   GROWTH: {
-    monthly: process.env['STRIPE_PRICE_API_GROWTH_MONTHLY'] || 'price_api_growth_monthly',
+    monthly: process.env['STRIPE_API_PRICE_GROWTH'] || 'price_api_growth',
   },
   BUSINESS: {
-    monthly: process.env['STRIPE_PRICE_API_BUSINESS_MONTHLY'] || 'price_api_business_monthly',
+    monthly: process.env['STRIPE_API_PRICE_BUSINESS'] || 'price_api_business',
   },
 } as const
 
