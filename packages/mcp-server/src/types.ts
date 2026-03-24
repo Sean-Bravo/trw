@@ -25,3 +25,16 @@ export interface SourcesResponse {
     bank: string[];
   };
 }
+
+export interface UsageResponse {
+  usage: Array<{
+    key_id: string;
+    key_name: string;
+    tier: string;
+    monthly_quota: number;
+    current_month: {
+      file_count: number;
+      request_count: number;
+    };
+  }>;
+}
