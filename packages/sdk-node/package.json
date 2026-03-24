@@ -1,0 +1,31 @@
+{
+  "name": "@taxformatter/sdk",
+  "version": "0.1.0",
+  "description": "Official Node.js SDK for the TaxFormatter API — parse crypto CSVs and bank statement PDFs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": "TaxFormatter <support@taxformatter.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sean-Bravo/trw.git",
+    "directory": "packages/sdk-node"
+  },
+  "bugs": { "url": "https://github.com/Sean-Bravo/trw/issues" },
+  "homepage": "https://taxformatter.com/docs/api",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --no-coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["taxformatter", "crypto-tax", "csv-parser", "bank-statement", "pdf-parser"],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": { "node": ">=18.0.0" },
+  "files": ["dist", "README.md", "LICENSE"]
+}
