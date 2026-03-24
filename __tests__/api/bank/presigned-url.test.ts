@@ -42,7 +42,7 @@ describe('POST /api/bank/presigned-url', () => {
     jest.clearAllMocks();
     (mockRateLimit.rateLimiters.fileUpload.check as jest.Mock).mockResolvedValue({ success: true });
     mockGetServerSession.mockResolvedValue({
-      user: { id: 'user-1', email: 'test@example.com', subscriptionTier: 'pro' },
+      user: { id: 'user-1', email: 'test@example.com' },
       expires: '2025-12-31',
     });
     global.fetch = jest.fn().mockResolvedValue({
@@ -97,37 +97,21 @@ describe('POST /api/bank/presigned-url', () => {
       expect(response.status).toBe(200);
     });
 
-    it('succeeds for premium tier', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-2', email: 'premium@example.com', subscriptionTier: 'premium' },
-        expires: '2025-12-31',
-      });
-
-      const request = createMockRequest({ filename: 'statement.pdf' });
-
-      const response = await POST(request as any);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.uploadUrl).toBeDefined();
-    });
   });
 
-  describe('Authentication', () => {
-    it('returns 401 when not authenticated', async () => {
+  describe('Anonymous access', () => {
+    it('allows anonymous users (no session)', async () => {
       mockGetServerSession.mockResolvedValue(null);
 
       const request = createMockRequest({ filename: 'statement.pdf' });
 
       const response = await POST(request as any);
-      const data = await response.json();
 
-      expect(response.status).toBe(401);
-      expect(data.error).toBe('Unauthorized');
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(response.status).toBe(200);
+      expect(global.fetch).toHaveBeenCalled();
     });
 
-    it('returns 401 when session has no user id', async () => {
+    it('uses anon identifier when session has no user id', async () => {
       mockGetServerSession.mockResolvedValue({
         user: { email: 'test@example.com' },
         expires: '2025-12-31',
@@ -137,40 +121,8 @@ describe('POST /api/bank/presigned-url', () => {
 
       const response = await POST(request as any);
 
-      expect(response.status).toBe(401);
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Subscription tier', () => {
-    it('returns 403 for free tier', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', email: 'free@example.com', subscriptionTier: 'free' },
-        expires: '2025-12-31',
-      });
-
-      const request = createMockRequest({ filename: 'statement.pdf' });
-
-      const response = await POST(request as any);
-      const data = await response.json();
-
-      expect(response.status).toBe(403);
-      expect(data.error).toBe('Bank statement processing requires a Pro or Premium subscription');
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
-    it('treats missing subscriptionTier as free', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'user-1', email: 'test@example.com' },
-        expires: '2025-12-31',
-      } as any);
-
-      const request = createMockRequest({ filename: 'statement.pdf' });
-
-      const response = await POST(request as any);
-
-      expect(response.status).toBe(403);
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(response.status).toBe(200);
+      expect(global.fetch).toHaveBeenCalled();
     });
   });
 

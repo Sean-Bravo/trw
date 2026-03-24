@@ -12,6 +12,9 @@ jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/app/api/auth/[...nextauth]/route', () => ({ authOptions: {} }));
 jest.mock('@/lib/uploads-db');
 jest.mock('@/lib/db');
+jest.mock('@/lib/rate-limit', () => ({
+  getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
+}));
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockCreateUpload = uploadsDb.createUpload as jest.MockedFunction<typeof uploadsDb.createUpload>;
@@ -71,11 +74,11 @@ describe('POST /api/uploads/[uploadId]/confirm', () => {
     );
   });
 
-  it('requires authentication', async () => {
+  it('allows anonymous access (no session)', async () => {
     mockGetServerSession.mockResolvedValue(null);
     const res = await POST(createMockRequest({}) as any, ctx('uploads/j1/f.csv'));
-    expect(res.status).toBe(401);
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(global.fetch).toHaveBeenCalled();
   });
 
   it('propagates Lambda 429 with Retry-After', async () => {

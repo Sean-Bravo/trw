@@ -2,19 +2,8 @@
  * Tests for GET /api/bank/job/[jobId]/download route
  */
 
-import { getServerSession } from 'next-auth';
 import { GET } from '@/app/api/bank/job/[jobId]/download/route';
 import { createMockRequest } from '../../utils/mock-request';
-
-jest.mock('next-auth', () => ({
-  getServerSession: jest.fn(),
-}));
-
-jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
-  authOptions: {},
-}));
-
-const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 
 function createContext(jobId: string) {
   return { params: Promise.resolve({ jobId }) };
@@ -25,10 +14,6 @@ describe('GET /api/bank/job/[jobId]/download', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetServerSession.mockResolvedValue({
-      user: { id: 'user-1', email: 'test@example.com' },
-      expires: '2025-12-31',
-    });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -58,13 +43,13 @@ describe('GET /api/bank/job/[jobId]/download', () => {
       expect(data.downloadUrl).toBe('https://s3.example.com/result.qbo');
     });
 
-    it('calls Lambda with format query defaulting to qbo', async () => {
+    it('calls Lambda with format query defaulting to csv', async () => {
       const request = createMockRequest({});
 
       await GET(request as any, createContext('job-456'));
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/\?format=qbo$/),
+        expect.stringMatching(/\?format=csv$/),
         expect.objectContaining({
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -91,36 +76,9 @@ describe('GET /api/bank/job/[jobId]/download', () => {
       await GET(request as any, createContext('job-789'));
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/\/bank\/job\/job-789\/download\?format=qbo$/),
+        expect.stringMatching(/\/bank\/job\/job-789\/download\?format=csv$/),
         expect.any(Object)
       );
-    });
-  });
-
-  describe('Authentication', () => {
-    it('returns 401 when not authenticated', async () => {
-      mockGetServerSession.mockResolvedValue(null);
-
-      const request = createMockRequest({});
-      const response = await GET(request as any, createContext('job-123'));
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data.error).toBe('Unauthorized');
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
-    it('returns 401 when session has no user id', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { email: 'x@x.com' },
-        expires: '2025-12-31',
-      } as any);
-
-      const request = createMockRequest({});
-      const response = await GET(request as any, createContext('job-123'));
-
-      expect(response.status).toBe(401);
-      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 

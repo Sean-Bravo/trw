@@ -16,50 +16,39 @@ describe('FAQ Component', () => {
   describe('Rendering', () => {
     it('renders section title', () => {
       render(<FAQ />);
-      expect(screen.getByText("Stuff you're actually wondering.")).toBeInTheDocument();
+      expect(screen.getByText('Things devs actually ask.')).toBeInTheDocument();
     });
 
     it('renders section subtitle', () => {
       render(<FAQ />);
-      expect(screen.getByText(/Straight answers/)).toBeInTheDocument();
+      expect(screen.getByText(/No fluff/)).toBeInTheDocument();
     });
 
-    it('renders all FAQ questions', () => {
+    it('renders FAQ questions', () => {
       render(<FAQ />);
-      // Questions appear in both desktop and mobile layouts, use getAllByText
-      expect(screen.getAllByText(/What exchanges do you actually support/).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Will this work with my tax software/).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Do you connect to my exchange accounts/).length).toBeGreaterThan(0);
-    });
-
-    it('renders contact email link', () => {
-      render(<FAQ />);
-      const emailLink = screen.getByText('Just email us');
-      expect(emailLink).toHaveAttribute('href', 'mailto:support@taxformatter.com');
+      expect(screen.getAllByText(/How does the API detect which exchange/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/What does the MCP server actually do/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Do you store the files I send/).length).toBeGreaterThan(0);
     });
   });
 
   describe('Desktop Interaction', () => {
     it('shows first question answer by default', () => {
       render(<FAQ />);
-      // First item's answer should be visible (on desktop)
-      // May appear multiple times due to desktop/mobile layouts
-      expect(screen.getAllByText(/14 and counting/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Header fingerprinting/).length).toBeGreaterThan(0);
     });
 
     it('changes active question when clicked (desktop)', () => {
       render(<FAQ />);
 
-      // Find all instances and click the first one (desktop)
-      const taxSoftwareQuestions = screen.getAllByText(/Will this work with my tax software/);
-      const button = taxSoftwareQuestions[0]?.closest('button');
+      const mcpQuestions = screen.getAllByText(/What does the MCP server actually do/);
+      const button = mcpQuestions[0]?.closest('button');
 
       if (button) {
         fireEvent.click(button);
       }
 
-      // Second answer should now be visible (may appear multiple times)
-      expect(screen.getAllByText(/TurboTax, TaxAct, H&R Block/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/wraps our REST API/).length).toBeGreaterThan(0);
     });
   });
 
@@ -67,7 +56,6 @@ describe('FAQ Component', () => {
     it('questions are focusable buttons', () => {
       render(<FAQ />);
 
-      // Should have multiple button elements for questions
       const buttons = screen.getAllByRole('button');
       expect(buttons.length).toBeGreaterThan(0);
     });
@@ -80,37 +68,31 @@ describe('FAQ Component', () => {
   });
 
   describe('Content', () => {
-    it('mentions supported exchanges', () => {
+    it('mentions API detection', () => {
       render(<FAQ />);
-      // May appear multiple times due to desktop/mobile layouts
-      expect(screen.getAllByText(/Coinbase, Kraken, Gemini/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Header fingerprinting/).length).toBeGreaterThan(0);
     });
 
-    it('mentions tax software integrations', () => {
+    it('addresses file storage concerns', () => {
       render(<FAQ />);
-      // Click on tax software question to see the answer
-      const taxSoftwareQuestions = screen.getAllByText(/Will this work with my tax software/);
-      const button = taxSoftwareQuestions[0]?.closest('button');
-      if (button) {
-        fireEvent.click(button);
-      }
-
-      // May appear multiple times due to desktop/mobile layouts
-      expect(screen.getAllByText(/TurboTax, TaxAct, H&R Block/).length).toBeGreaterThan(0);
-    });
-
-    it('addresses privacy concerns', () => {
-      render(<FAQ />);
-
-      // Click on privacy question (get first instance - desktop)
-      const privacyQuestions = screen.getAllByText(/Do you connect to my exchange accounts/);
+      const privacyQuestions = screen.getAllByText(/Do you store the files I send/);
       const button = privacyQuestions[0]?.closest('button');
       if (button) {
         fireEvent.click(button);
       }
 
-      // Answer may appear multiple times in desktop/mobile views
-      expect(screen.getAllByText(/No. Hard no/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/processed in-memory/).length).toBeGreaterThan(0);
+    });
+
+    it('mentions pricing', () => {
+      render(<FAQ />);
+      const pricingQuestions = screen.getAllByText(/What's the cheapest plan/);
+      const button = pricingQuestions[0]?.closest('button');
+      if (button) {
+        fireEvent.click(button);
+      }
+
+      expect(screen.getAllByText(/Starter is \$29/).length).toBeGreaterThan(0);
     });
   });
 });

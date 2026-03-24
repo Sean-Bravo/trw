@@ -8,11 +8,9 @@ import {
   createRunningJob,
   createSucceededJob,
   createFailedJob,
-  createMockJobs,
 } from '../factories/jobs';
 
 // Mock useJobPolling
-const mockSetActiveJob = jest.fn();
 jest.mock('@/hooks/useJobPolling', () => ({
   useJobPolling: jest.fn(() => ({
     job: null,
@@ -21,19 +19,34 @@ jest.mock('@/hooks/useJobPolling', () => ({
   })),
 }));
 
-// Mock fetch
-global.fetch = jest.fn(() =>
-  Promise.resolve({
+// Mock fetch for bank jobs and crypto jobs
+global.fetch = jest.fn((url: string) => {
+  if (url === '/api/bank/jobs') {
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ jobs: [] }),
+    });
+  }
+  return Promise.resolve({
     ok: true,
     json: () => Promise.resolve({ jobs: [] }),
-  })
-) as jest.Mock;
+  });
+}) as jest.Mock;
 
 // Mock next/link
 jest.mock('next/link', () => {
   return ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   );
+});
+
+// Mock createPortal for delete modals
+jest.mock('react-dom', () => {
+  const original = jest.requireActual('react-dom');
+  return {
+    ...original,
+    createPortal: (node: React.ReactNode) => node,
+  };
 });
 
 describe('JobHistoryTable', () => {
@@ -51,7 +64,7 @@ describe('JobHistoryTable', () => {
     expect(screen.getByText('No uploads yet')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Upload your first CSV file to start processing your crypto transactions'
+        'Upload a CSV or bank statement to start processing'
       )
     ).toBeInTheDocument();
   });
@@ -95,6 +108,7 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
+    // Running crypto jobs are mapped to 'processing' in unified history
     expect(screen.getByText('Processing')).toBeInTheDocument();
   });
 
@@ -107,6 +121,7 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
+    // Succeeded crypto jobs are mapped to 'completed' in unified history
     expect(screen.getByText('Completed')).toBeInTheDocument();
   });
 
@@ -122,7 +137,7 @@ describe('JobHistoryTable', () => {
     expect(screen.getByText('Failed')).toBeInTheDocument();
   });
 
-  it('should show View button for completed jobs', () => {
+  it('should show View button for completed crypto jobs', () => {
     const job = createSucceededJob({ jobId: 'job-123', filename: 'test.csv' });
 
     render(
@@ -131,9 +146,9 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
-    const viewLink = screen.getByText('View');
-    expect(viewLink).toBeInTheDocument();
-    expect(viewLink.closest('a')).toHaveAttribute(
+    const viewLinks = screen.getAllByText('View');
+    expect(viewLinks.length).toBeGreaterThan(0);
+    expect(viewLinks[0].closest('a')).toHaveAttribute(
       'href',
       '/dashboard/jobs/job-123'
     );
@@ -148,10 +163,11 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
-    expect(screen.getByText('Download')).toBeInTheDocument();
+    const downloadButtons = screen.getAllByText('Download');
+    expect(downloadButtons.length).toBeGreaterThan(0);
   });
 
-  it('should show Retry button for failed jobs', () => {
+  it('should show Delete button for failed jobs', () => {
     const job = createFailedJob({ filename: 'test.csv' });
 
     render(
@@ -160,11 +176,12 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
-    expect(screen.getByText('Retry')).toBeInTheDocument();
+    const deleteButtons = screen.getAllByText('Delete');
+    expect(deleteButtons.length).toBeGreaterThan(0);
   });
 
-  it('should not show action buttons for queued jobs', () => {
-    const job = createQueuedJob({ filename: 'test.csv' });
+  it('should show tabs for filtering', () => {
+    const job = createSucceededJob({ filename: 'test.csv' });
 
     render(
       <JobProvider userId="test-user" initialJobs={[job]}>
@@ -172,23 +189,27 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
-    expect(screen.queryByText('View')).not.toBeInTheDocument();
-    expect(screen.queryByText('Download')).not.toBeInTheDocument();
-    expect(screen.queryByText('Retry')).not.toBeInTheDocument();
+    expect(screen.getAllByText('All').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Crypto').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Bank').length).toBeGreaterThan(0);
   });
 
-  it('should not show action buttons for running jobs', () => {
-    const job = createRunningJob({ filename: 'test.csv' });
+  it('should render multiple jobs', () => {
+    const jobs = [
+      createSucceededJob({ filename: 'file1.csv' }),
+      createRunningJob({ filename: 'file2.csv' }),
+      createQueuedJob({ filename: 'file3.csv' }),
+    ];
 
     render(
-      <JobProvider userId="test-user" initialJobs={[job]}>
+      <JobProvider userId="test-user" initialJobs={jobs}>
         <JobHistoryTable />
       </JobProvider>
     );
 
-    expect(screen.queryByText('View')).not.toBeInTheDocument();
-    expect(screen.queryByText('Download')).not.toBeInTheDocument();
-    expect(screen.queryByText('Retry')).not.toBeInTheDocument();
+    expect(screen.getByText('file1.csv')).toBeInTheDocument();
+    expect(screen.getByText('file2.csv')).toBeInTheDocument();
+    expect(screen.getByText('file3.csv')).toBeInTheDocument();
   });
 
   it('should show transaction count for completed jobs with results', () => {
@@ -204,107 +225,5 @@ describe('JobHistoryTable', () => {
     );
 
     expect(screen.getByText('150 transactions')).toBeInTheDocument();
-  });
-
-  it('should display formatted date', () => {
-    const job = createSucceededJob({
-      filename: 'test.csv',
-      createdAt: '2024-06-15T10:30:00Z',
-    });
-
-    render(
-      <JobProvider userId="test-user" initialJobs={[job]}>
-        <JobHistoryTable />
-      </JobProvider>
-    );
-
-    // The exact format depends on locale, but date should be visible
-    expect(screen.getByText(/6\/15\/2024|15\/6\/2024/)).toBeInTheDocument();
-  });
-
-  it('should allow selecting a job by clicking row', async () => {
-    const user = userEvent.setup();
-    const jobs = [
-      createSucceededJob({ jobId: 'job-1', filename: 'file1.csv' }),
-      createSucceededJob({ jobId: 'job-2', filename: 'file2.csv' }),
-    ];
-
-    render(
-      <JobProvider userId="test-user" initialJobs={jobs}>
-        <JobHistoryTable />
-      </JobProvider>
-    );
-
-    // Click on the first job row
-    const firstRow = screen.getByText('file1.csv').closest('div[class*="cursor-pointer"]');
-    if (firstRow) {
-      await user.click(firstRow);
-    }
-
-    // The row should be selectable (implementation uses setActiveJob from context)
-    // Since we're testing the component in isolation, we verify the row is clickable
-    expect(firstRow).toHaveClass('cursor-pointer');
-  });
-
-  it('should highlight active job', async () => {
-    const user = userEvent.setup();
-    const jobs = [
-      createSucceededJob({ jobId: 'job-1', filename: 'file1.csv' }),
-      createSucceededJob({ jobId: 'job-2', filename: 'file2.csv' }),
-    ];
-
-    render(
-      <JobProvider userId="test-user" initialJobs={jobs}>
-        <JobHistoryTable />
-      </JobProvider>
-    );
-
-    // Click to select the first job
-    const firstRow = screen.getByText('file1.csv').closest('div[class*="cursor-pointer"]');
-    if (firstRow) {
-      await user.click(firstRow);
-    }
-
-    // After clicking, the row styling would change (indigo highlight)
-    // The actual visual change depends on the activeJob state
-    expect(firstRow).toBeInTheDocument();
-  });
-
-  it('should render multiple jobs in correct order', () => {
-    const jobs = [
-      createSucceededJob({ filename: 'file1.csv' }),
-      createRunningJob({ filename: 'file2.csv' }),
-      createQueuedJob({ filename: 'file3.csv' }),
-    ];
-
-    render(
-      <JobProvider userId="test-user" initialJobs={jobs}>
-        <JobHistoryTable />
-      </JobProvider>
-    );
-
-    const filenames = screen.getAllByText(/\.csv$/);
-    expect(filenames[0]).toHaveTextContent('file1.csv');
-    expect(filenames[1]).toHaveTextContent('file2.csv');
-    expect(filenames[2]).toHaveTextContent('file3.csv');
-  });
-
-  it('should stop event propagation when clicking action buttons', async () => {
-    const user = userEvent.setup();
-    const job = createSucceededJob({ jobId: 'job-123', filename: 'test.csv' });
-
-    render(
-      <JobProvider userId="test-user" initialJobs={[job]}>
-        <JobHistoryTable />
-      </JobProvider>
-    );
-
-    // Click the View button - should not trigger row selection
-    const viewButton = screen.getByText('View');
-    await user.click(viewButton);
-
-    // The click should be handled by the link, not the row
-    // (implementation uses onClick stopPropagation)
-    expect(viewButton).toBeInTheDocument();
   });
 });

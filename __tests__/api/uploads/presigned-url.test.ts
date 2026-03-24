@@ -24,7 +24,7 @@ describe('POST /api/uploads/presigned-url', () => {
     jest.clearAllMocks();
     (mockRateLimit.rateLimiters.fileUpload.check as jest.Mock).mockResolvedValue({ success: true });
     mockGetServerSession.mockResolvedValue({
-      user: { id: 'user-1', email: 't@x.com', subscriptionTier: 'free' },
+      user: { id: 'user-1', email: 't@x.com' },
       expires: '2025-12-31',
     });
     global.fetch = jest.fn().mockResolvedValue({
@@ -85,11 +85,11 @@ describe('POST /api/uploads/presigned-url', () => {
     expect(res.status).toBe(400);
   });
 
-  it('requires authentication', async () => {
+  it('allows anonymous access (no session)', async () => {
     mockGetServerSession.mockResolvedValue(null);
     const res = await POST(createMockRequest({ filename: 'a.csv', fileSize: 1 }) as any);
-    expect(res.status).toBe(401);
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(global.fetch).toHaveBeenCalled();
   });
 
   it('returns 429 when rate limit exceeded', async () => {

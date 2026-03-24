@@ -266,7 +266,7 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
           <div className={`p-2 rounded-lg ${job.type === 'crypto' ? 'bg-cyan-500/10' : 'bg-emerald-500/10'}`}>
             <TypeIcon className={`h-4 w-4 ${job.type === 'crypto' ? 'text-cyan-400' : 'text-emerald-400'}`} />
           </div>
-          <div className={`${status.bg} p-2.5 rounded-lg border border-zinc-700/50 flex-shrink-0`}>
+          <div className={`${status.bg} p-2.5 rounded-lg border border-zinc-700/50 shrink-0`}>
             {status.icon}
           </div>
         </div>
@@ -301,7 +301,7 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
         </div>
 
         {/* Actions - Desktop */}
-        <div className="hidden sm:flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="hidden sm:flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
           {job.status === 'completed' && !isDeleted && (
             <>
               {job.type === 'crypto' && (
@@ -399,7 +399,7 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
       {/* Delete Modal */}
       {mounted && showDeleteModal && createPortal(
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          className="fixed inset-0 z-9999 flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
         >
           <div

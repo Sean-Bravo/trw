@@ -30,8 +30,8 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-[#0a1628] relative">
       {/* Gradient orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-blue-500/8 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/6 rounded-full blur-[120px]" />
+        <div className="absolute top-20 left-1/4 w-150 h-150 bg-blue-500/8 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-cyan-500/6 rounded-full blur-[120px]" />
       </div>
 
       <DashboardHeader user={session.user} />
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Processing History */}
-          <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+          <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-lg font-semibold text-white mb-1">Processing History</h2>

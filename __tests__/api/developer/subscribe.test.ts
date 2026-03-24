@@ -85,6 +85,9 @@ describe('POST /api/developer/subscribe', () => {
           api_key_id: 'key-abc',
           userId: 'user-1',
         }),
+      }),
+      expect.objectContaining({
+        idempotencyKey: 'checkout_user-1_key-abc_growth',
       })
     );
   });
@@ -100,6 +103,9 @@ describe('POST /api/developer/subscribe', () => {
     expect(mockCheckoutCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         line_items: [{ price: 'price_api_business_monthly', quantity: 1 }],
+      }),
+      expect.objectContaining({
+        idempotencyKey: expect.any(String),
       })
     );
   });
@@ -146,7 +152,8 @@ describe('POST /api/developer/subscribe', () => {
     await POST(request as any);
 
     expect(mockCheckoutCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ mode: 'subscription' })
+      expect.objectContaining({ mode: 'subscription' }),
+      expect.objectContaining({ idempotencyKey: expect.any(String) })
     );
   });
 

@@ -7,6 +7,10 @@ import { API_TIERS, type ApiTier } from '@/lib/api-keys'
 // Disable body parsing for webhooks
 export const runtime = 'nodejs'
 
+// Event idempotency — prevent processing the same event twice
+const processedEvents = new Set<string>()
+const MAX_PROCESSED_EVENTS = 10_000
+
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
@@ -43,6 +47,15 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Event idempotency check
+  if (processedEvents.has(event.id)) {
+    return NextResponse.json({ received: true, duplicate: true })
+  }
+  if (processedEvents.size >= MAX_PROCESSED_EVENTS) {
+    processedEvents.clear()
+  }
+  processedEvents.add(event.id)
+
   // Handle the event
   try {
     switch (event.type) {
@@ -51,12 +64,21 @@ export async function POST(request: NextRequest) {
         const apiTier = session.metadata?.['api_tier'] as ApiTier | undefined
         const apiKeyId = session.metadata?.['api_key_id'] as string | undefined
         const subscriptionId = session.subscription as string | undefined
+        const customerId = session.customer as string | undefined
 
         console.log('Payment successful:', {
           customer: session.customer_email,
           apiTier,
           amount: session.amount_total,
         })
+
+        // Persist stripe_customer_id to users table
+        if (customerId && session.customer_email) {
+          await execute(
+            `UPDATE users SET stripe_customer_id = $1 WHERE email = $2 AND stripe_customer_id IS NULL`,
+            [customerId, session.customer_email]
+          )
+        }
 
         // Handle API tier subscription
         if (apiTier && apiKeyId && subscriptionId) {
@@ -109,6 +131,44 @@ export async function POST(request: NextRequest) {
             [starterTier.monthly_quota, starterTier.rate_limit_rpm, apiKey.id]
           )
           console.log(`[Stripe] API key ${apiKey.id} downgraded to starter tier`)
+        }
+        break
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        const subscriptionId = invoice.subscription as string | undefined
+        if (subscriptionId) {
+          const apiKey = await queryOne<{ id: string }>(
+            `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
+            [subscriptionId]
+          )
+          if (apiKey) {
+            await execute(
+              `UPDATE api_keys SET is_active = false WHERE id = $1`,
+              [apiKey.id]
+            )
+            console.log(`[Stripe] API key ${apiKey.id} disabled — payment failed`)
+          }
+        }
+        break
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice
+        const subscriptionId = invoice.subscription as string | undefined
+        if (subscriptionId) {
+          const apiKey = await queryOne<{ id: string }>(
+            `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
+            [subscriptionId]
+          )
+          if (apiKey) {
+            await execute(
+              `UPDATE api_keys SET is_active = true WHERE id = $1`,
+              [apiKey.id]
+            )
+            console.log(`[Stripe] API key ${apiKey.id} re-enabled — payment succeeded`)
+          }
         }
         break
       }
