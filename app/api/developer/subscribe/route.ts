@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
 
     const priceId = STRIPE_API_PRICES[tier].monthly;
 
+    const idempotencyKey = `checkout_${session.user.id}_${apiKeyId}_${tier.toLowerCase()}`
+
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer_email: session.user.email,
@@ -52,6 +54,8 @@ export async function POST(request: NextRequest) {
           api_key_id: apiKeyId,
         },
       },
+    }, {
+      idempotencyKey,
     });
 
     return NextResponse.json({ url: checkoutSession.url });

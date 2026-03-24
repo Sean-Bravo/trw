@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Key, Plus, Trash2, Copy, Check, AlertCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Key, Plus, Trash2, Copy, Check, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface ApiKey {
   id: string;
@@ -24,6 +25,7 @@ interface UsageData {
 }
 
 export function ApiKeyManager() {
+  const searchParams = useSearchParams();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [usage, setUsage] = useState<UsageData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +34,15 @@ export function ApiKeyManager() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
+
+  // Detect ?upgraded=true after Stripe checkout redirect
+  useEffect(() => {
+    if (searchParams.get('upgraded') === 'true') {
+      setShowUpgradeBanner(true);
+      window.history.replaceState({}, '', '/dashboard/developer');
+    }
+  }, [searchParams]);
 
   const fetchKeys = useCallback(async () => {
     try {
@@ -157,6 +168,24 @@ export function ApiKeyManager() {
 
   return (
     <div className="space-y-6">
+      {/* Upgrade success banner */}
+      {showUpgradeBanner && (
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+            <p className="text-emerald-300 text-sm font-medium">
+              Subscription activated! Your API key has been upgraded.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowUpgradeBanner(false)}
+            className="text-emerald-400/60 hover:text-emerald-300 text-sm"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Created key banner */}
       {createdKey && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">

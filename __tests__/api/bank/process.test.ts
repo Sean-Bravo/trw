@@ -14,6 +14,15 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
   authOptions: {},
 }));
 
+jest.mock('@/lib/db', () => ({
+  query: jest.fn().mockResolvedValue({ rowCount: 1 }),
+  queryOne: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock('@/lib/rate-limit', () => ({
+  getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
+}));
+
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 
 describe('POST /api/bank/process', () => {
@@ -22,7 +31,7 @@ describe('POST /api/bank/process', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetServerSession.mockResolvedValue({
-      user: { id: 'user-1', email: 'test@example.com', subscriptionTier: 'pro' },
+      user: { id: 'user-1', email: 'test@example.com' },
       expires: '2025-12-31',
     });
     global.fetch = jest.fn().mockResolvedValue({
@@ -94,33 +103,20 @@ describe('POST /api/bank/process', () => {
       );
     });
 
-    it('succeeds for premium tier', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'u2', email: 'p@x.com', subscriptionTier: 'premium' },
-        expires: '2025-12-31',
-      });
+  });
+
+  describe('Anonymous access', () => {
+    it('allows anonymous users (no session)', async () => {
+      mockGetServerSession.mockResolvedValue(null);
 
       const request = createMockRequest({ jobId: 'j1', s3Key: 'k.pdf' });
       const response = await POST(request as any);
 
       expect(response.status).toBe(200);
-    });
-  });
-
-  describe('Authentication', () => {
-    it('returns 401 when not authenticated', async () => {
-      mockGetServerSession.mockResolvedValue(null);
-
-      const request = createMockRequest({ jobId: 'j1', s3Key: 'k.pdf' });
-      const response = await POST(request as any);
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data.error).toBe('Unauthorized');
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalled();
     });
 
-    it('returns 401 when session has no user id', async () => {
+    it('allows session without user id', async () => {
       mockGetServerSession.mockResolvedValue({
         user: { email: 'x@x.com' },
         expires: '2025-12-31',
@@ -129,38 +125,8 @@ describe('POST /api/bank/process', () => {
       const request = createMockRequest({ jobId: 'j1', s3Key: 'k.pdf' });
       const response = await POST(request as any);
 
-      expect(response.status).toBe(401);
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Subscription tier', () => {
-    it('returns 403 for free tier', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'u1', email: 'f@x.com', subscriptionTier: 'free' },
-        expires: '2025-12-31',
-      });
-
-      const request = createMockRequest({ jobId: 'j1', s3Key: 'k.pdf' });
-      const response = await POST(request as any);
-      const data = await response.json();
-
-      expect(response.status).toBe(403);
-      expect(data.error).toBe('Bank statement processing requires a Pro or Premium subscription');
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
-    it('treats missing subscriptionTier as free', async () => {
-      mockGetServerSession.mockResolvedValue({
-        user: { id: 'u1', email: 'x@x.com' },
-        expires: '2025-12-31',
-      } as any);
-
-      const request = createMockRequest({ jobId: 'j1', s3Key: 'k.pdf' });
-      const response = await POST(request as any);
-
-      expect(response.status).toBe(403);
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(response.status).toBe(200);
+      expect(global.fetch).toHaveBeenCalled();
     });
   });
 

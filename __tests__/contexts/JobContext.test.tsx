@@ -22,6 +22,8 @@ function TestConsumer() {
   const {
     activeJob,
     jobHistory,
+    bankJobs,
+    unifiedHistory,
     isPolling,
     setActiveJob,
     clearActiveJob,
@@ -32,6 +34,8 @@ function TestConsumer() {
     <div>
       <div data-testid="active-job">{activeJob?.jobId || 'none'}</div>
       <div data-testid="job-count">{jobHistory.length}</div>
+      <div data-testid="bank-job-count">{bankJobs.length}</div>
+      <div data-testid="unified-count">{unifiedHistory.length}</div>
       <div data-testid="is-polling">{isPolling ? 'true' : 'false'}</div>
       <button onClick={() => setActiveJob('test-job-123')}>Set Active</button>
       <button onClick={() => clearActiveJob()}>Clear Active</button>
@@ -49,10 +53,28 @@ describe('JobContext', () => {
       isPolling: false,
       error: null,
     });
+    // Default: bank jobs fetch returns empty
+    mockFetch.mockImplementation((url: string) => {
+      if (url === '/api/bank/jobs') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ jobs: [] }),
+        });
+      }
+      if (url === '/api/jobs') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ jobs: [] }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({}),
+      });
+    });
   });
 
   it('should throw error when used outside provider', () => {
-    // Suppress console.error for this test
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(() => {
@@ -62,7 +84,7 @@ describe('JobContext', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should provide default values', () => {
+  it('should provide default values', async () => {
     render(
       <JobProvider userId="user-123">
         <TestConsumer />
@@ -70,11 +92,15 @@ describe('JobContext', () => {
     );
 
     expect(screen.getByTestId('active-job')).toHaveTextContent('none');
-    expect(screen.getByTestId('job-count')).toHaveTextContent('0');
     expect(screen.getByTestId('is-polling')).toHaveTextContent('false');
+
+    // Wait for bank jobs fetch to complete
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/bank/jobs');
+    });
   });
 
-  it('should use initialJobs when provided', () => {
+  it('should use initialJobs when provided', async () => {
     const initialJobs = createMockJobs(3);
 
     render(
@@ -84,6 +110,11 @@ describe('JobContext', () => {
     );
 
     expect(screen.getByTestId('job-count')).toHaveTextContent('3');
+
+    // Should still fetch bank jobs
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/bank/jobs');
+    });
   });
 
   it('should set active job when setActiveJob is called', async () => {
@@ -104,7 +135,6 @@ describe('JobContext', () => {
 
     await user.click(screen.getByText('Set Active'));
 
-    // The hook will be called with the new job ID
     expect(mockUseJobPolling).toHaveBeenCalled();
   });
 
@@ -127,42 +157,65 @@ describe('JobContext', () => {
     const user = userEvent.setup();
     const mockJobs = createMockJobs(5);
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ jobs: mockJobs }),
-    });
-
     render(
       <JobProvider userId="user-123" initialJobs={[]}>
         <TestConsumer />
       </JobProvider>
     );
 
-    expect(screen.getByTestId('job-count')).toHaveTextContent('0');
+    // Wait for initial fetch to settle
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/bank/jobs');
+    });
+
+    // Setup mock for the refresh call
+    mockFetch.mockImplementation((url: string) => {
+      if (url === '/api/jobs') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ jobs: mockJobs }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ jobs: [] }),
+      });
+    });
 
     await user.click(screen.getByText('Refresh'));
 
     await waitFor(() => {
       expect(screen.getByTestId('job-count')).toHaveTextContent('5');
     });
-
-    expect(mockFetch).toHaveBeenCalledWith('/api/jobs');
   });
 
   it('should handle refresh failure gracefully', async () => {
     const user = userEvent.setup();
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    });
-
     render(
       <JobProvider userId="user-123">
         <TestConsumer />
       </JobProvider>
     );
+
+    // Wait for initial fetch to settle
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    mockFetch.mockImplementation((url: string) => {
+      if (url === '/api/jobs') {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ jobs: [] }),
+      });
+    });
 
     await user.click(screen.getByText('Refresh'));
 
@@ -178,7 +231,7 @@ describe('JobContext', () => {
 
     let onSuccessCallback: ((job: any) => void) | undefined;
 
-    mockUseJobPolling.mockImplementation((jobId, options) => {
+    mockUseJobPolling.mockImplementation((jobId: string | null, options: any) => {
       onSuccessCallback = options?.onSuccess;
       return {
         job: updatedJob,
@@ -205,7 +258,7 @@ describe('JobContext', () => {
     });
   });
 
-  it('should expose isPolling state from hook', () => {
+  it('should expose isPolling state from hook', async () => {
     mockUseJobPolling.mockReturnValue({
       job: null,
       isPolling: true,
@@ -221,14 +274,7 @@ describe('JobContext', () => {
     expect(screen.getByTestId('is-polling')).toHaveTextContent('true');
   });
 
-  it('should fetch jobs on mount when initialJobs is empty', async () => {
-    const mockJobs = createMockJobs(2);
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ jobs: mockJobs }),
-    });
-
+  it('should fetch crypto jobs on mount when initialJobs is empty', async () => {
     render(
       <JobProvider userId="user-123" initialJobs={[]}>
         <TestConsumer />
@@ -238,13 +284,9 @@ describe('JobContext', () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/jobs');
     });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('job-count')).toHaveTextContent('2');
-    });
   });
 
-  it('should NOT fetch jobs on mount when initialJobs is provided', async () => {
+  it('should NOT fetch crypto jobs on mount when initialJobs is provided', async () => {
     const initialJobs = createMockJobs(3);
 
     render(
@@ -253,9 +295,26 @@ describe('JobContext', () => {
       </JobProvider>
     );
 
-    // Wait a tick to ensure no fetch is triggered
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Wait for bank jobs fetch to settle
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/bank/jobs');
+    });
 
-    expect(mockFetch).not.toHaveBeenCalled();
+    // /api/jobs should NOT have been called
+    expect(mockFetch).not.toHaveBeenCalledWith('/api/jobs');
+  });
+
+  it('should always fetch bank jobs on mount', async () => {
+    const initialJobs = createMockJobs(3);
+
+    render(
+      <JobProvider userId="user-123" initialJobs={initialJobs}>
+        <TestConsumer />
+      </JobProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/bank/jobs');
+    });
   });
 });

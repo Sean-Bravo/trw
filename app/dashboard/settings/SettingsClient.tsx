@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { User } from 'next-auth';
 import Link from 'next/link';
-import { ArrowLeft, Shield, ShieldCheck, Smartphone, Key, Copy, Check, Loader2, X, AlertTriangle } from 'lucide-react';
+import { Shield, ShieldCheck, Smartphone, Key, Copy, Check, Loader2, X, AlertTriangle } from 'lucide-react';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 
 interface SettingsClientProps {
   user: User;
@@ -199,18 +200,8 @@ export function SettingsClient({ user }: SettingsClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#030712]/80 backdrop-blur-xl border-b border-zinc-800/50">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <Link href="/dashboard" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back to Dashboard</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#0a1628]">
+      <DashboardHeader user={user} />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>

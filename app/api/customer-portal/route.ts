@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { getServerSession } from 'next-auth'
+import { queryOne, execute } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,33 +14,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Get customer ID from your database
-    // const user = await prisma.user.findUnique({
-    //   where: { email: session.user.email },
-    //   select: { stripeCustomerId: true }
-    // })
+    // Look up stripe_customer_id from DB first
+    const user = await queryOne<{ id: string; stripe_customer_id: string | null }>(
+      `SELECT id, stripe_customer_id FROM users WHERE email = $1`,
+      [session.user.email]
+    )
 
-    // For now, we'll find or create the customer by email
-    const customers = await stripe.customers.list({
-      email: session.user.email,
-      limit: 1,
-    })
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
 
-    let customerId: string
+    let customerId = user.stripe_customer_id
 
-    if (customers.data.length > 0 && customers.data[0]) {
-      customerId = customers.data[0].id
-    } else {
+    // Fallback: create customer in Stripe and persist to DB
+    if (!customerId) {
       const customer = await stripe.customers.create({
         email: session.user.email,
       })
       customerId = customer.id
+      await execute(
+        `UPDATE users SET stripe_customer_id = $1 WHERE id = $2`,
+        [customerId, user.id]
+      )
     }
 
     // Create portal session
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/account`,
+      return_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/dashboard/developer`,
     })
 
     return NextResponse.json({ url: portalSession.url })

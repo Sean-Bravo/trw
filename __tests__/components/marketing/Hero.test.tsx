@@ -64,9 +64,9 @@ describe('Hero Component', () => {
 
     it('renders secondary CTA button', () => {
       render(<Hero />);
-      const pricingButton = screen.getByText('View Pricing');
-      expect(pricingButton).toBeInTheDocument();
-      expect(pricingButton).toHaveAttribute('href', '#pricing');
+      const docsButton = screen.getByText('View Docs');
+      expect(docsButton).toBeInTheDocument();
+      expect(docsButton).toHaveAttribute('href', '/docs');
     });
   });
 

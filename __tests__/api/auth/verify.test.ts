@@ -25,10 +25,7 @@ describe('POST /api/auth/verify', () => {
           email: 'test@example.com',
           name: 'Test User',
           emailVerified: true,
-          subscriptionTier: 'free',
-          passwordHash: 'hash',
           createdAt: new Date(),
-          updatedAt: new Date(),
         },
       });
 
@@ -53,10 +50,7 @@ describe('POST /api/auth/verify', () => {
           id: 'user-123',
           email: 'test@example.com',
           emailVerified: true,
-          subscriptionTier: 'free',
-          passwordHash: 'hash',
           createdAt: new Date(),
-          updatedAt: new Date(),
         },
       });
 
@@ -237,10 +231,7 @@ describe('POST /api/auth/verify', () => {
           email: 'test@example.com',
           name: 'Test',
           emailVerified: true,
-          subscriptionTier: 'free',
-          passwordHash: 'secret-hash',
           createdAt: new Date(),
-          updatedAt: new Date(),
         },
       });
 
@@ -255,7 +246,6 @@ describe('POST /api/auth/verify', () => {
       expect(data.user).not.toHaveProperty('passwordHash');
       expect(data.user).toHaveProperty('id');
       expect(data.user).toHaveProperty('email');
-      expect(data.user).toHaveProperty('subscriptionTier');
     });
 
     it('handles missing user in response', async () => {

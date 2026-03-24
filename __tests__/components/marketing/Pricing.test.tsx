@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Pricing } from '@/components/marketing/Pricing';
 
 // Mock next/link
@@ -9,169 +9,114 @@ jest.mock('next/link', () => {
   );
 });
 
-describe('Pricing Component', () => {
+describe('Pricing Component (API Tiers)', () => {
   describe('Rendering', () => {
     it('renders pricing section', () => {
       render(<Pricing />);
-      // Check for section by ID and heading content
       const section = document.getElementById('pricing');
       expect(section).toBeInTheDocument();
-      expect(screen.getByText('Transparent')).toBeInTheDocument();
     });
 
-    it('renders all three pricing tiers', () => {
+    it('renders API pricing header', () => {
+      render(<Pricing />);
+      expect(screen.getByText('API Pricing')).toBeInTheDocument();
+      expect(screen.getByText('Pay for what you parse.')).toBeInTheDocument();
+    });
+
+    it('renders all three API tiers', () => {
       render(<Pricing />);
       expect(screen.getByText('Starter')).toBeInTheDocument();
-      expect(screen.getByText('Pro Pass')).toBeInTheDocument();
-      expect(screen.getByText('Premium')).toBeInTheDocument();
+      expect(screen.getByText('Growth')).toBeInTheDocument();
+      expect(screen.getByText('Business')).toBeInTheDocument();
     });
 
-    it('renders free tier price', () => {
+    it('renders POPULAR badge on Growth tier', () => {
       render(<Pricing />);
-      expect(screen.getByText('$0')).toBeInTheDocument();
-      expect(screen.getByText('/ forever')).toBeInTheDocument();
-    });
-
-    it('renders MOST POPULAR badge on Pro tier', () => {
-      render(<Pricing />);
-      expect(screen.getByText('MOST POPULAR')).toBeInTheDocument();
+      expect(screen.getByText('POPULAR')).toBeInTheDocument();
     });
   });
 
-  describe('Billing Toggle', () => {
-    it('shows annual pricing by default', () => {
+  describe('Starter Tier', () => {
+    it('shows $29/month price', () => {
       render(<Pricing />);
-      // Pro annual is $89
-      expect(screen.getByText('$89')).toBeInTheDocument();
+      expect(screen.getByText('$29')).toBeInTheDocument();
     });
 
-    it('shows Save 17% badge on annual', () => {
+    it('shows 100 files per month', () => {
       render(<Pricing />);
-      expect(screen.getByText('Save 17%')).toBeInTheDocument();
+      expect(screen.getByText('100 files / month')).toBeInTheDocument();
     });
 
-    it('switches to monthly pricing when toggled', () => {
+    it('shows all 14 exchanges', () => {
       render(<Pricing />);
-
-      // Find and click the toggle button
-      const toggleButton = screen.getByLabelText('Toggle billing period');
-      fireEvent.click(toggleButton);
-
-      // Pro monthly is $9
-      expect(screen.getByText('$9')).toBeInTheDocument();
-    });
-
-    it('hides Save badge when monthly selected', () => {
-      render(<Pricing />);
-
-      const toggleButton = screen.getByLabelText('Toggle billing period');
-      fireEvent.click(toggleButton);
-
-      expect(screen.queryByText('Save 17%')).not.toBeInTheDocument();
-    });
-
-    it('toggles back to annual', () => {
-      render(<Pricing />);
-
-      const toggleButton = screen.getByLabelText('Toggle billing period');
-      fireEvent.click(toggleButton); // To monthly
-      fireEvent.click(toggleButton); // Back to annual
-
-      // Pro annual should be back
-      expect(screen.getByText('$89')).toBeInTheDocument();
+      expect(screen.getByText('All 14 exchanges')).toBeInTheDocument();
     });
   });
 
-  describe('Free Tier Features', () => {
-    it('shows 3 downloads per month', () => {
+  describe('Growth Tier', () => {
+    it('shows $99/month price', () => {
       render(<Pricing />);
-      expect(screen.getByText('3 Downloads')).toBeInTheDocument();
-      expect(screen.getByText('per Month')).toBeInTheDocument();
+      expect(screen.getByText('$99')).toBeInTheDocument();
     });
 
-    it('shows full export', () => {
+    it('shows 500 files per month', () => {
       render(<Pricing />);
-      expect(screen.getByText('Full Export Download')).toBeInTheDocument();
+      expect(screen.getByText('500 files / month')).toBeInTheDocument();
     });
 
-    it('shows basic error detection', () => {
+    it('shows bank PDF parsing', () => {
       render(<Pricing />);
-      expect(screen.getByText('Basic Error Detection')).toBeInTheDocument();
-    });
-  });
-
-  describe('Pro Tier Features', () => {
-    it('shows unlimited uploads', () => {
-      render(<Pricing />);
-      // "Unlimited" is in a <strong> tag, "CSV Uploads" is separate text
-      expect(screen.getByText('Unlimited')).toBeInTheDocument();
-      expect(screen.getByText('CSV Uploads')).toBeInTheDocument();
-    });
-
-    it('shows full export capabilities', () => {
-      render(<Pricing />);
-      expect(screen.getByText('Full Export Capabilities')).toBeInTheDocument();
-    });
-
-    it('shows money back guarantee', () => {
-      render(<Pricing />);
-      expect(screen.getByText('30-Day Money Back Guarantee')).toBeInTheDocument();
+      expect(screen.getByText('Bank PDF parsing')).toBeInTheDocument();
     });
   });
 
-  describe('Premium Tier Features', () => {
-    it('shows AI PDF report', () => {
+  describe('Business Tier', () => {
+    it('shows $249/month price', () => {
       render(<Pricing />);
-      expect(screen.getByText('AI-Generated PDF Report')).toBeInTheDocument();
+      expect(screen.getByText('$249')).toBeInTheDocument();
     });
 
-    it('shows everything in Pro', () => {
+    it('shows 2,000 files per month', () => {
       render(<Pricing />);
-      expect(screen.getByText('Everything')).toBeInTheDocument();
-      expect(screen.getByText('in Pro')).toBeInTheDocument();
+      expect(screen.getByText('2,000 files / month')).toBeInTheDocument();
     });
 
-    it('shows priority support', () => {
+    it('shows SLA guarantee', () => {
       render(<Pricing />);
-      expect(screen.getByText('Priority Support')).toBeInTheDocument();
+      expect(screen.getByText('SLA guarantee')).toBeInTheDocument();
     });
   });
 
   describe('CTA Buttons', () => {
-    it('free tier links to signup', () => {
+    it('starter tier links to signup', () => {
       render(<Pricing />);
-      const freeButton = screen.getByText('Try For Free');
-      expect(freeButton.closest('a')).toHaveAttribute('href', '/signup');
+      const starterButton = screen.getByText('Get Started');
+      expect(starterButton.closest('a')).toHaveAttribute('href', '/signup?api_tier=starter');
     });
 
-    it('pro tier shows coming soon (disabled)', () => {
+    it('growth tier links to signup', () => {
       render(<Pricing />);
-      const comingSoonButtons = screen.getAllByText('Coming Soon');
-      // Pro tier has Coming Soon button
-      expect(comingSoonButtons.length).toBeGreaterThanOrEqual(1);
-      // Pro button should be disabled
-      const proButton = comingSoonButtons[0].closest('button');
-      expect(proButton).toBeDisabled();
+      const growthButton = screen.getByText('Start Building');
+      expect(growthButton.closest('a')).toHaveAttribute('href', '/signup?api_tier=growth');
     });
 
-    it('premium tier shows coming soon (disabled)', () => {
+    it('business tier links to contact', () => {
       render(<Pricing />);
-      const comingSoonButtons = screen.getAllByText('Coming Soon');
-      // Should have at least 2 Coming Soon buttons (Pro and Premium)
-      expect(comingSoonButtons.length).toBeGreaterThanOrEqual(2);
+      const bizButton = screen.getByText('Contact Sales');
+      expect(bizButton.closest('a')).toHaveAttribute('href', '/contact');
     });
   });
 
   describe('Footer', () => {
-    it('mentions Stripe payment processor', () => {
+    it('mentions dashboard for non-developers', () => {
       render(<Pricing />);
-      expect(screen.getByText(/Stripe/)).toBeInTheDocument();
+      expect(screen.getByText(/Not a developer/)).toBeInTheDocument();
     });
 
-    it('has contact link', () => {
+    it('has link to dashboard', () => {
       render(<Pricing />);
-      const contactLink = screen.getByText('Talk to us');
-      expect(contactLink).toHaveAttribute('href', '/contact');
+      const dashLink = screen.getByText('taxformatter.com/dashboard');
+      expect(dashLink).toHaveAttribute('href', '/dashboard');
     });
   });
 });
