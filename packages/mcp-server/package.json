@@ -7,10 +7,21 @@
   "bin": {
     "taxformatter-mcp": "./bin/mcp-server.js"
   },
+  "author": "TaxFormatter <support@taxformatter.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sean-Bravo/trw.git",
+    "directory": "packages/mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/Sean-Bravo/trw/issues"
+  },
+  "homepage": "https://taxformatter.com/docs/api",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "mcp",

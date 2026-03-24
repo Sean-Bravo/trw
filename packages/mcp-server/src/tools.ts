@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { readFile } from 'fs/promises';
-import { resolve } from 'path';
+import { readFile, access } from 'fs/promises';
+import { resolve, basename } from 'path';
 import type { TaxFormatterClient } from './client.js';
 
 export const TOOL_DEFINITIONS = [
@@ -80,8 +80,11 @@ export async function handleTool(
     case 'parse_crypto_csv': {
       const input = ParseCryptoInput.parse(args);
       const filePath = resolve(input.file_path);
+      await access(filePath).catch(() => {
+        throw new Error(`File not found: ${filePath}`);
+      });
       const fileBuffer = await readFile(filePath);
-      const filename = filePath.split('/').pop() || 'file.csv';
+      const filename = basename(filePath);
 
       const result = await client.parse(fileBuffer, filename, {
         exchange: input.exchange,
@@ -124,8 +127,11 @@ export async function handleTool(
     case 'parse_bank_statement': {
       const input = ParseBankInput.parse(args);
       const filePath = resolve(input.file_path);
+      await access(filePath).catch(() => {
+        throw new Error(`File not found: ${filePath}`);
+      });
       const fileBuffer = await readFile(filePath);
-      const filename = filePath.split('/').pop() || 'file.pdf';
+      const filename = basename(filePath);
 
       const result = await client.parse(fileBuffer, filename, {
         bank: input.bank,
