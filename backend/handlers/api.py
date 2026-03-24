@@ -11,6 +11,7 @@ import logging
 import os
 import sys
 import time
+import uuid
 from io import BytesIO
 from typing import Any, Dict, Optional
 
@@ -53,7 +54,7 @@ def error_response(status_code: int, code: str, message: str, suggestion: str = 
         body["suggestion"] = suggestion
     if extra:
         body.update(extra)
-    body["metadata"] = {"api_version": API_VERSION}
+    body.setdefault("metadata", {})["api_version"] = API_VERSION
     return response(status_code, body)
 
 
@@ -79,7 +80,7 @@ def get_client_ip(event: Dict) -> str:
 # /v1/parse — Unified parse endpoint (crypto CSV + bank PDF)
 # =============================================================================
 
-def handle_v1_parse(event: Dict, key_record: Dict) -> Dict:
+def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict:
     """
     Parse a crypto CSV or bank statement PDF.
     Detects file type automatically based on filename extension.
@@ -100,6 +101,19 @@ def handle_v1_parse(event: Dict, key_record: Dict) -> Dict:
             400, "invalid_request",
             "Both 'file_content' (base64) and 'filename' are required.",
         )
+
+    # Filename length check
+    if len(filename) > 255:
+        return error_response(
+            400, "invalid_request",
+            "Filename must be 255 characters or fewer.",
+        )
+
+    # Log unknown top-level keys (forward compatibility — don't reject)
+    known_keys = {"file_content", "filename", "output_format", "exchange", "source_type"}
+    unknown_keys = set(body.keys()) - known_keys
+    if unknown_keys:
+        logger.info(f"Unknown request keys (ignored): {unknown_keys}")
 
     # Decode base64
     try:
@@ -171,6 +185,7 @@ def handle_v1_parse(event: Dict, key_record: Dict) -> Dict:
         detected_source=result.get("detected_source"),
         transaction_count=result.get("metadata", {}).get("transaction_count"),
         ip_address=get_client_ip(event),
+        request_id=request_id,
     )
 
     # Add processing time and overage headers
@@ -452,51 +467,67 @@ def handle_v1_health(event: Dict) -> Dict:
 
 def handler(event: Dict, context: Any) -> Dict:
     """Main Lambda handler — routes /v1/* requests."""
+    request_id = str(uuid.uuid4())
+
     # Handle CORS preflight
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
-        return response(200, {})
+        return response(200, {}, {"X-Request-Id": request_id})
 
     route_key = event.get("routeKey", "")
-    logger.info(f"API request: {route_key}")
+    logger.info(f"API request: {route_key} request_id={request_id}")
 
     # Routes that don't require auth
     if route_key == "GET /v1/health":
-        return handle_v1_health(event)
+        resp = handle_v1_health(event)
+        resp["headers"]["X-Request-Id"] = request_id
+        return resp
     if route_key == "GET /v1/sources":
-        return handle_v1_sources(event)
+        resp = handle_v1_sources(event)
+        resp["headers"]["X-Request-Id"] = request_id
+        return resp
 
     # All other routes require API key auth
     api_key = get_api_key(event)
     if not api_key:
-        return error_response(
+        resp = error_response(
             401, "invalid_api_key",
             "API key is required. Pass it via X-API-Key header or Authorization: Bearer header.",
         )
+        resp["headers"]["X-Request-Id"] = request_id
+        return resp
 
-    from services.api_auth import validate_key, check_rate_limit
+    from services.api_auth import validate_key, check_rate_limit, record_request
 
     key_record = validate_key(api_key)
     if not key_record:
-        return error_response(
+        resp = error_response(
             401, "invalid_api_key",
             "Invalid or revoked API key.",
         )
+        resp["headers"]["X-Request-Id"] = request_id
+        return resp
 
     # Rate limit check
     allowed, current_rpm = check_rate_limit(key_record["id"], key_record["rate_limit_rpm"])
     if not allowed:
-        return error_response(
+        resp = error_response(
             429, "rate_limited",
             f"Rate limit exceeded ({key_record['rate_limit_rpm']} requests/minute).",
             suggestion="Wait and retry. Upgrade your tier for higher limits.",
             extra={"metadata": {"retry_after_seconds": 60}},
         )
+        resp["headers"]["Retry-After"] = "60"
+        resp["headers"]["X-Request-Id"] = request_id
+        return resp
 
     # Route to handler
     if route_key == "POST /v1/parse":
-        return handle_v1_parse(event, key_record)
+        resp = handle_v1_parse(event, key_record, request_id=request_id)
     elif route_key == "GET /v1/usage":
-        return handle_v1_usage(event, key_record)
+        resp = handle_v1_usage(event, key_record)
     else:
         logger.warning(f"Unknown API route: {route_key}")
-        return error_response(404, "not_found", f"Route not found: {route_key}")
+        resp = error_response(404, "not_found", f"Route not found: {route_key}")
+
+    resp["headers"]["X-Request-Id"] = request_id
+    return resp
