@@ -63,3 +63,7 @@ backend/debug_*.py
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Package build artifacts
+packages/*/dist/
+packages/*/node_modules/
