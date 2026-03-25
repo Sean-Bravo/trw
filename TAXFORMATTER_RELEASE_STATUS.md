@@ -1,176 +1,191 @@
-# TaxFormatter Release Readiness Status
+# TaxFormatter — Release Status
 
-> Last Updated: January 29, 2026
-> Overall Status: **95%+ Complete - Ready for MVP Launch**
-> Previous Name: TaxReadyWallet (renamed to TaxFormatter)
+> **Last Updated:** 2026-03-24
+> **Overall Status:** Build complete. Launch verification pending.
+> **Previous Name:** TaxReadyWallet (renamed to TaxFormatter)
 
 ## Quick Reference
 
 | Metric | Value |
 |--------|-------|
-| Tests Passing | 540 (480 unit + 60 E2E) |
+| Tests Passing | 540+ (480 unit + 60 E2E) |
 | Security Grade | A- (92/100) |
-| Exchange Parsers | 14 (117% of spec) |
-| Export Formats | 4 |
-| Remaining Effort | 14-20 hours |
+| Crypto Exchange Parsers | 14 |
+| Bank Statement Parsers | 13 |
+| Export Formats | 4 (Koinly, TurboTax, CoinLedger, ZenLedger) |
+| Packages Ready to Publish | 3 (2 npm + 1 PyPI) |
+| Build Phases Complete | 4/4 |
 
 ---
 
-## 1. Completed Features
+## 1. What's Shipped
 
-### 1.1 Core Functionality (100%)
-- [x] CSV Upload with S3 presigned URLs
-- [x] 14 Exchange Parsers (Coinbase, Kraken, Binance, Robinhood, Crypto.com, PayPal, Cash App, Gemini, FTX, Venmo, KuCoin, Bybit, Bitfinex, OKX)
-- [x] 4 Export Formats (Koinly, TurboTax, CoinLedger, ZenLedger)
-- [x] AI Insights - Tiered: Gemini (Free), Sonnet (Pro), Opus (Premium)
-- [x] Job Processing Pipeline: Scanner → SQS → Processor Lambda
-- [x] Real-time Status Polling (2.5s interval)
-- [x] Job History & Re-download
-- [x] Generic CSV fallback parser
+### API Pivot (Mar 17-18)
+TaxFormatter pivoted from consumer SaaS (upload CSV, download fixed file) to developer API platform. The parsing engine (`engine.py`) is now exposed as a REST API and MCP server. Consumer features still work but are free for all logged-in users. Revenue comes from API tiers.
 
-### 1.2 Authentication (100%)
-- [x] Email/Password Signup with validation
-- [x] Email Verification (6-digit code, 15min expiry)
-- [x] Google OAuth
-- [x] Session Persistence (30-day JWT)
-- [x] Password Reset (1hr token)
-- [x] 2FA (TOTP + 8 backup codes)
-- [x] Rate Limiting (5 attempts/15min)
+### Build Plan — 4 Phases Complete (Mar 23-24)
 
-### 1.3 Security (Grade A- / 92/100)
-All 12 critical/medium issues fixed:
-- [x] Duplicate useInView Hook removed
-- [x] Secure ID Generation (React useId)
-- [x] CSP Headers configured
-- [x] Environment Variables documented (.env.example)
-- [x] TypeScript type assertions fixed
-- [x] Button type="button" attributes added
-- [x] Modal Focus Trap (WCAG 2.1 AA)
-- [x] Sitemap & Robots.txt for SEO
+| Phase | What | Commit |
+|-------|------|--------|
+| 1. Stripe Billing | Real keys, products, webhook hardening, payment failure handling | `509eaa0` |
+| 2. REST API Polish | X-Request-Id, Retry-After, input validation, metadata fix | `c351d0c` |
+| 3. MCP Server | `@taxformatter/mcp-server` — npm publish-ready, typed errors, configurable | `eab3f4e` |
+| 4. SDKs | `@taxformatter/sdk` (Node) + `taxformatter` (Python) | `9d3f37c` |
 
-### 1.4 Testing Infrastructure
-| Component | Tests | Coverage | Status |
-|-----------|-------|----------|--------|
-| Security (validation.ts) | 82 | 94.59% | ✅ Pass |
-| Security (rate-limit.ts) | 32 | 88.88% | ✅ Pass |
-| UI Components | 94 | High | ✅ Pass |
-| API Routes (Auth) | 100 | All endpoints | ✅ Pass |
-| API Routes (Bank) | 57 | Core paths | ✅ Pass |
-| Dashboard Components | 62 | Core covered | ✅ Pass |
-| Marketing Components | 54 | High | ✅ Pass |
-| E2E Tests (Playwright) | 60 | 5 browsers | ✅ Pass* |
+### Core Features
 
-*16 WebKit tests skipped due to Playwright session limitations (not app issues)
+**API Endpoints:**
+- `POST /v1/parse` — Parse crypto CSV or bank PDF (base64-encoded)
+- `GET /v1/sources` — List supported exchanges and banks
+- `GET /v1/usage` — Usage stats for current API key
+- `GET /v1/health` — Health check
 
-### 1.5 Exchange Parser Status
-| Exchange | Compliance | Notes |
-|----------|------------|-------|
-| Coinbase | 100% | All transaction types including staking |
-| Kraken | 100% | X/Z prefix normalization, refID grouping |
-| Binance | 90% | Core complete, .tar.gz manual extract needed |
-| Robinhood | 100% | American date format handling |
-| Crypto.com | 100% | 25+ transaction types handled |
-| PayPal | 100% | Fuzzy column matching |
-| Cash App | 100% | BTC-only filter |
-| Gemini | 90% | Parser complete, XLSX needs CSV conversion |
-| FTX | 100% | Bankruptcy claims parsing |
-| Venmo | 100% | Skip metadata rows |
-| KuCoin | 100% | Unix timestamp (ms or seconds) |
-| Bybit | 100% | ZIP archive support |
-| Bitfinex | 100% | BONUS - Full implementation |
-| OKX | 100% | BONUS - Full implementation |
-| Generic CSV | 100% | Fallback for unknown formats |
+**Authentication & Billing:**
+- API key auth (`tf_live_` prefix, SHA-256 hashed)
+- Per-tier rate limiting (RPM) and monthly quotas
+- Stripe checkout, webhooks (7 events), customer portal
+- Payment failure disables key, payment success re-enables
 
-### 1.6 AWS Infrastructure (100%)
-- [x] Lambda Deployment (Terraform + deploy.sh)
-- [x] S3 Buckets (uploads, results, lambda)
-- [x] SQS Queue + DLQ
-- [x] API Gateway (api.taxformatter.com)
-- [x] WAF Protection (rate limiting, SQLi, XSS prevention)
-- [x] CloudWatch Monitoring (alarms + dashboard)
-- [x] ACM SSL Certificate
-- [x] Secrets Manager
+**Developer Tools:**
+- MCP server for Claude Code, Cursor, Windsurf
+- Node.js SDK with auto-retry on 429, typed errors, zero deps
+- Python SDK with same features, single dep (`requests`)
+- Developer dashboard with key management, usage bars, curl snippets
 
-### 1.7 Recent Updates (Jan 26-28, 2026)
-- [x] Session-Aware Header: Shows "Dashboard" button when logged in
-- [x] Delete Button for Stuck Jobs: Users can remove queued/canceled jobs
-- [x] Unified Processing History: Tabs for All/Crypto/Bank job filtering
-- [x] Bank Statement Feature (Pro+): Chase bank PDF extraction working
-- [x] Download Button Fixes: Fixed field name mismatch and popup blocker issues
-- [x] S3 Data Retention: Updated to 1 year (was 30 days)
-- [x] Polling Bug Fixed: Delete no longer triggers re-processing
+**Consumer Features (still working, now free):**
+- 14 exchange parsers (Coinbase, Kraken, Binance, Robinhood, Crypto.com, PayPal, Cash App, Gemini, FTX, Venmo, KuCoin, Bybit, Bitfinex, OKX)
+- 13 bank parsers (Chase, BofA, Wells Fargo, Citi, Capital One, US Bank, PNC, TD Bank, Mercury, Navy Federal, Regions, HSBC, BMO)
+- 4 export formats, AI insights, job processing pipeline
+- Full auth (email/password, Google OAuth, 2FA, password reset)
+
+**Infrastructure:**
+- 4 AWS Lambdas (webhook, scanner, processor, API)
+- API Gateway with custom domain (api.taxformatter.com)
+- S3 (3 buckets), SQS + DLQ, WAF, CloudWatch
+- Neon PostgreSQL (11 tables)
+- Sentry error tracking, CSP headers, HSTS
 
 ---
 
-## 2. Items Requiring Verification
+## 2. Package Publishing
 
-### 2.1 P0 - Critical Blockers (Must Complete)
-| Item | Current Status | Action Needed | Est. Time |
-|------|----------------|---------------|-----------|
-| Lambda functions respond | Code deployed | Run live test | 1 hr |
-| Presigned URLs work | Implemented | Run live test | 30 min |
-| S3 upload completes | Implemented | Run live test | 30 min |
-| Env vars in production | Template ready | Add prod values | 1-2 hr |
+### npm: `@taxformatter/mcp-server` v0.1.0
 
-### 2.2 P1 - High Priority (Should Complete)
-| Item | Current Status | Est. Time |
-|------|----------------|-----------|
-| Enable Stripe buttons | Backend complete | 30 min |
-| Stripe webhook prod test | Code ready | 1 hr |
-| Cross-browser testing | Plan documented | 4-6 hrs |
-| Final UAT with beta user | Plan ready | 2-3 hrs |
-| CI/CD pipeline setup | Not started | 2-3 hrs |
-| Monitoring dashboard review | CloudWatch ready | 1 hr |
+MCP server for AI agents to parse financial documents via TaxFormatter API.
 
-### 2.3 P2 - Nice to Have
-| Item | Notes |
-|------|-------|
-| Additional E2E tests | 60 already passing |
-| Performance optimization | Currently meets targets |
-| Additional exchange parsers | 14 already implemented |
+**Registry:** https://www.npmjs.com/package/@taxformatter/mcp-server
 
----
+**Publish:**
+```bash
+cd packages/mcp-server
+npm run build
+npm publish --access public
+```
 
-## 3. Known Limitations
+**Verify:**
+```bash
+npm info @taxformatter/mcp-server
+```
 
-| Limitation | User Workaround | Documentation |
-|------------|-----------------|---------------|
-| Archive files (.zip, .tar.gz) | Right-click → Extract before uploading | FAQ |
-| XLSX files (Gemini) | File → Save As → CSV | Exchange guide |
-| Bank statement PDFs | Pro+ feature - free users see upgrade prompt | Pricing page |
-| Free tier downloads | 3 per month limit | Pricing page |
+**Pre-publish checklist:**
+- [ ] `npm run build` succeeds
+- [ ] `npm pack --dry-run` shows expected files (dist/, bin/, README.md, LICENSE)
+- [ ] 19/19 tests passing
+- [ ] README has correct install instructions and config examples
+- [ ] CHANGELOG.md is current (v0.1.0)
+
+**Post-publish:**
+- [ ] `npx @taxformatter/mcp-server` runs without error (will fail without API key, but should start)
+- [ ] Submit to MCP directories: [Smithery](https://smithery.ai), [mcp.run](https://mcp.run), [Glama](https://glama.ai/mcp/servers)
 
 ---
 
-## 4. Stripe/Payments Configuration
+### npm: `@taxformatter/sdk` v0.1.0
 
-### Pricing Tiers
-| Tier | Price | Downloads | AI Model |
-|------|-------|-----------|----------|
-| Free | $0 | 3/month | Google Gemini |
-| Pro | $89/yr or $9/mo | Unlimited | Claude Sonnet |
-| Premium | $189/yr or $19/mo | Unlimited + Bank PDFs | Claude Opus |
+Official Node.js SDK. Zero runtime dependencies.
 
-### Status
-- [x] Stripe integration code complete
-- [x] Webhook handlers implemented
-- [x] Customer portal integration
-- [ ] **Payment buttons currently show "Coming Soon"** - needs enabling
+**Registry:** https://www.npmjs.com/package/@taxformatter/sdk
+
+**Publish:**
+```bash
+cd packages/sdk-node
+npm run build
+npm publish --access public
+```
+
+**Verify:**
+```bash
+npm info @taxformatter/sdk
+```
+
+**Pre-publish checklist:**
+- [ ] `npm run build` succeeds
+- [ ] 17/17 tests passing
+- [ ] `npm pack --dry-run` shows expected files (dist/, README.md, LICENSE)
+- [ ] README has install instructions and quick-start example
 
 ---
 
-## 5. Go/No-Go Criteria
+### PyPI: `taxformatter` v0.1.0
 
-### ✅ GO Criteria (all must pass)
-- [ ] All Lambda functions responding in production
-- [ ] Presigned URLs and S3 uploads working
-- [ ] Job processing works end-to-end
-- [ ] Downloads work for all 4 formats
-- [ ] Auth flows work (signup, login, logout)
-- [ ] No 500 errors in production logs
-- [ ] At least 1 beta user completed full flow
+Official Python SDK. Single dependency (`requests`). Python 3.8+.
 
-### ❌ NO-GO Criteria (any blocks launch)
+**Registry:** https://pypi.org/project/taxformatter/
+
+**Publish:**
+```bash
+cd packages/sdk-python
+pip install build twine
+python -m build
+twine upload dist/*
+```
+
+**Verify:**
+```bash
+pip install taxformatter
+python -c "from taxformatter import TaxFormatter; print('OK')"
+```
+
+**Pre-publish checklist:**
+- [ ] 19/19 tests passing (`pytest`)
+- [ ] `python -m build` produces `.tar.gz` and `.whl` in `dist/`
+- [ ] PyPI account created with API token (or configure trusted publisher via GitHub Actions)
+- [ ] README renders correctly (test with `twine check dist/*`)
+
+**Alternative — Trusted Publisher (no API token needed):**
+Set up in PyPI project settings → "Publishing" → add GitHub Actions as trusted publisher. Then publish via CI with no secrets needed.
+
+---
+
+## 3. Production Verification — P0 (Launch Blockers)
+
+Complete these in order. Every item must pass before launch.
+
+| # | Task | How to Verify | Est. |
+|---|------|---------------|------|
+| 1 | Verify Lambda health | `curl https://api.taxformatter.com/v1/health` returns 200 | 5 min |
+| 2 | Set prod env vars in Vercel | All Stripe keys, price IDs, webhook secret, Google OAuth, Sentry DSN | 30 min |
+| 3 | Google OAuth redirect URI | Add `https://taxformatter.com/api/auth/callback/google` in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) | 5 min |
+| 4 | Live Stripe checkout test | Subscribe to Starter ($29/mo) with real card, verify webhook fires (`checkout.session.completed`), confirm API key tier updates in DB, then refund in Stripe Dashboard | 30 min |
+| 5 | Presigned URL + S3 upload | Upload a CSV through dashboard, confirm file appears in S3, job processes | 15 min |
+| 6 | End-to-end API test | Create API key in dashboard, `curl -X POST https://api.taxformatter.com/v1/parse -H "X-API-Key: tf_live_..." -d '{"file":"...","filename":"coinbase.csv"}'`, verify JSON response | 15 min |
+| 7 | Download all 4 formats | Process a file, download as Koinly, TurboTax, CoinLedger, ZenLedger | 15 min |
+| 8 | Auth flows | Test: signup → email verification → login → logout → password reset → Google OAuth | 20 min |
+| 9 | Check for 500 errors | Review CloudWatch logs + Sentry for any unhandled errors | 10 min |
+| 10 | Beta user UAT | At least 1 external user completes: signup → upload → download (or API key → parse call) | 1-2 hr |
+
+**Go/No-Go Criteria:**
+
+GO (all must pass):
+- All Lambda functions responding
+- Presigned URLs and S3 uploads working
+- Job processing works end-to-end
+- Downloads work for all 4 formats
+- Auth flows work (signup, login, logout)
+- No 500 errors in production logs
+- At least 1 beta user completed full flow
+
+NO-GO (any blocks launch):
 - Any Lambda not responding
 - S3 uploads failing
 - Downloads broken
@@ -178,69 +193,178 @@ All 12 critical/medium issues fixed:
 
 ---
 
-## 6. Key Files Reference
+## 4. Pre-Launch Polish — P1 (Should Do)
 
-### Configuration
-- `next.config.ts` - Next.js config with CSP headers
-- `.env.example` - Environment variable template
-- `terraform/` - AWS infrastructure as code
+| Task | Est. | Notes |
+|------|------|-------|
+| Stripe branding | 10 min | Upload logo/icon in Stripe Dashboard > Business settings |
+| Cross-browser testing | 4-6 hr | Chrome, Safari, Firefox on macOS. Windows + mobile (Pixel, iPhone) |
+| Fix CI/CD continue-on-error flags | 1-2 hr | `.github/workflows/ci.yml` has 3 `continue-on-error: true` TODOs |
+| Review CloudWatch dashboard | 30 min | Verify alarms fire correctly, check DLQ is empty |
+| Smoke test MCP server | 15 min | Add config to Claude Code, run `parse_crypto_csv` tool |
+| Webhook endpoint registration | 10 min | Verify `https://taxformatter.com/api/webhooks/stripe` is registered in Stripe for all 7 events |
 
-### API Routes
-- `app/api/auth/` - All authentication endpoints
-- `app/api/uploads/` - File upload handling
-- `app/api/jobs/` - Job management
-- `app/api/bank/` - Bank statement processing (Pro+)
-- `app/api/checkout/` - Stripe checkout
-- `app/api/webhooks/stripe/` - Stripe webhooks
+---
 
-### Core Components
-- `components/dashboard/` - Dashboard UI
-- `components/ui/` - Reusable UI components
-- `lib/validation.ts` - Input validation (94.59% coverage)
-- `lib/rate-limit.ts` - Rate limiting (88.88% coverage)
+## 5. Growth & Marketing — P2 (Post-Launch)
+
+### Content
+- [ ] Publish 5 blog posts (already drafted in repo root as `blog-post-*.md`)
+- [ ] Set up Google Search Console for taxformatter.com
+- [ ] Add structured data (JSON-LD) for API product
+
+### Paid Acquisition
+- [ ] Launch Google Ads campaign (plan: `TaxFormatter_Google_Ads_Campaign_Plan.md`)
+  - Ad Group 1: Bank statement parsing (year-round)
+  - Ad Group 2: Crypto CSV formatting (seasonal Jan-Apr)
+  - Conversion tracking: `AW-17945154043`
+
+### Developer Distribution
+- [ ] Submit MCP server to directories (Smithery, mcp.run, Glama)
+- [ ] Product Hunt launch
+- [ ] Reddit: r/selfhosted, r/cryptocurrency, r/taxpros
+- [ ] Hacker News: Show HN post
+- [ ] IndieHackers product page
+- [ ] Dev.to / Hashnode article on bank statement parsing API
+
+### Future Product
+- [ ] Enterprise tier (custom pricing, SLA, dedicated support)
+- [ ] Async endpoint for large PDFs (50+ pages)
+- [ ] Move rate limiting to Redis/Upstash (currently in-memory per Lambda instance)
+- [ ] GitHub Actions workflow for automated npm/PyPI publishing on tag
+
+---
+
+## 6. API Pricing
+
+Products created in Stripe Dashboard (Mar 19). Price IDs in Vercel env vars.
+
+| Tier | Price | Files/month | RPM | Target |
+|------|-------|-------------|-----|--------|
+| Starter | $29/mo | 100 | 30 | Developers evaluating, solo bookkeepers |
+| Growth | $99/mo | 500 | 60 | Accounting firms, growing apps |
+| Business | $249/mo | 2,000 | 120 | Fintech SaaS, large firms |
+
+Consumer tiers (Free/$0, Pro/$9/mo, Premium/$19/mo) removed on Mar 23. Consumer features are now free for all logged-in users.
+
+---
+
+## 7. Infrastructure Reference
+
+| Layer | Service | Detail |
+|-------|---------|--------|
+| Frontend | Vercel | Next.js 16.1, taxformatter.com |
+| Database | Neon PostgreSQL | 11 tables, connection pooling |
+| API | AWS API Gateway | api.taxformatter.com, TLS 1.2, 50 rpm / 100 burst |
+| Compute | AWS Lambda x4 | webhook (60s/512MB), scanner (300s/1024MB), processor (900s/2048MB), API (120s/1024MB) |
+| Storage | AWS S3 x3 | uploads, results, lambda code. Versioned, encrypted, 1yr lifecycle |
+| Queue | AWS SQS + DLQ | 4-day retention, 3 retries before DLQ |
+| Security | AWS WAF | Rate limiting, SQLi/XSS prevention |
+| Payments | Stripe | 3 API tiers, 7 webhook events |
+| Email | Resend + AWS SES | Transactional (verification, password reset) |
+| Monitoring | Sentry + CloudWatch | Error tracking, 5XX/4XX alarms, DLQ alarm, queue depth alarm |
+| Analytics | GA4 + Plausible | G-1B5PK7TZ87, taxformatter.com |
+| IaC | Terraform | All AWS resources managed in `backend/terraform/` |
+
+---
+
+## 8. Environment Variables
+
+All required env vars are documented in `.env.example`. Critical production values:
+
+| Category | Variables |
+|----------|-----------|
+| App | `NEXT_PUBLIC_APP_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET` |
+| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| Database | `NEON_DATABASE_URL` |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_API_PRICE_STARTER`, `STRIPE_API_PRICE_GROWTH`, `STRIPE_API_PRICE_BUSINESS` |
+| AWS | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_S3_BUCKET` |
+| Email | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` |
+| AI | `GOOGLE_GEMINI_API_KEY` |
+| Sentry | `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN` |
+| Ads | `NEXT_PUBLIC_GOOGLE_ADS_ID`, `NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL` |
+
+---
+
+## 9. Key Files
+
+### API & Backend
+| File | Purpose |
+|------|---------|
+| `backend/handlers/api.py` | API Lambda handler — `/v1/parse`, `/v1/sources`, `/v1/usage`, `/v1/health` |
+| `backend/services/api_auth.py` | Key validation, rate limiting, usage tracking |
+| `backend/services/engine.py` | Core parsing engine (14 crypto parsers, generic fallback) |
+| `backend/services/bank_statement/` | Bank PDF → structured data pipeline |
+| `backend/deploy.sh` | Package + deploy all 4 Lambdas |
+| `backend/terraform/` | All AWS IaC |
+
+### Packages
+| File | Purpose |
+|------|---------|
+| `packages/mcp-server/` | `@taxformatter/mcp-server` — MCP server for AI agents |
+| `packages/sdk-node/` | `@taxformatter/sdk` — Node.js SDK |
+| `packages/sdk-python/` | `taxformatter` — Python SDK |
+
+### Dashboard & Auth
+| File | Purpose |
+|------|---------|
+| `app/dashboard/developer/page.tsx` | Developer dashboard |
+| `components/dashboard/ApiKeyManager.tsx` | API key CRUD, usage bars, upgrade flow |
+| `app/api/developer/keys/route.ts` | Key create + list |
+| `app/api/developer/subscribe/route.ts` | Stripe checkout for API tiers |
+| `app/api/webhooks/stripe/route.ts` | Stripe webhook handler (7 events) |
+| `app/api/customer-portal/route.ts` | Stripe billing portal |
+| `lib/stripe.ts` | Stripe client, price IDs, config validation |
 
 ### Documentation
-- `docs/PRD.md` - Product Requirements
-- `docs/COMPREHENSIVE_TEST_PLAN.md` - Test strategy
-- `docs/DEPLOYMENT_CHECKLIST.md` - Deployment guide
-- `docs/ARCHITECTURE.md` - System architecture
+| File | Purpose |
+|------|---------|
+| `content/docs/api/index.md` | Full API reference |
+| `docs/STRIPE_SETUP.md` | Stripe integration guide |
+| `docs/DEPLOYMENT_CHECKLIST.md` | Deployment guide |
+| `ARCHITECTURE.md` | System overview, data flow, gotchas |
+| `BUILD_PLAN.md` | 4-phase build plan (all complete) |
+
+### Marketing
+| File | Purpose |
+|------|---------|
+| `components/marketing/APIHero.tsx` | Landing page hero with animated terminal |
+| `components/marketing/APIDemo.tsx` | Interactive API demo |
+| `components/marketing/APIPricing.tsx` | API tier pricing cards |
+| `blog-post-*.md` | 5 SEO blog posts (ready to publish) |
 
 ---
 
-## 7. Recommended Next Steps
+## 10. Known Limitations & Gotchas
 
-### Day 1 (4-5 hours) - Critical Blockers
-1. Configure production environment variables
-2. Verify Lambda deployment
-3. Test presigned URLs
-4. Test S3 upload E2E
-5. Enable Stripe buttons + configure webhooks
-
-### Day 2 (6-8 hours) - Validation
-1. Cross-browser testing: Chrome/Safari/Firefox macOS
-2. Cross-browser testing: Windows + mobile
-3. Beta user UAT sessions
-4. Bug fixes from testing
-
-### Day 3 (3-4 hours) - Optional Polish
-1. CI/CD pipeline setup
-2. Monitoring dashboard review
-3. Final smoke test
+| Issue | Workaround | Risk |
+|-------|------------|------|
+| API rate limiting is per-Lambda-instance | At low traffic this is fine. Move to Redis/Upstash at scale | Low |
+| Archive files (.zip, .tar.gz) | Users must extract before uploading | Low |
+| XLSX files (Gemini) | Users must save as CSV first | Low |
+| API Lambda timeout is 120s | Large PDFs (50+ pages) may timeout. Add async endpoint later | Medium |
+| No VPC on Lambdas | Direct connection to Neon (public internet). Faster cold starts but no private networking | Low |
+| Sentry `diagnoseSdkConnectivity()` doesn't respect tunnel | Client errors route through `/monitoring` but connectivity check bypasses it | Low |
+| SQS concurrency capped at 10 | Consumer processing limited to 10 concurrent jobs | Low |
 
 ---
 
-## 8. Summary
+## 11. Test Coverage
 
-**TaxFormatter is 95%+ complete and ready for MVP launch.**
+| Component | Tests | Coverage |
+|-----------|-------|----------|
+| Security (validation.ts) | 82 | 94.59% |
+| Security (rate-limit.ts) | 32 | 88.88% |
+| UI Components | 94 | High |
+| API Routes (Auth) | 100 | All endpoints |
+| API Routes (Bank) | 57 | Core paths |
+| Dashboard Components | 62 | Core covered |
+| Marketing Components | 54 | High |
+| E2E (Playwright) | 60 | 5 browsers |
+| API Handler + Auth | 51 | All endpoints |
+| MCP Server | 19 | Full |
+| Node SDK | 17 | Full |
+| Python SDK | 19 | Full |
+| **Total** | **647** | |
 
-Strengths:
-- 540 tests passing with excellent coverage
-- Security grade A- (92/100)
-- 14 exchange parsers (117% of spec)
-- All user flows tested and verified
-- AWS infrastructure complete
-- Bank statement feature added
-
-Remaining: 14-20 hours of production verification and testing.
-
-**Recommendation: Launch is achievable with 2-3 days of focused effort.**
+Jest coverage thresholds: 85% branches, 85% functions, 90% lines, 90% statements.
