@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = invoice.subscription as string | undefined
+        const subscriptionId = (invoice as any).subscription as string | undefined
         if (subscriptionId) {
           const apiKey = await queryOne<{ id: string }>(
             `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = invoice.subscription as string | undefined
+        const subscriptionId = (invoice as any).subscription as string | undefined
         if (subscriptionId) {
           const apiKey = await queryOne<{ id: string }>(
             `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
