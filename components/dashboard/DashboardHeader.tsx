@@ -56,7 +56,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
             {/* Sign Out - Desktop */}
             <button
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() => { if (window.confirm('Are you sure you want to sign out?')) signOut({ callbackUrl: '/' }) }}
               className="hidden md:block text-sm text-zinc-500 hover:text-white transition-colors"
             >
               Sign Out
@@ -105,7 +105,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 </div>
               </div>
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
+                onClick={() => { if (window.confirm('Are you sure you want to sign out?')) signOut({ callbackUrl: '/' }) }}
                 className="w-full text-left px-3 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors text-base font-medium rounded-lg"
               >
                 Sign Out
