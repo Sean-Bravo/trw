@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { User } from 'next-auth';
 import { Logo } from '@/components/ui/Logo';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Menu, X } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -14,6 +15,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const pathname = usePathname();
   const initial = ((user.name || user.email || 'U')[0] || 'U').toUpperCase();
   const tierLabel = 'Starter';
@@ -56,7 +58,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
             {/* Sign Out - Desktop */}
             <button
-              onClick={() => { if (window.confirm('Are you sure you want to sign out?')) signOut({ callbackUrl: '/' }) }}
+              onClick={() => setShowSignOutConfirm(true)}
               className="hidden md:block text-sm text-zinc-500 hover:text-white transition-colors"
             >
               Sign Out
@@ -105,7 +107,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 </div>
               </div>
               <button
-                onClick={() => { if (window.confirm('Are you sure you want to sign out?')) signOut({ callbackUrl: '/' }) }}
+                onClick={() => setShowSignOutConfirm(true)}
                 className="w-full text-left px-3 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors text-base font-medium rounded-lg"
               >
                 Sign Out
@@ -114,6 +116,15 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           </nav>
         </div>
       )}
+      <ConfirmDialog
+        isOpen={showSignOutConfirm}
+        onConfirm={() => signOut({ callbackUrl: '/' })}
+        onCancel={() => setShowSignOutConfirm(false)}
+        title="Sign out?"
+        description="You'll need to sign back in to access your dashboard."
+        confirmLabel="Sign Out"
+        variant="danger"
+      />
     </header>
   );
 }
