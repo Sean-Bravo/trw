@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { User } from 'next-auth';
 import { Logo } from '@/components/ui/Logo';
@@ -13,6 +14,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
   const initial = ((user.name || user.email || 'U')[0] || 'U').toUpperCase();
   const tierLabel = 'Starter';
 
@@ -25,10 +27,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            <NavLink href="/dashboard" active>Dashboard</NavLink>
-            <NavLink href="/dashboard/developer">Developer</NavLink>
-            <NavLink href="/dashboard/settings">Settings</NavLink>
-            <NavLink href="/docs">Docs</NavLink>
+            <NavLink href="/dashboard" active={pathname === '/dashboard'}>Dashboard</NavLink>
+            <NavLink href="/dashboard/developer" active={pathname === '/dashboard/developer'}>Developer</NavLink>
+            <NavLink href="/dashboard/settings" active={pathname === '/dashboard/settings'}>Settings</NavLink>
+            <NavLink href="/docs" active={pathname?.startsWith('/docs')}>Docs</NavLink>
           </nav>
 
           {/* User Menu */}
