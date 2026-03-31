@@ -100,10 +100,10 @@ describe('Pricing Component (API Tiers)', () => {
       expect(growthButton.closest('a')).toHaveAttribute('href', '/signup?api_tier=growth');
     });
 
-    it('business tier links to contact', () => {
+    it('business tier links to signup', () => {
       render(<Pricing />);
-      const bizButton = screen.getByText('Contact Sales');
-      expect(bizButton.closest('a')).toHaveAttribute('href', '/contact');
+      const bizButton = screen.getByText('Get Started');
+      expect(bizButton.closest('a')).toHaveAttribute('href', '/signup?api_tier=business');
     });
   });
 
