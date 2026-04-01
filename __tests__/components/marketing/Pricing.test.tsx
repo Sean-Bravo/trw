@@ -88,22 +88,14 @@ describe('Pricing Component (API Tiers)', () => {
   });
 
   describe('CTA Buttons', () => {
-    it('starter tier links to signup', () => {
+    it('all tiers link to signup', () => {
       render(<Pricing />);
-      const starterButton = screen.getByText('Get Started');
-      expect(starterButton.closest('a')).toHaveAttribute('href', '/signup?api_tier=starter');
-    });
-
-    it('growth tier links to signup', () => {
-      render(<Pricing />);
-      const growthButton = screen.getByText('Start Building');
-      expect(growthButton.closest('a')).toHaveAttribute('href', '/signup?api_tier=growth');
-    });
-
-    it('business tier links to signup', () => {
-      render(<Pricing />);
-      const bizButton = screen.getByText('Get Started');
-      expect(bizButton.closest('a')).toHaveAttribute('href', '/signup?api_tier=business');
+      const links = screen.getAllByRole('link');
+      const signupLinks = links.filter((l) => l.getAttribute('href')?.startsWith('/signup?api_tier='));
+      expect(signupLinks).toHaveLength(3);
+      expect(signupLinks[0]).toHaveAttribute('href', '/signup?api_tier=starter');
+      expect(signupLinks[1]).toHaveAttribute('href', '/signup?api_tier=growth');
+      expect(signupLinks[2]).toHaveAttribute('href', '/signup?api_tier=business');
     });
   });
 
