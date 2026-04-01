@@ -24,11 +24,9 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: true  # TODO: Fix all lint errors then remove this
 
       - name: Run TypeScript check
         run: npm run typecheck
-        continue-on-error: true  # TODO: Fix test file type errors then remove this
 
   test:
     name: Unit Tests
@@ -47,7 +45,6 @@ jobs:
 
       - name: Run tests
         run: npm test -- --coverage --passWithNoTests
-        continue-on-error: true  # TODO: Fix failing tests then remove this
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
