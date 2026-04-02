@@ -30,5 +30,8 @@ Documentation = "https://taxformatter.com/docs/api"
 Repository = "https://github.com/Sean-Bravo/trw"
 Issues = "https://github.com/Sean-Bravo/trw/issues"
 
+[tool.hatch.build.targets.wheel]
+packages = ["taxformatter"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
