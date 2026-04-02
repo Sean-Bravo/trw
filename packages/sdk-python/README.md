@@ -5,7 +5,7 @@ Official Python SDK for the [TaxFormatter API](https://taxformatter.com) — par
 ## Install
 
 ```bash
-pip install taxformatter
+pip install taxformatter-sdk
 ```
 
 ## Quick Start

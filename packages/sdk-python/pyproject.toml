@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "taxformatter"
+name = "taxformatter-sdk"
 version = "0.1.0"
 description = "Official Python SDK for the TaxFormatter API — parse crypto CSVs and bank statement PDFs"
 readme = "README.md"
