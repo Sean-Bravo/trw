@@ -16,7 +16,7 @@ export function BlogImage({ src, alt, fallback }: BlogImageProps) {
   }
 
   return (
-    /* eslint-disable-next-line @next/next/no-img-element */
+    /* eslint-disable-next-line */
     <img
       src={src}
       alt={alt}

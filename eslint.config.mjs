@@ -64,6 +64,8 @@ export default [
         Headers: "readonly",
         AbortController: "readonly",
         AbortSignal: "readonly",
+        DOMException: "readonly",
+        RequestInit: "readonly",
         XMLHttpRequest: "readonly",
         // Files & Data
         File: "readonly",
@@ -150,6 +152,9 @@ export default [
           varsIgnorePattern: "^_",
         },
       ],
+      "@typescript-eslint/no-unsafe-function-type": "warn",
+      "no-useless-catch": "warn",
+      "no-control-regex": "warn",
       "prefer-const": "warn",
       "no-console": [
         "warn",
@@ -258,6 +263,9 @@ export default [
       "postcss.config.mjs",
       ".contentlayer/**",
       "scripts/**",
+      "**/dist/**",
+      "packages/*/dist/**",
+      "jest.setup.js",
     ],
   },
 ];
