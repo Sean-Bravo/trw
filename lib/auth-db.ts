@@ -333,7 +333,7 @@ export async function updateVerificationCode(
     `UPDATE users
      SET verification_code = $1,
          verification_code_expires = $2
-     WHERE email = $3 AND email_verified = FALSE`,
+     WHERE email = $3 AND email_verified = FALSE RETURNING id`,
     [newCode, verificationExpires, email.toLowerCase()]
   );
 
