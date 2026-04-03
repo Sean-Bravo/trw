@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Key, Plus, Trash2, X, Copy, Check, AlertCircle, CheckCircle } from 'lucide-react';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface ApiKey {
   id: string;
@@ -329,22 +330,6 @@ export function ApiKeyManager() {
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                  ) : confirmDeleteId === key.id ? (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-red-400">Delete?</span>
-                      <button
-                        onClick={() => { deleteKey(key.id); setConfirmDeleteId(null); }}
-                        className="px-2 py-1 text-xs text-white bg-red-500 hover:bg-red-600 rounded transition-colors"
-                      >
-                        Yes
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="px-2 py-1 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded transition-colors"
-                      >
-                        No
-                      </button>
-                    </div>
                   ) : (
                     <button
                       onClick={() => setConfirmDeleteId(key.id)}
@@ -386,6 +371,15 @@ export function ApiKeyManager() {
           Replace <code className="text-gray-400">YOUR_API_KEY</code> with the key you created above.
         </p>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDeleteId !== null}
+        onConfirm={() => { if (confirmDeleteId) deleteKey(confirmDeleteId); setConfirmDeleteId(null); }}
+        onCancel={() => setConfirmDeleteId(null)}
+        title="Delete API key?"
+        message="This will permanently remove this key. This action cannot be undone."
+        confirmLabel="Delete"
+      />
     </div>
   );
 }
