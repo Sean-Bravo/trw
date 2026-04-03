@@ -35,6 +35,7 @@ export function ApiKeyManager() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Detect ?upgraded=true after Stripe checkout redirect
   useEffect(() => {
@@ -328,9 +329,25 @@ export function ApiKeyManager() {
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
+                  ) : confirmDeleteId === key.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-red-400">Delete?</span>
+                      <button
+                        onClick={() => { deleteKey(key.id); setConfirmDeleteId(null); }}
+                        className="px-2 py-1 text-xs text-white bg-red-500 hover:bg-red-600 rounded transition-colors"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="px-2 py-1 text-xs text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded transition-colors"
+                      >
+                        No
+                      </button>
+                    </div>
                   ) : (
                     <button
-                      onClick={() => deleteKey(key.id)}
+                      onClick={() => setConfirmDeleteId(key.id)}
                       className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                       title="Delete permanently"
                     >
