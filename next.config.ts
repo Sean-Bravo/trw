@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for better debugging
   reactStrictMode: true,
 
+  // Turbopack resolve alias for contentlayer (withContentlayer only handles webpack)
+  turbopack: {
+    resolveAlias: {
+      'contentlayer/generated': './.contentlayer/generated',
+    },
+  },
+
   // Remove X-Powered-By header for security
   poweredByHeader: false,
 

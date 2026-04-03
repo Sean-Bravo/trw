@@ -1,4 +1,4 @@
-import { allDocs } from '.contentlayer/generated'
+import { allDocs } from 'contentlayer/generated'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
