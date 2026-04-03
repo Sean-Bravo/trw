@@ -1,7 +1,7 @@
 # TaxFormatter — Release Status
 
-> **Last Updated:** 2026-03-24
-> **Overall Status:** Build complete. Launch verification pending.
+> **Last Updated:** 2026-04-03
+> **Overall Status:** P0 complete. P1 in progress.
 > **Previous Name:** TaxReadyWallet (renamed to TaxFormatter)
 
 ## Quick Reference
@@ -157,39 +157,22 @@ Set up in PyPI project settings → "Publishing" → add GitHub Actions as trust
 
 ---
 
-## 3. Production Verification — P0 (Launch Blockers)
+## 3. Production Verification — P0 (Launch Blockers) ✅ COMPLETE
 
-Complete these in order. Every item must pass before launch.
+All items verified and passing as of 2026-04-03.
 
-| # | Task | How to Verify | Est. |
-|---|------|---------------|------|
-| 1 | Verify Lambda health | `curl https://api.taxformatter.com/v1/health` returns 200 | 5 min |
-| 2 | Set prod env vars in Vercel | All Stripe keys, price IDs, webhook secret, Google OAuth, Sentry DSN | 30 min |
-| 3 | Google OAuth redirect URI | Add `https://taxformatter.com/api/auth/callback/google` in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) | 5 min |
-| 4 | Live Stripe checkout test | Subscribe to Starter ($29/mo) with real card, verify webhook fires (`checkout.session.completed`), confirm API key tier updates in DB, then refund in Stripe Dashboard | 30 min |
-| 5 | Presigned URL + S3 upload | Upload a CSV through dashboard, confirm file appears in S3, job processes | 15 min |
-| 6 | End-to-end API test | Create API key in dashboard, `curl -X POST https://api.taxformatter.com/v1/parse -H "X-API-Key: tf_live_..." -d '{"file":"...","filename":"coinbase.csv"}'`, verify JSON response | 15 min |
-| 7 | Download all 4 formats | Process a file, download as Koinly, TurboTax, CoinLedger, ZenLedger | 15 min |
-| 8 | Auth flows | Test: signup → email verification → login → logout → password reset → Google OAuth | 20 min |
-| 9 | Check for 500 errors | Review CloudWatch logs + Sentry for any unhandled errors | 10 min |
-| 10 | Beta user UAT | At least 1 external user completes: signup → upload → download (or API key → parse call) | 1-2 hr |
-
-**Go/No-Go Criteria:**
-
-GO (all must pass):
-- All Lambda functions responding
-- Presigned URLs and S3 uploads working
-- Job processing works end-to-end
-- Downloads work for all 4 formats
-- Auth flows work (signup, login, logout)
-- No 500 errors in production logs
-- At least 1 beta user completed full flow
-
-NO-GO (any blocks launch):
-- Any Lambda not responding
-- S3 uploads failing
-- Downloads broken
-- Auth completely broken
+| # | Task | Status |
+|---|------|--------|
+| 1 | Verify Lambda health | ✅ |
+| 2 | Set prod env vars in Vercel | ✅ |
+| 3 | Google OAuth redirect URI | ✅ |
+| 4 | Live Stripe checkout test | ✅ |
+| 5 | Presigned URL + S3 upload | ✅ |
+| 6 | End-to-end API test | ✅ |
+| 7 | Download all 4 formats | ✅ |
+| 8 | Auth flows | ✅ |
+| 9 | Check for 500 errors | ✅ |
+| 10 | Beta user UAT | ✅ |
 
 ---
 
@@ -197,7 +180,7 @@ NO-GO (any blocks launch):
 
 | Task | Est. | Notes |
 |------|------|-------|
-| Stripe branding | 10 min | Upload logo/icon in Stripe Dashboard > Business settings |
+| ~~Stripe branding~~ | ~~10 min~~ | ✅ Complete |
 | Cross-browser testing | 4-6 hr | Chrome, Safari, Firefox on macOS. Windows + mobile (Pixel, iPhone) |
 | Fix CI/CD continue-on-error flags | 1-2 hr | `.github/workflows/ci.yml` has 3 `continue-on-error: true` TODOs |
 | Review CloudWatch dashboard | 30 min | Verify alarms fire correctly, check DLQ is empty |
