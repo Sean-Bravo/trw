@@ -12,9 +12,16 @@ jest.mock('lucide-react', () => ({
   Key: () => <span data-testid="key-icon" />,
   Plus: () => <span data-testid="plus-icon" />,
   Trash2: () => <span data-testid="trash-icon" />,
+  X: () => <span data-testid="x-icon" />,
   Copy: () => <span data-testid="copy-icon" />,
   Check: () => <span data-testid="check-icon" />,
   AlertCircle: () => <span data-testid="alert-icon" />,
+  CheckCircle: () => <span data-testid="check-circle-icon" />,
+}));
+
+// Mock ConfirmDialog
+jest.mock('@/components/ui/ConfirmDialog', () => ({
+  ConfirmDialog: () => null,
 }));
 
 const mockKeys = [
