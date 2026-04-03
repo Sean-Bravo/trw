@@ -1,0 +1,245 @@
+---
+title: "Three Ways to Use TaxFormatter in Your Code"
+description: "The MCP Server, Node.js SDK, and Python SDK — explained plainly. No experience required. Pick the one that fits how you work."
+date: 2026-04-03
+author: "TaxFormatter Team"
+category: "guides"
+tags: ["API", "MCP server", "Node.js SDK", "Python SDK", "developer", "integration", "getting started"]
+image: "/blog/three-ways-to-use-taxformatter.svg"
+published: true
+featured: false
+---
+
+## Before we start: what does TaxFormatter actually do?
+
+TaxFormatter turns messy financial files into clean, organized data. You give it a CSV export from a crypto exchange like Coinbase or Binance — or a PDF bank statement from Chase or Wells Fargo — and it gives you back a structured list of every transaction, ready to hand off to your accountant or import into tax software.
+
+The API does all the heavy lifting. The three tools described in this article are simply **three different ways to talk to that API**, depending on how you work.
+
+> Think of TaxFormatter as a restaurant kitchen. The food (parsed transaction data) is always the same. The MCP Server is the intercom system — your AI assistant can call directly into the kitchen. The Node.js SDK is the tablet ordering system built for JavaScript apps. The Python SDK is the same tablet, but built for Python apps.
+
+## The three ways to connect
+
+Here is a quick orientation before we go deep on each one:
+
+| Tool | What it is | Who it's for | Difficulty |
+|------|-----------|-------------|------------|
+| MCP Server | A plugin for AI coding assistants | Claude Code, Cursor, Windsurf users | Easiest |
+| Node.js SDK | A JavaScript/TypeScript library | Web developers, Node apps | Moderate |
+| Python SDK | A Python library | Data analysts, Python scripts | Moderate |
+
+All three require a TaxFormatter API key. You get one from your developer dashboard. We'll cover that at the end.
+
+## The MCP Server — for AI assistants
+
+### What is an MCP Server?
+
+MCP stands for **Model Context Protocol**. It is a standard that lets AI coding assistants — like Claude Code, Cursor, or Windsurf — connect to external tools and services. Think of it as a plugin system for AI assistants.
+
+When you install the TaxFormatter MCP Server, your AI assistant gains a new ability: it can parse financial files for you, mid-conversation, without you having to write a single line of code yourself.
+
+> Before the MCP Server: you'd have to copy an API reference, write the fetch call yourself, handle the response, debug errors. After the MCP Server: you say "parse this Coinbase CSV" and your AI assistant does it — because it now has direct access to TaxFormatter's tools.
+
+### Who should use it
+
+- **AI-first developers** — You write most of your code through Claude Code, Cursor, or a similar AI assistant.
+- **People who want zero setup** — You don't want to write API calls manually. You just want it to work inside your existing workflow.
+- **Explorers and testers** — You want to try TaxFormatter quickly before committing to building an integration.
+
+### How to install it
+
+You need Node.js installed on your computer (version 18 or higher). Then run:
+
+```bash
+# Install globally once
+npm install -g @taxformatter/mcp-server
+```
+
+Then add TaxFormatter to your AI assistant's configuration. For Claude Code, open your config file and add:
+
+```json
+{
+  "mcpServers": {
+    "taxformatter": {
+      "command": "taxformatter-mcp",
+      "env": {
+        "TAXFORMATTER_API_KEY": "tf_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Restart your AI assistant. It will now recognize commands like "parse this crypto CSV" or "what exchanges does TaxFormatter support?" — and actually act on them.
+
+> **Good to know:** The MCP Server doesn't store your files. It sends them to TaxFormatter's API and returns the result. Your API key controls everything — if you revoke it, the connection stops immediately.
+
+## The Node.js SDK — for JavaScript developers
+
+### What is a Node.js SDK?
+
+SDK stands for **Software Development Kit**. It's a library — a collection of pre-written code — that makes it easy to work with an API inside your own application.
+
+Without the SDK, calling TaxFormatter from JavaScript means writing raw HTTP requests, handling headers, managing errors, and parsing responses yourself. The SDK wraps all of that up into clean, simple function calls that feel native to JavaScript.
+
+The TaxFormatter Node.js SDK has **zero runtime dependencies**. That means installing it adds nothing to your bundle size beyond the SDK itself.
+
+### Who should use it
+
+- **Web app builders** — You're building a Next.js, Express, or Node backend that needs to process financial files.
+- **Automation engineers** — You have a script or a workflow that runs on a schedule and needs to parse statements automatically.
+- **TypeScript teams** — The SDK ships with full TypeScript types — everything is autocompleted and type-safe out of the box.
+
+### Installation
+
+```bash
+npm install @taxformatter/sdk
+```
+
+### Your first parse — step by step
+
+1. **Import the SDK and create a client.** Pass your API key once when you create the client. Every call you make after that uses it automatically.
+2. **Read your file and convert it to base64.** The API expects files as base64-encoded strings. The SDK handles the response parsing; you just need to handle the file reading.
+3. **Call `parse()` and use the result.** You get back a structured list of transactions — every row of your CSV, normalized and ready to use.
+
+Here is a complete, working example:
+
+```javascript
+import { TaxFormatter } from '@taxformatter/sdk';
+import { readFileSync } from 'fs';
+
+// Step 1: Create a client with your API key
+const client = new TaxFormatter({
+  apiKey: 'tf_live_your_key_here'
+});
+
+// Step 2: Read your CSV file
+const fileBuffer = readFileSync('coinbase-export.csv');
+const base64File = fileBuffer.toString('base64');
+
+// Step 3: Parse it
+const result = await client.parse({
+  file: base64File,
+  filename: 'coinbase-export.csv'
+});
+
+// result.transactions is an array of clean transaction objects
+console.log(`Parsed ${result.transactions.length} transactions`);
+console.log(result.transactions[0]);
+// → { date: '2024-01-15', type: 'buy', asset: 'BTC',
+//     amount: 0.05, price: 42000, fees: 2.10, ... }
+```
+
+> **Automatic retries:** If the API returns a rate limit error (HTTP 429), the SDK automatically waits and retries. You don't have to write any retry logic yourself.
+
+### Using it in a Next.js API route
+
+```typescript
+import { TaxFormatter } from '@taxformatter/sdk';
+import { NextRequest, NextResponse } from 'next/server';
+
+const tf = new TaxFormatter({
+  apiKey: process.env.TAXFORMATTER_API_KEY!
+});
+
+export async function POST(req: NextRequest) {
+  const { file, filename } = await req.json();
+  const result = await tf.parse({ file, filename });
+  return NextResponse.json(result);
+}
+```
+
+## The Python SDK — for Python developers
+
+### What is the Python SDK?
+
+Same idea as the Node.js SDK — a library that makes TaxFormatter feel like a natural part of your Python code. The Python SDK has a single dependency (`requests`, which you almost certainly already have) and works with Python 3.8 and above.
+
+It follows Python conventions so it feels familiar. If you've used the `requests` library or the Stripe Python SDK before, this will feel immediately natural.
+
+### Who should use it
+
+- **Data analysts** — You work in Jupyter notebooks and want to pull in transaction data as a pandas DataFrame.
+- **ETL pipeline builders** — You're building a data pipeline that ingests bank statements or exchange CSVs on a schedule.
+- **Script writers** — You have a one-off Python script that needs to process a batch of files once a year at tax time.
+
+### Installation
+
+```bash
+pip install taxformatter
+```
+
+### Your first parse — step by step
+
+Here is a complete working example that parses a Kraken CSV and prints every transaction:
+
+```python
+import base64
+from taxformatter import TaxFormatter
+
+# Step 1: Create a client with your API key
+client = TaxFormatter(api_key="tf_live_your_key_here")
+
+# Step 2: Read your CSV file and encode it
+with open("kraken-export.csv", "rb") as f:
+    encoded = base64.b64encode(f.read()).decode("utf-8")
+
+# Step 3: Parse it
+result = client.parse(
+    file=encoded,
+    filename="kraken-export.csv"
+)
+
+# result["transactions"] is a list of dicts
+print(f"Found {len(result['transactions'])} transactions")
+
+for tx in result["transactions"]:
+    print(f"{tx['date']} | {tx['type']} | {tx['asset']} | ${tx['amount']}")
+```
+
+### Using it inside a Jupyter notebook
+
+If you work in Jupyter, you can load the results straight into a pandas DataFrame for analysis:
+
+```python
+import pandas as pd
+import base64
+from taxformatter import TaxFormatter
+
+client = TaxFormatter(api_key="tf_live_your_key_here")
+
+with open("coinbase-export.csv", "rb") as f:
+    encoded = base64.b64encode(f.read()).decode("utf-8")
+
+result = client.parse(file=encoded, filename="coinbase-export.csv")
+
+# Load straight into a DataFrame
+df = pd.DataFrame(result["transactions"])
+df.head()
+```
+
+> **Environment variables:** Never hardcode your API key in a notebook you might share. Use `os.environ.get("TAXFORMATTER_API_KEY")` instead, or a `.env` file with the `python-dotenv` library.
+
+---
+
+## Which one should I use?
+
+If you're still not sure, here are three simple questions to help you decide:
+
+**Do you do most of your work through an AI coding assistant?** Use the MCP Server. It takes five minutes to set up and requires no code at all.
+
+**Are you building a web app, a Node.js backend, or an automation in JavaScript?** Use the Node.js SDK (`@taxformatter/sdk`). Full TypeScript support, auto-retry on rate limits, zero extra dependencies.
+
+**Are you writing Python — whether that's a script, a data pipeline, or a notebook?** Use the Python SDK (`taxformatter` on PyPI). One `pip install` and you're ready.
+
+> **You can use more than one.** There's no rule that says pick one and stick with it. Many teams use the MCP Server during development (to prototype quickly with an AI assistant) and then switch to the SDK when they productionize the feature.
+
+## Getting your API key and getting started
+
+1. **Create a TaxFormatter account.** Go to [taxformatter.com](https://www.taxformatter.com) and sign up. Free account gives you access to the developer dashboard.
+2. **Open the Developer dashboard.** After logging in, click "Developer" in the sidebar. This is where you create and manage API keys.
+3. **Create an API key.** Click "Create API Key". Give it a name (e.g. "local dev" or "my-app"). Your key will start with `tf_live_`.
+4. **Copy it immediately.** The full key is only shown once. Copy it and store it somewhere safe — a password manager or your app's environment variables.
+5. **Pick your tool and follow the steps above.** MCP Server, Node.js SDK, or Python SDK — the examples above are complete and will work with your real key.
+
+If you run into anything — an error message, a format that isn't parsing correctly, a bank that isn't recognized — email [support@taxformatter.com](mailto:support@taxformatter.com). We read every one.
