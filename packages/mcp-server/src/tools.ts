@@ -1,75 +1,6 @@
-import { z } from 'zod';
 import { readFile, access } from 'fs/promises';
 import { resolve, basename } from 'path';
 import type { TaxFormatterClient } from './client.js';
-
-export const TOOL_DEFINITIONS = [
-  {
-    name: 'parse_crypto_csv',
-    description:
-      'Parse a crypto exchange CSV file (Coinbase, Binance, Kraken, etc.) and convert to a tax software format (Koinly, TurboTax, CoinLedger, ZenLedger). Auto-detects the exchange if not specified.',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        file_path: {
-          type: 'string',
-          description: 'Absolute or relative path to the CSV file',
-        },
-        exchange: {
-          type: 'string',
-          description:
-            'Exchange name (e.g., "coinbase", "binance"). Auto-detected if omitted.',
-        },
-        output_format: {
-          type: 'string',
-          enum: ['koinly', 'turbotax', 'coinledger', 'zenledger'],
-          description: 'Output format (default: koinly)',
-        },
-      },
-      required: ['file_path'],
-    },
-  },
-  {
-    name: 'parse_bank_statement',
-    description:
-      'Parse a bank statement PDF (Chase, Mercury, Navy Federal, etc.) and extract transactions as structured data. Auto-detects the bank.',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {
-        file_path: {
-          type: 'string',
-          description: 'Absolute or relative path to the PDF file',
-        },
-        bank: {
-          type: 'string',
-          description:
-            'Bank name (e.g., "chase", "mercury"). Auto-detected if omitted.',
-        },
-      },
-      required: ['file_path'],
-    },
-  },
-  {
-    name: 'list_supported_sources',
-    description:
-      'List all supported crypto exchanges and banks that can be parsed by TaxFormatter.',
-    inputSchema: {
-      type: 'object' as const,
-      properties: {},
-    },
-  },
-] as const;
-
-const ParseCryptoInput = z.object({
-  file_path: z.string(),
-  exchange: z.string().optional(),
-  output_format: z.enum(['koinly', 'turbotax', 'coinledger', 'zenledger']).optional(),
-});
-
-const ParseBankInput = z.object({
-  file_path: z.string(),
-  bank: z.string().optional(),
-});
 
 export async function handleTool(
   client: TaxFormatterClient,
@@ -78,7 +9,7 @@ export async function handleTool(
 ): Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   switch (name) {
     case 'parse_crypto_csv': {
-      const input = ParseCryptoInput.parse(args);
+      const input = args as { file_path: string; exchange?: string; output_format?: string };
       const filePath = resolve(input.file_path);
       await access(filePath).catch(() => {
         throw new Error(`File not found: ${filePath}`);
@@ -125,7 +56,7 @@ export async function handleTool(
     }
 
     case 'parse_bank_statement': {
-      const input = ParseBankInput.parse(args);
+      const input = args as { file_path: string; bank?: string };
       const filePath = resolve(input.file_path);
       await access(filePath).catch(() => {
         throw new Error(`File not found: ${filePath}`);
