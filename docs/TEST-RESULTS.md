@@ -230,6 +230,60 @@
 
 ---
 
+## Packages: MCP Server & SDKs (55 tests)
+
+**Last Run:** April 3, 2026
+
+| Package | Tests | Passed | Failed | Pass Rate |
+|---------|-------|--------|--------|-----------|
+| MCP Server | 19 | 19 | 0 | 100% |
+| Node SDK | 17 | 17 | 0 | 100% |
+| Python SDK | 19 | 19 | 0 | 100% |
+| **Total** | **55** | **55** | **0** | **100%** |
+
+### MCP Server Tests (`__tests__/packages/mcp-server/`)
+
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `client.test.ts` | 9 | ✅ |
+| `tools.test.ts` | 10 | ✅ |
+
+**Covers:** TaxFormatterClient HTTP interactions, `parse_crypto_csv` tool, `parse_bank_statement` tool, `list_supported_sources` tool, Zod schema validation, error handling, transaction preview limiting.
+
+### Node SDK Tests (`packages/sdk-node/__tests__/`)
+
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `client.test.ts` | 17 | ✅ |
+
+**Covers:** Initialization & API key validation, `parse()` with base64 encoding & options, `listSources()`, `getUsage()`, `health()`, error classes (AuthenticationError, ParseError, RateLimitError, TaxFormatterError), retry logic with exponential backoff on 429.
+
+### Python SDK Tests (`packages/sdk-python/tests/`)
+
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `test_client.py` | 19 | ✅ |
+
+**Covers:** Init (API key validation, default/custom options), `parse()` (base64 encoding, options, error handling), `list_sources()`, `get_usage()`, `health()`, error classes, retry on 429, requires-filename-for-bytes validation.
+
+### Running Package Tests
+
+```bash
+# MCP Server
+npx jest --no-coverage __tests__/packages/mcp-server/
+
+# Node SDK
+cd packages/sdk-node && npm test
+
+# Python SDK
+cd packages/sdk-python
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]" && pip install pytest
+python -m pytest tests/ -v
+```
+
+---
+
 ## Known Limitations
 
 ### WebKit/Safari E2E Tests (Skipped)
