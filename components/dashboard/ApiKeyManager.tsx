@@ -377,7 +377,7 @@ export function ApiKeyManager() {
         onConfirm={() => { if (confirmDeleteId) deleteKey(confirmDeleteId); setConfirmDeleteId(null); }}
         onCancel={() => setConfirmDeleteId(null)}
         title="Delete API key?"
-        message="This will permanently remove this key. This action cannot be undone."
+        description="This will permanently remove this key. This action cannot be undone."
         confirmLabel="Delete"
       />
     </div>

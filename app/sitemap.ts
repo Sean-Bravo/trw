@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { allDocs, allPosts } from '.contentlayer/generated';
+import { allDocs, allPosts } from 'contentlayer/generated';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://taxformatter.com';

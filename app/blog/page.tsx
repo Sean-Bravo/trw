@@ -1,4 +1,4 @@
-import { allPosts } from '.contentlayer/generated'
+import { allPosts } from 'contentlayer/generated'
 import { compareDesc, format } from 'date-fns'
 import Link from 'next/link'
 import { Metadata } from 'next'
