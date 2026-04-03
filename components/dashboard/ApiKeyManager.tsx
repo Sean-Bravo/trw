@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Key, Plus, Trash2, Copy, Check, AlertCircle, CheckCircle } from 'lucide-react';
+import { Key, Plus, Trash2, X, Copy, Check, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface ApiKey {
   id: string;
@@ -145,6 +145,17 @@ export function ApiKeyManager() {
       }
     } catch {
       setError('Failed to revoke key');
+    }
+  };
+
+  const deleteKey = async (keyId: string) => {
+    try {
+      const res = await fetch(`/api/developer/keys/${keyId}?permanent=true`, { method: 'DELETE' });
+      if (res.ok) {
+        await fetchKeys();
+      }
+    } catch {
+      setError('Failed to delete key');
     }
   };
 
@@ -309,13 +320,21 @@ export function ApiKeyManager() {
                       </div>
                     )}
                   </div>
-                  {key.isActive && (
+                  {key.isActive ? (
                     <button
                       onClick={() => revokeKey(key.id)}
                       className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                       title="Revoke key"
                     >
                       <Trash2 className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => deleteKey(key.id)}
+                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      title="Delete permanently"
+                    >
+                      <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>

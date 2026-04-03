@@ -12,6 +12,7 @@ export interface MockNextRequest {
     get: (name: string) => string | null;
   };
   url: string;
+  nextUrl: URL;
 }
 
 export function createMockRequest(
@@ -27,11 +28,14 @@ export function createMockRequest(
     ...options.headers,
   };
 
+  const url = options.url || 'http://localhost/api/test';
+
   return {
     json: () => Promise.resolve(body),
     headers: {
       get: (name: string) => defaultHeaders[name.toLowerCase()] || null,
     },
-    url: options.url || 'http://localhost/api/test',
+    url,
+    nextUrl: new URL(url),
   } as MockNextRequest;
 }
