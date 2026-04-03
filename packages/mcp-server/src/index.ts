@@ -2,8 +2,9 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 import { TaxFormatterClient } from './client.js';
-import { TOOL_DEFINITIONS, handleTool } from './tools.js';
+import { handleTool } from './tools.js';
 
 // Re-export for programmatic usage
 export { TaxFormatterClient, TaxFormatterError } from './client.js';
@@ -27,18 +28,33 @@ const server = new McpServer({
   version: '0.1.0',
 });
 
-// Register tools — cast inputSchema to satisfy SDK's Zod type requirement
-// (runtime JSON Schema works fine, SDK typing is overly strict)
-for (const tool of TOOL_DEFINITIONS) {
-  server.tool(
-    tool.name,
-    tool.description,
-    tool.inputSchema as any,
-    async (args: Record<string, unknown>) => {
-      return handleTool(client, tool.name, args);
-    },
-  );
-}
+// Register tools with Zod schemas (required by MCP SDK v1.x)
+server.tool(
+  'parse_crypto_csv',
+  'Parse a crypto exchange CSV file (Coinbase, Binance, Kraken, etc.) and convert to a tax software format (Koinly, TurboTax, CoinLedger, ZenLedger). Auto-detects the exchange if not specified.',
+  {
+    file_path: z.string().describe('Absolute or relative path to the CSV file'),
+    exchange: z.string().optional().describe('Exchange name (e.g., "coinbase", "binance"). Auto-detected if omitted.'),
+    output_format: z.enum(['koinly', 'turbotax', 'coinledger', 'zenledger']).optional().describe('Output format (default: koinly)'),
+  },
+  async (args) => handleTool(client, 'parse_crypto_csv', args),
+);
+
+server.tool(
+  'parse_bank_statement',
+  'Parse a bank statement PDF (Chase, Mercury, Navy Federal, etc.) and extract transactions as structured data. Auto-detects the bank.',
+  {
+    file_path: z.string().describe('Absolute or relative path to the PDF file'),
+    bank: z.string().optional().describe('Bank name (e.g., "chase", "mercury"). Auto-detected if omitted.'),
+  },
+  async (args) => handleTool(client, 'parse_bank_statement', args),
+);
+
+server.tool(
+  'list_supported_sources',
+  'List all supported crypto exchanges and banks that can be parsed by TaxFormatter.',
+  async () => handleTool(client, 'list_supported_sources', {}),
+);
 
 // Start server
 async function main() {
