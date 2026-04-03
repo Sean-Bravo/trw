@@ -98,6 +98,28 @@ describe('DELETE /api/developer/keys/[keyId]', () => {
     const response = await DELETE(request as any, createParams('key-1'));
     expect(response.status).toBe(500);
   });
+
+  it('permanently deletes a revoked key with ?permanent=true', async () => {
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user-1' } });
+    mockApiKeys.deleteApiKey.mockResolvedValue(true);
+    const request = createMockRequest({}, { url: 'http://localhost/api/developer/keys/key-1?permanent=true' });
+
+    const response = await DELETE(request as any, createParams('key-1'));
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.message).toBe('API key permanently deleted');
+    expect(mockApiKeys.deleteApiKey).toHaveBeenCalledWith('user-1', 'key-1');
+  });
+
+  it('returns 404 when permanently deleting an active key', async () => {
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user-1' } });
+    mockApiKeys.deleteApiKey.mockResolvedValue(false);
+    const request = createMockRequest({}, { url: 'http://localhost/api/developer/keys/key-1?permanent=true' });
+
+    const response = await DELETE(request as any, createParams('key-1'));
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('PATCH /api/developer/keys/[keyId]', () => {

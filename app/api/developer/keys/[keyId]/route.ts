@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { revokeApiKey, renameApiKey } from '@/lib/api-keys';
+import { revokeApiKey, deleteApiKey, renameApiKey } from '@/lib/api-keys';
 
 /**
  * DELETE /api/developer/keys/[keyId]
- * Revoke an API key (soft delete)
+ * Revoke an API key (soft delete), or permanently delete if ?permanent=true (only revoked keys)
  */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ keyId: string }> }
 ) {
   try {
@@ -18,15 +18,24 @@ export async function DELETE(
     }
 
     const { keyId } = await params;
-    const revoked = await revokeApiKey(session.user.id, keyId);
+    const permanent = request.nextUrl.searchParams.get('permanent') === 'true';
 
+    if (permanent) {
+      const deleted = await deleteApiKey(session.user.id, keyId);
+      if (!deleted) {
+        return NextResponse.json({ error: 'Key not found or still active' }, { status: 404 });
+      }
+      return NextResponse.json({ message: 'API key permanently deleted' });
+    }
+
+    const revoked = await revokeApiKey(session.user.id, keyId);
     if (!revoked) {
       return NextResponse.json({ error: 'Key not found or already revoked' }, { status: 404 });
     }
 
     return NextResponse.json({ message: 'API key revoked' });
   } catch (error) {
-    console.error('[Developer Keys] Error revoking key:', error);
+    console.error('[Developer Keys] Error revoking/deleting key:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
