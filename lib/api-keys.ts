@@ -100,7 +100,7 @@ export async function listApiKeys(userId: string): Promise<Omit<DbApiKey, 'key_h
 
 export async function revokeApiKey(userId: string, keyId: string): Promise<boolean> {
   const result = await execute(
-    'UPDATE api_keys SET is_active = false WHERE id = $1 AND user_id = $2 AND is_active = true',
+    'UPDATE api_keys SET is_active = false WHERE id = $1 AND user_id = $2 AND is_active = true RETURNING id',
     [keyId, userId]
   );
   return result.rowCount > 0;
@@ -108,7 +108,7 @@ export async function revokeApiKey(userId: string, keyId: string): Promise<boole
 
 export async function renameApiKey(userId: string, keyId: string, name: string): Promise<boolean> {
   const result = await execute(
-    'UPDATE api_keys SET name = $1 WHERE id = $2 AND user_id = $3',
+    'UPDATE api_keys SET name = $1 WHERE id = $2 AND user_id = $3 RETURNING id',
     [name, keyId, userId]
   );
   return result.rowCount > 0;
@@ -170,7 +170,7 @@ export async function updateKeyTier(
   const result = await execute(
     `UPDATE api_keys
      SET tier = $1, monthly_quota = $2, rate_limit_rpm = $3, stripe_subscription_id = $4
-     WHERE id = $5`,
+     WHERE id = $5 RETURNING id`,
     [tier, tierConfig.monthly_quota, tierConfig.rate_limit_rpm, stripeSubscriptionId ?? null, keyId]
   );
   return result.rowCount > 0;
