@@ -1,4 +1,5 @@
 import { defineDocumentType, makeSource } from 'contentlayer2/source-files'
+import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 
 export const Doc = defineDocumentType(() => ({
@@ -105,6 +106,7 @@ export default makeSource({
   contentDirPath: './content',
   documentTypes: [Doc, Post],
   mdx: {
+    remarkPlugins: [remarkGfm],
     rehypePlugins: [rehypeHighlight],
   },
 })
