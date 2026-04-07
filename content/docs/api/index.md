@@ -149,10 +149,11 @@ console.log(`${data.metadata.transaction_count} transactions parsed`);
 
 ## Rate Limits
 
-Start with the Starter plan — [get your API key here](/dashboard/developer).
+> **Free tier available** — Every account gets a free API key with 10 files/month and 10 requests/minute. No credit card required. [Get your API key here](/dashboard/developer).
 
 | Tier | Files/month | Requests/minute | Price |
 |------|-------------|-----------------|-------|
+| Free | 10 | 10 | $0 |
 | Starter | 100 | 30 | $29/mo |
 | Growth | 500 | 60 | $99/mo |
 | Business | 2,000 | 120 | $249/mo |
