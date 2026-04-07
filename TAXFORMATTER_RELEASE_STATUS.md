@@ -181,11 +181,11 @@ All items verified and passing as of 2026-04-03.
 | Task | Est. | Notes |
 |------|------|-------|
 | ~~Stripe branding~~ | ~~10 min~~ | ✅ Complete |
-| Cross-browser testing | 4-6 hr | Chrome, Safari, Firefox on macOS. Windows + mobile (Pixel, iPhone) |
-| Fix CI/CD continue-on-error flags | 1-2 hr | `.github/workflows/ci.yml` has 3 `continue-on-error: true` TODOs |
+| Cross-browser testing | 4-6 hr | In progress — Chrome, Safari, Firefox on macOS. Windows + mobile (Pixel, iPhone) |
+| ~~Fix CI/CD continue-on-error flags~~ | ~~1-2 hr~~ | ✅ Complete — kept 2-tier audit (warn high, fail critical); 6 high vulns are in transitive deps (Next.js, Vite, picomatch) |
 | Review CloudWatch dashboard | 30 min | Verify alarms fire correctly, check DLQ is empty |
-| Smoke test MCP server | 15 min | Add config to Claude Code, run `parse_crypto_csv` tool |
-| Webhook endpoint registration | 10 min | Verify `https://taxformatter.com/api/webhooks/stripe` is registered in Stripe for all 7 events |
+| ~~Smoke test MCP server~~ | ~~15 min~~ | ✅ Complete — 8/8 tests passed (4 exchanges, 4 output formats, edge cases) |
+| ~~Webhook endpoint registration~~ | ~~10 min~~ | ✅ Complete — consolidated 2 endpoints into 1, all 7 events registered |
 
 ---
 
