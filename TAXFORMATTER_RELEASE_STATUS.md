@@ -192,9 +192,10 @@ All items verified and passing as of 2026-04-03.
 ## 5. Growth & Marketing — P2 (Post-Launch)
 
 ### Content
-- [ ] Publish 5 blog posts (already drafted in repo root as `blog-post-*.md`)
-- [ ] Set up Google Search Console for taxformatter.com
-- [ ] Add structured data (JSON-LD) for API product
+- [x] Publish 5 blog posts — already live as MDX in `content/blog/` (16 total posts published)
+- [ ] Set up Google Search Console for taxformatter.com — guide at `docs/GOOGLE_SEARCH_CONSOLE.md`
+- [x] Add structured data (JSON-LD) for API product — updated Organization, SoftwareApplication, WebSite schemas + added WebAPI schema
+- [ ] Delete root `blog-post-*.md` draft files (already migrated to `content/blog/`)
 
 ### Paid Acquisition
 - [ ] Launch Google Ads campaign (plan: `TaxFormatter_Google_Ads_Campaign_Plan.md`)

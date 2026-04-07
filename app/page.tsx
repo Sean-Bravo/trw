@@ -8,12 +8,14 @@ import TrustEngine from '@/components/marketing/TrustEngine';
 import { FAQ } from '@/components/marketing/FAQ';
 import { Footer } from '@/components/marketing/Footer';
 import { SoftwareApplicationSchema } from '@/components/seo/SoftwareApplicationSchema';
+import { WebAPISchemaComponent } from '@/components/seo/WebAPISchema';
 
 
 export default function Home() {
   return (
     <>
       <SoftwareApplicationSchema />
+      <WebAPISchemaComponent />
       <main className="min-h-screen">
         <HeaderWithSession />
         <APIHero />
