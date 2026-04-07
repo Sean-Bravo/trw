@@ -7,10 +7,12 @@ export function OrganizationSchema() {
     name: 'TaxFormatter',
     url: 'https://taxformatter.com',
     logo: 'https://taxformatter.com/logo-icon.svg',
-    description: 'Cloud-based software that validates, cleans, and formats cryptocurrency transaction CSV files for compatibility with tax and accounting software.',
+    description: 'Developer API platform for parsing crypto exchange CSVs and bank statement PDFs into structured, tax-ready data. REST API, MCP server, and SDKs for Node.js and Python.',
     foundingDate: '2024',
     sameAs: [
-      'https://twitter.com/taxformatter',
+      'https://www.npmjs.com/package/@taxformatter/mcp-server',
+      'https://www.npmjs.com/package/@taxformatter/sdk',
+      'https://pypi.org/project/taxformatter/',
     ],
     contactPoint: {
       '@type': 'ContactPoint',
@@ -33,7 +35,7 @@ export function WebSiteSchema() {
     '@type': 'WebSite',
     name: 'TaxFormatter',
     url: 'https://taxformatter.com',
-    description: 'Fix broken crypto CSV files in 30 seconds. Export to any tax platform.',
+    description: 'Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 13 banks, 4 tax formats. MCP server for AI agents.',
     potentialAction: {
       '@type': 'SearchAction',
       target: 'https://taxformatter.com/docs?search={search_term_string}',
