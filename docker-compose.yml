@@ -1,12 +1,21 @@
 version: '3.8'
 
+# M-18: POSTGRES_PASSWORD must be set in your local .env file (not
+# committed). Refusing to use a default keeps weak passwords out of dev
+# muscle memory and prevents accidental exposure when ports are open
+# on a shared network. SECURITY_AUDIT.md §M-18.
+#
+# Setup:
+#   echo 'POSTGRES_PASSWORD=$(openssl rand -hex 16)' >> .env
+#   docker-compose up
+
 services:
   postgres:
     image: postgres:15-alpine
     container_name: taxformatter-db
     environment:
       POSTGRES_USER: taxformatter
-      POSTGRES_PASSWORD: devpassword
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       POSTGRES_DB: taxreadywallet
     ports:
       - "5432:5432"
