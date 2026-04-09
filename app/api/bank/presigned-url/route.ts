@@ -10,9 +10,13 @@ import { API_GATEWAY_URL } from '@/lib/lambda-client';
  * Generate a presigned URL for bank statement PDF upload
  */
 export async function POST(request: NextRequest) {
-  // Rate limit: 10 uploads per hour
   const identifier = getClientIdentifier(request);
-  const rateLimit = await rateLimiters.fileUpload.check(identifier);
+  const session = await getServerSession(authOptions);
+
+  // M-15: anon callers get a much tighter limit (3/hour) than authed
+  // users (10/hour) to deter proxy-rotated abuse of the free tier.
+  const limiter = session?.user?.id ? rateLimiters.fileUpload : rateLimiters.fileUploadAnon;
+  const rateLimit = await limiter.check(identifier);
   if (!rateLimit.success) {
     return NextResponse.json(
       { error: 'Upload limit reached. Please try again later.' },
@@ -21,8 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Authenticate user (allow anonymous for /upload landing page)
-    const session = await getServerSession(authOptions);
+    // userId comes from session if available, else derived from request IP.
     const userId = session?.user?.id || `anon-${identifier}`;
 
     // Parse request body
