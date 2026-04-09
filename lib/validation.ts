@@ -1,9 +1,28 @@
 import { z } from 'zod';
+import { timingSafeEqual } from 'node:crypto';
 
 /**
  * Input validation and sanitization utilities
  * Use these to validate and sanitize user input before processing
  */
+
+/**
+ * Constant-time string comparison (H-5).
+ *
+ * Use this for any secret comparison: verification codes, 2FA codes,
+ * tokens. JavaScript === short-circuits on the first differing byte,
+ * leaking byte-by-byte timing to network observers.
+ *
+ * Returns false on length mismatch (length itself isn't a meaningful
+ * secret for fixed-length codes).
+ */
+export function constantTimeStringEqual(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const aBuf = Buffer.from(a, 'utf8');
+  const bBuf = Buffer.from(b, 'utf8');
+  if (aBuf.length !== bBuf.length) return false;
+  return timingSafeEqual(aBuf, bBuf);
+}
 
 // Email validation schema
 export const emailSchema = z.string().email().toLowerCase().trim();

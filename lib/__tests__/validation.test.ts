@@ -14,6 +14,7 @@ import {
   validateFileUpload,
   generateCsrfToken,
   validateCsrfToken,
+  constantTimeStringEqual,
 } from '../validation'
 
 describe('validation.ts', () => {
@@ -590,6 +591,30 @@ describe('validation.ts', () => {
 
       const token3 = '🔓'.repeat(32)
       expect(validateCsrfToken(token1, token3)).toBe(false)
+    })
+  })
+
+  describe('constantTimeStringEqual (H-5)', () => {
+    it('returns true for identical strings', () => {
+      expect(constantTimeStringEqual('123456', '123456')).toBe(true)
+    })
+
+    it('returns false for differing strings of equal length', () => {
+      expect(constantTimeStringEqual('123456', '123457')).toBe(false)
+    })
+
+    it('returns false for length mismatch', () => {
+      expect(constantTimeStringEqual('1234', '12345')).toBe(false)
+    })
+
+    it('returns false for non-string inputs', () => {
+      expect(constantTimeStringEqual(null as any, '123456')).toBe(false)
+      expect(constantTimeStringEqual('123456', undefined as any)).toBe(false)
+    })
+
+    it('handles unicode equally', () => {
+      expect(constantTimeStringEqual('🔒x', '🔒x')).toBe(true)
+      expect(constantTimeStringEqual('🔒x', '🔓x')).toBe(false)
     })
   })
 })
