@@ -1,5 +1,6 @@
 import { execute, queryOne, query, DbUser, DbAccount, DbSubscription } from './db';
 import bcrypt from 'bcryptjs';
+import { constantTimeStringEqual } from './validation';
 
 // User response type (without password_hash)
 export interface UserWithSubscription {
@@ -298,7 +299,8 @@ export async function verifyEmailCode(
     return { success: false, error: 'No verification code found' };
   }
 
-  if (user.verification_code !== code) {
+  // H-5: constant-time comparison prevents byte-by-byte timing leak.
+  if (!constantTimeStringEqual(user.verification_code, code)) {
     return { success: false, error: 'Invalid verification code' };
   }
 

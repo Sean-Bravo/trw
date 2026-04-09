@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
 import { verifyBackupCode, verifyToken } from '@/lib/2fa';
 import { verifyPassword } from '@/lib/auth-db';
+import { constantTimeStringEqual } from '@/lib/validation';
 
 interface User2FA {
   id: string;
@@ -63,7 +64,11 @@ export async function POST(request: Request) {
         const now = new Date();
         const expiresAt = new Date(user2fa.two_factor_login_code_expires);
 
-        if (user2fa.two_factor_login_code === code && now < expiresAt) {
+        // H-5: constant-time comparison prevents byte-by-byte timing leak.
+        if (
+          constantTimeStringEqual(user2fa.two_factor_login_code, code) &&
+          now < expiresAt
+        ) {
           valid = true;
           // Clear the used code
           await execute(
