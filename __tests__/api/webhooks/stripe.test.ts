@@ -41,6 +41,9 @@ describe('POST /api/webhooks/stripe', () => {
   beforeEach(() => {
     process.env = { ...OLD_ENV, STRIPE_WEBHOOK_SECRET: 'whsec_test' };
     jest.clearAllMocks();
+    // M-1: idempotency insert succeeds by default (rowCount=1 means
+    // "first time we've seen this event"). Tests can override.
+    mockExecute.mockResolvedValue({ rowCount: 1 });
   });
 
   afterEach(() => {
@@ -83,7 +86,7 @@ describe('POST /api/webhooks/stripe', () => {
         },
       },
     });
-    mockExecute.mockResolvedValue(undefined);
+    mockExecute.mockResolvedValue({ rowCount: 1 });
 
     const req = createRequest('{}', 'sig');
     const res = await POST(req);
@@ -110,7 +113,7 @@ describe('POST /api/webhooks/stripe', () => {
       data: { object: { customer: 'cus_1', id: 'sub_1' } },
     });
     mockQueryOne.mockResolvedValue({ id: 'key-1' });
-    mockExecute.mockResolvedValue(undefined);
+    mockExecute.mockResolvedValue({ rowCount: 1 });
 
     const req = createRequest('{}', 'sig');
     const res = await POST(req);
@@ -143,7 +146,7 @@ describe('POST /api/webhooks/stripe', () => {
       data: { object: { subscription: 'sub_1' } },
     });
     mockQueryOne.mockResolvedValue({ id: 'key-1' });
-    mockExecute.mockResolvedValue(undefined);
+    mockExecute.mockResolvedValue({ rowCount: 1 });
 
     const req = createRequest('{}', 'sig');
     const res = await POST(req);
@@ -161,7 +164,7 @@ describe('POST /api/webhooks/stripe', () => {
       data: { object: { subscription: 'sub_1' } },
     });
     mockQueryOne.mockResolvedValue({ id: 'key-1' });
-    mockExecute.mockResolvedValue(undefined);
+    mockExecute.mockResolvedValue({ rowCount: 1 });
 
     const req = createRequest('{}', 'sig');
     const res = await POST(req);
@@ -172,28 +175,9 @@ describe('POST /api/webhooks/stripe', () => {
     );
   });
 
-  it('skips duplicate events (idempotency)', async () => {
-    const eventId = 'evt_dedup_test_' + Date.now();
-    mockConstructEvent.mockReturnValue({
-      id: eventId,
-      type: 'payment_intent.succeeded',
-      data: { object: { id: 'pi_1' } },
-    });
-
-    const req1 = createRequest('{}', 'sig');
-    const res1 = await POST(req1);
-    expect(res1.status).toBe(200);
-    const data1 = await res1.json();
-    expect(data1.received).toBe(true);
-    expect(data1.duplicate).toBeUndefined();
-
-    // Same event again
-    const req2 = createRequest('{}', 'sig');
-    const res2 = await POST(req2);
-    expect(res2.status).toBe(200);
-    const data2 = await res2.json();
-    expect(data2.duplicate).toBe(true);
-  });
+  // Old in-memory dedup test removed — superseded by the M-1
+  // describe block below which exercises the Postgres-backed
+  // ON CONFLICT DO NOTHING idempotency.
 
   it('handles payment_intent.succeeded', async () => {
     mockConstructEvent.mockReturnValue({
@@ -223,6 +207,39 @@ describe('POST /api/webhooks/stripe', () => {
     const res = await POST(req);
     expect(res.status).toBe(200);
     expect((await res.json()).received).toBe(true);
+  });
+
+  describe('M-1: idempotency', () => {
+    it('returns duplicate=true when the event was already processed', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_dup_1',
+        type: 'payment_intent.succeeded',
+        data: { object: { id: 'pi_1' } },
+      });
+      // ON CONFLICT DO NOTHING → 0 rows inserted = already processed.
+      mockExecute.mockResolvedValueOnce({ rowCount: 0 });
+
+      const req = createRequest('{}', 'sig');
+      const res = await POST(req);
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.duplicate).toBe(true);
+    });
+
+    it('returns 500 when the idempotency insert errors so Stripe retries', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_idem_err_1',
+        type: 'payment_intent.succeeded',
+        data: { object: { id: 'pi_1' } },
+      });
+      mockExecute.mockRejectedValueOnce(new Error('connection refused'));
+
+      const req = createRequest('{}', 'sig');
+      const res = await POST(req);
+
+      expect(res.status).toBe(500);
+    });
   });
 
   it('returns 500 when handler throws', async () => {

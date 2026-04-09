@@ -7,10 +7,6 @@ import { API_TIERS, type ApiTier } from '@/lib/api-keys'
 // Disable body parsing for webhooks
 export const runtime = 'nodejs'
 
-// Event idempotency — prevent processing the same event twice
-const processedEvents = new Set<string>()
-const MAX_PROCESSED_EVENTS = 10_000
-
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
@@ -47,14 +43,35 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Event idempotency check
-  if (processedEvents.has(event.id)) {
-    return NextResponse.json({ received: true, duplicate: true })
+  // M-1: Persistent webhook idempotency.
+  //
+  // The previous Set<string> evaporated on cold start and didn't share
+  // across concurrent warm instances, allowing Stripe retries to
+  // double-apply tier upgrades and duplicate billing events.
+  //
+  // INSERT ... ON CONFLICT DO NOTHING gives atomic check-and-set: only
+  // one concurrent handler wins; the loser short-circuits with
+  // duplicate=true. SECURITY_AUDIT.md §M-1
+  try {
+    const claim = await execute(
+      `INSERT INTO processed_webhook_events (id, event_type)
+       VALUES ($1, $2)
+       ON CONFLICT (id) DO NOTHING`,
+      [event.id, event.type]
+    )
+    if (claim.rowCount === 0) {
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+  } catch (err) {
+    // If the idempotency insert fails, it's safer to return 500 so
+    // Stripe retries than to process the event without a duplicate
+    // guard. Returning 200 here would silently process duplicates.
+    console.error('[webhook] idempotency insert failed:', err)
+    return NextResponse.json(
+      { error: 'Idempotency store unavailable' },
+      { status: 500 }
+    )
   }
-  if (processedEvents.size >= MAX_PROCESSED_EVENTS) {
-    processedEvents.clear()
-  }
-  processedEvents.add(event.id)
 
   // Handle the event
   try {
