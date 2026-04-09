@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Pre-commit secret detection (Ongoing-1)
+#
+# Blocks commits that contain obvious credential patterns. Not a
+# replacement for proper SCA tooling, but it catches the same class
+# of leak that put live secrets into .env.local in the first place
+# (see SECURITY_AUDIT.md §C-1 through C-4).
+#
+# Install once:
+#   ln -s ../../scripts/git-hooks/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# Bypass (only when you know what you're doing):
+#   git commit --no-verify
+
+set -euo pipefail
+
+# Files we never want to ship, period.
+FORBIDDEN_FILES=(
+  ".env"
+  ".env.local"
+  ".env.production"
+  ".env.development"
+  ".env.sentry-build-plugin"
+  ".mcp.json"
+)
+
+# Patterns that match common credential formats anywhere in a diff.
+# Tuned to high-precision strings — minimizes false positives.
+SECRET_PATTERNS=(
+  # AWS
+  'AKIA[0-9A-Z]{16}'
+  'aws_secret_access_key\s*=\s*["'\'']?[A-Za-z0-9/+=]{40}'
+  # Stripe
+  'sk_live_[0-9a-zA-Z]{24,}'
+  'rk_live_[0-9a-zA-Z]{24,}'
+  'whsec_[0-9a-zA-Z]{24,}'
+  # OpenAI / Anthropic / Gemini
+  'sk-ant-api03-[A-Za-z0-9_\-]{80,}'
+  'sk-[A-Za-z0-9]{48}'
+  'AIza[0-9A-Za-z_\-]{35}'
+  # Google OAuth
+  'GOCSPX-[A-Za-z0-9_\-]{20,}'
+  # GitHub
+  'ghp_[A-Za-z0-9]{36}'
+  'gho_[A-Za-z0-9]{36}'
+  # npm
+  'npm_[A-Za-z0-9]{36}'
+  # Sentry
+  'sntrys_[A-Za-z0-9]{40,}'
+  # Resend
+  're_[A-Za-z0-9]{20,}'
+  # Generic high-entropy patterns we know exist on this team's services
+  'tf_live_[a-f0-9]{32,}'
+  # NEXTAUTH_SECRET assigned a non-empty value (catches the .env.local pattern)
+  'NEXTAUTH_SECRET\s*=\s*["'\'']?[A-Za-z0-9+/]{20,}'
+  # Postgres connection strings with embedded password
+  'postgres(ql)?://[^:]+:[^@]+@'
+)
+
+failed=0
+
+# Check for forbidden filenames among staged files.
+staged_files=$(git diff --cached --name-only --diff-filter=ACM)
+for f in $staged_files; do
+  for forbidden in "${FORBIDDEN_FILES[@]}"; do
+    if [[ "$f" == "$forbidden" ]]; then
+      echo "✗ Refusing to commit forbidden file: $f"
+      failed=1
+    fi
+  done
+done
+
+# Scan staged content for secret patterns.
+# Only inspect added lines (those starting with '+', not removed '-').
+if [[ -n "$staged_files" ]]; then
+  diff_content=$(git diff --cached -U0 -- $staged_files | grep -E '^\+' | grep -vE '^\+\+\+' || true)
+  if [[ -n "$diff_content" ]]; then
+    for pattern in "${SECRET_PATTERNS[@]}"; do
+      matches=$(echo "$diff_content" | grep -E "$pattern" || true)
+      if [[ -n "$matches" ]]; then
+        echo "✗ Possible secret detected (pattern: $pattern):"
+        echo "$matches" | head -3 | sed 's/^/    /'
+        failed=1
+      fi
+    done
+  fi
+fi
+
+if [[ $failed -ne 0 ]]; then
+  echo ""
+  echo "Pre-commit blocked. If this is a false positive, you can bypass with:"
+  echo "    git commit --no-verify"
+  echo ""
+  echo "But please verify the match first — leaked secrets cost real money."
+  exit 1
+fi
+
+exit 0
