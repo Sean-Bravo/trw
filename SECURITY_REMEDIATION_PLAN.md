@@ -62,7 +62,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | H-6   | Add rate limit to `/api/auth/verify`                                | [x]    |
 | H-7   | Add account lockout after 5 failed logins                           | [x]    |
 | H-8   | Remove `unsafe-eval` from CSP, nonce inline scripts                 | [x] partial — `unsafe-eval` removed; nonce-based inline scripts is post-launch |
-| H-9   | Sanitize error text at the Python source                            | [ ]    |
+| H-9   | Sanitize error text at the Python source                            | [x]    |
 | H-10  | Set `sendDefaultPii: false`, drop session replays in 3 Sentry configs | [ ]  |
 | H-11  | CORS allowlist on Lambda handlers (replace `*`)                     | [ ]    |
 | H-13  | Refactor dynamic UPDATE pattern in `jobs-db.ts`                     | [ ]    |

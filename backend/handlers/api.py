@@ -15,6 +15,15 @@ import uuid
 from io import BytesIO
 from typing import Any, Dict, Optional
 
+# H-9: see backend/services/safe_errors.py — sanitizes error messages
+# before they're returned to API clients.
+_services_path = os.path.join(os.path.dirname(__file__), "services")
+if not os.path.exists(_services_path):
+    _services_path = os.path.join(os.path.dirname(__file__), "..", "services")
+if _services_path not in sys.path:
+    sys.path.insert(0, _services_path)
+from safe_errors import safe_error_message  # noqa: E402
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -259,11 +268,11 @@ def _parse_crypto(file_bytes: bytes, body: Dict, filename: str) -> Dict:
 
                 records, convert_warnings = convert_records(records, output_format)
             except Exception as e:
-                logger.error(f"Format conversion failed: {e}")
+                logger.exception("Format conversion failed")
                 return {
                     "status": "error",
                     "code": "parse_error",
-                    "message": f"Parsed successfully but format conversion to {output_format} failed: {str(e)}",
+                    "message": f"Parsed successfully but format conversion to {output_format} failed: {safe_error_message(e)}",
                     "source_type": "crypto_exchange",
                 }
 
@@ -296,7 +305,8 @@ def _parse_crypto(file_bytes: bytes, body: Dict, filename: str) -> Dict:
         return {
             "status": "error",
             "code": "internal_error",
-            "message": f"Internal processing error: {str(e)}",
+            "message": "An internal error occurred while parsing the file.",
+            "detail": safe_error_message(e),
             "source_type": "crypto_exchange",
         }
 
@@ -350,7 +360,8 @@ def _parse_bank(file_bytes: bytes, body: Dict, filename: str) -> Dict:
         return {
             "status": "error",
             "code": "internal_error",
-            "message": f"Internal processing error: {str(e)}",
+            "message": "An internal error occurred while parsing the file.",
+            "detail": safe_error_message(e),
             "source_type": "bank_statement",
         }
 
@@ -399,7 +410,7 @@ def handle_v1_sources(event: Dict) -> Dict:
 
     except Exception as e:
         logger.exception("Failed to list sources")
-        return response(500, {"status": "error", "code": "internal_error", "message": str(e)})
+        return response(500, {"status": "error", "code": "internal_error", "message": "Internal error", "detail": safe_error_message(e)})
 
 
 # =============================================================================
