@@ -84,7 +84,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | M-8   | Bump 2FA backup codes to 48 bits                             | [x]    |
 | M-9   | Scrub verbose Python exception messages                      | [x] (covered by H-9 commit `4dc9191`) |
 | M-10  | Add CSV formula injection sanitizer                          | [x]    |
-| M-11  | Pin `pdfplumber` version, generate lockfile, add `pip-audit` | [ ]    |
+| M-11  | Pin `pdfplumber` version, generate lockfile, add `pip-audit` | [x] (3 requirements files + CI step) |
 | M-12  | Require auth on `/api/uploads/[uploadId]/confirm`            | [ ]    |
 | M-13  | Tighten presigned S3 URL expiry to 5–15 minutes              | [ ]    |
 | M-14  | Add `API_GATEWAY_URL` allowlist                              | [ ]    |
