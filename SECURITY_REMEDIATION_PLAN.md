@@ -117,12 +117,12 @@ These enable real user harm: financial loss, PII theft, account takeover.
 
 ## Ongoing / Process
 
-- [ ] Add `detect-secrets` (or `git-secrets`) pre-commit hook
-- [ ] Add `pip-audit` to CI; fail builds on high/critical
-- [ ] Add `npm audit --audit-level=high` to CI (currently warns only — see CI)
-- [ ] Document security review in `docs/SECURITY.md`
-- [ ] Schedule quarterly re-audit using same six-agent methodology
-- [ ] Configure Sentry data-scrubbing rules at the project level
+- [x] Pre-commit secret detection hook (`scripts/git-hooks/pre-commit`, install via `npm run hooks:install`)
+- [x] `pip-audit` in CI fails on any vuln (Lambda requirements pinned per M-11)
+- [x] `npm audit` in CI fails on critical; warns on high (5 transitive vulns blocked on upstream patches)
+- [x] [docs/SECURITY.md](docs/SECURITY.md) — security process and coding rules
+- [x] [docs/SECURITY_REVIEW_CADENCE.md](docs/SECURITY_REVIEW_CADENCE.md) — quarterly re-audit schedule + monthly/weekly/yearly cadences
+- [ ] Configure Sentry data-scrubbing rules at the project level (post-launch — Sentry dashboard work)
 
 ---
 
