@@ -48,7 +48,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | H-2   | Require auth + ownership in `/api/bank/job/[jobId]/download`        | 1     | [x]    |
 | H-3   | Add ownership check in `/api/bank/job/[jobId]`                      | 1     | [x]    |
 | H-12  | Verify auth columns exist; add migration `010_add_auth_columns.sql` | 1 SQL | [x] (note: 009 used for H-7) |
-| H-15  | Fix open redirect in NextAuth `redirect` callback                   | 1     | [ ]    |
+| H-15  | Fix open redirect in NextAuth `redirect` callback                   | 1     | [x]    |
 | M-2   | Pass `authOptions` to `getServerSession()` in customer-portal       | 1     | [ ]    |
 | M-3   | Cross-verify Stripe price ID in webhook (companion to H-1)          | 1     | [ ]    |
 
