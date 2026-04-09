@@ -106,8 +106,8 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | L-3   | HSTS preload — already done ✓                                | ✓      |
 | L-4   | Bump verification codes to 8-char alphanumeric               | [x] partial — switched Math.random → crypto.randomInt; 8-char alphanumeric deferred (UI rework) |
 | L-5   | Move Gemini API key from query string to header              | [x]    |
-| L-6   | Remove dead `MAX_PROCESSED_EVENTS` after M-1                 | [ ]    |
-| L-7   | Use `make_interval()` in usage query                         | [ ]    |
+| L-6   | Remove dead `MAX_PROCESSED_EVENTS` after M-1                 | ✓ verified — removed as part of M-1 commit `3244f65` |
+| L-7   | Use `make_interval()` in usage query                         | [x]    |
 | L-8   | `X-Powered-By` removed — already done ✓                      | ✓      |
 | L-9   | Verify `productionBrowserSourceMaps: false`                  | [ ]    |
 | L-10  | OAuth state default — accepted as-is                         | ✓      |
