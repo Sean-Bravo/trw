@@ -66,7 +66,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | H-10  | Set `sendDefaultPii: false`, drop session replays in 3 Sentry configs | [x]  |
 | H-11  | CORS allowlist on Lambda handlers (replace `*`)                     | [x]    |
 | H-13  | Refactor dynamic UPDATE pattern in `jobs-db.ts`                     | [x]    |
-| H-14  | Fix hardcoded path in `run-migration.mjs`                           | [ ]    |
+| H-14  | Fix hardcoded path in `run-migration.mjs`                           | [x]    |
 | H-4   | Add CSRF validation middleware to state-changing routes             | [x]    |
 | M-1   | Move webhook idempotency to Postgres                                | [ ]    |
 | M-7   | Add rate limit to `/api/auth/2fa/login-verify`                      | [ ]    |
