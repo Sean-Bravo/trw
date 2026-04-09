@@ -418,8 +418,22 @@ export async function createPasswordResetToken(
 }
 
 /**
- * Verify password reset token and return user
+ * Verify password reset token and return user.
+ *
+ * M-6: when the user lands on the reset page (the GET that calls this
+ * function), shrink the token's expiry window to 10 minutes from now.
+ * That gives a legitimate user enough time to type a new password but
+ * makes the token useless to an attacker who intercepts it later in
+ * email forwarding, referrer headers, or shared URL caches.
+ *
+ * This is "near-single-use" without requiring frontend changes. A truly
+ * single-use design (rotate to a one-time follow-up token returned to
+ * the browser) is tracked as a future improvement.
+ *
+ * SECURITY_AUDIT.md §M-6
  */
+const RESET_TOKEN_VIEW_WINDOW_MIN = 10;
+
 export async function verifyResetToken(
   token: string
 ): Promise<{ success: boolean; userId?: string; email?: string; error?: string }> {
@@ -441,6 +455,18 @@ export async function verifyResetToken(
   if (!user.reset_token_expires || new Date() > user.reset_token_expires) {
     return { success: false, error: 'Reset link has expired' };
   }
+
+  // M-6: shrink the expiry window. Only shrinks (never extends) so
+  // calling verifyResetToken multiple times can't keep the window open.
+  await execute(
+    `UPDATE users
+     SET reset_token_expires = LEAST(
+       reset_token_expires,
+       now() + ($2 || ' minutes')::interval
+     )
+     WHERE id = $1`,
+    [user.id, String(RESET_TOKEN_VIEW_WINDOW_MIN)]
+  );
 
   return { success: true, userId: user.id, email: user.email };
 }
