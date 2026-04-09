@@ -15,20 +15,31 @@ Sentry.init({
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 1,
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
 
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
+  // H-10: do not record full sessions in production. Background-record
+  // only sessions that hit an error.
+  replaysSessionSampleRate: 0,
+  replaysOnErrorSampleRate: 0.1,
 
-  // Define how likely Replay events are sampled when an error occurs.
-  replaysOnErrorSampleRate: 1.0,
+  // H-10: do not ship default PII (IP, cookies, headers, request bodies)
+  // to Sentry. The leaked Sentry token (C-4) plus default-PII would have
+  // exposed every user email + IP. See SECURITY_AUDIT.md §H-10.
+  sendDefaultPii: false,
 
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  beforeSend(event) {
+    // Belt-and-suspenders: drop a few common credential carriers in case
+    // sendDefaultPii flips back to true accidentally.
+    if (event.request?.headers) {
+      delete event.request.headers["authorization"];
+      delete event.request.headers["cookie"];
+      delete event.request.headers["x-api-key"];
+    }
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.ip_address;
+    }
+    return event;
+  },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
