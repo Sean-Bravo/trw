@@ -59,7 +59,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | ID    | Fix                                                                 | Status |
 | ----- | ------------------------------------------------------------------- | ------ |
 | H-5   | Use `crypto.timingSafeEqual` for verification/2FA codes             | [x]    |
-| H-6   | Add rate limit to `/api/auth/verify`                                | [ ]    |
+| H-6   | Add rate limit to `/api/auth/verify`                                | [x]    |
 | H-7   | Add account lockout after 5 failed logins                           | [ ]    |
 | H-8   | Remove `unsafe-eval` from CSP, nonce inline scripts                 | [ ]    |
 | H-9   | Sanitize error text at the Python source                            | [ ]    |
