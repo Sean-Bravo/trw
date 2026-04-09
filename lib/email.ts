@@ -7,10 +7,21 @@ function getTransporter() {
   const user = process.env['SMTP_USER'];
   const pass = process.env['SMTP_PASSWORD'];
 
-  console.log('[Email] SMTP Config:', { host, port, user, hasPassword: !!pass });
+  // M-17: never log SMTP host/port/user. Even without the password,
+  // mail-infrastructure details are info disclosure that ends up in
+  // Vercel logs and Sentry breadcrumbs. Guard behind a debug flag.
+  // SECURITY_AUDIT.md §M-17
+  if (process.env['DEBUG_EMAIL'] === '1') {
+    console.log('[Email] SMTP Config:', { host, port, user, hasPassword: !!pass });
+  }
 
   if (!host || !user || !pass) {
-    console.error('[Email] SMTP configuration missing:', { host: !!host, user: !!user, pass: !!pass });
+    // Log only which keys are missing, not their values.
+    console.error('[Email] SMTP configuration missing:', {
+      host: !!host,
+      user: !!user,
+      pass: !!pass,
+    });
     throw new Error('SMTP configuration missing. Set SMTP_HOST, SMTP_USER, and SMTP_PASSWORD.');
   }
 
