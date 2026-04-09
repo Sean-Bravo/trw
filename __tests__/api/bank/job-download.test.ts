@@ -2,8 +2,23 @@
  * Tests for GET /api/bank/job/[jobId]/download route
  */
 
+jest.mock('next-auth', () => ({
+  getServerSession: jest.fn(),
+}));
+jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
+  authOptions: {},
+}));
+jest.mock('@/lib/db', () => ({
+  queryOne: jest.fn(),
+}));
+
 import { GET } from '@/app/api/bank/job/[jobId]/download/route';
 import { createMockRequest } from '../../utils/mock-request';
+import { getServerSession } from 'next-auth';
+import { queryOne } from '@/lib/db';
+
+const mockGetServerSession = getServerSession as jest.Mock;
+const mockQueryOne = queryOne as jest.Mock;
 
 function createContext(jobId: string) {
   return { params: Promise.resolve({ jobId }) };
@@ -14,6 +29,9 @@ describe('GET /api/bank/job/[jobId]/download', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // default: authenticated user owns the job
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user-1' } });
+    mockQueryOne.mockResolvedValue({ user_id: 'user-1' });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -90,6 +108,35 @@ describe('GET /api/bank/job/[jobId]/download', () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe('Missing jobId');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('H-2: authentication and ownership', () => {
+    it('returns 401 when no session', async () => {
+      mockGetServerSession.mockResolvedValue(null);
+      const request = createMockRequest({});
+      const response = await GET(request as any, createContext('job-1'));
+
+      expect(response.status).toBe(401);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns 403 when job belongs to a different user', async () => {
+      mockQueryOne.mockResolvedValue({ user_id: 'someone-else' });
+      const request = createMockRequest({});
+      const response = await GET(request as any, createContext('victim-job'));
+
+      expect(response.status).toBe(403);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns 403 when job does not exist', async () => {
+      mockQueryOne.mockResolvedValue(null);
+      const request = createMockRequest({});
+      const response = await GET(request as any, createContext('no-such-job'));
+
+      expect(response.status).toBe(403);
       expect(global.fetch).not.toHaveBeenCalled();
     });
   });
