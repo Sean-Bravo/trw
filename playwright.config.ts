@@ -1,4 +1,12 @@
 import { defineConfig, devices } from '@playwright/test'
+import { config as loadEnv } from 'dotenv'
+import path from 'path'
+
+// M-19: load test credentials from .env.test.local (gitignored)
+// rather than .env.local where production secrets live. Co-locating
+// test creds with prod secrets means a leaked .env.local exposes both.
+// SECURITY_AUDIT.md §M-19
+loadEnv({ path: path.resolve(__dirname, '.env.test.local'), override: false })
 
 /**
  * See https://playwright.dev/docs/test-configuration.
