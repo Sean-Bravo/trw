@@ -64,7 +64,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | H-8   | Remove `unsafe-eval` from CSP, nonce inline scripts                 | [x] partial — `unsafe-eval` removed; nonce-based inline scripts is post-launch |
 | H-9   | Sanitize error text at the Python source                            | [x]    |
 | H-10  | Set `sendDefaultPii: false`, drop session replays in 3 Sentry configs | [x]  |
-| H-11  | CORS allowlist on Lambda handlers (replace `*`)                     | [ ]    |
+| H-11  | CORS allowlist on Lambda handlers (replace `*`)                     | [x]    |
 | H-13  | Refactor dynamic UPDATE pattern in `jobs-db.ts`                     | [ ]    |
 | H-14  | Fix hardcoded path in `run-migration.mjs`                           | [ ]    |
 | H-4   | Add CSRF validation middleware to state-changing routes             | [x]    |

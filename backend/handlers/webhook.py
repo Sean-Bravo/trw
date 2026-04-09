@@ -57,13 +57,40 @@ def get_secrets() -> Dict[str, str]:
         return {}
 
 
+### H-11: CORS allowlist (mirrors api.py)
+ALLOWED_ORIGINS = {
+    "https://taxformatter.com",
+    "https://www.taxformatter.com",
+    "https://app.taxformatter.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+}
+DEFAULT_ORIGIN = "https://taxformatter.com"
+
+# Per-invocation request origin. Lambda runs one event per process.
+_current_request_origin: Optional[str] = None
+
+
+def _set_request_origin(event: Dict) -> None:
+    global _current_request_origin
+    headers = event.get("headers") or {}
+    _current_request_origin = headers.get("origin") or headers.get("Origin")
+
+
+def _allowed_origin() -> str:
+    if _current_request_origin and _current_request_origin in ALLOWED_ORIGINS:
+        return _current_request_origin
+    return DEFAULT_ORIGIN
+
+
 def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dict:
     """Generate API Gateway response."""
     default_headers = {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Origin": _allowed_origin(),
+        "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
+        "Vary": "Origin",
     }
     if headers:
         default_headers.update(headers)
@@ -1066,6 +1093,7 @@ def handler(event: Dict, context: Any) -> Dict:
     Main Lambda handler - routes requests to appropriate handlers.
     """
     logger.info(f"Received event: {json.dumps(event)}")
+    _set_request_origin(event)  # H-11
 
     # Handle OPTIONS preflight
     http_method = event.get("requestContext", {}).get("http", {}).get("method", "")
