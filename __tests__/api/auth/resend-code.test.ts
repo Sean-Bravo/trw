@@ -97,8 +97,8 @@ describe('POST /api/auth/resend-code', () => {
     });
   });
 
-  describe('Already Verified', () => {
-    it('rejects if already verified', async () => {
+  describe('M-4: Already Verified — return generic 200, no enumeration', () => {
+    it('returns generic 200 (not 400) so attackers cannot enumerate verified emails', async () => {
       mockAuthDb.isEmailVerified.mockResolvedValue(true);
 
       const request = createMockRequest({ email: 'verified@example.com' });
@@ -106,8 +106,10 @@ describe('POST /api/auth/resend-code', () => {
       const response = await POST(request as any);
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.error).toContain('already verified');
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      // Generic message — does not reveal verification state
+      expect(data.message).not.toContain('already verified');
     });
 
     it('does not send email if already verified', async () => {
@@ -145,51 +147,44 @@ describe('POST /api/auth/resend-code', () => {
     });
   });
 
-  describe('Code Update Failure', () => {
-    it('returns error if code update fails', async () => {
+  describe('M-4: Failure modes return generic 200 — no leakage', () => {
+    it('returns generic 200 if code update fails server-side', async () => {
       mockAuthDb.updateVerificationCode.mockResolvedValue({
         success: false,
         error: 'Failed to update code',
       });
 
       const request = createMockRequest({ email: 'test@example.com' });
-
       const response = await POST(request as any);
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.error).toBeDefined();
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
     });
-  });
 
-  describe('Email Sending Failure', () => {
-    it('returns error if email fails to send', async () => {
+    it('returns generic 200 if email fails to send', async () => {
       mockEmail.sendVerificationEmail.mockResolvedValue({
         success: false,
         error: 'SMTP error',
       });
 
       const request = createMockRequest({ email: 'test@example.com' });
-
       const response = await POST(request as any);
       const data = await response.json();
 
-      expect(response.status).toBe(500);
-      expect(data.error).toContain('Failed');
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
     });
-  });
 
-  describe('Error Handling', () => {
-    it('returns 500 on database error', async () => {
+    it('returns generic 200 even on a thrown DB error', async () => {
       mockAuthDb.isEmailVerified.mockRejectedValue(new Error('Database error'));
 
       const request = createMockRequest({ email: 'test@example.com' });
-
       const response = await POST(request as any);
       const data = await response.json();
 
-      expect(response.status).toBe(500);
-      expect(data.error).toBe('Internal server error');
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
     });
   });
 });

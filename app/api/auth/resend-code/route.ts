@@ -3,12 +3,33 @@ import { validateEmail } from '@/lib/validation';
 import { updateVerificationCode, isEmailVerified, findUserByEmail } from '@/lib/auth-db';
 import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
 
+// M-4: this endpoint is a user-enumeration vector in two ways:
+//   1. Different responses for "user exists" vs "doesn't exist"
+//   2. Different response *times* (existing user does DB write + email
+//      send → ~500ms; nonexistent user returns in <50ms).
+//
+// Fix: every successful branch returns the SAME generic 200, and we
+// pad the no-op branch with a randomized delay so the timing channel
+// is closed too.
+//
+// SECURITY_AUDIT.md §M-4
+
+const GENERIC_SUCCESS = {
+  success: true,
+  message: 'If an unverified account exists for that email, a new code has been sent.',
+};
+
+function padDelay(): Promise<void> {
+  // 300-700ms — wide enough to mask DB write + email send latency.
+  const ms = 300 + Math.floor(Math.random() * 400);
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email } = body;
 
-    // Validate email
     const emailValidation = validateEmail(email);
     if (!emailValidation.success || !emailValidation.data) {
       return NextResponse.json(
@@ -19,64 +40,42 @@ export async function POST(request: NextRequest) {
 
     const validatedEmail = emailValidation.data;
 
-    // Check if already verified
-    const verified = await isEmailVerified(validatedEmail);
-    if (verified) {
-      return NextResponse.json(
-        { error: 'Email already verified' },
-        { status: 400 }
-      );
+    // Either branch (no user, already verified) → no-op + pad delay.
+    const [verified, user] = await Promise.all([
+      isEmailVerified(validatedEmail),
+      findUserByEmail(validatedEmail),
+    ]);
+
+    if (!user || verified) {
+      await padDelay();
+      return NextResponse.json(GENERIC_SUCCESS, { status: 200 });
     }
 
-    // Get user for name
-    const user = await findUserByEmail(validatedEmail);
-    if (!user) {
-      // Don't reveal if user exists for security
-      return NextResponse.json(
-        { success: true, message: 'If the email exists, a new code has been sent.' },
-        { status: 200 }
-      );
-    }
-
-    // Generate new code
+    // Active user → generate + send a new code.
     const newCode = generateVerificationCode();
-
-    // Update code in database
     const updateResult = await updateVerificationCode(validatedEmail, newCode);
     if (!updateResult.success) {
-      return NextResponse.json(
-        { error: updateResult.error || 'Failed to generate new code' },
-        { status: 400 }
-      );
+      // Server-side problem; surface generically without leaking enum bits.
+      console.error('[Auth] resend updateVerificationCode failed:', updateResult.error);
+      return NextResponse.json(GENERIC_SUCCESS, { status: 200 });
     }
 
-    // Send new verification email
     const emailResult = await sendVerificationEmail(
       validatedEmail,
       newCode,
       user.name || undefined
     );
-
     if (!emailResult.success) {
       console.error('[Auth] Failed to resend verification email:', emailResult.error);
-      return NextResponse.json(
-        { error: 'Failed to send verification email. Please try again.' },
-        { status: 500 }
-      );
+      // Same generic response so timing/status doesn't leak.
+      return NextResponse.json(GENERIC_SUCCESS, { status: 200 });
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Verification code sent. Please check your email.',
-      },
-      { status: 200 }
-    );
+    return NextResponse.json(GENERIC_SUCCESS, { status: 200 });
   } catch (error) {
     console.error('[Auth] Resend code error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    // Pad and return generic 200 — never leak via 500 timing either.
+    await padDelay();
+    return NextResponse.json(GENERIC_SUCCESS, { status: 200 });
   }
 }
