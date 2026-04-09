@@ -27,6 +27,7 @@ if not os.path.exists(services_path):
 sys.path.insert(0, services_path)
 
 from safe_errors import safe_error_message  # noqa: E402
+from csv_safety import sanitize_csv_records  # noqa: E402
 
 # Configure logging
 logger = logging.getLogger()
@@ -173,7 +174,8 @@ def process_csv(file_data: bytes, filename: str, exchange_name: str = None) -> D
             fieldnames = list(records[0].keys())
             writer = csv.DictWriter(output, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(records)
+            # M-10: scrub formula injection vectors before writing
+            writer.writerows(sanitize_csv_records(records))
 
         csv_content = output.getvalue()
 
