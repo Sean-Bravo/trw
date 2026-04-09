@@ -26,6 +26,8 @@ if not os.path.exists(services_path):
     services_path = os.path.join(os.path.dirname(__file__), "..", "services")
 sys.path.insert(0, services_path)
 
+from safe_errors import safe_error_message  # noqa: E402
+
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -190,18 +192,18 @@ def process_csv(file_data: bytes, filename: str, exchange_name: str = None) -> D
         }
 
     except ImportError as e:
-        logger.error(f"Failed to import engine: {e}")
+        logger.exception("Failed to import engine")
         return {
             "success": False,
-            "error": f"Engine import error: {e}",
-            "errors": [{"message": str(e)}],
+            "error": "Engine unavailable",
+            "errors": [{"message": safe_error_message(e)}],
         }
     except Exception as e:
-        logger.error(f"Processing error: {e}")
+        logger.exception("Processing error")
         return {
             "success": False,
-            "error": str(e),
-            "errors": [{"message": str(e)}],
+            "error": safe_error_message(e),
+            "errors": [{"message": safe_error_message(e)}],
         }
 
 
@@ -307,10 +309,10 @@ def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
             "error": "AI insights not available",
         }
     except Exception as e:
-        logger.error(f"Error generating AI insights: {e}")
+        logger.exception("Error generating AI insights")
         return {
             "success": False,
-            "error": str(e),
+            "error": safe_error_message(e),
         }
 
 
@@ -433,18 +435,19 @@ def process_message(message: Dict) -> Dict[str, Any]:
             }
 
     except Exception as e:
-        logger.error(f"Job {job_id} failed with exception: {e}")
+        logger.exception(f"Job {job_id} failed")
+        safe_msg = safe_error_message(e)
 
-        # Upload error
+        # Upload error (sanitized — flows back to frontend job.error)
         upload_error(RESULTS_BUCKET, job_id, {
-            "error": str(e),
-            "errors": [{"message": str(e)}],
+            "error": safe_msg,
+            "errors": [{"message": safe_msg}],
         })
 
         return {
             "success": False,
             "job_id": job_id,
-            "error": str(e),
+            "error": safe_msg,
         }
 
 
