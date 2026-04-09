@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
   // Remove X-Powered-By header for security
   poweredByHeader: false,
 
+  // L-9: explicitly disable browser source maps in production. Default
+  // is false but pinning it explicitly so the policy is visible in git
+  // and a future Next.js upgrade can't silently flip it. Sentry source
+  // maps are uploaded server-side via withSentryConfig — those still
+  // work for stack traces. SECURITY_AUDIT.md §L-9
+  productionBrowserSourceMaps: false,
+
   // Compression for better performance
   compress: true,
 
