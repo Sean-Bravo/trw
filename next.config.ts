@@ -41,8 +41,12 @@ const nextConfig: NextConfig = {
             value: "nosniff",
           },
           {
+            // M-21: strict-origin-when-cross-origin suppresses the
+            // referrer entirely when downgrading from HTTPS to HTTP,
+            // and limits cross-origin referrers to the origin (no path).
+            // SECURITY_AUDIT.md §M-21
             key: "Referrer-Policy",
-            value: "origin-when-cross-origin",
+            value: "strict-origin-when-cross-origin",
           },
           {
             key: "Permissions-Policy",
