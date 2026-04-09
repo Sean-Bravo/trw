@@ -88,14 +88,26 @@ describe('Pricing Component (API Tiers)', () => {
   });
 
   describe('CTA Buttons', () => {
-    it('all tiers link to signup', () => {
+    // L-1: tier CTAs are buttons that stash sessionStorage and
+    // router.push('/signup'), no longer <Link href='/signup?api_tier=X'>.
+    // We assert the buttons render with the right labels and that they
+    // don't leak the tier through the URL.
+    it('renders three tier CTA buttons (no api_tier in URL)', () => {
       render(<Pricing />);
+      // The three tier CTAs are Starter / Growth / Business.
+      const ctaLabels = ['Get Started', 'Start Building', 'Get Started'];
+      const buttons = screen.getAllByRole('button');
+      const ctaButtons = buttons.filter((b) =>
+        ctaLabels.includes(b.textContent?.trim() || ''),
+      );
+      expect(ctaButtons.length).toBeGreaterThanOrEqual(3);
+
+      // No <a> link should still carry api_tier as a query param.
       const links = screen.getAllByRole('link');
-      const signupLinks = links.filter((l) => l.getAttribute('href')?.startsWith('/signup?api_tier='));
-      expect(signupLinks).toHaveLength(3);
-      expect(signupLinks[0]).toHaveAttribute('href', '/signup?api_tier=starter');
-      expect(signupLinks[1]).toHaveAttribute('href', '/signup?api_tier=growth');
-      expect(signupLinks[2]).toHaveAttribute('href', '/signup?api_tier=business');
+      const tierLinks = links.filter((l) =>
+        l.getAttribute('href')?.includes('api_tier='),
+      );
+      expect(tierLinks).toHaveLength(0);
     });
   });
 
