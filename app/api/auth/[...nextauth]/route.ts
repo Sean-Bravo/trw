@@ -74,16 +74,19 @@ export const authOptions: NextAuthOptions = {
     })
   ],
 
-  // Session configuration
+  // M-5: reduced from 30 days to 7 days. JWTs are stateless and cannot
+  // be revoked server-side, so a stolen token is valid until expiry —
+  // 30 days is too long for an app handling tax/banking data.
+  // SECURITY_AUDIT.md §M-5
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
+    maxAge: 7 * 24 * 60 * 60,  // 7 days (was 30)
+    updateAge: 60 * 60,         // sliding refresh every hour (was 24h)
   },
 
   // JWT configuration
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 7 * 24 * 60 * 60,  // 7 days (was 30)
   },
 
   // Callbacks

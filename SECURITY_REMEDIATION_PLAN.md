@@ -79,7 +79,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | ID    | Fix                                                          | Status |
 | ----- | ------------------------------------------------------------ | ------ |
 | M-4   | Constant-time response on `/api/auth/resend-code`            | [x]    |
-| M-5   | Reduce JWT session to 7 days (with sliding refresh)          | [ ]    |
+| M-5   | Reduce JWT session to 7 days (with sliding refresh)          | [x]    |
 | M-6   | Make password reset tokens single-use                        | [ ]    |
 | M-8   | Bump 2FA backup codes to 48 bits                             | [ ]    |
 | M-9   | Scrub verbose Python exception messages                      | [ ]    |
