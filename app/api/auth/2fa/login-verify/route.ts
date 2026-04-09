@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
 import { verifyBackupCode, verifyToken } from '@/lib/2fa';
 import { verifyPassword } from '@/lib/auth-db';
 import { constantTimeStringEqual } from '@/lib/validation';
+import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 
 interface User2FA {
   id: string;
@@ -12,7 +13,19 @@ interface User2FA {
   backup_codes: string[] | null;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // M-7: rate limit 2FA verification. Without it, a 6-digit TOTP code
+  // (10^6 search space, 30s rotation window) is feasible to brute force
+  // over a fast connection. SECURITY_AUDIT.md §M-7
+  const identifier = getClientIdentifier(request);
+  const rateLimit = await rateLimiters.auth.check(identifier);
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const { email, password, code, isBackupCode, useAuthenticatorApp } = await request.json();
 
