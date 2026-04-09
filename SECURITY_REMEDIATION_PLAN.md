@@ -111,7 +111,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | L-8   | `X-Powered-By` removed — already done ✓                      | ✓      |
 | L-9   | Verify `productionBrowserSourceMaps: false`                  | [x] explicit (was relying on default) |
 | L-10  | OAuth state default — accepted as-is                         | ✓      |
-| L-11  | Document PII-at-rest encryption plan                         | [ ]    |
+| L-11  | Document PII-at-rest encryption plan                         | [x] (see [docs/PII_ENCRYPTION_PLAN.md](docs/PII_ENCRYPTION_PLAN.md)) |
 
 ---
 
