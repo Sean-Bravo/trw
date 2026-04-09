@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { queryOne, execute } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    // M-2: getServerSession() without authOptions cannot reliably locate
+    // the session provider in NextAuth v4 + App Router. Every other route
+    // in the codebase passes authOptions; this one was missed.
+    // SECURITY_AUDIT.md §M-2
+    const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
       return NextResponse.json(
