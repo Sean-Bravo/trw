@@ -11,9 +11,13 @@ import { API_GATEWAY_URL } from '@/lib/lambda-client';
  * Proxies to AWS Lambda to generate a presigned URL for S3 upload
  */
 export async function POST(request: NextRequest) {
-  // Rate limit: 10 uploads per hour
   const identifier = getClientIdentifier(request);
-  const rateLimit = await rateLimiters.fileUpload.check(identifier);
+  const session = await getServerSession(authOptions);
+
+  // M-15: anon callers get a much tighter limit (3/hour) than authed
+  // users (10/hour). SECURITY_AUDIT.md §M-15
+  const limiter = session?.user?.id ? rateLimiters.fileUpload : rateLimiters.fileUploadAnon;
+  const rateLimit = await limiter.check(identifier);
   if (!rateLimit.success) {
     return NextResponse.json(
       { error: 'Upload limit reached. Please try again later.' },
@@ -22,8 +26,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 1. Authenticate user (allow anonymous for /upload landing page)
-    const session = await getServerSession(authOptions);
+    // userId comes from session if available, else derived from request IP.
     const userId = session?.user?.id || `anon-${identifier}`;
 
     // 2. Parse request body

@@ -138,9 +138,20 @@ export const rateLimiters = {
     uniqueTokenPerInterval: 3,
   }),
 
-  // File upload: 10 per hour
+  // File upload (authenticated): 10 per hour
   fileUpload: new RateLimiter({
     interval: 60 * 60 * 1000, // 1 hour
     uniqueTokenPerInterval: 10,
+  }),
+
+  // M-15: tighter limit for unauthenticated callers. The /upload landing
+  // page is publicly accessible — without a separate anon bucket, an
+  // attacker rotating residential proxies can trigger Lambda processing
+  // at the same rate as paying customers and burn through your AI/Lambda
+  // budget. Anonymous = 3/hour. Authenticated continues to use fileUpload.
+  // SECURITY_AUDIT.md §M-15
+  fileUploadAnon: new RateLimiter({
+    interval: 60 * 60 * 1000, // 1 hour
+    uniqueTokenPerInterval: 3,
   }),
 };

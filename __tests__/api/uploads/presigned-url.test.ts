@@ -10,7 +10,10 @@ import * as rateLimit from '@/lib/rate-limit';
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/app/api/auth/[...nextauth]/route', () => ({ authOptions: {} }));
 jest.mock('@/lib/rate-limit', () => ({
-  rateLimiters: { fileUpload: { check: jest.fn().mockResolvedValue({ success: true }) } },
+  rateLimiters: {
+    fileUpload: { check: jest.fn().mockResolvedValue({ success: true }) },
+    fileUploadAnon: { check: jest.fn().mockResolvedValue({ success: true }) },
+  },
   getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
 }));
 

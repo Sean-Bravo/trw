@@ -20,6 +20,9 @@ jest.mock('@/lib/rate-limit', () => ({
     fileUpload: {
       check: jest.fn().mockResolvedValue({ success: true }),
     },
+    fileUploadAnon: {
+      check: jest.fn().mockResolvedValue({ success: true }),
+    },
   },
   getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
 }));
