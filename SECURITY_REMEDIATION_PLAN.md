@@ -68,7 +68,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | H-13  | Refactor dynamic UPDATE pattern in `jobs-db.ts`                     | [x]    |
 | H-14  | Fix hardcoded path in `run-migration.mjs`                           | [x]    |
 | H-4   | Add CSRF validation middleware to state-changing routes             | [x]    |
-| M-1   | Move webhook idempotency to Postgres                                | [ ]    |
+| M-1   | Move webhook idempotency to Postgres                                | [x] (migration 011) |
 | M-7   | Add rate limit to `/api/auth/2fa/login-verify`                      | [ ]    |
 | M-20  | Delete/guard `BYPASS_RATE_LIMIT` env var                            | [ ]    |
 
