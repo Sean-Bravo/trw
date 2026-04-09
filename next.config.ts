@@ -56,7 +56,10 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.googleadservices.com https://static.cloudflareinsights.com",
+              // H-8: 'unsafe-eval' removed. 'unsafe-inline' still required by
+              // Next.js runtime inline bootstrap; replacing it with nonces is
+              // tracked as post-launch work in SECURITY_REMEDIATION_PLAN.md.
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.googleadservices.com https://static.cloudflareinsights.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https:",
               "font-src 'self' data: https://fonts.gstatic.com",
