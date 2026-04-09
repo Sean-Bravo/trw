@@ -196,7 +196,12 @@ class GoogleProvider(AIProvider):
             import urllib.error
             import re
 
-            url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
+            # L-5: pass the Gemini API key in the X-goog-api-key header
+            # instead of the URL query string. Query strings end up in
+            # server access logs, proxy logs, and CloudWatch — sending
+            # the key in the request body header keeps it out of those
+            # logs. SECURITY_AUDIT.md §L-5
+            url = f"{self.base_url}/models/{self.model}:generateContent"
 
             payload = {
                 "contents": [
@@ -216,7 +221,10 @@ class GoogleProvider(AIProvider):
             req = urllib.request.Request(
                 url,
                 data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": self.api_key,
+                },
                 method="POST"
             )
 

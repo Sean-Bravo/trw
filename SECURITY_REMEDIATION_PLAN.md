@@ -105,7 +105,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | L-2   | Trim DoubleClick from `connect-src` if unused                | ✓ verified — used by Google Ads conversion tracking (`lib/analytics.ts`), not removable |
 | L-3   | HSTS preload — already done ✓                                | ✓      |
 | L-4   | Bump verification codes to 8-char alphanumeric               | [x] partial — switched Math.random → crypto.randomInt; 8-char alphanumeric deferred (UI rework) |
-| L-5   | Move Gemini API key from query string to header              | [ ]    |
+| L-5   | Move Gemini API key from query string to header              | [x]    |
 | L-6   | Remove dead `MAX_PROCESSED_EVENTS` after M-1                 | [ ]    |
 | L-7   | Use `make_interval()` in usage query                         | [ ]    |
 | L-8   | `X-Powered-By` removed — already done ✓                      | ✓      |
