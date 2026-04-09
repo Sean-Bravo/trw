@@ -26,12 +26,17 @@ jest.mock('@/lib/stripe', () => ({
     BUSINESS: { monthly: 'price_api_business_monthly' },
   },
 }));
+jest.mock('@/lib/db', () => ({
+  queryOne: jest.fn(),
+}));
 
 import { getServerSession } from 'next-auth';
 import { stripe } from '@/lib/stripe';
+import { queryOne } from '@/lib/db';
 
 const mockGetServerSession = getServerSession as jest.Mock;
 const mockCheckoutCreate = stripe.checkout.sessions.create as jest.Mock;
+const mockQueryOne = queryOne as jest.Mock;
 
 describe('POST /api/developer/subscribe', () => {
   beforeEach(() => {
@@ -39,6 +44,8 @@ describe('POST /api/developer/subscribe', () => {
     mockCheckoutCreate.mockResolvedValue({
       url: 'https://checkout.stripe.com/session-123',
     });
+    // default: API key belongs to the authenticated user
+    mockQueryOne.mockResolvedValue({ user_id: 'user-1' });
   });
 
   it('returns 401 when no session', async () => {
@@ -155,6 +162,33 @@ describe('POST /api/developer/subscribe', () => {
       expect.objectContaining({ mode: 'subscription' }),
       expect.objectContaining({ idempotencyKey: expect.any(String) })
     );
+  });
+
+  it('H-1: returns 403 when apiKeyId belongs to a different user', async () => {
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 'user-1', email: 'test@example.com' },
+    });
+    mockQueryOne.mockResolvedValue({ user_id: 'someone-else' });
+    const request = createMockRequest({ tier: 'business', apiKeyId: 'victim-key' });
+
+    const response = await POST(request as any);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe('Forbidden');
+    expect(mockCheckoutCreate).not.toHaveBeenCalled();
+  });
+
+  it('H-1: returns 403 when apiKeyId does not exist', async () => {
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 'user-1', email: 'test@example.com' },
+    });
+    mockQueryOne.mockResolvedValue(null);
+    const request = createMockRequest({ tier: 'starter', apiKeyId: 'no-such-key' });
+
+    const response = await POST(request as any);
+    expect(response.status).toBe(403);
+    expect(mockCheckoutCreate).not.toHaveBeenCalled();
   });
 
   it('returns 500 when Stripe throws', async () => {

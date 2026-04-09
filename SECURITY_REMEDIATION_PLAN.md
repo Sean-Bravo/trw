@@ -44,7 +44,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 
 | ID    | Fix                                                                 | Files | Status |
 | ----- | ------------------------------------------------------------------- | ----- | ------ |
-| H-1   | Add ownership check in `/api/developer/subscribe`                   | 1     | [ ]    |
+| H-1   | Add ownership check in `/api/developer/subscribe`                   | 1     | [x]    |
 | H-2   | Require auth + ownership in `/api/bank/job/[jobId]/download`        | 1     | [ ]    |
 | H-3   | Add ownership check in `/api/bank/job/[jobId]`                      | 1     | [ ]    |
 | H-12  | Verify auth columns exist; add migration `009_add_auth_columns.sql` | 1 SQL | [ ]    |
