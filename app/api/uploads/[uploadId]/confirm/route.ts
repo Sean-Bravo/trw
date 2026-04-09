@@ -3,24 +3,31 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { createUpload } from '@/lib/uploads-db';
 import { queryOne } from '@/lib/db';
-import { getClientIdentifier } from '@/lib/rate-limit';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * POST /api/uploads/[uploadId]/confirm
- * Proxies to AWS Lambda to confirm upload and create processing job
+ * Proxies to AWS Lambda to confirm upload and create processing job.
+ *
+ * M-12: requires authentication. The crypto-upload flow is dashboard-
+ * only — /upload landing page uses /api/bank/process instead. The
+ * previous "allow anonymous" branch was dead code that opened an
+ * authorization gap (any anon caller could trigger Lambda processing
+ * for any guessed uploadId).
+ * SECURITY_AUDIT.md §M-12
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ uploadId: string }> }
 ) {
   try {
-    // 1. Authenticate user (allow anonymous for /upload landing page)
     const session = await getServerSession(authOptions);
-    const identifier = getClientIdentifier(request);
-    const userId = session?.user?.id || `anon-${identifier}`;
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = session.user.id;
     const { uploadId } = await params;
 
     // 2. Parse request body
