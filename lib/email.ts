@@ -37,10 +37,23 @@ function getTransporter() {
 }
 
 /**
- * Generate a 6-digit verification code
+ * Generate a 6-digit verification code.
+ *
+ * L-4: switched from Math.random (PRNG, predictable from prior outputs)
+ * to crypto.randomInt (CSPRNG). Kept at 6 digits for now — bumping to
+ * 8-char alphanumeric requires reworking the 6-box numeric input in
+ * app/verify/page.tsx, which is more behavioral change than the
+ * launch can absorb. Per the audit: "1M possibilities is marginal;
+ * with rate limiting it's acceptable" — and H-6 (rate limit), H-7
+ * (account lockout), H-5 (timing-safe compare) are all now in place.
+ *
+ * SECURITY_AUDIT.md §L-4
  */
+import { randomInt } from 'node:crypto';
+
 export function generateVerificationCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // randomInt(min, max) is upper-exclusive: this returns 100000–999999.
+  return randomInt(100000, 1000000).toString();
 }
 
 /**
