@@ -79,6 +79,9 @@ export interface DbUser {
   email_verified: boolean;
   verification_code: string | null;
   verification_code_expires: Date | null;
+  // H-7 account lockout — added by db/migrations/009_add_account_lockout.sql
+  failed_login_attempts?: number;
+  locked_until?: Date | null;
   created_at: Date;
 }
 

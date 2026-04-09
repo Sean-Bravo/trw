@@ -139,6 +139,12 @@ export async function createUser(
 /**
  * Verify password for a user
  */
+// H-7: per-account brute force protection. After MAX_LOGIN_ATTEMPTS
+// failures the account is locked for LOCKOUT_DURATION_MIN minutes.
+// Counter and lock are reset on successful login.
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MIN = 30;
+
 export async function verifyPassword(
   email: string,
   password: string
@@ -149,11 +155,37 @@ export async function verifyPassword(
     return null;
   }
 
+  // H-7: reject early if the account is currently locked. Returning the
+  // same `null` we'd return for an invalid password avoids leaking lock
+  // state to enumeration attempts.
+  if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    return null;
+  }
+
   const isValid = await bcrypt.compare(password, user.password_hash);
 
   if (!isValid) {
+    // Increment counter; lock if at threshold. Done in one atomic UPDATE
+    // so concurrent failures cannot bypass the threshold.
+    await execute(
+      `UPDATE users
+       SET failed_login_attempts = failed_login_attempts + 1,
+           locked_until = CASE
+             WHEN failed_login_attempts + 1 >= $2
+             THEN now() + ($3 || ' minutes')::interval
+             ELSE locked_until
+           END
+       WHERE id = $1`,
+      [user.id, MAX_LOGIN_ATTEMPTS, String(LOCKOUT_DURATION_MIN)]
+    );
     return null;
   }
+
+  // Successful login — reset counter and clear any prior lock.
+  await execute(
+    `UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1`,
+    [user.id]
+  );
 
   return findUserById(user.id);
 }
