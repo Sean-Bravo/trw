@@ -92,7 +92,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | M-16  | Explicit NextAuth cookie config                              | [x]    |
 | M-17  | Remove SMTP config logging                                   | [x]    |
 | M-18  | Docker Compose default password fix                          | [x]    |
-| M-19  | Move E2E credentials out of `.env.local`                     | [ ]    |
+| M-19  | Move E2E credentials out of `.env.local`                     | [x] (use `.env.test.local`) |
 | M-21  | Set `Referrer-Policy: strict-origin-when-cross-origin`       | [ ]    |
 
 ---
