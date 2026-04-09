@@ -86,7 +86,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | M-10  | Add CSV formula injection sanitizer                          | [x]    |
 | M-11  | Pin `pdfplumber` version, generate lockfile, add `pip-audit` | [x] (3 requirements files + CI step) |
 | M-12  | Require auth on `/api/uploads/[uploadId]/confirm`            | [x]    |
-| M-13  | Tighten presigned S3 URL expiry to 5–15 minutes              | [ ]    |
+| M-13  | Tighten presigned S3 URL expiry to 5–15 minutes              | [x] (download 1h → 15 min) |
 | M-14  | Add `API_GATEWAY_URL` allowlist                              | [ ]    |
 | M-15  | Lower anonymous upload limits, enforce byte quota            | [ ]    |
 | M-16  | Explicit NextAuth cookie config                              | [ ]    |

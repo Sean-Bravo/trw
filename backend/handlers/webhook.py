@@ -39,9 +39,13 @@ secretsmanager = boto3.client("secretsmanager")
 # SQS Queue URL
 PROCESSOR_QUEUE_URL = os.environ.get("PROCESSOR_QUEUE_URL")
 
-# Presigned URL expiration (15 minutes for upload, 1 hour for download)
-UPLOAD_EXPIRATION = 900
-DOWNLOAD_EXPIRATION = 3600
+# M-13: presigned URL expiration. Both kept short — these URLs are
+# bearer credentials and leak via browser history, referrer headers,
+# screenshots, and Sentry breadcrumbs. Tightened from 1h download to
+# 15 min so a stale share link goes dead quickly.
+# SECURITY_AUDIT.md §M-13
+UPLOAD_EXPIRATION = 900    # 15 min
+DOWNLOAD_EXPIRATION = 900  # 15 min (was 3600)
 
 # Maximum file size (50MB)
 MAX_FILE_SIZE = 50 * 1024 * 1024
