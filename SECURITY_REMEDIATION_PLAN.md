@@ -109,7 +109,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | L-6   | Remove dead `MAX_PROCESSED_EVENTS` after M-1                 | ✓ verified — removed as part of M-1 commit `3244f65` |
 | L-7   | Use `make_interval()` in usage query                         | [x]    |
 | L-8   | `X-Powered-By` removed — already done ✓                      | ✓      |
-| L-9   | Verify `productionBrowserSourceMaps: false`                  | [ ]    |
+| L-9   | Verify `productionBrowserSourceMaps: false`                  | [x] explicit (was relying on default) |
 | L-10  | OAuth state default — accepted as-is                         | ✓      |
 | L-11  | Document PII-at-rest encryption plan                         | [ ]    |
 
