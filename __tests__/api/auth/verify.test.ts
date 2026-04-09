@@ -5,15 +5,26 @@
 import { POST } from '@/app/api/auth/verify/route';
 import { createMockRequest } from '../../utils/mock-request';
 import * as authDb from '@/lib/auth-db';
+import * as rateLimit from '@/lib/rate-limit';
 
 // Mock dependencies
 jest.mock('@/lib/auth-db');
+jest.mock('@/lib/rate-limit', () => ({
+  rateLimiters: {
+    auth: {
+      check: jest.fn().mockResolvedValue({ success: true }),
+    },
+  },
+  getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
+}));
 
 const mockAuthDb = authDb as jest.Mocked<typeof authDb>;
+const mockRateLimit = rateLimit as jest.Mocked<typeof rateLimit>;
 
 describe('POST /api/auth/verify', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (mockRateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: true });
   });
 
   describe('Successful Verification', () => {
@@ -264,6 +275,20 @@ describe('POST /api/auth/verify', () => {
 
       expect(response.status).toBe(200);
       expect(data.user).toBeUndefined();
+    });
+  });
+
+  describe('H-6: rate limiting', () => {
+    it('returns 429 when rate limit exceeded', async () => {
+      (mockRateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: false });
+      const request = createMockRequest({ email: 'test@example.com', code: '123456' });
+
+      const response = await POST(request as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(429);
+      expect(data.error).toContain('Too many');
+      expect(mockAuthDb.verifyEmailCode).not.toHaveBeenCalled();
     });
   });
 });

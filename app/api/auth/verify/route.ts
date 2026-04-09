@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateEmail } from '@/lib/validation';
 import { verifyEmailCode } from '@/lib/auth-db';
+import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  // H-6: rate limit verification attempts (5 per 15 min by default).
+  // Without this, a 6-digit code (10^6 search space) is brute-forceable
+  // in minutes over a fast connection.
+  const identifier = getClientIdentifier(request);
+  const rateLimit = await rateLimiters.auth.check(identifier);
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { email, code } = body;
