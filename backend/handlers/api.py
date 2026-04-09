@@ -33,13 +33,49 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT", "prod")
 API_VERSION = "2026-03-01"
 
 
+### H-11: CORS allowlist
+#
+# The previous wildcard `Access-Control-Allow-Origin: *` paired with
+# Authorization in Allow-Headers was a recurring footgun: if anyone ever
+# enables Allow-Credentials, the wildcard turns into full credentialed
+# CSRF on every API call. The fix is to echo back only allowlisted
+# origins, fall back to the canonical origin otherwise, and Vary on
+# Origin so caches don't poison cross-origin responses.
+ALLOWED_ORIGINS = {
+    "https://taxformatter.com",
+    "https://www.taxformatter.com",
+    "https://app.taxformatter.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+}
+DEFAULT_ORIGIN = "https://taxformatter.com"
+
+# Per-invocation request origin. Lambda runs one event per process at a
+# time within a single warm container, so this is safe.
+_current_request_origin: Optional[str] = None
+
+
+def _set_request_origin(event: Dict) -> None:
+    global _current_request_origin
+    headers = event.get("headers") or {}
+    # API Gateway lowercases header names.
+    _current_request_origin = headers.get("origin") or headers.get("Origin")
+
+
+def _allowed_origin() -> str:
+    if _current_request_origin and _current_request_origin in ALLOWED_ORIGINS:
+        return _current_request_origin
+    return DEFAULT_ORIGIN
+
+
 def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dict:
     """Generate API Gateway response."""
     default_headers = {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type,X-API-Key,Authorization",
+        "Access-Control-Allow-Origin": _allowed_origin(),
+        "Access-Control-Allow-Headers": "Content-Type,X-API-Key",
         "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Vary": "Origin",
         "X-Api-Version": API_VERSION,
     }
     if headers:
@@ -479,6 +515,7 @@ def handle_v1_health(event: Dict) -> Dict:
 def handler(event: Dict, context: Any) -> Dict:
     """Main Lambda handler — routes /v1/* requests."""
     request_id = str(uuid.uuid4())
+    _set_request_origin(event)  # H-11
 
     # Handle CORS preflight
     if event.get("requestContext", {}).get("http", {}).get("method") == "OPTIONS":
