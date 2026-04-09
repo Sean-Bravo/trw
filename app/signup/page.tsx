@@ -1,16 +1,24 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 
+const PENDING_TIER_KEY = 'pending_api_tier';
+
 function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const apiTier = searchParams.get('api_tier');
+  // L-1: prefer sessionStorage over URL query param. See login/page.tsx.
+  const [apiTier, setApiTier] = useState<string | null>(null);
+  useEffect(() => {
+    const fromSession =
+      typeof window !== 'undefined' ? sessionStorage.getItem(PENDING_TIER_KEY) : null;
+    setApiTier(fromSession || searchParams.get('api_tier'));
+  }, [searchParams]);
   const [formData, setFormData] = useState({
     email: '',
     password: '',

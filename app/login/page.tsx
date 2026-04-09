@@ -1,15 +1,25 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 
+const PENDING_TIER_KEY = 'pending_api_tier';
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const apiTier = searchParams.get('api_tier');
+  // L-1: prefer sessionStorage (set by APIPricing button click) over
+  // the legacy ?api_tier= query param. URL param still works for any
+  // bookmarked deep links. SECURITY_AUDIT.md §L-1
+  const [apiTier, setApiTier] = useState<string | null>(null);
+  useEffect(() => {
+    const fromSession =
+      typeof window !== 'undefined' ? sessionStorage.getItem(PENDING_TIER_KEY) : null;
+    setApiTier(fromSession || searchParams.get('api_tier'));
+  }, [searchParams]);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
