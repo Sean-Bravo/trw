@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// M-20: defensive guard. The audit found BYPASS_RATE_LIMIT=true in
+// .env.local. No code currently reads it, but if someone wires it up
+// later (e.g. inside RateLimiter.check) and forgets to scope it to dev,
+// brute force protection silently disappears in prod. This guard fires
+// at module load time and crashes the worker if the flag is set in
+// production. SECURITY_AUDIT.md §M-20
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env['BYPASS_RATE_LIMIT'] === 'true'
+) {
+  throw new Error(
+    'BYPASS_RATE_LIMIT=true is not allowed in production. ' +
+      'Remove it from your environment.'
+  );
+}
+
 interface RateLimitStore {
   [key: string]: {
     count: number;

@@ -70,7 +70,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | H-4   | Add CSRF validation middleware to state-changing routes             | [x]    |
 | M-1   | Move webhook idempotency to Postgres                                | [x] (migration 011) |
 | M-7   | Add rate limit to `/api/auth/2fa/login-verify`                      | [x]    |
-| M-20  | Delete/guard `BYPASS_RATE_LIMIT` env var                            | [ ]    |
+| M-20  | Delete/guard `BYPASS_RATE_LIMIT` env var                            | [x] (defensive guard at module load) |
 
 ---
 
