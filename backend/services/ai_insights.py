@@ -13,6 +13,9 @@ import logging
 from typing import Any, Dict, List, Optional
 from abc import ABC, abstractmethod
 
+# M-10: same module as exporter / processor sanitizers.
+from csv_safety import sanitize_csv_records
+
 logger = logging.getLogger(__name__)
 
 # Model configurations
@@ -391,7 +394,10 @@ def generate_insights(
         fieldnames = list(sample_records[0].keys())
         writer = csv.DictWriter(output, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(sample_records)
+        # M-10: sanitize before serializing — defense in depth so a
+        # malicious description that survives the AI round-trip and
+        # gets re-exported still can't trigger formula execution.
+        writer.writerows(sanitize_csv_records(sample_records))
 
     data_summary = output.getvalue()
 

@@ -5,8 +5,18 @@ Accounting Exporter - Export transactions to QBO/Xero CSV formats.
 import csv
 import logging
 import re
+import sys
+import os
 from io import StringIO
 from typing import Any, Dict, List
+
+# M-10: csv_safety lives one directory up. Add the parent dir to sys.path
+# so this module imports correctly under both Lambda packaging (where
+# everything is flattened to /var/task) and local pytest runs.
+_parent = os.path.join(os.path.dirname(__file__), "..")
+if _parent not in sys.path:
+    sys.path.insert(0, _parent)
+from csv_safety import sanitize_csv_row as _sanitize_row  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +51,7 @@ class AccountingExporter:
             description = tx.get("description", "")
             amount = tx.get("amount", 0)
 
-            writer.writerow([date, description, f"{amount:.2f}"])
+            writer.writerow(_sanitize_row([date, description, f"{amount:.2f}"]))
 
         result = output.getvalue()
         logger.info(f"Exported {len(transactions)} transactions to QBO format")
@@ -80,14 +90,14 @@ class AccountingExporter:
             payee = self._extract_payee(description)
 
             writer.writerow(
-                [
+                _sanitize_row([
                     date,
                     f"{amount:.2f}",
                     payee,
                     description,
                     "",  # Reference
                     "",  # Cheque Number
-                ]
+                ])
             )
 
         result = output.getvalue()
@@ -124,7 +134,7 @@ class AccountingExporter:
             credit = amount if amount > 0 else ""
 
             writer.writerow(
-                [
+                _sanitize_row([
                     date,
                     description,
                     f"{amount:.2f}",
@@ -132,7 +142,7 @@ class AccountingExporter:
                     f"{credit:.2f}" if credit else "",
                     "",  # Balance - not tracked
                     "",  # Category - not inferred
-                ]
+                ])
             )
 
         result = output.getvalue()
