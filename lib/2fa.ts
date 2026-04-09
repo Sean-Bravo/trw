@@ -42,14 +42,25 @@ export function verifyToken(token: string, secret: string): boolean {
 
 /**
  * Generate backup codes
+ *
+ * M-8: bumped from 32 bits (8 hex chars, ~4.3B per code) to 48 bits
+ * (12 hex chars, ~280T per code). 32 bits is theoretically crackable
+ * with modern hardware under unlimited attempts; 48 bits is comfortably
+ * above brute-force feasibility even without rate limits.
+ *
+ * Existing backup codes already issued to users keep working — they
+ * were stored as SHA-256 hashes so the on-disk format is unchanged.
+ * Users only get new-format codes when they regenerate.
+ *
+ * SECURITY_AUDIT.md §M-8
  */
 export function generateBackupCodes(count: number = 8): string[] {
   const codes: string[] = [];
   for (let i = 0; i < count; i++) {
-    // Generate 8-character alphanumeric code
-    const code = crypto.randomBytes(4).toString('hex').toUpperCase();
-    // Format as XXXX-XXXX
-    codes.push(`${code.slice(0, 4)}-${code.slice(4)}`);
+    // 6 random bytes = 12 hex chars = 48 bits of entropy.
+    const code = crypto.randomBytes(6).toString('hex').toUpperCase();
+    // Format as XXXX-XXXX-XXXX
+    codes.push(`${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8)}`);
   }
   return codes;
 }
