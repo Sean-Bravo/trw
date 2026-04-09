@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth-db";
 import { queryOne } from "@/lib/db";
 import { verifyToken, verifyBackupCode } from "@/lib/2fa";
+import { safeRedirect } from "@/lib/safe-redirect";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -155,14 +156,9 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
+    // H-15: see lib/safe-redirect.ts for the open-redirect fix logic.
     async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url;
-
-      return baseUrl;
+      return safeRedirect(url, baseUrl);
     }
   },
 
