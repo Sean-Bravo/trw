@@ -1,3 +1,7 @@
+-- DEPRECATED: superseded by db/migrations/010_add_auth_columns.sql (H-12)
+-- This file is kept for git history only. Run the consolidated migration
+-- in /db/migrations/ instead. See SECURITY_AUDIT.md §H-12.
+--
 -- Migration: Add email verification columns to users table
 -- Run this migration against your Neon database
 
