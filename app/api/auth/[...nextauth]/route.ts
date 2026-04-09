@@ -89,6 +89,49 @@ export const authOptions: NextAuthOptions = {
     maxAge: 7 * 24 * 60 * 60,  // 7 days (was 30)
   },
 
+  // M-16: explicit cookie configuration. NextAuth defaults are
+  // reasonable, but relying on them means a future NextAuth upgrade
+  // could silently change them. Pinning explicitly so any change is
+  // visible in version control. SECURITY_AUDIT.md §M-16
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      },
+    },
+    csrfToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Host-next-auth.csrf-token"
+          : "next-auth.csrf-token",
+      options: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      },
+    },
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.callback-url"
+          : "next-auth.callback-url",
+      options: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      },
+    },
+  },
+
   // Callbacks
   callbacks: {
     async signIn({ user, account }) {

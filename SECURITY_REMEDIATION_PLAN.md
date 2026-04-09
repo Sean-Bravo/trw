@@ -89,7 +89,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | M-13  | Tighten presigned S3 URL expiry to 5–15 minutes              | [x] (download 1h → 15 min) |
 | M-14  | Add `API_GATEWAY_URL` allowlist                              | [x] (centralized in `lib/lambda-client.ts`) |
 | M-15  | Lower anonymous upload limits, enforce byte quota            | [x] (anon 3/hr, authed 10/hr; byte quota deferred) |
-| M-16  | Explicit NextAuth cookie config                              | [ ]    |
+| M-16  | Explicit NextAuth cookie config                              | [x]    |
 | M-17  | Remove SMTP config logging                                   | [ ]    |
 | M-18  | Docker Compose default password fix                          | [ ]    |
 | M-19  | Move E2E credentials out of `.env.local`                     | [ ]    |
