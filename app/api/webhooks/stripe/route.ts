@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { stripe, STRIPE_API_PRICES, type StripeApiPlan } from '@/lib/stripe'
 import Stripe from 'stripe'
 import { queryOne, execute } from '@/lib/db'
 import { API_TIERS, type ApiTier } from '@/lib/api-keys'
@@ -101,13 +101,62 @@ export async function POST(request: NextRequest) {
         if (apiTier && apiKeyId && subscriptionId) {
           const tierConfig = API_TIERS[apiTier]
           if (tierConfig) {
-            await execute(
-              `UPDATE api_keys
-               SET tier = $1, monthly_quota = $2, rate_limit_rpm = $3, stripe_subscription_id = $4
-               WHERE id = $5`,
-              [apiTier, tierConfig.monthly_quota, tierConfig.rate_limit_rpm, subscriptionId, apiKeyId]
-            )
-            console.log(`[Stripe] Updated API key ${apiKeyId} to tier ${apiTier}`)
+            // M-3: cross-verify the claimed tier against the actual
+            // subscription's price ID. The metadata is set by our own
+            // code at checkout time so it's not attacker-controlled
+            // today, but defense-in-depth — if H-1's ownership check
+            // is ever bypassed, this stops the attacker from claiming
+            // BUSINESS while paying for STARTER.
+            // SECURITY_AUDIT.md §M-3
+            const tierUpper = apiTier.toUpperCase() as StripeApiPlan
+            const expectedPriceId = STRIPE_API_PRICES[tierUpper]?.monthly
+            let priceMatches = false
+            try {
+              const sub = await stripe.subscriptions.retrieve(subscriptionId)
+              const actualPriceIds = sub.items.data.map((i) => i.price.id)
+              priceMatches = expectedPriceId
+                ? actualPriceIds.includes(expectedPriceId)
+                : false
+              if (!priceMatches) {
+                console.error('[webhook] tier/price mismatch', {
+                  apiTier,
+                  expectedPriceId,
+                  actualPriceIds,
+                  apiKeyId,
+                })
+              }
+              // Also re-verify api_key ownership matches the userId in
+              // metadata as belt-and-suspenders behind H-1.
+              const metaUserId = session.metadata?.['userId'] as string | undefined
+              if (metaUserId) {
+                const ownerCheck = await queryOne<{ user_id: string }>(
+                  'SELECT user_id FROM api_keys WHERE id = $1',
+                  [apiKeyId]
+                )
+                if (ownerCheck && ownerCheck.user_id !== metaUserId) {
+                  console.error('[webhook] api_key ownership mismatch', {
+                    apiKeyId,
+                    metaUserId,
+                    actualOwner: ownerCheck.user_id,
+                  })
+                  priceMatches = false
+                }
+              }
+            } catch (verifyErr) {
+              console.error('[webhook] subscription verification failed:', verifyErr)
+            }
+
+            if (priceMatches) {
+              await execute(
+                `UPDATE api_keys
+                 SET tier = $1, monthly_quota = $2, rate_limit_rpm = $3, stripe_subscription_id = $4
+                 WHERE id = $5`,
+                [apiTier, tierConfig.monthly_quota, tierConfig.rate_limit_rpm, subscriptionId, apiKeyId]
+              )
+              console.log(`[Stripe] Updated API key ${apiKeyId} to tier ${apiTier}`)
+            } else {
+              console.error(`[webhook] refusing tier upgrade for ${apiKeyId} due to verification failure`)
+            }
           }
         }
 

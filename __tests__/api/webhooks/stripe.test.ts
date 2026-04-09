@@ -7,6 +7,12 @@ import { stripe } from '@/lib/stripe';
 jest.mock('@/lib/stripe', () => ({
   stripe: {
     webhooks: { constructEvent: jest.fn() },
+    subscriptions: { retrieve: jest.fn() },
+  },
+  STRIPE_API_PRICES: {
+    STARTER: { monthly: 'price_api_starter_monthly' },
+    GROWTH: { monthly: 'price_api_growth_monthly' },
+    BUSINESS: { monthly: 'price_api_business_monthly' },
   },
 }));
 jest.mock('@/lib/db', () => ({
@@ -25,6 +31,7 @@ import { POST } from '@/app/api/webhooks/stripe/route';
 import * as db from '@/lib/db';
 
 const mockConstructEvent = stripe.webhooks.constructEvent as jest.Mock;
+const mockSubsRetrieve = (stripe as any).subscriptions.retrieve as jest.Mock;
 const mockQueryOne = db.queryOne as jest.Mock;
 const mockExecute = db.execute as jest.Mock;
 
@@ -87,6 +94,12 @@ describe('POST /api/webhooks/stripe', () => {
       },
     });
     mockExecute.mockResolvedValue({ rowCount: 1 });
+    // M-3: subscription's actual price matches the claimed tier
+    mockSubsRetrieve.mockResolvedValue({
+      items: { data: [{ price: { id: 'price_api_growth_monthly' } }] },
+    });
+    // M-3: api_key ownership matches the metadata userId
+    mockQueryOne.mockResolvedValue({ user_id: 'user-1' });
 
     const req = createRequest('{}', 'sig');
     const res = await POST(req);
@@ -104,6 +117,61 @@ describe('POST /api/webhooks/stripe', () => {
       expect.stringContaining('UPDATE api_keys'),
       ['growth', 500, 60, 'sub_1', 'key-1']
     );
+  });
+
+  describe('M-3: webhook tier verification', () => {
+    function checkoutEvent() {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_m3_' + Math.random(),
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            customer: 'cus_1',
+            customer_email: 'u@x.com',
+            subscription: 'sub_1',
+            metadata: { api_tier: 'business', api_key_id: 'key-1', userId: 'user-1' },
+            amount_total: 24900,
+          },
+        },
+      });
+    }
+
+    it('refuses upgrade when subscription price does not match claimed tier', async () => {
+      checkoutEvent();
+      mockExecute.mockResolvedValue({ rowCount: 1 });
+      // Subscription is actually STARTER but metadata claims BUSINESS
+      mockSubsRetrieve.mockResolvedValue({
+        items: { data: [{ price: { id: 'price_api_starter_monthly' } }] },
+      });
+      mockQueryOne.mockResolvedValue({ user_id: 'user-1' });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+
+      // Should NOT have called the api_keys UPDATE
+      const updateCalls = mockExecute.mock.calls.filter((c) =>
+        typeof c[0] === 'string' && c[0].includes('UPDATE api_keys'),
+      );
+      expect(updateCalls.length).toBe(0);
+    });
+
+    it('refuses upgrade when api_key owner does not match metadata userId', async () => {
+      checkoutEvent();
+      mockExecute.mockResolvedValue({ rowCount: 1 });
+      mockSubsRetrieve.mockResolvedValue({
+        items: { data: [{ price: { id: 'price_api_business_monthly' } }] },
+      });
+      // api_key actually belongs to a different user
+      mockQueryOne.mockResolvedValue({ user_id: 'someone-else' });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+
+      const updateCalls = mockExecute.mock.calls.filter((c) =>
+        typeof c[0] === 'string' && c[0].includes('UPDATE api_keys'),
+      );
+      expect(updateCalls.length).toBe(0);
+    });
   });
 
   it('handles customer.subscription.deleted — downgrades API key', async () => {
