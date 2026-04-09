@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getJobById } from '@/lib/jobs-db';
 import { queryOne, execute } from '@/lib/db';
+import { API_GATEWAY_URL } from '@/lib/lambda-client';
 
 // Rate limit: minimum 30 seconds between retries
 const RETRY_COOLDOWN_MS = 30 * 1000;
@@ -10,7 +11,6 @@ const RETRY_COOLDOWN_MS = 30 * 1000;
 const MAX_RETRIES = 5;
 
 // Lambda API Gateway
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * POST /api/jobs/[jobId]/retry
