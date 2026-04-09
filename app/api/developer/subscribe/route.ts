@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { stripe, STRIPE_API_PRICES, type StripeApiPlan } from '@/lib/stripe';
+import { queryOne } from '@/lib/db';
 
 /**
  * POST /api/developer/subscribe
@@ -31,6 +32,17 @@ export async function POST(request: NextRequest) {
         { error: 'apiKeyId is required' },
         { status: 400 },
       );
+    }
+
+    // H-1: verify the API key belongs to the authenticated user before
+    // letting Stripe checkout reference it. Without this, an attacker could
+    // POST a victim's apiKeyId and trigger an upgrade on someone else's key.
+    const apiKey = await queryOne<{ user_id: string }>(
+      'SELECT user_id FROM api_keys WHERE id = $1',
+      [apiKeyId],
+    );
+    if (!apiKey || apiKey.user_id !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const priceId = STRIPE_API_PRICES[tier].monthly;
