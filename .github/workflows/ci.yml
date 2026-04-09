@@ -63,14 +63,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit (high — warn only)
+      # Ongoing-2: npm audit policy.
+      #
+      # We currently have 5 high-severity transitive vulnerabilities in
+      # dependencies that have no fix available yet (fast-xml-parser,
+      # flatted, picomatch, vite, @aws-sdk/xml-builder). These warn only.
+      #
+      # Critical-severity always fails the build. Once the upstream
+      # patches land, change `--audit-level=high` below to remove the
+      # `continue-on-error: true` and the warn-only step disappears.
+      - name: Run npm audit (high — warn only, blocked on upstream patches)
         run: npm audit --audit-level=high
         continue-on-error: true
 
       - name: Run npm audit (critical — must pass)
         run: npm audit --audit-level=critical
 
-      # M-11: Python dependency vulnerability scan
+      # M-11 / Ongoing-2: Python dependency vulnerability scan.
+      # Pinned versions in backend/requirements-*.txt should keep this
+      # green. If a new CVE drops, we want CI to fail loudly.
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -79,11 +90,11 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
 
-      - name: Run pip-audit (high — warn only)
+      - name: Run pip-audit on Lambda requirements (must pass)
         run: |
-          pip-audit -r backend/requirements-api.txt --vulnerability-service osv || true
-          pip-audit -r backend/requirements-processor.txt --vulnerability-service osv || true
-          pip-audit -r backend/requirements-webhook.txt --vulnerability-service osv || true
+          pip-audit -r backend/requirements-api.txt --vulnerability-service osv
+          pip-audit -r backend/requirements-processor.txt --vulnerability-service osv
+          pip-audit -r backend/requirements-webhook.txt --vulnerability-service osv
 
   build:
     name: Build
