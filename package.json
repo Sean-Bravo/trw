@@ -15,7 +15,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:all": "npm run test && npm run test:e2e"
+    "test:all": "npm run test && npm run test:e2e",
+    "hooks:install": "ln -sf ../../scripts/git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo '✓ pre-commit hook installed (see scripts/git-hooks/pre-commit)'"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",
