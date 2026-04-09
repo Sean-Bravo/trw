@@ -14,7 +14,14 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
   authOptions: {},
 }));
 
+jest.mock('@/lib/db', () => ({
+  queryOne: jest.fn(),
+}));
+
+import { queryOne } from '@/lib/db';
+
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
+const mockQueryOne = queryOne as jest.Mock;
 
 function createContext(jobId: string) {
   return { params: Promise.resolve({ jobId }) };
@@ -29,6 +36,8 @@ describe('GET /api/bank/job/[jobId]', () => {
       user: { id: 'user-1', email: 'test@example.com' },
       expires: '2025-12-31',
     });
+    // default: job belongs to the authenticated user
+    mockQueryOne.mockResolvedValue({ user_id: 'user-1' });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -96,6 +105,26 @@ describe('GET /api/bank/job/[jobId]', () => {
       const response = await GET(request as any, createContext('job-123'));
 
       expect(response.status).toBe(401);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('H-3: ownership', () => {
+    it('returns 403 when job belongs to a different user', async () => {
+      mockQueryOne.mockResolvedValue({ user_id: 'someone-else' });
+      const request = createMockRequest({});
+      const response = await GET(request as any, createContext('victim-job'));
+
+      expect(response.status).toBe(403);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns 403 when job does not exist', async () => {
+      mockQueryOne.mockResolvedValue(null);
+      const request = createMockRequest({});
+      const response = await GET(request as any, createContext('no-such-job'));
+
+      expect(response.status).toBe(403);
       expect(global.fetch).not.toHaveBeenCalled();
     });
   });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { queryOne } from '@/lib/db';
 
 const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
@@ -22,6 +23,17 @@ export async function GET(
 
     if (!jobId) {
       return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
+    }
+
+    // H-3: verify the job belongs to this user. Authentication alone isn't
+    // enough — without an ownership check, any logged-in user could probe
+    // status of any other user's bank job by guessing/leaking jobIds.
+    const job = await queryOne<{ user_id: string }>(
+      'SELECT user_id FROM bank_jobs WHERE id = $1',
+      [jobId],
+    );
+    if (!job || job.user_id !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Call Lambda
