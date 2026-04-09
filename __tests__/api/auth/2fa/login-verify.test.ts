@@ -2,25 +2,34 @@
  * Tests for POST /api/auth/2fa/login-verify
  */
 
+jest.mock('@/lib/auth-db');
+jest.mock('@/lib/db');
+jest.mock('@/lib/2fa');
+jest.mock('@/lib/rate-limit', () => ({
+  rateLimiters: {
+    auth: { check: jest.fn().mockResolvedValue({ success: true }) },
+  },
+  getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
+}));
+
 import { POST } from '@/app/api/auth/2fa/login-verify/route';
 import { createMockRequest } from '../../../utils/mock-request';
 import * as authDb from '@/lib/auth-db';
 import * as db from '@/lib/db';
 import * as lib2fa from '@/lib/2fa';
-
-jest.mock('@/lib/auth-db');
-jest.mock('@/lib/db');
-jest.mock('@/lib/2fa');
+import * as rateLimit from '@/lib/rate-limit';
 
 const mockVerifyPassword = authDb.verifyPassword as jest.MockedFunction<typeof authDb.verifyPassword>;
 const mockQueryOne = db.queryOne as jest.MockedFunction<typeof db.queryOne>;
 const mockExecute = db.execute as jest.MockedFunction<typeof db.execute>;
 const mockVerifyToken = lib2fa.verifyToken as jest.MockedFunction<typeof lib2fa.verifyToken>;
 const mockVerifyBackupCode = lib2fa.verifyBackupCode as jest.MockedFunction<typeof lib2fa.verifyBackupCode>;
+const mockRateLimit = rateLimit as jest.Mocked<typeof rateLimit>;
 
 describe('POST /api/auth/2fa/login-verify', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (mockRateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: true });
     mockVerifyPassword.mockResolvedValue({ id: 'u1', email: 'u@x.com' } as any);
     mockQueryOne.mockResolvedValue({
       id: 'u1',
@@ -32,6 +41,13 @@ describe('POST /api/auth/2fa/login-verify', () => {
     mockVerifyToken.mockReturnValue(false);
     mockVerifyBackupCode.mockReturnValue({ valid: false, index: -1 });
     mockExecute.mockResolvedValue(undefined);
+  });
+
+  it('M-7: returns 429 when rate limit exceeded', async () => {
+    (mockRateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: false });
+    const res = await POST(createMockRequest({ email: 'u@x.com', password: 'P1!', code: '123456' }) as any);
+    expect(res.status).toBe(429);
+    expect(mockVerifyPassword).not.toHaveBeenCalled();
   });
 
   it('returns success and userId when TOTP valid', async () => {
