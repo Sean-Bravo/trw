@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getClientIdentifier } from '@/lib/rate-limit';
 import { query } from '@/lib/db';
+import { API_GATEWAY_URL } from '@/lib/lambda-client';
 
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * POST /api/bank/process

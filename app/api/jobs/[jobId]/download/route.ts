@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { query, queryOne } from '@/lib/db';
+import { API_GATEWAY_URL } from '@/lib/lambda-client';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 
 interface Subscription {

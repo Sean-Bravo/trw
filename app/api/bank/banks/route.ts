@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { API_GATEWAY_URL } from '@/lib/lambda-client';
 
-const API_GATEWAY_URL = process.env['API_GATEWAY_URL'] || 'https://api.taxformatter.com';
 
 /**
  * GET /api/bank/banks
