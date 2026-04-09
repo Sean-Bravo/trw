@@ -74,11 +74,11 @@ describe('POST /api/uploads/[uploadId]/confirm', () => {
     );
   });
 
-  it('allows anonymous access (no session)', async () => {
+  it('M-12: rejects anonymous access (no session) with 401', async () => {
     mockGetServerSession.mockResolvedValue(null);
     const res = await POST(createMockRequest({}) as any, ctx('uploads/j1/f.csv'));
-    expect(res.status).toBe(200);
-    expect(global.fetch).toHaveBeenCalled();
+    expect(res.status).toBe(401);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('propagates Lambda 429 with Retry-After', async () => {
