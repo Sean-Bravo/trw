@@ -158,10 +158,16 @@ export async function getMonthlyUsage(apiKeyId: string): Promise<{ fileCount: nu
 }
 
 export async function getUsageHistory(apiKeyId: string, months: number = 6): Promise<DbApiUsage[]> {
+  // L-7: use make_interval(months => $2::int) instead of string
+  // concatenation. Today months is typed as number so the previous
+  // form was safe, but a future refactor passing the value through
+  // unchecked input would break that. make_interval() is structurally
+  // safer because the value is bound as an int parameter.
+  // SECURITY_AUDIT.md §L-7
   return query<DbApiUsage>(
     `SELECT * FROM api_usage
      WHERE api_key_id = $1
-       AND usage_date >= (CURRENT_DATE - ($2 || ' months')::interval)
+       AND usage_date >= CURRENT_DATE - make_interval(months => $2::int)
      ORDER BY usage_date DESC`,
     [apiKeyId, months]
   );
