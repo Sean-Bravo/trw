@@ -81,7 +81,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 | M-4   | Constant-time response on `/api/auth/resend-code`            | [x]    |
 | M-5   | Reduce JWT session to 7 days (with sliding refresh)          | [x]    |
 | M-6   | Make password reset tokens single-use                        | [x] (10-min view window) |
-| M-8   | Bump 2FA backup codes to 48 bits                             | [ ]    |
+| M-8   | Bump 2FA backup codes to 48 bits                             | [x]    |
 | M-9   | Scrub verbose Python exception messages                      | [ ]    |
 | M-10  | Add CSV formula injection sanitizer                          | [ ]    |
 | M-11  | Pin `pdfplumber` version, generate lockfile, add `pip-audit` | [ ]    |
