@@ -1,9 +1,15 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Container } from '../layout/Container';
 import { Check, Zap, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+
+// L-1: pricing tier passed via sessionStorage instead of URL query
+// param. Query params end up in browser history, Referer headers, and
+// server access logs — api_tier itself isn't sensitive, but the pattern
+// is. SECURITY_AUDIT.md §L-1
+const PENDING_TIER_KEY = 'pending_api_tier';
 
 const tiers = [
   {
@@ -19,7 +25,7 @@ const tiers = [
       'JSON response',
     ],
     cta: 'Get Started',
-    ctaHref: '/signup?api_tier=starter',
+    tier: 'starter',
     style: 'bg-white/2 border-white/6',
     checkColor: 'text-slate-500',
   },
@@ -38,7 +44,7 @@ const tiers = [
       'Usage analytics',
     ],
     cta: 'Start Building',
-    ctaHref: '/signup?api_tier=growth',
+    tier: 'growth',
     highlight: true,
     style: 'bg-[#111b2e] border-[#635bff]/30',
     checkColor: 'text-[#635bff]',
@@ -57,13 +63,27 @@ const tiers = [
       'SLA guarantee',
     ],
     cta: 'Get Started',
-    ctaHref: '/signup?api_tier=business',
+    tier: 'business',
     style: 'bg-white/2 border-white/6',
     checkColor: 'text-slate-500',
   },
 ];
 
 export function APIPricing() {
+  const router = useRouter();
+
+  const handleTierClick = (tier: string) => {
+    // L-1: stash tier in sessionStorage instead of URL query param.
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(PENDING_TIER_KEY, tier);
+      } catch {
+        // sessionStorage may be disabled in private mode — proceed anyway.
+      }
+    }
+    router.push('/signup');
+  };
+
   return (
     <section className="py-28 bg-[#0b1121] relative overflow-hidden" id="pricing">
       {/* Background */}
@@ -115,8 +135,9 @@ export function APIPricing() {
                   ))}
                 </ul>
 
-                <Link
-                  href={tier.ctaHref}
+                <button
+                  type="button"
+                  onClick={() => handleTierClick(tier.tier)}
                   className={`block w-full py-3.5 px-4 text-center font-semibold rounded-xl text-[14px] transition-all ${
                     tier.highlight
                       ? 'bg-linear-to-r from-[#635bff] to-primary-400 text-white hover:opacity-90 shadow-lg shadow-[#635bff]/20'
@@ -124,7 +145,7 @@ export function APIPricing() {
                   }`}
                 >
                   {tier.cta}
-                </Link>
+                </button>
               </div>
             ))}
           </div>

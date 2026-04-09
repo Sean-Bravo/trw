@@ -101,7 +101,7 @@ These enable real user harm: financial loss, PII theft, account takeover.
 
 | ID    | Fix                                                          | Status |
 | ----- | ------------------------------------------------------------ | ------ |
-| L-1   | Move `api_tier` out of URL query param                       | [ ]    |
+| L-1   | Move `api_tier` out of URL query param                       | [x] (sessionStorage; URL still works for deep links) |
 | L-2   | Trim DoubleClick from `connect-src` if unused                | [ ]    |
 | L-3   | HSTS preload — already done ✓                                | ✓      |
 | L-4   | Bump verification codes to 8-char alphanumeric               | [ ]    |
