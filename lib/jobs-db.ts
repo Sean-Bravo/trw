@@ -79,33 +79,28 @@ export async function updateJobStatus(
   result?: Record<string, unknown>,
   error?: string
 ): Promise<void> {
-  const updates: string[] = ['status = $2'];
-  const params: unknown[] = [jobId, status];
-  let paramIndex = 3;
-
-  if (status === 'running') {
-    updates.push(`started_at = now()`);
-  }
-
-  if (status === 'succeeded' || status === 'failed' || status === 'canceled') {
-    updates.push(`finished_at = now()`);
-  }
-
-  if (result !== undefined) {
-    updates.push(`result = $${paramIndex}`);
-    params.push(JSON.stringify(result));
-    paramIndex++;
-  }
-
-  if (error !== undefined) {
-    updates.push(`error = $${paramIndex}`);
-    params.push(error);
-    paramIndex++;
-  }
+  // H-13: previously this function built the UPDATE SET clause from a
+  // string array. The fragments were all hardcoded so today there was no
+  // SQL injection — but the *pattern* was a footgun: the moment a future
+  // refactor takes a column name from request input, it's an instant
+  // injection. The CASE/COALESCE form below is a single parameterized
+  // statement with no string concat. SECURITY_AUDIT.md §H-13.
+  const resultJson = result !== undefined ? JSON.stringify(result) : null;
+  const errorParam = error !== undefined ? error : null;
 
   await execute(
-    `UPDATE jobs SET ${updates.join(', ')} WHERE id = $1`,
-    params
+    `UPDATE jobs
+     SET
+       status = $2,
+       started_at = CASE WHEN $2 = 'running' THEN now() ELSE started_at END,
+       finished_at = CASE
+         WHEN $2 IN ('succeeded', 'failed', 'canceled') THEN now()
+         ELSE finished_at
+       END,
+       result = COALESCE($3, result),
+       error  = COALESCE($4, error)
+     WHERE id = $1`,
+    [jobId, status, resultJson, errorParam]
   );
 }
 
