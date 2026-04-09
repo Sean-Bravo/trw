@@ -70,6 +70,21 @@ jobs:
       - name: Run npm audit (critical — must pass)
         run: npm audit --audit-level=critical
 
+      # M-11: Python dependency vulnerability scan
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit (high — warn only)
+        run: |
+          pip-audit -r backend/requirements-api.txt --vulnerability-service osv || true
+          pip-audit -r backend/requirements-processor.txt --vulnerability-service osv || true
+          pip-audit -r backend/requirements-webhook.txt --vulnerability-service osv || true
+
   build:
     name: Build
     runs-on: ubuntu-latest
