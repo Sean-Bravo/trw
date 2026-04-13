@@ -32,7 +32,10 @@ export async function POST(
 
     // 2. Parse request body
     const body = await request.json();
-    const { etag } = body;
+    const { etag, filename: clientFilename } = body as {
+      etag?: string;
+      filename?: unknown;
+    };
 
     // 3. Call AWS Lambda via API Gateway
     // Route: POST /confirm-upload (see backend/handlers/webhook.py)
@@ -76,10 +79,23 @@ export async function POST(
 
     console.log(`[Upload Confirm] Created job ${data.jobId} for user ${userId}`);
 
-    // 4. Persist to Neon database
-    // Extract filename from S3 key: uploads/{jobId}/{filename}
-    const s3KeyParts = uploadId.split('/');
-    const filename = s3KeyParts.length >= 3 ? s3KeyParts.slice(2).join('/') : 'Unknown file';
+    // 4. Persist to Neon database.
+    // Filename resolution: prefer the value the client sent (this is the
+    // user's original filename, before our S3-key sanitization). Fall
+    // back to parsing it out of the S3 key path. Final fallback to a
+    // generic label so we never store nothing.
+    //
+    // The previous code path-parsed only and produced UUID-looking
+    // filenames in some legacy rows when the S3 key lost its third part.
+    let filename = 'Unknown file';
+    if (typeof clientFilename === 'string' && clientFilename.trim().length > 0) {
+      filename = clientFilename.slice(0, 255);
+    } else {
+      const s3KeyParts = uploadId.split('/');
+      if (s3KeyParts.length >= 3) {
+        filename = s3KeyParts.slice(2).join('/');
+      }
+    }
 
     try {
       // Create upload record

@@ -74,6 +74,49 @@ describe('POST /api/uploads/[uploadId]/confirm', () => {
     );
   });
 
+  describe('filename resolution', () => {
+    it('prefers the client-supplied filename over the S3 key path', async () => {
+      const req = createMockRequest({ etag: 'abc', filename: 'Smith LLC - Jan 2026.csv' });
+      await POST(req as any, ctx('uploads/j1/sanitized_name.csv'));
+      expect(mockCreateUpload).toHaveBeenCalledWith(
+        'user-1',
+        'Smith LLC - Jan 2026.csv',
+        'uploads/j1/sanitized_name.csv',
+      );
+    });
+
+    it('falls back to S3 key parse when client omits filename', async () => {
+      const req = createMockRequest({ etag: 'abc' });
+      await POST(req as any, ctx('uploads/j1/legacy.csv'));
+      expect(mockCreateUpload).toHaveBeenCalledWith(
+        'user-1',
+        'legacy.csv',
+        'uploads/j1/legacy.csv',
+      );
+    });
+
+    it('falls back to "Unknown file" when neither source has a usable name', async () => {
+      const req = createMockRequest({ etag: 'abc', filename: '   ' });
+      await POST(req as any, ctx('uploads/j1'));
+      expect(mockCreateUpload).toHaveBeenCalledWith(
+        'user-1',
+        'Unknown file',
+        'uploads/j1',
+      );
+    });
+
+    it('rejects non-string filename values defensively', async () => {
+      const req = createMockRequest({ etag: 'abc', filename: { evil: true } });
+      await POST(req as any, ctx('uploads/j1/legit.csv'));
+      // falls back to the S3-key parse since the body filename was wrong type
+      expect(mockCreateUpload).toHaveBeenCalledWith(
+        'user-1',
+        'legit.csv',
+        'uploads/j1/legit.csv',
+      );
+    });
+  });
+
   it('M-12: rejects anonymous access (no session) with 401', async () => {
     mockGetServerSession.mockResolvedValue(null);
     const res = await POST(createMockRequest({}) as any, ctx('uploads/j1/f.csv'));
