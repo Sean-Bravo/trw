@@ -139,11 +139,16 @@ export async function uploadToS3(
 }
 
 /**
- * Step 3: Confirm upload and create processing job
+ * Step 3: Confirm upload and create processing job.
+ *
+ * Pass `filename` so the server can store the user's original name
+ * verbatim instead of parsing it back out of the S3 key (which is
+ * fragile and produced UUID-looking filenames in some legacy rows).
  */
 export async function confirmUpload(
   uploadId: string,
-  etag: string
+  etag: string,
+  filename?: string,
 ): Promise<UploadConfirmResponse> {
   // Generate idempotency key (allows safe retries)
   const idempotencyKey = crypto.randomUUID();
@@ -157,7 +162,7 @@ export async function confirmUpload(
       'Content-Type': 'application/json',
       'Idempotency-Key': idempotencyKey,
     },
-    body: JSON.stringify({ etag }),
+    body: JSON.stringify({ etag, filename }),
   });
 
   if (response.status === 429) {
@@ -203,9 +208,10 @@ export async function uploadCSVFile(
       onProgress?.('uploading', overallPercent);
     });
 
-    // Step 3: Confirm upload
+    // Step 3: Confirm upload (pass original filename through so the
+    // server stores it verbatim instead of parsing the S3 key).
     onProgress?.('confirming', 90);
-    const result = await confirmUpload(uploadId, etag);
+    const result = await confirmUpload(uploadId, etag, file.name);
 
     onProgress?.('confirming', 100);
     return result;
