@@ -15,14 +15,27 @@
 -- silently corrupting the dashboard view.
 
 -- Step 1: clean up any existing legacy rows so the CHECK constraint can
--- be added without rejecting current data. We try to rederive the real
--- name from the S3 key first, then fall back to a generic label.
+-- be added without rejecting current data. Try to re-derive the real
+-- name from the S3 key, but ONLY if that value is itself not UUID-
+-- shaped (some legacy rows stored the jobId UUID in the third path
+-- segment too, so a naive split_part returns another UUID).
+--
+-- Final fallback is a generic 'unnamed.csv' so we never store nothing.
 UPDATE uploads
-   SET filename = COALESCE(
-       NULLIF(split_part(s3_key, '/', 3), ''),
-       'unnamed.csv'
-     )
+   SET filename = CASE
+     WHEN split_part(s3_key, '/', 3) <> ''
+      AND split_part(s3_key, '/', 3) !~ '^[0-9a-f]{8}-[0-9a-f]{4}'
+       THEN split_part(s3_key, '/', 3)
+     ELSE 'unnamed.csv'
+   END
  WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}';
+
+-- Defensive: if the migration is re-run after a partial success, also
+-- catch any rows where the derived value still looks UUID-shaped (the
+-- original buggy UPDATE in this file's first version may have written
+-- one). DROP IF EXISTS in case we're re-running.
+ALTER TABLE uploads
+  DROP CONSTRAINT IF EXISTS uploads_filename_not_uuid_shaped;
 
 -- Step 2: add the structural guard.
 -- Pattern matches a leading UUID-looking sequence (8 hex - 4 hex …).
@@ -36,6 +49,9 @@ ALTER TABLE uploads
 UPDATE bank_jobs
    SET filename = 'unnamed.pdf'
  WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}';
+
+ALTER TABLE bank_jobs
+  DROP CONSTRAINT IF EXISTS bank_jobs_filename_not_uuid_shaped;
 
 ALTER TABLE bank_jobs
   ADD CONSTRAINT bank_jobs_filename_not_uuid_shaped
