@@ -1,7 +1,8 @@
 # Uploads Filename Fix — Operational Notes
 
-**Source commit:** `2ff5a9c` (fix(uploads): preserve original filename through confirm step)
-**Status:** Code fix shipped. Manual DB cleanup pending.
+**Source commit:** `2ff5a9c` (code fix) + this migration (data cleanup + constraint)
+**Migration:** `db/migrations/012_uploads_filename_constraint.sql`
+**Status:** Code shipped. Run migration 012 against prod to clean legacy data and lock in the guard.
 
 ---
 
@@ -25,39 +26,55 @@ Reproduction: `app/api/uploads/[uploadId]/confirm/route.ts` parsed the filename 
 
 ---
 
-## ⚠️ Manual DB cleanup pending
+## DB cleanup — automated via migration 012
 
-The fix only affects uploads going forward. **Existing rows with UUID-shaped filenames need to be cleaned up manually.**
+`db/migrations/012_uploads_filename_constraint.sql` does two things in
+one transaction:
 
-### Step 1 — Find affected rows
+1. **Data cleanup.** For any existing row where `filename` looks like a
+   UUID, it re-derives the real name from `s3_key` (the third path
+   segment), or falls back to `'unnamed.csv'` / `'unnamed.pdf'`.
+2. **Structural guard.** Adds a `CHECK` constraint to both `uploads`
+   and `bank_jobs` that rejects any future write with a UUID-shaped
+   filename. The bug class can't recur — a regression would fail at
+   the DB layer with a clear error instead of corrupting the dashboard.
 
-Open the Neon SQL editor and run:
+### Run
 
-```sql
-SELECT id, user_id, filename, s3_key, created_at
-FROM uploads
-WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}'
-ORDER BY created_at DESC;
+Same as the previous migrations — Neon SQL editor or:
+
+```bash
+node run-migration.mjs db/migrations/012_uploads_filename_constraint.sql
 ```
 
-### Step 2 — Decide per row
-
-For each result, decide:
-
-| Situation | Action |
-| --- | --- |
-| Row has a usable `s3_key` like `uploads/{jobId}/real-name.csv` | Re-derive: `UPDATE uploads SET filename = split_part(s3_key, '/', 3) WHERE id = '<id>';` |
-| Row's `s3_key` is also broken (no third part) | `UPDATE uploads SET filename = 'unnamed.csv' WHERE id = '<id>';` |
-| Row is an orphan (no associated job, or the user can't remember it) | `DELETE FROM uploads WHERE id = '<id>';` (cascade removes the job too) |
-
-### Step 3 — Verify
-
-Run the same SELECT query again. Should return 0 rows.
+### Verify
 
 ```sql
-SELECT count(*) FROM uploads WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}';
--- expect: 0
+-- Should return 0 in both:
+SELECT count(*) FROM uploads    WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}';
+SELECT count(*) FROM bank_jobs  WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}';
+
+-- Should show the new constraints:
+SELECT conname FROM pg_constraint
+ WHERE conname IN (
+   'uploads_filename_not_uuid_shaped',
+   'bank_jobs_filename_not_uuid_shaped'
+ );
 ```
+
+### If the migration fails
+
+The most likely cause is an existing row whose `s3_key` is also broken
+(empty or missing). The migration's COALESCE handles that — but if you
+see an unexpected error, run this to inspect:
+
+```sql
+SELECT id, filename, s3_key
+  FROM uploads
+ WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}'
+    OR filename = '';
+```
+Then fix manually before re-running.
 
 ---
 
@@ -74,15 +91,17 @@ SELECT count(*) FROM bank_jobs WHERE filename ~ '^[0-9a-f]{8}-[0-9a-f]{4}';
 
 ---
 
-## Future-proofing (optional, post-launch)
+## Optional future hardening
 
-Two small additions would make this class of bug impossible to recur:
+The schema constraint shipped in migration 012. One more option remains
+for post-launch:
 
-1. **Schema constraint:** `ALTER TABLE uploads ADD CONSTRAINT filename_not_uuid_shaped CHECK (filename !~ '^[0-9a-f]{8}-[0-9a-f]{4}');` — rejects writes that would store a UUID-shaped string. Belt-and-suspenders against future code regressions.
-
-2. **Lambda S3 metadata as third source:** the upload Lambda already stores `original-filename` as S3 object metadata. The confirm route could `HeadObject` and read it as a backup if the client didn't send a filename. More robust than path-parsing but adds an S3 round-trip.
-
-Neither is required to close the bug — both are post-launch hardening.
+- **Lambda S3 metadata as third source:** the upload Lambda already
+  stores `original-filename` as S3 object metadata. The confirm route
+  could `HeadObject` and read it as a backup if the client didn't send
+  a filename. More robust than path-parsing but adds an S3 round-trip.
+  Not required — current resolution chain (client body → S3 key parse
+  → `'Unknown file'`) is sufficient.
 
 ---
 
