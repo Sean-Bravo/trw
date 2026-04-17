@@ -731,7 +731,69 @@ These numbers are hypothetical — size them against your observed cost per stat
 
 ---
 
-## 9. Runbook: common incidents
+## 9. Public sandbox (`/playground`) endpoint
+
+**Context:** A new unauthenticated `/playground` route is planned (see `BUYER_EVIDENCE_PLAN.md`). It proxies to `https://api.taxformatter.com/v1/parse` via an internal Next.js route (`/api/playground/parse`), using a server-side `DEMO_API_KEY` by default and optionally a user-pasted key ("BYOK"). This section captures the reliability requirements for that path before it ships.
+
+### 9.1 Proxy timeout and retry
+
+The proxy handler fetches the upstream parse API. Default-safe config:
+
+```ts
+// app/api/playground/parse/route.ts
+const upstream = await fetch('https://api.taxformatter.com/v1/parse', {
+  method: 'POST',
+  headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload),
+  signal: AbortSignal.timeout(15_000),
+});
+```
+
+**Do not auto-retry on the server.** The playground is interactive — if the upstream returns 5xx, let the user retry by clicking "Send request" again. Silent server-side retry without an idempotency key would double-consume the demo-key quota on partial failures. Forward the upstream status code and body unchanged so developers see the real API shape (including the documented error envelope in `content/docs/api/index.md`).
+
+Strip `X-API-Key` from log lines, Sentry breadcrumbs, and any captured error context — both the demo key and BYOK user-pasted keys. Sentry's `beforeSend` is a reasonable enforcement point.
+
+### 9.2 Rate limiting
+
+The plan adds `rateLimiters.playground` (10/hour/IP) to `lib/rate-limit.ts`. This limiter inherits the in-memory problem described in §3 — it resets on cold start and is per-instance — so the effective limit is closer to `10 × warm_instance_count`. Until the Upstash migration in §3 lands, rely on the global demo-key quota (§9.3) as the primary abuse control, with IP limiting as a weak second layer.
+
+When the Upstash migration happens, migrate `rateLimiters.playground` alongside `auth` and `api`.
+
+### 9.3 Global demo-key quota
+
+Unlike §8's per-user budget, the demo key is shared across every anonymous visitor. A single global counter prevents an attacker rotating IPs from draining the key's upstream quota in minutes:
+
+```ts
+// lib/playground-proxy.ts
+export async function assertDemoKeyQuota(): Promise<void> {
+  const used = await incr('playground:demo:global', { ttlSeconds: 86_400 });
+  if (used > 500) throw new DemoKeyQuotaExceededError();
+}
+```
+
+500/day is a starting point — tune against observed upstream cost. The documented free tier on `api.taxformatter.com` is 10/mo per key, which is far too low for a shared demo endpoint; the plan calls out provisioning a dedicated elevated-quota demo key on that backend as a blocking prerequisite.
+
+Return a distinct code when exhausted so the UI can render a helpful empty state:
+
+```json
+{ "status": "error", "code": "demo_quota_exhausted", "message": "Daily demo quota reached — try again tomorrow or paste your own API key." }
+```
+
+### 9.4 Feature-flag kill-switch
+
+Gate page rendering on `NEXT_PUBLIC_PLAYGROUND_ENABLED` (per the plan) and **also** add a server-only `PLAYGROUND_KILLSWITCH` env var read inside `/api/playground/parse`. The `NEXT_PUBLIC_*` value is baked into the client bundle at build time; flipping it off still requires a redeploy. The server-only switch disables the proxy instantly without rebuilding — which is what you want during an active abuse spike (see §10 runbook).
+
+### 9.5 Input validation
+
+Before forwarding upstream:
+
+- Enforce a 1 MB cap on base64 `file_content` (matches Next.js default JSON body limit). The upstream supports 10 MB; keeping the playground cap lower bounds the cost of a single abusive request.
+- Reject unknown `output_format` values — never forward unvalidated input upstream.
+- Never echo `DEMO_API_KEY` or the BYOK value in the response body, headers, or error messages. Unit test this explicitly.
+
+---
+
+## 10. Runbook: common incidents
 
 ### Incident: "Anthropic returns 529 burst"
 
@@ -768,6 +830,18 @@ These numbers are hypothetical — size them against your observed cost per stat
 
 Manual resolution: `UPDATE jobs SET status = 'failed', error = 'Manual intervention — see incident XXX' WHERE id = 'xxx'` and email the user.
 
+### Incident: "/playground abuse spike"
+
+**Symptoms:** `'playground:demo:global'` counter climbing far faster than baseline; `api.taxformatter.com` usage dashboard showing anomalous demo-key spend; burst of Sentry errors from `/api/playground/parse`.
+
+**Response:**
+1. Set `PLAYGROUND_KILLSWITCH=true` in Vercel — this disables the proxy immediately with no rebuild. Also flip `NEXT_PUBLIC_PLAYGROUND_ENABLED=false` so the page stops rendering on the next deploy.
+2. Inspect IP distribution in logs: is this one attacker rotating a proxy pool, or organic virality (e.g., an HN front-page post)?
+3. If organic and desired: raise the per-IP limit and/or global quota; re-enable.
+4. If abuse: keep the kill-switch on. File an issue to tighten limits (lower per-IP cap, add geoblock, or gate the playground behind hCaptcha).
+5. If the demo key itself was leaking somehow (shouldn't be possible — the proxy never returns it), rotate `DEMO_API_KEY` on the `api.taxformatter.com` side.
+6. Post-incident: review whether the `rateLimiters.playground` in-memory limiter held up or was the weak link. If the latter, prioritize the Upstash migration in §3.
+
 ### Incident: "Neon is slow or unreachable"
 
 **Symptoms:** API responses >5s; Sentry shows `ETIMEDOUT` from Neon.
@@ -780,7 +854,7 @@ Manual resolution: `UPDATE jobs SET status = 'failed', error = 'Manual intervent
 
 ---
 
-## 10. Reliability roadmap
+## 11. Reliability roadmap
 
 ### Sprint 1 — fix the foundation
 
@@ -812,6 +886,14 @@ Manual resolution: `UPDATE jobs SET status = 'failed', error = 'Manual intervent
 17. Per-user AI budget enforcement (§8)
 18. DLQ automated replay
 
+### Sprint 5 — public sandbox (tracks `BUYER_EVIDENCE_PLAN.md`)
+
+19. `/api/playground/parse` proxy with 15s timeout, no server-side retry (§9.1)
+20. Global demo-key daily quota + distinct `demo_quota_exhausted` error code (§9.3)
+21. `PLAYGROUND_KILLSWITCH` server-only env var wired into the proxy (§9.4)
+22. Sentry `beforeSend` scrubber for `X-API-Key` and base64 `file_content` (§9.1)
+23. Migrate `rateLimiters.playground` to Upstash alongside the other limiters (§3, §9.2)
+
 ### Ongoing
 
 - Quarterly load test the happy path + key failure modes
@@ -836,6 +918,8 @@ When adding a new API route, verify:
 - [ ] Auth: ownership check for user-scoped resources (see `SECURITY_AUDIT.md` §H-1, §H-2)
 - [ ] Timeouts ladder: external timeout < Lambda timeout < Vercel function timeout
 - [ ] Test: at least one test for the error path, not just the happy path
+- [ ] Kill-switch: public / anonymous endpoints ship behind a server-readable env toggle so abuse can be stopped without a redeploy (§9.4)
+- [ ] Shared credentials: if the endpoint uses a shared upstream key (demo key, service account), enforce a **global** quota in addition to per-IP / per-user limits (§9.3)
 
 ---
 
