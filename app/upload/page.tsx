@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Logo } from '@/components/ui/Logo';
 import { uploadBankStatement, validateBankFile } from '@/lib/bank-upload-client';
 import { trackConversion } from '@/lib/analytics';
+import { ApiEquivalentPanel } from '@/components/upload/ApiEquivalentPanel';
 import Link from 'next/link';
 import {
   Upload,
@@ -69,6 +70,7 @@ export default function UploadLandingPage() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [detectedBank, setDetectedBank] = useState<string | null>(null);
   const [transactionCount, setTransactionCount] = useState<number | null>(null);
+  const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<BankOutputFormat>('csv');
   const [isChangingFormat, setIsChangingFormat] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +95,7 @@ export default function UploadLandingPage() {
     setState('uploading');
     setProgress(0);
     setErrorMsg('');
+    setUploadedFilename(file.name);
     trackConversion('bank_upload_started');
 
     try {
@@ -171,6 +174,7 @@ export default function UploadLandingPage() {
     setJobId(null);
     setDetectedBank(null);
     setTransactionCount(null);
+    setUploadedFilename(null);
     setSelectedFormat('csv');
     setIsChangingFormat(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -275,7 +279,7 @@ export default function UploadLandingPage() {
                 <h3 className="text-lg font-semibold mb-3">Processing your file...</h3>
                 <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden mb-3">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-300"
+                    className="h-full rounded-full bg-linear-to-r from-primary-500 to-accent-500 transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -373,6 +377,16 @@ export default function UploadLandingPage() {
             )}
           </div>
 
+          {/* API equivalent — shown after a successful parse to bridge consumer → developer */}
+          {state === 'success' && detectedBank && transactionCount && uploadedFilename && (
+            <ApiEquivalentPanel
+              detectedBank={detectedBank}
+              transactionCount={transactionCount}
+              outputFormat={selectedFormat}
+              filename={uploadedFilename}
+            />
+          )}
+
           {/* Example hint */}
           <div className="mt-4 rounded-lg border border-slate-800/60 bg-slate-900/40 px-4 py-3">
             <p className="text-xs text-slate-500 mb-2">
@@ -460,7 +474,7 @@ export default function UploadLandingPage() {
         <section className="text-center px-4 pb-20">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-primary-500 to-primary-700 text-white font-semibold text-base shadow-glow hover:shadow-[0_0_50px_-10px_rgba(99,91,255,0.4)] hover:-translate-y-0.5 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-linear-to-r from-primary-500 to-primary-700 text-white font-semibold text-base shadow-glow hover:shadow-[0_0_50px_-10px_rgba(99,91,255,0.4)] hover:-translate-y-0.5 transition-all duration-200"
           >
             Convert My Statement for Free
             <ArrowRight className="w-4.5 h-4.5" />
