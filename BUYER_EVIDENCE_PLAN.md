@@ -8,6 +8,37 @@ Ship two features:
 1. **API-equivalent panel on `/upload` success** — after a file parses, show the exact curl + JSON response that the public API would produce for the *same* file.
 2. **Public `/playground` route** — a Stripe-style in-browser sandbox that POSTs to `/v1/parse` with a demo key (no signup) or a user-pasted key, and renders the response inline.
 
+## Implementation status
+
+_Last updated: 2026-04-20. Update this section as work lands._
+
+### Feature 1 — `/upload` API-equivalent panel
+
+Status: **implemented locally, pending browser verification + commit.**
+
+- [x] Create [components/upload/ApiEquivalentPanel.tsx](components/upload/ApiEquivalentPanel.tsx) — tabs (cURL / Node / Python), synthesized response JSON, copy button, CTA to `/signup`.
+- [x] Add `uploadedFilename` state to [app/upload/page.tsx](app/upload/page.tsx) (set in `handleFile`, cleared in `reset`).
+- [x] Render panel below drop zone on `state === 'success'`.
+- [x] `npm run typecheck` clean; no new lint warnings; `GET /upload` compiles under `next dev`.
+- [ ] Manual browser verification: upload a real PDF, confirm the panel renders with correct bank name / tx count / filename, tabs switch, format selector updates both curl and JSON reactively.
+- [ ] Commit + push.
+
+### Feature 2 — `/playground` route
+
+Status: **not started.** Blocked on external prerequisite.
+
+- [ ] **Blocking:** provision a dedicated `DEMO_API_KEY` on the `api.taxformatter.com` backend (elevated quota, e.g. 500/day — docs free tier is 10/mo, too low for a shared demo endpoint).
+- [ ] Create [app/api/playground/parse/route.ts](app/api/playground/parse/route.ts) same-origin proxy with 15s timeout, no server-side retry, global demo-key quota, X-API-Key scrubbing (see `RELIABILITY.md` §9).
+- [ ] Create [lib/playground-proxy.ts](lib/playground-proxy.ts) — pure helpers (key selection, global quota, size cap, format allowlist).
+- [ ] Extend [lib/rate-limit.ts](lib/rate-limit.ts) with `rateLimiters.playground` (10/hour/IP).
+- [ ] Create [app/playground/page.tsx](app/playground/page.tsx) with left (request builder) + right (response viewer) split.
+- [ ] Create [components/playground/PlaygroundRequestBuilder.tsx](components/playground/PlaygroundRequestBuilder.tsx) + [components/playground/PlaygroundResponseViewer.tsx](components/playground/PlaygroundResponseViewer.tsx).
+- [ ] Add `/playground` to [components/marketing/Header.tsx](components/marketing/Header.tsx) nav.
+- [ ] Add `DEMO_API_KEY`, `NEXT_PUBLIC_PLAYGROUND_ENABLED`, `PLAYGROUND_KILLSWITCH` to [.env.example](.env.example).
+- [ ] Unit tests in `lib/__tests__/playground-proxy.test.ts` (key selection, size cap, format allowlist, global quota).
+- [ ] Security sanity check: grep built client bundle for `DEMO_API_KEY`, `tf_live_`, `tf_demo_` — must be zero hits.
+- [ ] Commit + push.
+
 ## Key findings from exploration
 
 - **Upload flow is internal, not the public API.** [app/upload/page.tsx](app/upload/page.tsx) uses a 3-step internal path (presigned S3 → PUT → `/api/bank/process`), not `POST /v1/parse`. The public API lives at `https://api.taxformatter.com/v1/parse` — an *external* backend. The "API equivalent" panel must therefore be constructed client-side, not lifted from the internal response.
