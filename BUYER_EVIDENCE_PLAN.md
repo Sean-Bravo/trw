@@ -14,30 +14,31 @@ _Last updated: 2026-04-20. Update this section as work lands._
 
 ### Feature 1 — `/upload` API-equivalent panel
 
-Status: **implemented locally, pending browser verification + commit.**
+Status: **shipped on 2026-04-20 (commit `5346dff`).**
 
 - [x] Create [components/upload/ApiEquivalentPanel.tsx](components/upload/ApiEquivalentPanel.tsx) — tabs (cURL / Node / Python), synthesized response JSON, copy button, CTA to `/signup`.
 - [x] Add `uploadedFilename` state to [app/upload/page.tsx](app/upload/page.tsx) (set in `handleFile`, cleared in `reset`).
 - [x] Render panel below drop zone on `state === 'success'`.
 - [x] `npm run typecheck` clean; no new lint warnings; `GET /upload` compiles under `next dev`.
-- [ ] Manual browser verification: upload a real PDF, confirm the panel renders with correct bank name / tx count / filename, tabs switch, format selector updates both curl and JSON reactively.
-- [ ] Commit + push.
+- [x] Commit + push.
+- [ ] Manual browser verification (owner: you): upload a real PDF at `/upload`, confirm the panel renders with correct bank name / tx count / filename, tabs switch, format selector updates both curl and JSON reactively.
 
 ### Feature 2 — `/playground` route
 
-Status: **not started.** Blocked on external prerequisite.
+Status: **built locally, pending `DEMO_API_KEY` provisioning for end-to-end test.**
 
-- [ ] **Blocking:** provision a dedicated `DEMO_API_KEY` on the `api.taxformatter.com` backend (elevated quota, e.g. 500/day — docs free tier is 10/mo, too low for a shared demo endpoint).
-- [ ] Create [app/api/playground/parse/route.ts](app/api/playground/parse/route.ts) same-origin proxy with 15s timeout, no server-side retry, global demo-key quota, X-API-Key scrubbing (see `RELIABILITY.md` §9).
-- [ ] Create [lib/playground-proxy.ts](lib/playground-proxy.ts) — pure helpers (key selection, global quota, size cap, format allowlist).
-- [ ] Extend [lib/rate-limit.ts](lib/rate-limit.ts) with `rateLimiters.playground` (10/hour/IP).
-- [ ] Create [app/playground/page.tsx](app/playground/page.tsx) with left (request builder) + right (response viewer) split.
-- [ ] Create [components/playground/PlaygroundRequestBuilder.tsx](components/playground/PlaygroundRequestBuilder.tsx) + [components/playground/PlaygroundResponseViewer.tsx](components/playground/PlaygroundResponseViewer.tsx).
-- [ ] Add `/playground` to [components/marketing/Header.tsx](components/marketing/Header.tsx) nav.
-- [ ] Add `DEMO_API_KEY`, `NEXT_PUBLIC_PLAYGROUND_ENABLED`, `PLAYGROUND_KILLSWITCH` to [.env.example](.env.example).
-- [ ] Unit tests in `lib/__tests__/playground-proxy.test.ts` (key selection, size cap, format allowlist, global quota).
-- [ ] Security sanity check: grep built client bundle for `DEMO_API_KEY`, `tf_live_`, `tf_demo_` — must be zero hits.
+- [ ] **Blocking for E2E only:** provision a dedicated `DEMO_API_KEY` on the `api.taxformatter.com` backend (elevated quota, e.g. 500/day — docs free tier is 10/mo, too low for a shared demo endpoint). Until this lands, the proxy returns upstream 401/403 on demo-mode requests; BYOK mode works with any real tf_live_ key.
+- [x] Create [app/api/playground/parse/route.ts](app/api/playground/parse/route.ts) same-origin proxy with 15s timeout, no server-side retry, global demo-key quota, X-API-Key scrubbing (see `RELIABILITY.md` §9).
+- [x] Create [lib/playground-proxy.ts](lib/playground-proxy.ts) — pure helpers (key selection, global quota, size cap, format allowlist, kill-switch).
+- [x] Extend [lib/rate-limit.ts](lib/rate-limit.ts) with `rateLimiters.playground` (10/hour/IP).
+- [x] Create [app/playground/page.tsx](app/playground/page.tsx) with left (request builder) + right (response viewer) split + `NEXT_PUBLIC_PLAYGROUND_ENABLED` gate.
+- [x] Create [components/playground/PlaygroundRequestBuilder.tsx](components/playground/PlaygroundRequestBuilder.tsx) + [components/playground/PlaygroundResponseViewer.tsx](components/playground/PlaygroundResponseViewer.tsx).
+- [x] Add `/playground` to [components/marketing/Header.tsx](components/marketing/Header.tsx) nav.
+- [x] Add `DEMO_API_KEY`, `DEMO_KEY_DAILY_QUOTA`, `NEXT_PUBLIC_PLAYGROUND_ENABLED`, `PLAYGROUND_KILLSWITCH` to [.env.example](.env.example).
+- [x] Unit tests in [lib/__tests__/playground-proxy.test.ts](lib/__tests__/playground-proxy.test.ts) — 17 passing (key selection, size cap, format allowlist, quota no-op, kill-switch).
+- [x] Security sanity check: canary `DEMO_API_KEY=tf_live_CANARY_DEMO_KEY_12345` stayed server-only after `next build`; grep of `.next/static/` returns zero hits for the canary value.
 - [ ] Commit + push.
+- [ ] Manual browser verification after demo key is provisioned (owner: you): visit `/playground`, click "Try sample" → Send, confirm real 200 + parsed transactions; toggle BYOK with a real `tf_live_` key; verify Network tab shows only `/api/playground/parse` (same origin) and no `DEMO_API_KEY` in any request/response.
 
 ## Key findings from exploration
 
