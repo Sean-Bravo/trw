@@ -170,4 +170,12 @@ export const rateLimiters = {
     interval: 60 * 60 * 1000, // 1 hour
     uniqueTokenPerInterval: 3,
   }),
+
+  // Public /playground sandbox: per-IP throttle. The second (global) layer
+  // is the demo-key daily quota enforced in lib/playground-proxy.ts.
+  // RELIABILITY.md §9.2
+  playground: new RateLimiter({
+    interval: 60 * 60 * 1000, // 1 hour
+    uniqueTokenPerInterval: 10,
+  }),
 };

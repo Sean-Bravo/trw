@@ -32,6 +32,7 @@ export function Header() {
 
   const navLinks = [
     { href: '/docs/api', label: 'API' },
+    { href: '/playground', label: 'Playground' },
     { href: '/#pricing', label: 'Pricing' },
     { href: '/#capabilities', label: 'Exchanges' },
     { href: '/blog', label: 'Blog' },
