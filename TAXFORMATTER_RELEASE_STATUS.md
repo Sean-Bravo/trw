@@ -13,7 +13,7 @@
 | Crypto Exchange Parsers | 14 |
 | Bank Statement Parsers | 13 |
 | Export Formats | 4 (Koinly, TurboTax, CoinLedger, ZenLedger) |
-| Packages Ready to Publish | 3 (2 npm + 1 PyPI) |
+| Packages | 1 published (PyPI: `taxformatter` v0.1.1) · 2 pending (npm) |
 | Build Phases Complete | 4/4 |
 
 ---
@@ -30,7 +30,7 @@ TaxFormatter pivoted from consumer SaaS (upload CSV, download fixed file) to dev
 | 1. Stripe Billing | Real keys, products, webhook hardening, payment failure handling | `509eaa0` |
 | 2. REST API Polish | X-Request-Id, Retry-After, input validation, metadata fix | `c351d0c` |
 | 3. MCP Server | `@taxformatter/mcp-server` — npm publish-ready, typed errors, configurable | `eab3f4e` |
-| 4. SDKs | `@taxformatter/sdk` (Node) + `taxformatter` (Python) | `9d3f37c` |
+| 4. SDKs | `@taxformatter/sdk` (Node) + `taxformatter` (Python) | `9d3f37c`, rename chain `5f79b1e` → `ed69d9f` → `3ff7b31` |
 
 ### Core Features
 
@@ -132,7 +132,7 @@ Official Python SDK. Single dependency (`requests`). Python 3.8+.
 
 **Registry:** https://pypi.org/project/taxformatter/
 
-> Originally published as `taxformatter-sdk` v0.1.0 on 2026-04-02 (the plain `taxformatter` name was unavailable at the time). Renamed back to `taxformatter` on 2026-04-22 so the pip install name matches the import name. The old `taxformatter-sdk` v0.1.0 remains on PyPI and should be yanked.
+> Originally published as `taxformatter-sdk` v0.1.0 on 2026-04-02 (the plain `taxformatter` name was unavailable at the time). Renamed back to `taxformatter` on 2026-04-22 so the pip install name matches the import name. The old `taxformatter-sdk` v0.1.0 was yanked on 2026-04-22 (reason: "renamed to taxformatter") and its trusted publisher was removed from PyPI. Users on the old name will see the yank notice and be directed to the new package.
 
 **Publish:**
 ```bash
@@ -148,11 +148,11 @@ pip install taxformatter
 python -c "from taxformatter import TaxFormatter; print('OK')"
 ```
 
-**Pre-publish checklist:**
-- [ ] 19/19 tests passing (`pytest`)
-- [ ] `python -m build` produces `.tar.gz` and `.whl` in `dist/`
-- [ ] PyPI account created with API token (or configure trusted publisher via GitHub Actions)
-- [ ] README renders correctly (test with `twine check dist/*`)
+**Pre-publish checklist:** _(all satisfied for v0.1.1)_
+- [x] 19/19 tests passing (`pytest`)
+- [x] `python -m build` produces `.tar.gz` and `.whl` in `dist/`
+- [x] PyPI account created with API token (or configure trusted publisher via GitHub Actions)
+- [x] README renders correctly (test with `twine check dist/*`)
 
 **Alternative — Trusted Publisher (no API token needed):**
 Set up in PyPI project settings → "Publishing" → add GitHub Actions as trusted publisher. Then publish via CI with no secrets needed.
