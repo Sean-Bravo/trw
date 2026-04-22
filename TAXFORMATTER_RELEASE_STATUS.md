@@ -1,6 +1,6 @@
 # TaxFormatter — Release Status
 
-> **Last Updated:** 2026-04-03
+> **Last Updated:** 2026-04-22
 > **Overall Status:** P0 complete. P1 in progress.
 > **Previous Name:** TaxReadyWallet (renamed to TaxFormatter)
 
@@ -126,11 +126,13 @@ npm info @taxformatter/sdk
 
 ---
 
-### PyPI: `taxformatter` v0.1.0
+### PyPI: `taxformatter` v0.1.1 ✅ Published
 
 Official Python SDK. Single dependency (`requests`). Python 3.8+.
 
 **Registry:** https://pypi.org/project/taxformatter/
+
+> Originally published as `taxformatter-sdk` v0.1.0 on 2026-04-02 (the plain `taxformatter` name was unavailable at the time). Renamed back to `taxformatter` on 2026-04-22 so the pip install name matches the import name. The old `taxformatter-sdk` v0.1.0 remains on PyPI and should be yanked.
 
 **Publish:**
 ```bash
