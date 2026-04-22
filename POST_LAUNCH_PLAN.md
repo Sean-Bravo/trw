@@ -20,6 +20,17 @@ Status: **not started.**
 
 Replace with `next-mdx-remote-client`. Content is simple (all 40 files — 15 blog + 25 docs — are frontmatter + markdown/code blocks only; no custom JSX inside bodies). Keeps content in `content/`, no routing restructure, preserves `remark-gfm` + `rehype-highlight`.
 
+> **Import path matters** — pick this once and stick with it:
+> ```ts
+> // ✅ Use — Server Component, serializes + renders in one step
+> import { MDXRemote } from 'next-mdx-remote-client/rsc'
+>
+> // ❌ Don't — Client Component, needs a separate serialize step,
+> //    only necessary if MDX bodies use useState / useEffect (they don't here)
+> import { MDXRemote } from 'next-mdx-remote-client/csr'
+> ```
+> The docs page's `CopyButton` is passed via the `components` prop (not embedded inside MDX bodies), so it stays a client component without forcing the whole page to client-render. RSC is correct for both blog and docs.
+
 Critical files: [components/blog/MDXContent.tsx](components/blog/MDXContent.tsx), [app/docs/[...slug]/mdx-content.tsx](app/docs/[...slug]/mdx-content.tsx) (preserve custom `pre` → [CopyButton](components/docs/CopyButton.tsx) wrapper), [next.config.ts](next.config.ts), [contentlayer.config.ts](contentlayer.config.ts). Five call sites need import swap: [app/sitemap.ts](app/sitemap.ts), [app/blog/page.tsx](app/blog/page.tsx), [app/blog/[slug]/page.tsx](app/blog/[slug]/page.tsx), [app/docs/[...slug]/page.tsx](app/docs/[...slug]/page.tsx), [lib/docs-utils.ts](lib/docs-utils.ts).
 
 - [ ] `npm install next-mdx-remote-client gray-matter reading-time`
