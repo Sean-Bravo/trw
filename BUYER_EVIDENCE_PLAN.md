@@ -10,7 +10,7 @@ Ship two features:
 
 ## Implementation status
 
-_Last updated: 2026-04-20. Update this section as work lands._
+_Last updated: 2026-04-21. Update this section as work lands._
 
 ### Feature 1 — `/upload` API-equivalent panel
 
@@ -25,7 +25,7 @@ Status: **shipped on 2026-04-20 (commit `5346dff`).**
 
 ### Feature 2 — `/playground` route
 
-Status: **built locally, pending `DEMO_API_KEY` provisioning for end-to-end test.**
+Status: **shipped on 2026-04-21 (commit `fe39388`). Pending `DEMO_API_KEY` provisioning for end-to-end demo-mode verification.**
 
 - [ ] **Blocking for E2E only:** provision a dedicated `DEMO_API_KEY` on the `api.taxformatter.com` backend (elevated quota, e.g. 500/day — docs free tier is 10/mo, too low for a shared demo endpoint). Until this lands, the proxy returns upstream 401/403 on demo-mode requests; BYOK mode works with any real tf_live_ key.
 - [x] Create [app/api/playground/parse/route.ts](app/api/playground/parse/route.ts) same-origin proxy with 15s timeout, no server-side retry, global demo-key quota, X-API-Key scrubbing (see `RELIABILITY.md` §9).
@@ -37,7 +37,7 @@ Status: **built locally, pending `DEMO_API_KEY` provisioning for end-to-end test
 - [x] Add `DEMO_API_KEY`, `DEMO_KEY_DAILY_QUOTA`, `NEXT_PUBLIC_PLAYGROUND_ENABLED`, `PLAYGROUND_KILLSWITCH` to [.env.example](.env.example).
 - [x] Unit tests in [lib/__tests__/playground-proxy.test.ts](lib/__tests__/playground-proxy.test.ts) — 17 passing (key selection, size cap, format allowlist, quota no-op, kill-switch).
 - [x] Security sanity check: canary `DEMO_API_KEY=tf_live_CANARY_DEMO_KEY_12345` stayed server-only after `next build`; grep of `.next/static/` returns zero hits for the canary value.
-- [ ] Commit + push.
+- [x] Commit + push.
 - [ ] Manual browser verification after demo key is provisioned (owner: you): visit `/playground`, click "Try sample" → Send, confirm real 200 + parsed transactions; toggle BYOK with a real `tf_live_` key; verify Network tab shows only `/api/playground/parse` (same origin) and no `DEMO_API_KEY` in any request/response.
 
 ## Key findings from exploration
