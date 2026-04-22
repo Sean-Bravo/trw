@@ -33,11 +33,17 @@ Critical files: [components/blog/MDXContent.tsx](components/blog/MDXContent.tsx)
 - [ ] Delete `contentlayer.config.ts`
 - [ ] Edit `next.config.ts` — remove `withContentlayer(...)` wrapper + Turbopack `contentlayer/generated` alias
 - [ ] Edit `package.json` build script — drop the `rm -rf .contentlayer && contentlayer2 build && ` prefix
-- [ ] `npm run typecheck` clean; `npm run lint` no new errors; `npm run build` + `npm start` succeed
+- [ ] Verify `components/blog/MDXContent.tsx` and `app/docs/[...slug]/mdx-content.tsx` are server components where possible — `next-mdx-remote-client` serializes MDX server-side, so serialization should happen in the page and rendering in the component. Only mark `"use client"` if genuinely needed (interactive hooks)
+- [ ] `npm run typecheck` clean; `npm run lint` no new errors
+- [ ] Test locally with `next build` + `npm start` BEFORE pushing to Vercel — catches serialization errors that `next dev` masks (same reason contentlayer2 was hiding the bug)
 - [ ] Smoke-test all 40 content URLs locally via `curl` loop — must return 200; `grep -c "Error Loading Content"` must be 0
 - [ ] Browser verify: [/blog/three-ways-to-use-taxformatter](https://www.taxformatter.com/blog/three-ways-to-use-taxformatter) and [/docs/exporting-your-data/zenledger-integration](https://www.taxformatter.com/docs/exporting-your-data/zenledger-integration) — code blocks highlighted, docs CopyButton works, no error boundary flash
 - [ ] `/sitemap.xml` still lists all posts and docs
 - [ ] Commit + push; confirm Vercel deploy green; retest both URLs on production
+
+### Rollback criteria
+
+- [ ] If `next build` fails after migration, or prod deploy breaks a page that worked before → `git revert` the migration commits and pin React/react-dom to `^18.3.1` (add `"overrides": { "react": "^18.3.1", "react-dom": "^18.3.1" }` to `package.json`) as a temporary unblock. Root-cause the migration failure offline before retrying.
 
 ---
 
@@ -45,7 +51,12 @@ Critical files: [components/blog/MDXContent.tsx](components/blog/MDXContent.tsx)
 
 Status: **not started.** Owner-action only (no code changes).
 
-Each rotation: (a) rotate at provider dashboard, (b) update Vercel env, (c) redeploy, (d) confirm old value rejected, (e) tick box below with timestamp.
+**Sequence matters — do it in one sitting:**
+1. Rotate every secret at its provider dashboard AND update the corresponding Vercel env var for each (tick boxes below as you go).
+2. **One** Vercel redeploy after all env vars are updated — not one per rotation.
+3. Confirm every old secret now returns 401 against its provider.
+4. Git history scrub (destructive; see post-rotation section).
+5. Provider access-log audit.
 
 ### Rotations
 
@@ -60,9 +71,12 @@ Each rotation: (a) rotate at provider dashboard, (b) update Vercel env, (c) rede
 - [ ] **C-2** Anthropic API key (console.anthropic.com → API keys)
 - [ ] **C-4** Sentry auth token (sentry.io → Settings → Account → API → Auth Tokens)
 
-### Post-rotation (DESTRUCTIVE — take `git branch backup/pre-history-scrub` first)
+### Post-rotation (DESTRUCTIVE)
 
+- [ ] Take local backup branch: `git branch backup/pre-history-scrub`
+- [ ] Push backup to remote before scrubbing: `git push origin backup/pre-history-scrub` (in case the local clone is lost during the scrub)
 - [ ] **C-1i** Scrub git history: prepare `rotation-replacements.txt` (`OLDVALUE==>***REDACTED***` per secret); `git filter-repo --replace-text rotation-replacements.txt`; force-push to `origin/main`
+- [ ] Notify any collaborators: force-push rewrites history for everyone. They must re-clone (or coordinate a `git fetch origin && git reset --hard origin/main` once the force-push lands). Don't skip this — silent force-pushes cause lost work
 - [ ] **C-1j** Audit provider access logs across the rotation window (Neon, Resend, Mailchimp, GCP, Sentry, npm, Stripe). Flag anything outside known client IPs / time windows
 - [ ] Tick the CRITICAL section in [SECURITY_AUDIT.md](SECURITY_AUDIT.md); update progress marker in [SECURITY_REMEDIATION_PLAN.md](SECURITY_REMEDIATION_PLAN.md)
 - [ ] Enable Sentry project-level data-scrubbing rules (Sentry → Security & Privacy → Data Scrubbers)
@@ -75,8 +89,9 @@ Status: **not started.** Package already on npm.
 
 - [ ] Verify tests: `cd packages/mcp-server && npm test`. If 0 tests, author smoke tests per tool (`parse`, `list_sources`, `get_usage`) + one error-path test (invalid API key → `TaxFormatterError`)
 - [ ] Author `packages/mcp-server/mcp-manifest.json` — `name`, `description`, `tools[]` (3 entries matching `packages/mcp-server/src/tools/*.ts`), `env[]` (`TAXFORMATTER_API_KEY` required, `TAXFORMATTER_API_URL` optional), `homepage`, `license`, `install` command
+- [ ] Create `smithery.yaml` in repo root — Smithery's required format, alongside the existing untracked `glama.json`
 - [ ] Add `packages/mcp-server/logo.svg` (512×512; reuse brand mark from [components/ui/Logo.tsx](components/ui/Logo.tsx))
-- [ ] Record a 30-second demo (Claude Code calling parse end-to-end); host somewhere linkable
+- [ ] _(Optional)_ Record a 30-second demo (Claude Code calling parse end-to-end); host somewhere linkable. None of the three directories require this — moves the needle on conversion, not submission
 - [ ] **Smithery** (smithery.ai) — submit via GitHub connection; add their badge to [packages/mcp-server/README.md](packages/mcp-server/README.md)
 - [ ] **mcp.run** — submit via web form / GitHub integration
 - [ ] **Glama** (glama.ai/mcp/servers) — submit via web form
@@ -85,6 +100,10 @@ Status: **not started.** Package already on npm.
 - [ ] Announce: short `/blog` post linking to each directory listing (reuse context from [three-ways-to-use-taxformatter.mdx](content/blog/three-ways-to-use-taxformatter.mdx))
 
 ---
+
+## Suggested daily order
+
+Workstream 1 first thing in the morning — most technically complex, tackle while fresh. Workstream 2 mid-day when you need a break from code (pure dashboard work). Workstream 3 end of day — lightest work, good to close out on.
 
 ## Gate criteria
 
