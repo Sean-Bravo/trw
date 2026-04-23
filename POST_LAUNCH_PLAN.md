@@ -16,7 +16,7 @@ _Full plan in `~/.claude/plans/fix-the-buyer-facing-evidence-lively-toucan.md`. 
 
 ## Workstream 1 — Migrate off `contentlayer2`
 
-Status: **not started.**
+Status: **shipped on 2026-04-23 (commits `7c75e64` → `e85a774`).** All 40 content URLs render on production with syntax highlighting; error boundaries are dormant.
 
 Replace with `next-mdx-remote-client`. Content is simple (all 40 files — 15 blog + 25 docs — are frontmatter + markdown/code blocks only; no custom JSX inside bodies). Keeps content in `content/`, no routing restructure, preserves `remark-gfm` + `rehype-highlight`.
 
@@ -33,24 +33,24 @@ Replace with `next-mdx-remote-client`. Content is simple (all 40 files — 15 bl
 
 Critical files: [components/blog/MDXContent.tsx](components/blog/MDXContent.tsx), [app/docs/[...slug]/mdx-content.tsx](app/docs/[...slug]/mdx-content.tsx) (preserve custom `pre` → [CopyButton](components/docs/CopyButton.tsx) wrapper), [next.config.ts](next.config.ts), [contentlayer.config.ts](contentlayer.config.ts). Five call sites need import swap: [app/sitemap.ts](app/sitemap.ts), [app/blog/page.tsx](app/blog/page.tsx), [app/blog/[slug]/page.tsx](app/blog/[slug]/page.tsx), [app/docs/[...slug]/page.tsx](app/docs/[...slug]/page.tsx), [lib/docs-utils.ts](lib/docs-utils.ts).
 
-- [ ] `npm install next-mdx-remote-client gray-matter reading-time`
-- [ ] `npm uninstall contentlayer2 next-contentlayer2`
-- [ ] Create `lib/content/types.ts` exporting `Post` and `Doc` interfaces matching current shapes (from `contentlayer.config.ts`)
-- [ ] Create `lib/content/posts.ts` — reads `content/blog/*.mdx`, parses with `gray-matter`, computes `readingTime`, exports `allPosts: Post[]` sorted by date desc
-- [ ] Create `lib/content/docs.ts` — reads `content/docs/**/*.{md,mdx}`, computes `section`/`url`, exports `allDocs: Doc[]`
-- [ ] Rewrite `components/blog/MDXContent.tsx` — swap `useMDXComponent(code)` → `<MDXRemote source={raw} options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeHighlight] } }} />`
-- [ ] Rewrite `app/docs/[...slug]/mdx-content.tsx` — same swap, preserve the `pre` → `<CopyButton>` wrapper via the `components` prop
-- [ ] Update all 5 call sites to import from `@/lib/content/posts` / `@/lib/content/docs`; pass `post.body.raw` not `post.body.code`
-- [ ] Delete `contentlayer.config.ts`
-- [ ] Edit `next.config.ts` — remove `withContentlayer(...)` wrapper + Turbopack `contentlayer/generated` alias
-- [ ] Edit `package.json` build script — drop the `rm -rf .contentlayer && contentlayer2 build && ` prefix
-- [ ] Verify `components/blog/MDXContent.tsx` and `app/docs/[...slug]/mdx-content.tsx` are server components where possible — `next-mdx-remote-client` serializes MDX server-side, so serialization should happen in the page and rendering in the component. Only mark `"use client"` if genuinely needed (interactive hooks)
-- [ ] `npm run typecheck` clean; `npm run lint` no new errors
-- [ ] Test locally with `next build` + `npm start` BEFORE pushing to Vercel — catches serialization errors that `next dev` masks (same reason contentlayer2 was hiding the bug)
-- [ ] Smoke-test all 40 content URLs locally via `curl` loop — must return 200; `grep -c "Error Loading Content"` must be 0
-- [ ] Browser verify: [/blog/three-ways-to-use-taxformatter](https://www.taxformatter.com/blog/three-ways-to-use-taxformatter) and [/docs/exporting-your-data/zenledger-integration](https://www.taxformatter.com/docs/exporting-your-data/zenledger-integration) — code blocks highlighted, docs CopyButton works, no error boundary flash
-- [ ] `/sitemap.xml` still lists all posts and docs
-- [ ] Commit + push; confirm Vercel deploy green; retest both URLs on production
+- [x] `npm install next-mdx-remote-client gray-matter reading-time` (`7c75e64`)
+- [x] `npm uninstall contentlayer2 next-contentlayer2` (`f9cef12`; vuln count dropped 20 → 12)
+- [x] Create `lib/content/types.ts` (`b857c65`)
+- [x] Create `lib/content/posts.ts` (`b857c65`; sorted by date desc at module load)
+- [x] Create `lib/content/docs.ts` (`b857c65`, with `/index` strip in `a09adac` to match old route behavior)
+- [x] Rewrite `components/blog/MDXContent.tsx` as Server Component using `next-mdx-remote-client/rsc` (`34e478b`)
+- [x] Rewrite `app/docs/[...slug]/mdx-content.tsx` as Server Component; `pre` → `<CopyButton>` wrapper preserved (`34e478b`)
+- [x] Update all 5 call sites to `@/lib/content/*`; pass `post.body.raw` (`34e478b`; also swapped `post._id` → `post.slug` for React keys)
+- [x] Delete `contentlayer.config.ts` (`12ab784`)
+- [x] Remove `withContentlayer(...)` + Turbopack alias from `next.config.ts` (`12ab784`)
+- [x] Drop `rm -rf .contentlayer && contentlayer2 build && ` from `package.json` build script (`12ab784`)
+- [x] Both MDX components are pure Server Components (no `'use client'`) — RSC mode works as designed
+- [x] `npm run typecheck` clean; `npm run lint` clean after `7076661` (swapped `performance.now()` → `Date.now()` in playground page + added `**/.venv/**` to eslint ignores)
+- [x] `next build` + `npm start` locally: succeeded on fresh build
+- [x] Smoke-tested all 40 content URLs locally — all 200, zero `Error Loading Content` / `Something went wrong` matches
+- [x] Browser verify on production: blog + docs render, hljs tokens colored (github-dark theme imported in `e85a774`), no error-boundary flashes
+- [x] `/sitemap.xml` lists all posts + docs
+- [x] Commit + push; Vercel deploy green; prod URLs confirmed rendering correctly
 
 ### Rollback criteria
 
