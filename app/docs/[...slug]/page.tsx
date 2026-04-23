@@ -1,4 +1,4 @@
-import { allDocs } from 'contentlayer/generated'
+import { allDocs } from '@/lib/content/docs'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Metadata } from 'next'
@@ -158,7 +158,7 @@ export default async function DocPage({ params }: DocPageProps) {
         <MDXErrorBoundary>
           <Suspense fallback={<DocsSkeleton />}>
             <div>
-              <MDXContent code={doc.body.code} />
+              <MDXContent source={doc.body.raw} />
             </div>
           </Suspense>
         </MDXErrorBoundary>

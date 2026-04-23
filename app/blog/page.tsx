@@ -1,4 +1,4 @@
-import { allPosts } from 'contentlayer/generated'
+import { allPosts } from '@/lib/content/posts'
 import { compareDesc, format } from 'date-fns'
 import Link from 'next/link'
 import { Metadata } from 'next'
@@ -62,7 +62,7 @@ export default function BlogPage() {
 
                   return (
                     <Link
-                      key={post._id}
+                      key={post.slug}
                       href={post.url}
                       className="group flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300"
                     >
@@ -123,7 +123,7 @@ export default function BlogPage() {
 
                 return (
                   <Link
-                    key={post._id}
+                    key={post.slug}
                     href={post.url}
                     className="group block"
                   >

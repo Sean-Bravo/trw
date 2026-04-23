@@ -1,12 +1,21 @@
-'use client';
-
-import { useMDXComponent } from 'next-contentlayer2/hooks';
+import { MDXRemote } from 'next-mdx-remote-client/rsc';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 
 interface MDXContentProps {
-  code: string;
+  source: string;
 }
 
-export function MDXContent({ code }: MDXContentProps) {
-  const Component = useMDXComponent(code);
-  return <Component />;
+export function MDXContent({ source }: MDXContentProps) {
+  return (
+    <MDXRemote
+      source={source}
+      options={{
+        mdxOptions: {
+          remarkPlugins: [remarkGfm],
+          rehypePlugins: [rehypeHighlight],
+        },
+      }}
+    />
+  );
 }

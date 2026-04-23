@@ -1,4 +1,4 @@
-import { allPosts } from 'contentlayer/generated'
+import { allPosts } from '@/lib/content/posts'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { format } from 'date-fns'
@@ -133,7 +133,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
                 prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-code:bg-blue-50 dark:prose-code:bg-blue-900/30 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
                 prose-pre:bg-slate-900 prose-pre:text-slate-50
               ">
-                <MDXContent code={post.body.code} />
+                <MDXContent source={post.body.raw} />
               </div>
             </article>
 
