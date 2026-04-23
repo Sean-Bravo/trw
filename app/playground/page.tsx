@@ -25,14 +25,14 @@ export default function PlaygroundPage() {
 
   const handleSend = async (payload: PlaygroundRequestPayload) => {
     setResponse({ status: 'loading' });
-    const started = performance.now();
+    const started = Date.now();
     try {
       const res = await fetch('/api/playground/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const latencyMs = Math.round(performance.now() - started);
+      const latencyMs = Math.round(Date.now() - started);
       let body: unknown;
       try {
         body = await res.json();
@@ -44,7 +44,7 @@ export default function PlaygroundPage() {
       setResponse({
         status: 'response',
         httpStatus: 0,
-        latencyMs: Math.round(performance.now() - started),
+        latencyMs: Math.round(Date.now() - started),
         body: { error: err instanceof Error ? err.message : 'Network error' },
       });
     }

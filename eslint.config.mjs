@@ -265,6 +265,7 @@ export default [
       "scripts/**",
       "**/dist/**",
       "packages/*/dist/**",
+      "**/.venv/**",
       "jest.setup.js",
     ],
   },
