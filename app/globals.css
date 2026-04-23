@@ -1,6 +1,23 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Syntax highlighting theme for MDX code blocks — tokens are tagged by
+   rehype-highlight (blog + docs pipelines), and this theme paints them. */
+@import "highlight.js/styles/github-dark.css";
+
+/* Code inside <pre> must not inherit the inline <code> styles from prose
+   (which add blue bg, padding, rounded corners for short inline snippets).
+   Let the hljs theme paint tokens cleanly on the prose-pre dark background. */
+.prose pre code,
+.prose pre code * {
+  background: transparent;
+}
+.prose pre code {
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
 @theme {
   /* Primary Colors - Stripe-inspired indigo/purple */
   --color-primary-50: #f0f4ff;
