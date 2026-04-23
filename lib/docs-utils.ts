@@ -1,4 +1,4 @@
-import { allDocs } from 'contentlayer/generated'
+import { allDocs } from '@/lib/content/docs'
 
 /**
  * Get the previous and next documents based on current URL
