@@ -1,17 +1,9 @@
 import type { NextConfig } from "next";
-import { withContentlayer } from 'next-contentlayer2'
 import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
   // Enable React strict mode for better debugging
   reactStrictMode: true,
-
-  // Turbopack resolve alias for contentlayer (withContentlayer only handles webpack)
-  turbopack: {
-    resolveAlias: {
-      'contentlayer/generated': './.contentlayer/generated',
-    },
-  },
 
   // Remove X-Powered-By header for security
   poweredByHeader: false,
@@ -93,8 +85,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Wrap with Sentry config first, then Contentlayer
-export default withSentryConfig(withContentlayer(nextConfig), {
+export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
