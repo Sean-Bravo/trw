@@ -1,0 +1,41 @@
+{
+  "name": "TaxFormatter",
+  "description": "Parse crypto exchange CSVs and bank statement PDFs into structured transaction data, ready for Koinly / TurboTax / CoinLedger / ZenLedger. Supports 14 exchanges and 7 banks.",
+  "version": "0.1.0",
+  "homepage": "https://taxformatter.com/docs/api",
+  "repository": "https://github.com/Sean-Bravo/trw",
+  "license": "MIT",
+  "install": {
+    "type": "npm",
+    "package": "@taxformatter/mcp-server",
+    "command": "npx",
+    "args": ["-y", "@taxformatter/mcp-server"]
+  },
+  "transport": "stdio",
+  "env": [
+    {
+      "name": "TAXFORMATTER_API_KEY",
+      "required": true,
+      "description": "TaxFormatter API key (tf_live_...). Get one free at https://taxformatter.com/dashboard/developer."
+    },
+    {
+      "name": "TAXFORMATTER_API_URL",
+      "required": false,
+      "description": "API base URL override. Defaults to https://api.taxformatter.com."
+    }
+  ],
+  "tools": [
+    {
+      "name": "parse_crypto_csv",
+      "description": "Parse a crypto exchange CSV (Coinbase, Binance, Kraken, etc.) and convert to a tax software format. Auto-detects the exchange if not specified."
+    },
+    {
+      "name": "parse_bank_statement",
+      "description": "Parse a bank statement PDF (Chase, Mercury, Navy Federal, etc.) and extract transactions as structured data. Auto-detects the bank."
+    },
+    {
+      "name": "list_supported_sources",
+      "description": "List all supported crypto exchanges and banks. No arguments."
+    }
+  ]
+}
