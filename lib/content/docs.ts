@@ -36,8 +36,13 @@ function loadDocs(): Doc[] {
       throw new Error(`Missing required frontmatter 'title' in content/docs/${relPath}`);
     }
 
-    const cleanRelPath = relPath.replace(/\.(md|mdx)$/, '');
-    const flatPath = `docs/${cleanRelPath}`;
+    // Strip both the extension AND a trailing /index so that
+    // `api/index.md` maps to `/docs/api` (the URL pattern the nav +
+    // routes expect) — matches contentlayer's flattenedPath behavior.
+    const cleanRelPath = relPath
+      .replace(/\.(md|mdx)$/, '')
+      .replace(/\/index$/, '');
+    const flatPath = cleanRelPath ? `docs/${cleanRelPath}` : 'docs';
     const segments = flatPath.split('/');
     const slug = segments.slice(1).join('/');
     const section = segments[1] ?? '';
