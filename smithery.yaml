@@ -1,0 +1,33 @@
+# Smithery manifest for @taxformatter/mcp-server
+# https://smithery.ai/docs/config
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - taxformatterApiKey
+    properties:
+      taxformatterApiKey:
+        type: string
+        title: TaxFormatter API Key
+        description: >-
+          Your TaxFormatter API key (format tf_live_...). Get one at
+          https://taxformatter.com/dashboard/developer — free tier
+          gives 10 files/month, no credit card required.
+      taxformatterApiUrl:
+        type: string
+        title: TaxFormatter API URL
+        description: >-
+          Override the API base URL. Leave blank to use the production
+          endpoint (https://api.taxformatter.com).
+        default: "https://api.taxformatter.com"
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', '@taxformatter/mcp-server'],
+      env: {
+        TAXFORMATTER_API_KEY: config.taxformatterApiKey,
+        TAXFORMATTER_API_URL: config.taxformatterApiUrl || 'https://api.taxformatter.com'
+      }
+    })

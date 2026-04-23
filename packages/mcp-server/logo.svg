@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TaxFormatter MCP server logo">
+  <rect width="512" height="512" rx="128" fill="#3b82f6"/>
+  <path d="M117 197 C170 176 298 160 395 187" stroke="white" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M331 144 L395 187 L341 240" stroke="white" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M395 315 C341 336 213 352 117 325" stroke="white" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M181 368 L117 325 L171 272" stroke="white" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
