@@ -1,41 +1,63 @@
 {
-  "name": "TaxFormatter",
-  "description": "Parse crypto exchange CSVs and bank statement PDFs into structured transaction data, ready for Koinly / TurboTax / CoinLedger / ZenLedger. Supports 14 exchanges and 7 banks.",
-  "version": "0.1.0",
-  "homepage": "https://taxformatter.com/docs/api",
-  "repository": "https://github.com/Sean-Bravo/trw",
-  "license": "MIT",
-  "install": {
-    "type": "npm",
-    "package": "@taxformatter/mcp-server",
-    "command": "npx",
-    "args": ["-y", "@taxformatter/mcp-server"]
+  "serverInfo": {
+    "name": "TaxFormatter",
+    "version": "0.1.0"
   },
-  "transport": "stdio",
-  "env": [
-    {
-      "name": "TAXFORMATTER_API_KEY",
-      "required": true,
-      "description": "TaxFormatter API key (tf_live_...). Get one free at https://taxformatter.com/dashboard/developer."
-    },
-    {
-      "name": "TAXFORMATTER_API_URL",
-      "required": false,
-      "description": "API base URL override. Defaults to https://api.taxformatter.com."
-    }
-  ],
+  "authentication": {
+    "required": true,
+    "schemes": ["apiKey"]
+  },
   "tools": [
     {
       "name": "parse_crypto_csv",
-      "description": "Parse a crypto exchange CSV (Coinbase, Binance, Kraken, etc.) and convert to a tax software format. Auto-detects the exchange if not specified."
+      "description": "Parse a crypto exchange CSV (Coinbase, Binance, Kraken, etc.) and convert to a tax software format. Auto-detects the exchange if not specified.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Absolute or relative path to the CSV file"
+          },
+          "exchange": {
+            "type": "string",
+            "description": "Exchange name (e.g. 'coinbase', 'binance'). Auto-detected if omitted."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": ["koinly", "turbotax", "coinledger", "zenledger"],
+            "description": "Output format. Defaults to koinly."
+          }
+        },
+        "required": ["file_path"]
+      }
     },
     {
       "name": "parse_bank_statement",
-      "description": "Parse a bank statement PDF (Chase, Mercury, Navy Federal, etc.) and extract transactions as structured data. Auto-detects the bank."
+      "description": "Parse a bank statement PDF (Chase, Mercury, Navy Federal, etc.) and extract transactions as structured data. Auto-detects the bank.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Absolute or relative path to the PDF file"
+          },
+          "bank": {
+            "type": "string",
+            "description": "Bank name (e.g. 'chase', 'mercury'). Auto-detected if omitted."
+          }
+        },
+        "required": ["file_path"]
+      }
     },
     {
       "name": "list_supported_sources",
-      "description": "List all supported crypto exchanges and banks. No arguments."
+      "description": "List all supported crypto exchanges and banks. No arguments.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
     }
-  ]
+  ],
+  "resources": [],
+  "prompts": []
 }
