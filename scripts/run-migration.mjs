@@ -8,30 +8,27 @@
 //   - Uses @neondatabase/serverless (the project's actual DB driver)
 //   - Refuses to run with no path (no silent default)
 //
-// Usage:
-//   node run-migration.mjs db/migrations/010_add_auth_columns.sql
+// Usage (run from the project root):
+//   node scripts/run-migration.mjs db/migrations/010_add_auth_columns.sql
 //
 // SECURITY_AUDIT.md §H-14
 import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function runMigration() {
   const cliArg = process.argv[2];
   const envPath = process.env.MIGRATION_SQL_PATH;
   const sqlPath = cliArg
-    ? path.resolve(__dirname, cliArg)
+    ? path.resolve(cliArg)
     : envPath
       ? path.resolve(envPath)
       : null;
 
   if (!sqlPath) {
     console.error(
-      'Usage: node run-migration.mjs <path/to/migration.sql>\n' +
-      '   or: MIGRATION_SQL_PATH=path/to/migration.sql node run-migration.mjs',
+      'Usage: node scripts/run-migration.mjs <path/to/migration.sql>\n' +
+      '   or: MIGRATION_SQL_PATH=path/to/migration.sql node scripts/run-migration.mjs',
     );
     process.exit(1);
   }

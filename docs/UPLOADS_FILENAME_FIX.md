@@ -44,7 +44,7 @@ one transaction:
 Same as the previous migrations — Neon SQL editor or:
 
 ```bash
-node run-migration.mjs db/migrations/012_uploads_filename_constraint.sql
+node scripts/run-migration.mjs db/migrations/012_uploads_filename_constraint.sql
 ```
 
 ### Verify
