@@ -114,8 +114,8 @@ Breaking them is a regression.
   numbering. Don't drop ad-hoc SQL into `scripts/`. See `H-12`.
 - **Run migrations against prod manually before deploying** the code
   that depends on them. There is no automatic migration runner.
-  `node run-migration.mjs db/migrations/N_name.sql` works locally if
-  you set `NEON_DATABASE_URL`.
+  `node scripts/run-migration.mjs db/migrations/N_name.sql` works
+  locally if you set `NEON_DATABASE_URL`.
 
 ---
 
