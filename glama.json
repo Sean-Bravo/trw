@@ -1,4 +1,24 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
-  "maintainers": ["Sean-Bravo"]
+  "name": "TaxFormatter MCP Server",
+  "description": "Parse crypto exchange CSVs and bank statement PDFs into structured transaction data. Supports 14 exchanges (Coinbase, Binance, Kraken, Robinhood, Gemini, and more) and 13 banks (Chase, BofA, Wells Fargo, and more). Export to Koinly, TurboTax, CoinLedger, or ZenLedger formats.",
+  "maintainers": ["Sean-Bravo"],
+  "license": "MIT",
+  "homepage": "https://taxformatter.com",
+  "repository": "https://github.com/Sean-Bravo/trw",
+  "npm": "@taxformatter/mcp-server",
+  "tags": [
+    "tax",
+    "crypto",
+    "finance",
+    "csv",
+    "pdf",
+    "banking",
+    "coinbase",
+    "binance",
+    "kraken",
+    "koinly",
+    "turbotax",
+    "accounting"
+  ]
 }
