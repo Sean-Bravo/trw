@@ -1,18 +1,19 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { 
-  ShieldCheck, 
-  Lock, 
-  Trash2, 
-  EyeOff, 
-  Server, 
-  FileX, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Cpu, 
-  Fingerprint, 
-  FileJson 
+import {
+  ShieldCheck,
+  Lock,
+  Trash2,
+  EyeOff,
+  Server,
+  CheckCircle2,
+  AlertTriangle,
+  Cpu,
+  Fingerprint,
+  FileJson,
+  KeyRound,
+  Code2
 } from 'lucide-react';
 
 import { HeaderWithSession } from '@/components/marketing/HeaderWithSession';
@@ -21,7 +22,7 @@ import { Container } from '@/components/layout/Container';
 
 export const metadata: Metadata = {
   title: 'Security Center | TaxFormatter',
-  description: 'Zero-Knowledge architecture. No private keys, user-controlled data retention, and SOC2 compliant infrastructure.',
+  description: 'Stateless processing, SHA-256 hashed API keys, zero payload logging, and user-controlled retention — across our dashboard, REST API, and MCP server.',
 };
 
 export default function SecurityPage() {
@@ -56,18 +57,18 @@ export default function SecurityPage() {
               </h1>
               
               <p className="text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto mb-10">
-                TaxFormatter is built on a <span className="text-white font-medium">Zero-Knowledge</span> philosophy.
-                We process your CSVs in a volatile memory sandbox, format them, and give you
-                <span className="text-emerald-400/80"> full control</span> over when they&apos;re deleted.
+                TaxFormatter is built on a <span className="text-white font-medium">Zero-Knowledge</span> philosophy —
+                across our dashboard, REST API, and MCP server. Files are processed in a volatile memory sandbox,
+                never cached, and we give you <span className="text-emerald-400/80">full control</span> over retention.
               </p>
 
               {/* Stats/Trust Signals */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-slate-800 pt-8">
                 {[
-                    { label: "Default Retention", value: "1 Year" },
-                    { label: "Encryption", value: "AES-256" },
-                    { label: "Wallet Access", value: "None" },
-                    { label: "Infrastructure", value: "AWS" },
+                    { label: "API Processing", value: "Stateless" },
+                    { label: "Payload Logging", value: "Zero" },
+                    { label: "API Keys", value: "SHA-256" },
+                    { label: "Transport", value: "TLS 1.3" },
                 ].map((stat, i) => (
                     <div key={i} className="text-center">
                         <div className="text-2xl font-bold text-white font-mono">{stat.value}</div>
@@ -83,8 +84,8 @@ export default function SecurityPage() {
         <section className="py-24 relative">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-slate-800 to-transparent"></div>
           <Container>
-            <div className="grid md:grid-cols-3 gap-8">
-              
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+
               {/* Feature 1: User-Controlled Retention */}
               <div className="group bg-slate-900/40 p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/40 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(16,185,129,0.1)] backdrop-blur-sm">
                 <div className="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-emerald-500/20">
@@ -94,9 +95,9 @@ export default function SecurityPage() {
                   Your Data, Your Rules
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                  Your files are retained for <strong className="text-slate-200">1 year by default</strong> — so you can
-                  re-download outputs or reprocess if needed. Want it gone sooner? Toggle &quot;Delete after download&quot;
-                  and we&apos;ll permanently purge your file the moment your export completes.
+                  Dashboard uploads are retained for <strong className="text-slate-200">1 year by default</strong> so you can
+                  re-download outputs. Toggle &quot;Delete after download&quot; and we&apos;ll purge the file the moment your
+                  export completes. API calls go further — they&apos;re fully stateless.
                 </p>
               </div>
 
@@ -109,22 +110,38 @@ export default function SecurityPage() {
                   Bank-Grade Encryption
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                  Your files are encrypted using <strong className="text-slate-200">AES-256</strong> while in our temporary storage. 
-                  TLS 1.3 is enforced for all transmission. Even if our DB was stolen, your data would be unreadable static.
+                  Files are encrypted with <strong className="text-slate-200">AES-256</strong> at rest and
+                  <strong className="text-slate-200"> TLS 1.3</strong> in transit. Even if a bucket was exfiltrated,
+                  the bytes would be unreadable static.
                 </p>
               </div>
 
-              {/* Feature 3: Business Model */}
+              {/* Feature 3: API & MCP Surface */}
+              <div className="group bg-slate-900/40 p-8 rounded-2xl border border-slate-800 hover:border-amber-500/40 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.1)] backdrop-blur-sm">
+                <div className="w-12 h-12 bg-amber-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-amber-500/20">
+                  <KeyRound className="w-6 h-6 text-amber-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-amber-300 transition-colors">
+                  API &amp; MCP Hardened
+                </h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Developer keys are <strong className="text-slate-200">SHA-256 hashed</strong> at rest.
+                  Payloads are <strong className="text-slate-200">never logged</strong> — only metadata (key hash, status, byte count, timing).
+                  MCP server traffic inherits the same guarantees.
+                </p>
+              </div>
+
+              {/* Feature 4: Business Model */}
               <div className="group bg-slate-900/40 p-8 rounded-2xl border border-slate-800 hover:border-blue-500/40 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.1)] backdrop-blur-sm">
                 <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-blue-500/20">
                   <EyeOff className="w-6 h-6 text-blue-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors">
-                  We Don't Sell Data
+                  We Don&apos;t Sell Data
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                  Our business model is boring: <span className="text-slate-200">you pay us to format text files.</span> 
-                  We do not sell order flow, holding info, or personal data to hedge funds or advertisers.
+                  Our business model is boring: <span className="text-slate-200">you pay us to format files.</span>
+                  We don&apos;t sell order flow, holdings info, or personal data to hedge funds or advertisers.
                 </p>
               </div>
             </div>
@@ -146,7 +163,7 @@ export default function SecurityPage() {
                 </h2>
                 <p className="text-slate-400 mb-10 leading-relaxed">
                   Most tax software holds your data forever to &quot;track your portfolio.&quot;
-                  We are a formatting utility — you control how long we keep your files.
+                  We&apos;re a formatting utility — dashboard, API, or MCP, you control how long we keep your files.
                 </p>
                 
                 <div className="space-y-8 relative">
@@ -179,13 +196,27 @@ export default function SecurityPage() {
 
                   {/* Step 3 */}
                   <div className="relative pl-12">
-                    <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-emerald-900/20 border border-emerald-500/50 text-emerald-500 flex items-center justify-center font-bold text-xs z-10">3</div>
+                    <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-300 flex items-center justify-center font-bold text-xs z-10">3</div>
+                    <h4 className="font-semibold text-white flex items-center gap-2">
+                        <Code2 className="w-4 h-4 text-sky-400" />
+                        API &amp; MCP Path
+                    </h4>
+                    <p className="text-sm text-slate-400 mt-2">
+                      REST and MCP calls are <span className="text-white font-medium">fully stateless</span>: your payload never hits disk.
+                      We log metadata only (key hash, status, bytes, timing) — never file contents.
+                    </p>
+                  </div>
+
+                  {/* Step 4 */}
+                  <div className="relative pl-12">
+                    <div className="absolute left-0 top-1 w-8 h-8 rounded-full bg-emerald-900/20 border border-emerald-500/50 text-emerald-500 flex items-center justify-center font-bold text-xs z-10">4</div>
                     <h4 className="font-semibold text-white flex items-center gap-2">
                         <Trash2 className="w-4 h-4 text-emerald-400" />
                         You Decide
                     </h4>
                     <p className="text-sm text-slate-400 mt-2">
-                      Files are retained for 1 year by default, or deleted immediately if you toggle &quot;Delete after download.&quot; Anonymized metadata is kept to improve our service.
+                      Dashboard files are kept for 1 year by default, or purged instantly if you toggle &quot;Delete after download.&quot;
+                      Anonymized metadata is retained to improve our service.
                     </p>
                   </div>
                 </div>
@@ -214,15 +245,19 @@ export default function SecurityPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                         {[
                             "AWS WAF Firewall",
-                            "DDoS Shield Advanced",
+                            "DDoS Shield",
                             "SQL Injection Block",
                             "XSS Mitigation",
                             "TLS 1.3 Transport",
-                            "AES-256 Storage",
-                            "In-Memory Processing",
-                            "Metadata Minimization",
+                            "AES-256 at Rest",
+                            "Stateless API Lambda",
+                            "Zero Payload Logging",
+                            "SHA-256 API Keys",
+                            "Per-Key Rate Limits",
+                            "MCP Server Isolation",
                             "IAM Least-Privilege",
-                            "Audit Logging",
+                            "CloudWatch Audit Logs",
+                            "Sentry Error Tracking",
                         ].map((item, idx) => (
                             <div key={idx} className="flex items-center justify-between group">
                                 <span className="text-slate-400 group-hover:text-slate-200 transition-colors text-xs">{item}</span>
@@ -263,20 +298,36 @@ export default function SecurityPage() {
             <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
               {[
                 {
-                  q: "Do you store my API keys?",
-                  a: "No. TaxFormatter works exclusively with CSV file uploads. We never ask for, store, or use exchange API keys or Secret keys."
+                  q: "Do you store my exchange API keys?",
+                  a: "No. TaxFormatter works exclusively with file uploads (CSV, XLSX, PDF). We never ask for, store, or use exchange API keys, secret keys, or wallet credentials."
                 },
                 {
-                  q: "Can your employees see my crypto balances?",
-                  a: "Our system is automated. While engineers have access to system logs for debugging, we do not inspect individual user files unless explicitly requested via a support ticket."
+                  q: "How are my developer API keys protected?",
+                  a: "Your tf_live_ keys are SHA-256 hashed at rest — we can never recover the plaintext. Keys are transmitted only over TLS 1.3. Rate limits and monthly quotas are enforced per key, and you can rotate or revoke any key instantly from the developer dashboard."
                 },
                 {
-                  q: "What if the government asks for my data?",
-                  a: "We retain files for up to 1 year (or less if you choose immediate deletion). If served with a valid legal request, we can only provide what exists. We do not retain data longer than necessary and keep only anonymized processing metadata permanently."
+                  q: "What does the API actually log?",
+                  a: "Metadata only: a hash of your API key, request status, byte size, processing time, and timestamp. We never log file contents, parsed transactions, or request/response bodies. The API Lambda processes your payload in RAM and discards it when the request ends."
+                },
+                {
+                  q: "Is the MCP server safe to run locally?",
+                  a: "Yes. @taxformatter/mcp-server is an open-source npm package — the source is public and auditable. It makes outbound HTTPS calls to api.taxformatter.com using your API key and has no disk, network, or system access beyond that."
+                },
+                {
+                  q: "Can your employees see my files?",
+                  a: "Our processing is automated. Engineers have access to system logs (metadata only — never payloads) for debugging and incident response. We do not inspect individual user files unless you explicitly request it via a support ticket."
+                },
+                {
+                  q: "What if the government requests my data?",
+                  a: "Dashboard files are retained for up to 1 year (or less if you opt in to immediate deletion). API payloads are never stored. If served with a valid legal request, we can only provide what exists — which for API traffic is only anonymized metadata."
                 },
                 {
                   q: "Is the code open source?",
-                  a: "The core parsing logic is proprietary, but we are happy to provide architectural documentation to enterprise clients performing due diligence."
+                  a: "Our SDKs (@taxformatter/sdk, taxformatter for Python) and the MCP server are open source. The core parsing engine is proprietary, but we're happy to share architectural documentation with enterprise clients performing due diligence."
+                },
+                {
+                  q: "Do you support SOC 2 or enterprise due diligence?",
+                  a: "We run on AWS with WAF, IAM least-privilege, encrypted storage, and CloudWatch audit logs. Reach out to support@taxformatter.com for our security questionnaire and architecture deep dive."
                 }
               ].map((item, idx) => (
                 <div key={idx} className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
