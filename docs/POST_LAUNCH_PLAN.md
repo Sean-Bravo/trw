@@ -60,37 +60,33 @@ Critical files: [components/blog/MDXContent.tsx](components/blog/MDXContent.tsx)
 
 ## Workstream 2 — Complete security-audit remediation
 
-Status: **not started.** Owner-action only (no code changes).
+Status: **closed out on 2026-04-30.** Full report in [Workstream_2_ report.md](../Workstream_2_%20report.md). Repository is now ready to go public.
 
-**Sequence matters — do it in one sitting:**
-1. Rotate every secret at its provider dashboard AND update the corresponding Vercel env var for each (tick boxes below as you go).
-2. **One** Vercel redeploy after all env vars are updated — not one per rotation.
-3. Confirm every old secret now returns 401 against its provider.
-4. Git history scrub (destructive; see post-rotation section).
-5. Provider access-log audit.
+**What landed:**
 
-### Rotations
+- [x] **C-1a** `NEXTAUTH_SECRET` rotated; Vercel env updated
+- [x] **C-1b** Neon database password rotated; `NEON_DATABASE_URL` updated
+- [x] **C-1c** Google OAuth client secret rotated; `GOOGLE_CLIENT_SECRET` updated
+- [x] **C-1d** Resend API key rotated (new key `taxformatter-production`); old revoked; `SMTP_PASSWORD` updated
+- [x] **C-1e** Mailchimp — N/A, removed from stack
+- [x] **C-1f** Google Gemini API key deleted (was local-only, not needed in prod)
+- [x] **C-1g** npm token: old expired, new Granular Access Token issued; `~/.npmrc` updated
+- [x] **C-1h** TaxFormatter `tf_live_` key rotated
+- [x] **C-2** Anthropic API key rotated; `ANTHROPIC_API_KEY` added to Vercel (was missing)
+- [x] **C-4** Sentry auth token rotated; `SENTRY_AUTH_TOKEN` added to Vercel (was missing)
+- [x] **Bonus rotations** flagged in Vercel: AWS access keys, Stripe secret key, Stripe webhook secret
+- [x] Single Vercel redeploy after all env vars updated; deployment green
+- [x] **C-1i** Backup branch `backup/pre-history-scrub` pushed to remote; `git filter-repo` ran clean over 501 commits; force-pushed to `origin/main`
+- [x] `.gitignore` updated; `rotation-replacements.txt`, `.next/`, `.env.local`, `.env.sentry-build-plugin`, `.env.test.local`, `.mcp.json`, `.DS_Store` untracked
 
-- [ ] **C-1a** `NEXTAUTH_SECRET` — `openssl rand -base64 32` → Vercel env
-- [ ] **C-1b** Neon database password → Vercel `NEON_DATABASE_URL`
-- [ ] **C-1c** Google OAuth client secret (console.cloud.google.com → Credentials)
-- [ ] **C-1d** Resend API key (resend.com → API Keys)
-- [ ] **C-1e** Mailchimp API key (mailchimp.com → Account → Extras → API keys)
-- [ ] **C-1f** Google Gemini API key (aistudio.google.com → API keys)
-- [ ] **C-1g** npm token (npmjs.com → Access Tokens — generate new, revoke old)
-- [ ] **C-1h** TaxFormatter `tf_live_` key (own dashboard → Developer)
-- [ ] **C-2** Anthropic API key (console.anthropic.com → API keys)
-- [ ] **C-4** Sentry auth token (sentry.io → Settings → Account → API → Auth Tokens)
+**Carried forward (post-launch, non-blocking):**
 
-### Post-rotation (DESTRUCTIVE)
-
-- [ ] Take local backup branch: `git branch backup/pre-history-scrub`
-- [ ] Push backup to remote before scrubbing: `git push origin backup/pre-history-scrub` (in case the local clone is lost during the scrub)
-- [ ] **C-1i** Scrub git history: prepare `rotation-replacements.txt` (`OLDVALUE==>***REDACTED***` per secret); `git filter-repo --replace-text rotation-replacements.txt`; force-push to `origin/main`
-- [ ] Notify any collaborators: force-push rewrites history for everyone. They must re-clone (or coordinate a `git fetch origin && git reset --hard origin/main` once the force-push lands). Don't skip this — silent force-pushes cause lost work
-- [ ] **C-1j** Audit provider access logs across the rotation window (Neon, Resend, Mailchimp, GCP, Sentry, npm, Stripe). Flag anything outside known client IPs / time windows
-- [ ] Tick the CRITICAL section in [SECURITY_AUDIT.md](SECURITY_AUDIT.md); update progress marker in [SECURITY_REMEDIATION_PLAN.md](SECURITY_REMEDIATION_PLAN.md)
+- [ ] Confirm each old secret returns 401 against its provider (spot-check)
+- [ ] Provider access-log audit window: Neon, Resend, GCP, Sentry, npm, Stripe — flag anomalies
 - [ ] Enable Sentry project-level data-scrubbing rules (Sentry → Security & Privacy → Data Scrubbers)
+- [ ] Update `.env.local` with the new rotated values for local dev
+- [ ] Fix Sentry **EvalError** at `/` (CSP `unsafe-eval` follow-up — `last seen 1 day ago`, 3 events)
+- [ ] Investigate Sentry **InvariantError** at `/docs/[...slug]/page` (manifests singleton; `last seen 1 week ago`, 8 events — likely pre-migration noise that will age out)
 
 ---
 
