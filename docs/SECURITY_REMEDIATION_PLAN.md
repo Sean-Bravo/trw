@@ -10,21 +10,25 @@
 
 **Nothing else matters until these keys are rotated.** Each one currently exposes live production access. These must be done in provider dashboards by the owner.
 
+**Status:** ✅ Completed 2026-04-30 (Workstream 2). All secrets rotated, Vercel redeployed, git history scrubbed (501 commits), repo force-pushed clean. AWS + Stripe keys also rotated as bonus. Backup at `backup/pre-history-scrub`.
+
 | ID  | Action                                  | Where                                              | Status |
 | --- | --------------------------------------- | -------------------------------------------------- | ------ |
-| C-1 | Rotate `NEXTAUTH_SECRET`                | `openssl rand -base64 32` → Vercel env             | [ ]    |
-| C-1 | Rotate Neon DB password                 | Neon dashboard → update Vercel env                 | [ ]    |
-| C-1 | Rotate Google OAuth client secret       | console.cloud.google.com                           | [ ]    |
-| C-1 | Rotate Resend API key                   | resend.com                                         | [ ]    |
-| C-1 | Rotate Mailchimp API key                | mailchimp.com                                      | [ ]    |
-| C-1 | Rotate Google Gemini API key            | console.cloud.google.com                           | [ ]    |
-| C-1 | Rotate npm token                        | npmjs.com → Access Tokens                          | [ ]    |
-| C-1 | Rotate TaxFormatter live API key        | own dashboard                                      | [ ]    |
-| C-2 | Rotate Anthropic API key                | console.anthropic.com                              | [ ]    |
-| C-3 | Rotate Gemini key (same as C-1)         | already covered above                              | [ ]    |
-| C-4 | Rotate Sentry auth token                | sentry.io → Settings → Auth Tokens                 | [ ]    |
-| —   | Scrub git history with `git filter-repo` | local + force-push                                 | [ ]    |
-| —   | Audit access logs at every provider     | Neon, Resend, Mailchimp, GCP, Stripe, Sentry, npm | [ ]    |
+| C-1 | Rotate `NEXTAUTH_SECRET`                | `openssl rand -base64 32` → Vercel env             | [x]    |
+| C-1 | Rotate Neon DB password                 | Neon dashboard → update Vercel env                 | [x]    |
+| C-1 | Rotate Google OAuth client secret       | console.cloud.google.com                           | [x]    |
+| C-1 | Rotate Resend API key                   | resend.com                                         | [x]    |
+| C-1 | Rotate Mailchimp API key                | mailchimp.com                                      | [x] (n/a — removed from stack) |
+| C-1 | Rotate Google Gemini API key            | console.cloud.google.com                           | [x] (deleted; not replaced — not needed in prod) |
+| C-1 | Rotate npm token                        | npmjs.com → Access Tokens                          | [x]    |
+| C-1 | Rotate TaxFormatter live API key        | own dashboard                                      | [x]    |
+| C-2 | Rotate Anthropic API key                | console.anthropic.com                              | [x] (added to Vercel — was missing) |
+| C-3 | Rotate Gemini key (same as C-1)         | already covered above                              | [x]    |
+| C-4 | Rotate Sentry auth token                | sentry.io → Settings → Auth Tokens                 | [x] (added to Vercel — was missing) |
+| —   | Rotate AWS access keys (bonus)          | IAM → Users → Security credentials                 | [x]    |
+| —   | Rotate Stripe secret + webhook (bonus)  | Stripe Dashboard → Developers                      | [x]    |
+| —   | Scrub git history with `git filter-repo` | local + force-push                                 | [x] (501 commits rewritten; backup branch `backup/pre-history-scrub` pushed) |
+| —   | Audit access logs at every provider     | Neon, Resend, Mailchimp, GCP, Stripe, Sentry, npm | [ ] (pending — see Workstream 2 report) |
 
 ```bash
 pip install git-filter-repo

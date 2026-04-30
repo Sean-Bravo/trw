@@ -9,13 +9,13 @@
 
 ## Executive Summary
 
-| Severity     | Count |
-| ------------ | ----- |
-| **Critical** | 4     |
-| **High**     | 15    |
-| **Medium**   | 21    |
-| **Low**      | 11    |
-| **Total**    | **51** |
+| Severity     | Count | Resolved |
+| ------------ | ----- | -------- |
+| **Critical** | 4     | 4 ✅     |
+| **High**     | 15    | see [SECURITY_REMEDIATION_PLAN.md](SECURITY_REMEDIATION_PLAN.md) |
+| **Medium**   | 21    | see [SECURITY_REMEDIATION_PLAN.md](SECURITY_REMEDIATION_PLAN.md) |
+| **Low**      | 11    | see [SECURITY_REMEDIATION_PLAN.md](SECURITY_REMEDIATION_PLAN.md) |
+| **Total**    | **51** |          |
 
 ### Overall posture
 
@@ -70,9 +70,12 @@ The six scans:
 
 # Critical Findings
 
+> **✅ All Critical findings resolved 2026-04-30 (Workstream 2).** Every secret listed in C-1 through C-4 has been rotated at its provider, Vercel env vars updated, single redeploy went green, and git history was scrubbed with `git filter-repo` (501 commits rewritten, force-pushed; backup branch `backup/pre-history-scrub` pushed to origin). AWS access keys and Stripe secret + webhook keys were also rotated as bonus items flagged in Vercel. **Pending:** provider access-log audit and 401 verification against rotated keys — tracked in Workstream 2 report.
+
 ## C-1 — Live production secrets committed to `.env.local`
 
 - **Severity:** Critical
+- **Status:** ✅ Resolved 2026-04-30 — all listed secrets rotated; `.env.local` removed from git tracking; history scrubbed.
 - **Category:** Secret leakage
 - **Location:** `/Users/sean/Desktop/trw/.env.local`
 
@@ -129,6 +132,7 @@ Any person with read access to the repository (or anyone who has ever cloned it)
 ## C-2 — Live Anthropic API key in `terraform.tfvars.example`
 
 - **Severity:** Critical
+- **Status:** ✅ Resolved 2026-04-30 — old key deleted at console.anthropic.com; new `taxformatter-production` key added to Vercel.
 - **Category:** Secret leakage
 - **Location:** `/Users/sean/Desktop/trw/backend/terraform/terraform.tfvars.example:13`
 
@@ -156,6 +160,7 @@ Pay-as-you-go Anthropic Claude API access on your account. An attacker can run a
 ## C-3 — Live Google Gemini API key in `terraform.tfvars.example`
 
 - **Severity:** Critical
+- **Status:** ✅ Resolved 2026-04-30 — key deleted at aistudio.google.com; not replaced (not needed in production).
 - **Category:** Secret leakage
 - **Location:** `/Users/sean/Desktop/trw/backend/terraform/terraform.tfvars.example:15` (same key also appears at `.env.local:34`)
 
@@ -181,6 +186,7 @@ Full Gemini API access on your Google Cloud project. Attackers commonly exploit 
 ## C-4 — Sentry auth token committed
 
 - **Severity:** Critical
+- **Status:** ✅ Resolved 2026-04-30 — both old tokens revoked; new token created and added to Vercel as `SENTRY_AUTH_TOKEN` (was missing); `.env.sentry-build-plugin` removed from git tracking.
 - **Category:** Secret leakage
 - **Location:** `/Users/sean/Desktop/trw/.env.sentry-build-plugin`
 
