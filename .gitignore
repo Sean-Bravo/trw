@@ -73,3 +73,6 @@ packages/*/dist/
 packages/*/node_modules/
 packages/*/package-lock.json
 __pycache__/
+
+# Secret rotation artifacts — never commit
+rotation-replacements.txt.next/
