@@ -1,6 +1,6 @@
 # Free Tier Implementation Plan
 
-> ⚠️ **DEPRECATED — DO NOT USE.** This plan has been superseded by [PLAN_FREE_TIER_V2.md](PLAN_FREE_TIER_V2.md). V2 revises the rollout order to close a default-tier window during migration and adds downgrade-collision handling (D6). This file is kept for diff/history reference only.
+> ⚠️ **DEPRECATED — DO NOT USE.** Superseded twice. The current plan is [PLAN_FREE_TIER_V3.md](PLAN_FREE_TIER_V3.md). V2 ([PLAN_FREE_TIER_V2.md](PLAN_FREE_TIER_V2.md)) revised the rollout order and added downgrade-collision handling (D6); V3 then added dashboard surfacing for D6 deactivation events. This file is kept for diff/history reference only.
 
 **Created:** 2026-05-01
 **Scope:** Backend (API tier definition, signup auto-provisioning, Stripe handling, quota/rate-limit policy) + pricing page UI (four-column layout, no-credit-card CTA).

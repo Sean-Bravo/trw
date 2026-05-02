@@ -1,5 +1,7 @@
 # Free Tier Implementation Plan (v2)
 
+> ⚠️ **DEPRECATED — DO NOT USE.** This plan has been superseded by [PLAN_FREE_TIER_V3.md](PLAN_FREE_TIER_V3.md), which adds dashboard surfacing for D6 deactivation events on top of v2's rollout-order fix and downgrade-collision handling. This file is kept for diff/history reference only.
+
 **Created:** 2026-05-01
 **Supersedes:** v1 (same date)
 **Scope:** Backend (API tier definition, signup auto-provisioning, Stripe handling, quota/rate-limit policy) + pricing page UI (four-column layout, no-credit-card CTA) + minimal observability for free→paid conversion tracking.
