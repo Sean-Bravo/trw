@@ -1,5 +1,7 @@
 # Free Tier Implementation Plan
 
+> ⚠️ **DEPRECATED — DO NOT USE.** This plan has been superseded by [PLAN_FREE_TIER_V2.md](PLAN_FREE_TIER_V2.md). V2 revises the rollout order to close a default-tier window during migration and adds downgrade-collision handling (D6). This file is kept for diff/history reference only.
+
 **Created:** 2026-05-01
 **Scope:** Backend (API tier definition, signup auto-provisioning, Stripe handling, quota/rate-limit policy) + pricing page UI (four-column layout, no-credit-card CTA).
 **Out of scope:** Tier-aware persistent rate limiting (Redis/DynamoDB), upgrade-nudge emails, marketing launch announcement, dashboard analytics for tier funnel.
