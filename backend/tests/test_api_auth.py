@@ -182,6 +182,41 @@ class TestCheckMonthlyQuota:
         assert usage == 0
         assert is_overage is False
 
+    # --- Phase 2 (v3): tier-aware enforcement ---
+
+    def test_free_at_quota_hard_blocks(self, mock_db):
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": 25}
+        allowed, usage, is_overage = check_monthly_quota("key-free", 25, tier="free")
+        assert allowed is False
+        assert usage == 25
+        assert is_overage is True
+
+    def test_free_under_quota_allowed(self, mock_db):
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": 24}
+        allowed, usage, is_overage = check_monthly_quota("key-free", 25, tier="free")
+        assert allowed is True
+        assert usage == 24
+        assert is_overage is False
+
+    def test_starter_explicit_at_quota_still_soft_flags(self, mock_db):
+        # Regression: paid-tier behavior unchanged when tier passed explicitly.
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": 100}
+        allowed, usage, is_overage = check_monthly_quota("key-starter", 100, tier="starter")
+        assert allowed is True
+        assert usage == 100
+        assert is_overage is True
+
+    def test_starter_over_quota_still_soft_flags(self, mock_db):
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": 101}
+        allowed, usage, is_overage = check_monthly_quota("key-starter", 100, tier="starter")
+        assert allowed is True
+        assert usage == 101
+        assert is_overage is True
+
 
 # ---------------------------------------------------------------------------
 # increment_usage

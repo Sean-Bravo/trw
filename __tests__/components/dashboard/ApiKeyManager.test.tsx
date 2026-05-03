@@ -35,6 +35,8 @@ const mockKeys = [
     monthlyQuota: 100,
     lastUsedAt: '2026-03-17T00:00:00Z',
     createdAt: '2026-03-01T00:00:00Z',
+    deactivatedReason: null,
+    deactivatedAt: null,
   },
   {
     id: 'key-2',
@@ -46,6 +48,8 @@ const mockKeys = [
     monthlyQuota: 10,
     lastUsedAt: null,
     createdAt: '2026-03-02T00:00:00Z',
+    deactivatedReason: null,
+    deactivatedAt: null,
   },
 ];
 
@@ -292,6 +296,102 @@ describe('ApiKeyManager', () => {
       await waitFor(() => {
         expect(screen.getByText(/42 \/ 100 files this month/i)).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('D6: deactivation provenance (Phase 5, v3)', () => {
+    it('renders explanation note with replacing-key name when deactivatedReason matches downgrade pattern', async () => {
+      mockFetchResponses(
+        [
+          {
+            id: 'paid-key-id',
+            name: 'My Old Pro Key',
+            keyPrefix: 'tf_live_aaa11111...',
+            tier: 'free',
+            isActive: true,
+            rateLimitRpm: 10,
+            monthlyQuota: 25,
+            lastUsedAt: null,
+            createdAt: '2026-04-15T00:00:00Z',
+            deactivatedReason: null,
+            deactivatedAt: null,
+          },
+          {
+            id: 'free-key-id',
+            name: 'Default key',
+            keyPrefix: 'tf_live_bbb22222...',
+            tier: 'free',
+            isActive: false,
+            rateLimitRpm: 10,
+            monthlyQuota: 25,
+            lastUsedAt: null,
+            createdAt: '2026-04-01T00:00:00Z',
+            deactivatedReason: 'downgraded_replaced_by:paid-key-id',
+            deactivatedAt: '2026-05-01T12:00:00Z',
+          },
+        ],
+        []
+      );
+      render(<ApiKeyManager />);
+      await waitFor(() => {
+        // Two appearances expected: the key card title and the D6 explanation
+        // note that references the paid key by name.
+        expect(screen.getAllByText(/My Old Pro Key/).length).toBe(2);
+      });
+      expect(screen.getByText(/was downgraded to Free/i)).toBeInTheDocument();
+    });
+
+    it('does NOT render explanation note when deactivatedReason is null (user-initiated deactivation)', async () => {
+      mockFetchResponses(
+        [
+          {
+            id: 'manual-key',
+            name: 'Manually Revoked Key',
+            keyPrefix: 'tf_live_zzz99999...',
+            tier: 'starter',
+            isActive: false,
+            rateLimitRpm: 30,
+            monthlyQuota: 100,
+            lastUsedAt: null,
+            createdAt: '2026-04-01T00:00:00Z',
+            deactivatedReason: null,
+            deactivatedAt: null,
+          },
+        ],
+        []
+      );
+      render(<ApiKeyManager />);
+      await waitFor(() => {
+        expect(screen.getByText('Manually Revoked Key')).toBeInTheDocument();
+      });
+      expect(screen.queryByText(/was downgraded to Free/i)).not.toBeInTheDocument();
+    });
+
+    it('falls back to "a paid key" when the replacing key id cannot be resolved', async () => {
+      mockFetchResponses(
+        [
+          {
+            id: 'orphan-key',
+            name: 'Orphaned',
+            keyPrefix: 'tf_live_orf12345...',
+            tier: 'free',
+            isActive: false,
+            rateLimitRpm: 10,
+            monthlyQuota: 25,
+            lastUsedAt: null,
+            createdAt: '2026-04-01T00:00:00Z',
+            deactivatedReason: 'downgraded_replaced_by:missing-key-id',
+            deactivatedAt: '2026-05-01T12:00:00Z',
+          },
+        ],
+        []
+      );
+      render(<ApiKeyManager />);
+      await waitFor(() => {
+        expect(screen.getByText('Orphaned')).toBeInTheDocument();
+      });
+      expect(screen.getByText(/a paid key/)).toBeInTheDocument();
+      expect(screen.getByText(/was downgraded to Free/i)).toBeInTheDocument();
     });
   });
 });

@@ -71,6 +71,17 @@ variable "domain_name" {
   default     = "taxformatter.com"
 }
 
+# Public app URL used for upgrade_url in API error responses (429, 403).
+# Must match NEXT_PUBLIC_APP_URL on the Next.js side. Per-env value:
+#   dev/local: http://localhost:3000
+#   staging:   https://staging.taxformatter.com (or whatever the staging host is)
+#   prod:      https://taxformatter.com
+variable "app_url" {
+  description = "Public app URL used for upgrade_url in API error responses"
+  type        = string
+  default     = "https://taxformatter.com"
+}
+
 # Lambda Configuration - Python 3.12
 variable "lambda_runtime" {
   description = "Python runtime for Lambda functions"

@@ -91,17 +91,41 @@ Recommended answers in **bold**.
 
 Order matters. Each phase ends with a green test run (`pnpm test` for TypeScript, `pytest backend/tests/` for Python — confirm exact scripts in `package.json` before running).
 
-### Phase 0: Confirmation pass
+### Phase 0: Confirmation pass *(executed 2026-05-03)*
 
-Before writing any code, run these greps and resolve any findings:
+Status: **complete**. Findings inline below.
 
-1. `grep -rn "check_monthly_quota" backend/` — confirm single call site (expected: only `backend/handlers/api.py:241`). If a second caller exists, Phase 3's signature change must update those too.
-2. `grep -rn "'starter'" backend/ app/ lib/ components/` and `grep -rn '"starter"' backend/ app/ lib/ components/` — find any other hardcoded starter assumptions beyond the two known sites.
-3. `grep -rn "tier" app/api/` and look for any endpoint gated by tier. Specifically confirm where bank-PDF parsing is gated. **Bank PDF must reject Free keys with a 403 `feature_not_available` response.**
-4. Confirm tier is logged on every `/v1/parse` call. If not, add a one-line emit so we can measure free→paid conversion later.
-5. **Confirm the Lambda env var name for the public app URL** *(new in v3)*. Check `backend/handlers/*.py` and `serverless.yml` / `template.yml` (or equivalent IaC) for an existing `APP_URL`, `PUBLIC_APP_URL`, or similar. If one exists, use it. If not, propagate `NEXT_PUBLIC_APP_URL`'s value into the Lambda environment via the deploy config and use that name. Lock the chosen name before Phase 2.
+1. **`check_monthly_quota` call sites** — ✅ single production caller at [backend/handlers/api.py:241](../backend/handlers/api.py#L241). Tests patch in 6 sites in `backend/tests/test_api_handler.py` and 3 sites in `backend/tests/test_api_auth.py`; the `.build/` matches are stale build artifacts. Phase 2 signature change is contained.
+2. **Hardcoded `'starter'` literals** — ✅ all accounted for. Production: `lib/api-keys.ts:6,73`, `app/api/webhooks/stripe/route.ts:192,195`, `components/marketing/APIPricing.tsx:29`. The `app/api/developer/subscribe/route.ts:10,25` literals are the docstring + 400 error message naming Stripe-allowed paid tiers — intentionally exclude `'free'`, no change needed. Test fixtures at `backend/tests/test_api_handler.py:52,443` will update with the test changes.
+3. **Bank-PDF endpoint and current gating** — ⚠️ **No tier gating today**. The single `/v1/parse` endpoint at [backend/handlers/api.py:128](../backend/handlers/api.py#L128) dispatches to `_parse_bank` purely on `.pdf` extension at line 201. The `app/api/bank/*` routes are the **web UI** flow (session auth, jobId-based) and are not part of API tier gating — leave them alone. Phase 2 must add the gate at the dispatcher.
+4. **Tier logging on `/v1/parse`** — ⚠️ **Not logged today**. `record_request(...)` ([backend/services/api_auth.py:167](../backend/services/api_auth.py#L167)) takes 12 params; tier is not one of them. The `api_requests` table schema ([db/migrations/006_add_api_keys.sql:47](../db/migrations/006_add_api_keys.sql#L47), with [008](../db/migrations/008_add_request_id.sql) adding `request_id`) has no `tier` column. **Decision:** add a `logger.info` emit in `handle_v1_parse` (CloudWatch-greppable). Persistent column is deferred — it requires a schema migration and isn't on the critical path for the launch PR.
+5. **Lambda `APP_URL` env var** — ⚠️ **Does not exist; must be added**. Next.js side already uses `NEXT_PUBLIC_APP_URL` consistently (`subscribe`, `customer-portal`, `middleware`, `lib/email.ts`, `.env.example`). The API Lambda env block at [backend/terraform/lambda.tf:479-485](../backend/terraform/lambda.tf#L479-L485) only sets `ENVIRONMENT`, `UPLOADS_BUCKET`, `RESULTS_BUCKET`, `SECRETS_ARN`. **Locked name: `APP_URL`** (avoiding the misleading `NEXT_PUBLIC_*` prefix on Lambda). Phase 2 adds the Terraform edit.
 
-Document findings inline before proceeding. If anything unexpected surfaces, update the affected phase below.
+**Phase 0 deltas to the plan:**
+
+- **Phase 2 expanded** with a Terraform edit to set `APP_URL` on the API Lambda. Without it, the `https://taxformatter.com` fallback always fires in production and the env-driven design is decorative.
+- **Phase 0.5 (tier-logging substrate)** added below — a one-line `logger.info` emit in `handle_v1_parse` so free→paid conversion is measurable from CloudWatch from day one. No schema change.
+- **No surprises elsewhere** — every other plan assumption holds.
+
+### Phase 0.5: Tier-logging substrate (new in v3, post-Phase-0)
+
+**Files to change:**
+
+- `backend/handlers/api.py` — at the top of `handle_v1_parse` (after the route enters but before the body parse), add:
+
+  ```python
+  logger.info(
+      "api_request",
+      extra={
+          "tier": key_record.get("tier"),
+          "key_id": key_record["id"],
+          "endpoint": "/v1/parse",
+          "request_id": request_id,
+      },
+  )
+  ```
+
+  This becomes the substrate for free→paid conversion measurement. CloudWatch Logs Insights query: `filter @message = "api_request" | stats count() by tier`. No schema change; persistent `tier` column on `api_requests` is intentionally deferred to "out of scope".
 
 ### Phase 1: Backend tier definition (foundation)
 
@@ -168,6 +192,12 @@ Document findings inline before proceeding. If anything unexpected surfaces, upd
    The fallback to `https://taxformatter.com` exists only for the case where the Lambda is misconfigured (env var missing). Log a warning if the fallback fires; in normal operation `APP_URL` is always set.
 
    Customers will integrate against this response shape; changing it later is a breaking change.
+
+**Terraform edit (new in v3 post-Phase-0):**
+
+6a. `backend/terraform/lambda.tf` — API Lambda environment block at lines 479-485 — add `APP_URL = var.app_url` to `environment.variables`.
+
+6b. `backend/terraform/variables.tf` — declare `variable "app_url" { type = string; description = "Public app URL used for upgrade_url in API error responses (e.g., https://taxformatter.com or http://localhost:3000)." }`. The actual value is supplied per-environment via `terraform.tfvars` or CI; in dev it should be `http://localhost:3000`, in prod it should match `NEXT_PUBLIC_APP_URL`. Without this Lambda var the fallback in `api.py` will always fire in production.
 
 6. **Bank PDF gating** (depending on Phase 0 finding): if Phase 0 found that bank PDF is not yet gated by tier, add the gate now. Free tier returns 403 with the same `upgrade_url` env var convention:
 
@@ -331,6 +361,9 @@ Document findings inline before proceeding. If anything unexpected surfaces, upd
 | Phase | File | Change type | Notes |
 |---|---|---|---|
 | 0 | (greps + audit) | Read-only | Document findings; lock `APP_URL` env var name; update phases if surprises |
+| 0.5 | `backend/handlers/api.py` | Edit | One-line `logger.info("api_request", extra={"tier": ...})` emit at top of `handle_v1_parse` (substrate for conversion measurement) |
+| 2 | `backend/terraform/lambda.tf` | Edit | Add `APP_URL = var.app_url` to API Lambda env block (lines 479-485) |
+| 2 | `backend/terraform/variables.tf` | Edit | Declare `variable "app_url"` |
 | 1 | `lib/api-keys.ts` | Edit | Type union, `API_TIERS['free']`, optional tier arg, free-key cap. **Default stays `'starter'` until Phase 5.** |
 | 1 | `db/migrations/013_free_tier_constraints.sql` | New | Partial unique index + `deactivated_reason` + `deactivated_at` columns |
 | 1 | `__tests__/lib/api-keys.test.ts` | Edit | Free creation tests, free-cap tests |
@@ -507,6 +540,12 @@ Four-column layout. Order: **Free** (leftmost), Starter, **Growth (Most popular)
 - **D8 added** (`upgrade_url` from env var, not hardcoded). Affects Phase 0 (lock env var name), Phase 2 (use it in 429 + 403 responses), Phase 6 (manual verification of environment-correctness), test plan (assert env-driven behavior).
 - **D6 deactivation surfacing promoted from optional polish to launch-PR scope.** Migration in Phase 1 adds `deactivated_reason` + `deactivated_at` columns. Webhook in Phase 3 populates them. Dashboard `<ApiKeyManager />` in Phase 5 renders the explanation note when the reason matches `downgraded_replaced_by:*`. Three new component tests cover the renders.
 - Verification checklist expanded with three new items: dashboard explanation note renders, user-initiated deactivation shows no note (regression), `upgrade_url` is environment-correct.
+
+### v3 post-Phase-0 amendments (2026-05-03)
+- **Phase 0 marked complete** with findings inline. Two surprises required plan deltas:
+  - **Lambda has no `APP_URL` env var today.** Locked name `APP_URL`. Phase 2 expanded with a Terraform edit to `backend/terraform/lambda.tf` + `variables.tf`.
+  - **Tier is not logged on `/v1/parse` today, and `api_requests` schema has no `tier` column.** Added **Phase 0.5** — a one-line `logger.info` emit in `handle_v1_parse` (CloudWatch substrate for conversion measurement). Persistent column deferred.
+- All other plan assumptions verified.
 
 ### v2
 - **D6 added** (downgrade-collision handling).

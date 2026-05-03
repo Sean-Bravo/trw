@@ -17,14 +17,28 @@ jest.mock('@/lib/rate-limit', () => ({
   },
   getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
 }));
+// Phase 4 (v3): verify route auto-provisions a free API key.
+jest.mock('@/lib/api-keys', () => ({
+  createApiKey: jest.fn().mockResolvedValue({ key: 'tf_live_xxx', id: 'key-1', prefix: 'xxx' }),
+}));
+jest.mock('@/lib/db', () => ({
+  query: jest.fn().mockResolvedValue([{ count: '0' }]),
+}));
 
 const mockAuthDb = authDb as jest.Mocked<typeof authDb>;
 const mockRateLimit = rateLimit as jest.Mocked<typeof rateLimit>;
+import * as apiKeys from '@/lib/api-keys';
+import * as db from '@/lib/db';
+const mockCreateApiKey = apiKeys.createApiKey as jest.Mock;
+const mockQuery = db.query as jest.Mock;
 
 describe('POST /api/auth/verify', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (mockRateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: true });
+    // Default: user has no existing keys, so auto-provision will fire.
+    mockQuery.mockResolvedValue([{ count: '0' }]);
+    mockCreateApiKey.mockResolvedValue({ key: 'tf_live_xxx', id: 'key-1', prefix: 'xxx' });
   });
 
   describe('Successful Verification', () => {
@@ -275,6 +289,66 @@ describe('POST /api/auth/verify', () => {
 
       expect(response.status).toBe(200);
       expect(data.user).toBeUndefined();
+    });
+  });
+
+  describe('Phase 4 (v3): auto-provision free API key on verify', () => {
+    function successResult() {
+      mockAuthDb.verifyEmailCode.mockResolvedValue({
+        success: true,
+        user: {
+          id: 'user-123',
+          email: 'test@example.com',
+          name: 'Test',
+          emailVerified: true,
+          createdAt: new Date(),
+        },
+      });
+    }
+
+    it('creates exactly one free API key after successful verification', async () => {
+      successResult();
+      mockQuery.mockResolvedValue([{ count: '0' }]);
+
+      const request = createMockRequest({ email: 'test@example.com', code: '123456' });
+      const response = await POST(request as any);
+
+      expect(response.status).toBe(200);
+      expect(mockCreateApiKey).toHaveBeenCalledTimes(1);
+      expect(mockCreateApiKey).toHaveBeenCalledWith('user-123', 'Default key', 'free');
+    });
+
+    it('does NOT create a key on re-verify (user already has an active key)', async () => {
+      successResult();
+      mockQuery.mockResolvedValue([{ count: '1' }]); // already has 1 active key
+
+      const request = createMockRequest({ email: 'test@example.com', code: '123456' });
+      const response = await POST(request as any);
+
+      expect(response.status).toBe(200);
+      expect(mockCreateApiKey).not.toHaveBeenCalled();
+    });
+
+    it('still returns 200 even when createApiKey throws', async () => {
+      successResult();
+      mockQuery.mockResolvedValue([{ count: '0' }]);
+      mockCreateApiKey.mockRejectedValue(new Error('DB unavailable'));
+
+      const request = createMockRequest({ email: 'test@example.com', code: '123456' });
+      const response = await POST(request as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+    });
+
+    it('does NOT create a key when verifyEmailCode returns no user', async () => {
+      mockAuthDb.verifyEmailCode.mockResolvedValue({ success: true, user: undefined });
+
+      const request = createMockRequest({ email: 'test@example.com', code: '123456' });
+      await POST(request as any);
+
+      expect(mockCreateApiKey).not.toHaveBeenCalled();
     });
   });
 

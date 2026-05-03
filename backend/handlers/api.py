@@ -12,6 +12,7 @@ import os
 import sys
 import time
 import uuid
+from datetime import datetime, timezone
 from io import BytesIO
 from typing import Any, Dict, Optional
 
@@ -88,7 +89,14 @@ def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dic
     }
 
 
-def error_response(status_code: int, code: str, message: str, suggestion: str = "", extra: Optional[Dict] = None) -> Dict:
+def error_response(
+    status_code: int,
+    code: str,
+    message: str,
+    suggestion: str = "",
+    extra: Optional[Dict] = None,
+    headers: Optional[Dict] = None,
+) -> Dict:
     """Generate a structured error response."""
     body = {
         "status": "error",
@@ -100,7 +108,40 @@ def error_response(status_code: int, code: str, message: str, suggestion: str = 
     if extra:
         body.update(extra)
     body.setdefault("metadata", {})["api_version"] = API_VERSION
-    return response(status_code, body)
+    return response(status_code, body, headers)
+
+
+def _app_url() -> str:
+    """
+    Public app URL for upgrade_url in error responses.
+    Sourced from APP_URL env var (set in Terraform). Fallback exists only
+    for misconfigured Lambdas; in normal operation APP_URL is always set.
+    """
+    url = os.environ.get("APP_URL")
+    if not url:
+        logger.warning("APP_URL env var not set; falling back to https://taxformatter.com")
+        return "https://taxformatter.com"
+    return url
+
+
+def _seconds_until_month_rollover() -> int:
+    """Seconds from now until 00:00:00 UTC on the 1st of next month."""
+    now = datetime.now(timezone.utc)
+    if now.month == 12:
+        next_first = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc)
+    else:
+        next_first = datetime(now.year, now.month + 1, 1, tzinfo=timezone.utc)
+    return int((next_first - now).total_seconds())
+
+
+def _next_month_first_iso() -> str:
+    """ISO 8601 timestamp for 00:00:00 UTC on the 1st of next month."""
+    now = datetime.now(timezone.utc)
+    if now.month == 12:
+        next_first = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc)
+    else:
+        next_first = datetime(now.year, now.month + 1, 1, tzinfo=timezone.utc)
+    return next_first.isoformat()
 
 
 def get_api_key(event: Dict) -> Optional[str]:
@@ -131,6 +172,18 @@ def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict
     Detects file type automatically based on filename extension.
     """
     start_time = time.time()
+
+    # Conversion-tracking substrate (Phase 0.5): one-line emit per request so
+    # free→paid conversion is measurable from CloudWatch Logs Insights.
+    logger.info(
+        "api_request",
+        extra={
+            "tier": key_record.get("tier"),
+            "key_id": key_record["id"],
+            "endpoint": "/v1/parse",
+            "request_id": request_id,
+        },
+    )
 
     # Parse request body
     try:
@@ -193,7 +246,36 @@ def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict
         )
 
     # Import and track usage
-    from services.api_auth import increment_usage, record_request
+    from services.api_auth import check_monthly_quota, increment_usage, record_request
+
+    # Quota check (Phase 2): hard-block free at limit, soft-flag paid for headers.
+    # Run before processing to avoid wasting compute on quota-exceeded free users.
+    tier = key_record.get("tier", "starter")
+    allowed, usage, is_overage = check_monthly_quota(
+        key_record["id"], key_record["monthly_quota"], tier
+    )
+    if not allowed:
+        return error_response(
+            429,
+            "quota_exceeded",
+            "Free tier monthly limit of 25 files reached. Resets on the 1st. Upgrade for higher limits.",
+            extra={"upgrade_url": f"{_app_url()}/pricing"},
+            headers={
+                "Retry-After": str(_seconds_until_month_rollover()),
+                "X-Quota-Reset": _next_month_first_iso(),
+                "X-Api-Usage": str(usage),
+                "X-Api-Quota": str(key_record["monthly_quota"]),
+            },
+        )
+
+    # Bank-PDF feature gate (Phase 2): free tier excluded from PDF parsing.
+    if is_pdf and tier == "free":
+        return error_response(
+            403,
+            "feature_not_available",
+            "Bank PDF parsing requires Growth tier or higher.",
+            extra={"upgrade_url": f"{_app_url()}/pricing"},
+        )
 
     if is_csv:
         result = _parse_crypto(file_bytes, body, filename)
@@ -233,12 +315,10 @@ def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict
         request_id=request_id,
     )
 
-    # Add processing time and overage headers
+    # Add processing time and overage headers (paid soft-flag — free is hard-blocked above)
     extra_headers = {
         "X-TF-Processing-Time": str(processing_time_ms),
     }
-    from services.api_auth import check_monthly_quota
-    _, usage, is_overage = check_monthly_quota(key_record["id"], key_record["monthly_quota"])
     if is_overage:
         extra_headers["X-Api-Overage"] = "true"
         extra_headers["X-Api-Usage"] = str(usage)

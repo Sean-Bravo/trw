@@ -55,6 +55,17 @@ def valid_key_record():
     }
 
 
+@pytest.fixture
+def free_key_record():
+    return {
+        "id": "key-free",
+        "user_id": "user-1",
+        "tier": "free",
+        "rate_limit_rpm": 10,
+        "monthly_quota": 25,
+    }
+
+
 def make_event(route_key="GET /v1/health", headers=None, body=None):
     """Build a minimal API Gateway v2 event."""
     event = {
@@ -398,6 +409,78 @@ class TestV1Parse:
         resp = handle_v1_parse(event, valid_key_record)
         body = json.loads(resp["body"])
         assert body["metadata"]["api_version"] == API_VERSION
+
+    # --- Phase 2 (v3): free-tier hard-block + bank-PDF gate ---
+
+    @patch.dict(os.environ, {"APP_URL": "https://staging.taxformatter.com"})
+    @patch("services.api_auth.check_monthly_quota", return_value=(False, 25, True))
+    @patch("services.api_auth.record_request")
+    @patch("services.api_auth.increment_usage")
+    def test_free_at_quota_returns_429(self, mock_incr, mock_record, mock_quota, free_key_record):
+        csv = base64.b64encode(b"Date,Amount\n2024-01-01,100").decode()
+        event = make_event("POST /v1/parse", body={
+            "file_content": csv,
+            "filename": "test.csv",
+        })
+        resp = handle_v1_parse(event, free_key_record)
+        body = json.loads(resp["body"])
+        assert resp["statusCode"] == 429
+        assert body["code"] == "quota_exceeded"
+        # upgrade_url is env-driven, not hardcoded.
+        assert body["upgrade_url"] == "https://staging.taxformatter.com/pricing"
+        assert "Retry-After" in resp["headers"]
+        assert "X-Quota-Reset" in resp["headers"]
+        assert resp["headers"]["X-Api-Usage"] == "25"
+        assert resp["headers"]["X-Api-Quota"] == "25"
+        # Hard-block before processing — usage not incremented.
+        mock_incr.assert_not_called()
+
+    @patch.dict(os.environ, {"APP_URL": "http://localhost:3000"})
+    @patch("services.api_auth.check_monthly_quota", return_value=(True, 0, False))
+    @patch("services.api_auth.record_request")
+    @patch("services.api_auth.increment_usage")
+    def test_free_pdf_returns_403_feature_not_available(
+        self, mock_incr, mock_record, mock_quota, free_key_record
+    ):
+        pdf = base64.b64encode(b"%PDF-1.4 fake").decode()
+        event = make_event("POST /v1/parse", body={
+            "file_content": pdf,
+            "filename": "statement.pdf",
+        })
+        resp = handle_v1_parse(event, free_key_record)
+        body = json.loads(resp["body"])
+        assert resp["statusCode"] == 403
+        assert body["code"] == "feature_not_available"
+        assert body["upgrade_url"] == "http://localhost:3000/pricing"
+        mock_incr.assert_not_called()
+
+    @patch.dict(os.environ, {"APP_URL": "https://taxformatter.com"})
+    @patch("services.api_auth.record_request")
+    @patch("services.api_auth.increment_usage")
+    @patch("services.engine.process_file")
+    def test_starter_overage_still_returns_200_regression(
+        self, mock_process, mock_incr, mock_record, valid_key_record
+    ):
+        # Regression check: paid soft-flag behavior unchanged.
+        mock_process.return_value = {
+            "success": True,
+            "exchange": "coinbase",
+            "records": [],
+            "warnings": [],
+            "meta": {},
+        }
+        csv = base64.b64encode(b"Date,Amount\n2024-01-01,100").decode()
+        event = make_event("POST /v1/parse", body={
+            "file_content": csv,
+            "filename": "test.csv",
+        })
+        # Mock returns soft-flag (allowed=True, is_overage=True) — what the real
+        # check_monthly_quota does for paid tiers regardless of usage.
+        with patch("services.api_auth.check_monthly_quota", return_value=(True, 101, True)):
+            resp = handle_v1_parse(event, valid_key_record)
+        assert resp["statusCode"] == 200
+        assert resp["headers"].get("X-Api-Overage") == "true"
+        assert resp["headers"].get("X-Api-Usage") == "101"
 
 
 # ---------------------------------------------------------------------------

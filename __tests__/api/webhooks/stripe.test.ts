@@ -21,6 +21,7 @@ jest.mock('@/lib/db', () => ({
 }));
 jest.mock('@/lib/api-keys', () => ({
   API_TIERS: {
+    free: { monthly_quota: 25, rate_limit_rpm: 10 },
     starter: { monthly_quota: 100, rate_limit_rpm: 30 },
     growth: { monthly_quota: 500, rate_limit_rpm: 60 },
     business: { monthly_quota: 2000, rate_limit_rpm: 120 },
@@ -174,22 +175,94 @@ describe('POST /api/webhooks/stripe', () => {
     });
   });
 
-  it('handles customer.subscription.deleted — downgrades API key', async () => {
+  it('handles customer.subscription.deleted — downgrades API key to free (v3)', async () => {
     mockConstructEvent.mockReturnValue({
       id: 'evt_deleted_1',
       type: 'customer.subscription.deleted',
       data: { object: { customer: 'cus_1', id: 'sub_1' } },
     });
-    mockQueryOne.mockResolvedValue({ id: 'key-1' });
-    mockExecute.mockResolvedValue({ rowCount: 1 });
+    mockQueryOne.mockResolvedValue({ id: 'key-1', user_id: 'user-1' });
+    // Three execute calls expected: idempotency insert, deactivate-existing-free
+    // (rowCount=0 — no pre-existing free key), downgrade-to-free.
+    mockExecute
+      .mockResolvedValueOnce({ rowCount: 1 }) // idempotency
+      .mockResolvedValueOnce({ rowCount: 0 }) // no pre-existing free key to deactivate
+      .mockResolvedValueOnce({ rowCount: 1 }); // downgrade succeeds
 
     const req = createRequest('{}', 'sig');
     const res = await POST(req);
     expect(res.status).toBe(200);
     expect(mockExecute).toHaveBeenCalledWith(
-      expect.stringContaining("tier = 'starter'"),
-      [100, 30, 'key-1']
+      expect.stringContaining("SET tier = 'free'"),
+      [25, 10, 'key-1']
     );
+  });
+
+  // --- Phase 3 (v3): D6 collision handling + defensive guard ---
+
+  it('D6 collision: deactivates pre-existing free key with reason+timestamp before downgrading paid key', async () => {
+    mockConstructEvent.mockReturnValue({
+      id: 'evt_d6_1',
+      type: 'customer.subscription.deleted',
+      data: { object: { customer: 'cus_1', id: 'sub_1' } },
+    });
+    mockQueryOne.mockResolvedValue({ id: 'paid-key-id', user_id: 'user-1' });
+    mockExecute
+      .mockResolvedValueOnce({ rowCount: 1 }) // idempotency
+      .mockResolvedValueOnce({ rowCount: 1 }) // 1 pre-existing free key deactivated
+      .mockResolvedValueOnce({ rowCount: 1 }); // downgrade succeeds
+
+    const res = await POST(createRequest('{}', 'sig'));
+    expect(res.status).toBe(200);
+
+    // The deactivate call: SQL contains deactivated_reason and the params
+    // include the user_id, the paid-key id (to exclude itself), and the
+    // reason string in the pattern downgraded_replaced_by:<paid_key_id>.
+    const deactivateCall = mockExecute.mock.calls.find((c) =>
+      typeof c[0] === 'string' && c[0].includes('deactivated_reason')
+    );
+    expect(deactivateCall).toBeDefined();
+    expect(deactivateCall![1]).toEqual([
+      'user-1',
+      'paid-key-id',
+      'downgraded_replaced_by:paid-key-id',
+    ]);
+
+    // Followed by the downgrade-to-free UPDATE (SET tier = 'free', not WHERE).
+    const downgradeCall = mockExecute.mock.calls.find((c) =>
+      typeof c[0] === 'string' && c[0].includes("SET tier = 'free'")
+    );
+    expect(downgradeCall).toBeDefined();
+    expect(downgradeCall![1]).toEqual([25, 10, 'paid-key-id']);
+  });
+
+  it('defensive guard: checkout.session.completed with apiTier=free is logged and skipped', async () => {
+    mockConstructEvent.mockReturnValue({
+      id: 'evt_guard_1',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          customer: 'cus_1',
+          customer_email: 'u@x.com',
+          subscription: 'sub_1',
+          metadata: { api_tier: 'free', api_key_id: 'key-1', userId: 'user-1' },
+          amount_total: 0,
+        },
+      },
+    });
+    // Idempotency insert succeeds
+    mockExecute.mockResolvedValue({ rowCount: 1 });
+
+    const res = await POST(createRequest('{}', 'sig'));
+    expect(res.status).toBe(200);
+
+    // No tier-upgrade UPDATE on api_keys for the 'free' apiTier.
+    const apiKeysUpdate = mockExecute.mock.calls.find((c) =>
+      typeof c[0] === 'string' && c[0].includes('UPDATE api_keys') && c[0].includes('tier =')
+    );
+    expect(apiKeysUpdate).toBeUndefined();
+    // Stripe subscription verification should not have been called.
+    expect(mockSubsRetrieve).not.toHaveBeenCalled();
   });
 
   it('handles customer.subscription.updated — logs past due', async () => {

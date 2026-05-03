@@ -74,7 +74,11 @@ describe('createApiKey', () => {
   });
 
   it('creates key when under limit', async () => {
-    mockQuery.mockResolvedValue([{ count: '2' }]);
+    // Default tier is 'free' (post-Phase-5). Total active under MAX_KEYS_PER_USER,
+    // and no pre-existing free key, so creation succeeds.
+    mockQuery
+      .mockResolvedValueOnce([{ count: '2' }])
+      .mockResolvedValueOnce([{ count: '0' }]);
     mockQueryOne.mockResolvedValue({ id: 'new-key-id' });
 
     const result = await createApiKey('user-1', 'My Key');
@@ -92,8 +96,11 @@ describe('createApiKey', () => {
     );
   });
 
-  it('inserts with starter tier defaults (rpm=30, quota=100)', async () => {
-    mockQuery.mockResolvedValue([{ count: '0' }]);
+  it('inserts with free tier defaults after Phase 5 flip (rpm=10, quota=25)', async () => {
+    // Two query calls: total active count, then free active count (free path).
+    mockQuery
+      .mockResolvedValueOnce([{ count: '0' }])
+      .mockResolvedValueOnce([{ count: '0' }]);
     mockQueryOne.mockResolvedValue({ id: 'key-id' });
 
     await createApiKey('user-1', 'Test');
@@ -101,13 +108,15 @@ describe('createApiKey', () => {
     const insertCall = mockQueryOne.mock.calls[0];
     const params = insertCall[1];
     // params: [userId, name, prefix, hash, tier, rate_limit_rpm, monthly_quota]
-    expect(params[4]).toBe('starter');
-    expect(params[5]).toBe(30); // rate_limit_rpm
-    expect(params[6]).toBe(100); // monthly_quota
+    expect(params[4]).toBe('free');
+    expect(params[5]).toBe(10); // rate_limit_rpm
+    expect(params[6]).toBe(25); // monthly_quota
   });
 
   it('returns { key, id, prefix }', async () => {
-    mockQuery.mockResolvedValue([{ count: '0' }]);
+    mockQuery
+      .mockResolvedValueOnce([{ count: '0' }])
+      .mockResolvedValueOnce([{ count: '0' }]);
     mockQueryOne.mockResolvedValue({ id: 'key-abc' });
 
     const result = await createApiKey('user-1', 'Test');
@@ -118,12 +127,67 @@ describe('createApiKey', () => {
   });
 
   it('throws when INSERT fails', async () => {
-    mockQuery.mockResolvedValue([{ count: '0' }]);
+    mockQuery
+      .mockResolvedValueOnce([{ count: '0' }])
+      .mockResolvedValueOnce([{ count: '0' }]);
     mockQueryOne.mockResolvedValue(null);
 
     await expect(createApiKey('user-1', 'Test')).rejects.toThrow(
       'Failed to create API key'
     );
+  });
+
+  // --- Free tier (Phase 1, v3) ---
+
+  it('creates a free key when explicit tier=free passed (rpm=10, quota=25)', async () => {
+    // First query: total active key count. Second query: active free key count.
+    mockQuery
+      .mockResolvedValueOnce([{ count: '0' }])
+      .mockResolvedValueOnce([{ count: '0' }]);
+    mockQueryOne.mockResolvedValue({ id: 'free-key-id' });
+
+    const result = await createApiKey('user-1', 'Default key', 'free');
+
+    expect(result.id).toBe('free-key-id');
+    const params = mockQueryOne.mock.calls[0][1];
+    expect(params[4]).toBe('free');
+    expect(params[5]).toBe(10); // rate_limit_rpm
+    expect(params[6]).toBe(25); // monthly_quota
+  });
+
+  it('rejects a second free-tier key for the same user (D2 cap)', async () => {
+    mockQuery
+      .mockResolvedValueOnce([{ count: '1' }]) // total active under MAX_KEYS_PER_USER
+      .mockResolvedValueOnce([{ count: '1' }]); // already has 1 active free key
+
+    await expect(createApiKey('user-1', 'Another', 'free')).rejects.toThrow(
+      /Only one active free API key per user/
+    );
+    expect(mockQueryOne).not.toHaveBeenCalled();
+  });
+
+  it('explicit tier=starter still works after type widening', async () => {
+    mockQuery.mockResolvedValue([{ count: '0' }]);
+    mockQueryOne.mockResolvedValue({ id: 'starter-key-id' });
+
+    await createApiKey('user-1', 'Test', 'starter');
+
+    const params = mockQueryOne.mock.calls[0][1];
+    expect(params[4]).toBe('starter');
+    expect(params[5]).toBe(30);
+    expect(params[6]).toBe(100);
+  });
+
+  it('default (no tier arg) produces free after Phase 5 flip', async () => {
+    mockQuery
+      .mockResolvedValueOnce([{ count: '0' }])
+      .mockResolvedValueOnce([{ count: '0' }]);
+    mockQueryOne.mockResolvedValue({ id: 'default-key-id' });
+
+    await createApiKey('user-1', 'Test');
+
+    const params = mockQueryOne.mock.calls[0][1];
+    expect(params[4]).toBe('free');
   });
 });
 

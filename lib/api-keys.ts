@@ -3,7 +3,7 @@ import { query, queryOne, execute } from './db';
 
 // --- Types ---
 
-export type ApiTier = 'starter' | 'growth' | 'business';
+export type ApiTier = 'free' | 'starter' | 'growth' | 'business';
 
 export interface DbApiKey {
   id: string;
@@ -19,6 +19,8 @@ export interface DbApiKey {
   last_used_at: Date | null;
   expires_at: Date | null;
   created_at: Date;
+  deactivated_reason: string | null;
+  deactivated_at: Date | null;
 }
 
 export interface DbApiUsage {
@@ -32,12 +34,14 @@ export interface DbApiUsage {
 }
 
 export const API_TIERS = {
+  free:     { monthly_quota: 25,   rate_limit_rpm: 10,  price: 0 },
   starter:  { monthly_quota: 100,  rate_limit_rpm: 30,  price: 29 },
   growth:   { monthly_quota: 500,  rate_limit_rpm: 60,  price: 99 },
   business: { monthly_quota: 2000, rate_limit_rpm: 120, price: 249 },
 } as const;
 
 const MAX_KEYS_PER_USER = 5;
+const MAX_FREE_KEYS_PER_USER = 1;
 
 // --- Key Generation ---
 
@@ -57,7 +61,8 @@ export function hashApiKey(key: string): string {
 
 export async function createApiKey(
   userId: string,
-  name: string
+  name: string,
+  tier: ApiTier = 'free'
 ): Promise<{ key: string; id: string; prefix: string }> {
   // Check key count
   const existing = await query<{ count: string }>(
@@ -69,8 +74,24 @@ export async function createApiKey(
     throw new Error(`Maximum of ${MAX_KEYS_PER_USER} active API keys allowed`);
   }
 
+  // D2: free tier is capped at 1 active key per user. Partial unique index in
+  // migration 013 is the real guarantee against races; this check exists to
+  // surface a clear error before the DB rejects.
+  if (tier === 'free') {
+    const freeCount = await query<{ count: string }>(
+      `SELECT COUNT(*)::text as count FROM api_keys
+       WHERE user_id = $1 AND tier = 'free' AND is_active = true`,
+      [userId]
+    );
+    const freeActive = parseInt(freeCount[0]?.count ?? '0', 10);
+    if (freeActive >= MAX_FREE_KEYS_PER_USER) {
+      throw new Error(
+        'Only one active free API key per user. Deactivate your existing free key to create a new one.'
+      );
+    }
+  }
+
   const { key, prefix, hash } = generateApiKey();
-  const tier: ApiTier = 'starter';
   const tierConfig = API_TIERS[tier];
 
   const result = await queryOne<{ id: string }>(
@@ -90,7 +111,8 @@ export async function createApiKey(
 export async function listApiKeys(userId: string): Promise<Omit<DbApiKey, 'key_hash'>[]> {
   return query<Omit<DbApiKey, 'key_hash'>>(
     `SELECT id, user_id, name, key_prefix, tier, is_active, rate_limit_rpm, monthly_quota,
-            stripe_subscription_id, last_used_at, expires_at, created_at
+            stripe_subscription_id, last_used_at, expires_at, created_at,
+            deactivated_reason, deactivated_at
      FROM api_keys
      WHERE user_id = $1
      ORDER BY created_at DESC`,

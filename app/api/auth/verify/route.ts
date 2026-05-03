@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateEmail } from '@/lib/validation';
 import { verifyEmailCode } from '@/lib/auth-db';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
+import { createApiKey } from '@/lib/api-keys';
+import { query } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   // H-6: rate limit verification attempts (5 per 15 min by default).
@@ -47,6 +49,28 @@ export async function POST(request: NextRequest) {
         { error: result.error || 'Verification failed' },
         { status: 400 }
       );
+    }
+
+    // Phase 4 (v3): auto-provision a free API key after successful verification.
+    // Idempotent — skip if the user already has any active key (covers re-verify
+    // and the case where they already created a key manually). The DB partial
+    // unique index from migration 013 is the real race guarantee; this app-level
+    // check exists to avoid unnecessary work.
+    if (result.user?.id) {
+      try {
+        const existing = await query<{ count: string }>(
+          'SELECT COUNT(*)::text as count FROM api_keys WHERE user_id = $1 AND is_active = true',
+          [result.user.id]
+        );
+        const activeCount = parseInt(existing[0]?.count ?? '0', 10);
+        if (activeCount === 0) {
+          await createApiKey(result.user.id, 'Default key', 'free');
+        }
+      } catch (err) {
+        // Don't block verification on key creation failure — the user can
+        // create one manually from the dashboard.
+        console.error('[Auth] Failed to auto-provision free API key:', err);
+      }
     }
 
     return NextResponse.json(

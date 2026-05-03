@@ -119,11 +119,18 @@ def check_rate_limit(key_id: str, rpm_limit: int) -> Tuple[bool, int]:
     return True, current_count + 1
 
 
-def check_monthly_quota(key_id: str, monthly_quota: int) -> Tuple[bool, int, bool]:
+def check_monthly_quota(
+    key_id: str, monthly_quota: int, tier: str = "starter"
+) -> Tuple[bool, int, bool]:
     """
     Check monthly file usage against quota.
     Returns (allowed, current_usage, is_overage).
-    Never hard-blocks — flags overage instead.
+
+    Policy (v3 Phase 2):
+    - tier == 'free': hard-block at quota. Returns allowed=False once usage
+      reaches monthly_quota. The handler maps this to a 429 response.
+    - all other tiers: soft-flag only. Returns allowed=True, is_overage=True
+      when over. Existing paid-tier behavior preserved.
     """
     conn = get_db()
     with conn.cursor() as cur:
@@ -139,7 +146,9 @@ def check_monthly_quota(key_id: str, monthly_quota: int) -> Tuple[bool, int, boo
     current_usage = row["total"] if row else 0
     is_overage = current_usage >= monthly_quota
 
-    # Never hard-block — allow overage, flag it
+    if tier == "free" and is_overage:
+        return False, current_usage, True
+
     return True, current_usage, is_overage
 
 

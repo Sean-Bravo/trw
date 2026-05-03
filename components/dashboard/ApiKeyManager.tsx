@@ -15,6 +15,15 @@ interface ApiKey {
   monthlyQuota: number;
   lastUsedAt: string | null;
   createdAt: string;
+  deactivatedReason: string | null;
+  deactivatedAt: string | null;
+}
+
+const DOWNGRADE_REASON_PREFIX = 'downgraded_replaced_by:';
+
+function formatDeactivatedDate(iso: string | null): string {
+  if (!iso) return 'recently';
+  return new Date(iso).toLocaleDateString();
 }
 
 interface UsageData {
@@ -310,6 +319,21 @@ export function ApiKeyManager() {
                         </span>
                       )}
                     </div>
+                    {/* D6: explain Stripe-driven deactivation. Generic deactivation
+                        leaves deactivatedReason NULL and renders nothing. */}
+                    {key.deactivatedReason?.startsWith(DOWNGRADE_REASON_PREFIX) && (() => {
+                      const replacingId = key.deactivatedReason.slice(DOWNGRADE_REASON_PREFIX.length);
+                      const replacingKey = keys.find((k) => k.id === replacingId);
+                      return (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Deactivated {formatDeactivatedDate(key.deactivatedAt)} when{' '}
+                          <span className="font-medium text-gray-400">
+                            {replacingKey?.name ?? 'a paid key'}
+                          </span>{' '}
+                          was downgraded to Free.
+                        </p>
+                      );
+                    })()}
                     {/* Usage bar */}
                     {keyUsage && (
                       <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden w-48">

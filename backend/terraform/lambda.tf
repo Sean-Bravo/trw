@@ -482,6 +482,7 @@ resource "aws_lambda_function" "api" {
       UPLOADS_BUCKET = aws_s3_bucket.uploads.id
       RESULTS_BUCKET = aws_s3_bucket.results.id
       SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+      APP_URL        = var.app_url
     }
   }
 

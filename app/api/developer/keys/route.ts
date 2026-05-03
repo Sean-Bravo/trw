@@ -27,6 +27,9 @@ export async function GET() {
         monthlyQuota: k.monthly_quota,
         lastUsedAt: k.last_used_at,
         createdAt: k.created_at,
+        // D6: surfaces deactivation-by-Stripe-downgrade in the dashboard.
+        deactivatedReason: k.deactivated_reason,
+        deactivatedAt: k.deactivated_at,
       })),
     });
   } catch (error) {
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Internal server error';
-    if (message.includes('Maximum of')) {
+    if (message.includes('Maximum of') || message.includes('Only one active free')) {
       return NextResponse.json({ error: message }, { status: 409 });
     }
     console.error('[Developer Keys] Error creating key:', error);

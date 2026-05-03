@@ -14,6 +14,23 @@ const PENDING_TIER_KEY = 'pending_api_tier';
 
 const tiers = [
   {
+    name: 'Free',
+    price: '$0',
+    period: '/ month',
+    description: 'For evaluating the API.',
+    features: [
+      '25 files / month',
+      '10 requests / minute',
+      'All 14 exchanges',
+      'Auto-detection',
+      'JSON response',
+    ],
+    cta: 'Start Free',
+    tier: 'free',
+    style: 'bg-white/2 border-white/6',
+    checkColor: 'text-slate-500',
+  },
+  {
     name: 'Starter',
     price: '$29',
     period: '/ month',
@@ -103,8 +120,8 @@ export function APIPricing() {
             </p>
           </div>
 
-          {/* Grid */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
+          {/* Grid: 4 columns at desktop, 2x2 at tablet, single column at mobile */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto items-stretch">
             {tiers.map((tier) => (
               <div
                 key={tier.name}
@@ -147,6 +164,12 @@ export function APIPricing() {
                 >
                   {tier.cta}
                 </button>
+
+                {tier.tier === 'free' && (
+                  <p className="text-xs text-slate-500 mt-2 text-center">
+                    No credit card required
+                  </p>
+                )}
               </div>
             ))}
           </div>

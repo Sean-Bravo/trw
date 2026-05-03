@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Pricing } from '@/components/marketing/Pricing';
 
 // Mock next/link
@@ -8,6 +9,12 @@ jest.mock('next/link', () => {
     <a href={href}>{children}</a>
   );
 });
+
+// Mock next/navigation router so we can assert the Free CTA wires to /signup.
+const mockPush = jest.fn();
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 describe('Pricing Component (API Tiers)', () => {
   describe('Rendering', () => {
@@ -23,8 +30,9 @@ describe('Pricing Component (API Tiers)', () => {
       expect(screen.getByText('Pay for what you parse.')).toBeInTheDocument();
     });
 
-    it('renders all three API tiers', () => {
+    it('renders all four API tiers (Phase 5: Free added)', () => {
       render(<Pricing />);
+      expect(screen.getByText('Free')).toBeInTheDocument();
       expect(screen.getByText('Starter')).toBeInTheDocument();
       expect(screen.getByText('Growth')).toBeInTheDocument();
       expect(screen.getByText('Business')).toBeInTheDocument();
@@ -33,6 +41,29 @@ describe('Pricing Component (API Tiers)', () => {
     it('renders POPULAR badge on Growth tier', () => {
       render(<Pricing />);
       expect(screen.getByText('POPULAR')).toBeInTheDocument();
+    });
+  });
+
+  describe('Free Tier (Phase 5, v3)', () => {
+    it('shows $0/month price', () => {
+      render(<Pricing />);
+      expect(screen.getByText('$0')).toBeInTheDocument();
+    });
+
+    it('shows 25 files per month', () => {
+      render(<Pricing />);
+      expect(screen.getByText('25 files / month')).toBeInTheDocument();
+    });
+
+    it('shows 10 requests per minute', () => {
+      render(<Pricing />);
+      expect(screen.getByText('10 requests / minute')).toBeInTheDocument();
+    });
+
+    it('shows "No credit card required" microcopy on Free card only', () => {
+      render(<Pricing />);
+      const microcopy = screen.getAllByText('No credit card required');
+      expect(microcopy).toHaveLength(1);
     });
   });
 
@@ -47,9 +78,10 @@ describe('Pricing Component (API Tiers)', () => {
       expect(screen.getByText('100 files / month')).toBeInTheDocument();
     });
 
-    it('shows all 14 exchanges', () => {
+    it('shows all 14 exchanges (also appears on Free)', () => {
       render(<Pricing />);
-      expect(screen.getByText('All 14 exchanges')).toBeInTheDocument();
+      // Both Free and Starter list this feature.
+      expect(screen.getAllByText('All 14 exchanges').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -92,15 +124,15 @@ describe('Pricing Component (API Tiers)', () => {
     // router.push('/signup'), no longer <Link href='/signup?api_tier=X'>.
     // We assert the buttons render with the right labels and that they
     // don't leak the tier through the URL.
-    it('renders three tier CTA buttons (no api_tier in URL)', () => {
+    it('renders four tier CTA buttons (no api_tier in URL)', () => {
       render(<Pricing />);
-      // The three tier CTAs are Starter / Growth / Business.
-      const ctaLabels = ['Get Started', 'Start Building', 'Get Started'];
+      // Four tier CTAs after Phase 5: Start Free / Get Started / Start Building / Get Started.
+      const ctaLabels = ['Start Free', 'Get Started', 'Start Building'];
       const buttons = screen.getAllByRole('button');
       const ctaButtons = buttons.filter((b) =>
         ctaLabels.includes(b.textContent?.trim() || ''),
       );
-      expect(ctaButtons.length).toBeGreaterThanOrEqual(3);
+      expect(ctaButtons.length).toBeGreaterThanOrEqual(4);
 
       // No <a> link should still carry api_tier as a query param.
       const links = screen.getAllByRole('link');
@@ -108,6 +140,18 @@ describe('Pricing Component (API Tiers)', () => {
         l.getAttribute('href')?.includes('api_tier='),
       );
       expect(tierLinks).toHaveLength(0);
+    });
+
+    it('Free CTA stores tier="free" in sessionStorage and routes to /signup', async () => {
+      mockPush.mockClear();
+      const user = userEvent.setup();
+      render(<Pricing />);
+
+      const freeBtn = screen.getByRole('button', { name: /Start Free/i });
+      await user.click(freeBtn);
+
+      expect(sessionStorage.getItem('pending_api_tier')).toBe('free');
+      expect(mockPush).toHaveBeenCalledWith('/signup');
     });
   });
 

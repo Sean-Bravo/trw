@@ -97,6 +97,18 @@ export async function POST(request: NextRequest) {
           )
         }
 
+        // Defensive guard (Phase 3): 'free' should never appear in checkout
+        // metadata — it's not a Stripe-billable tier. If it ever does, log
+        // and skip rather than letting the M-3 verification crash on a
+        // missing price ID lookup.
+        if (apiTier === 'free') {
+          console.warn('[webhook] checkout.session.completed with apiTier=free — skipping; free is not a Stripe tier', {
+            apiKeyId,
+            subscriptionId,
+          })
+          break
+        }
+
         // Handle API tier subscription
         if (apiTier && apiKeyId && subscriptionId) {
           const tierConfig = API_TIERS[apiTier]
@@ -183,20 +195,42 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
 
-        // Downgrade API key to starter tier
-        const apiKey = await queryOne<{ id: string }>(
-          `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
+        // Downgrade API key to free tier (D4). Pre-existing free key for the
+        // same user is deactivated first to avoid colliding with the partial
+        // unique index from migration 013 (D6). Paid history > free history,
+        // so the canceled paid key "wins" and keeps the user's history.
+        const apiKey = await queryOne<{ id: string; user_id: string }>(
+          `SELECT id, user_id FROM api_keys WHERE stripe_subscription_id = $1`,
           [subscription.id]
         )
         if (apiKey) {
-          const starterTier = API_TIERS['starter']
+          const deactivateResult = await execute(
+            `UPDATE api_keys
+             SET is_active = false,
+                 deactivated_reason = $3,
+                 deactivated_at = NOW()
+             WHERE user_id = $1
+               AND tier = 'free'
+               AND is_active = true
+               AND id != $2`,
+            [apiKey.user_id, apiKey.id, `downgraded_replaced_by:${apiKey.id}`]
+          )
+          if (deactivateResult.rowCount > 0) {
+            console.log('[Stripe] Deactivated pre-existing free key on paid downgrade', {
+              user_id: apiKey.user_id,
+              replaced_by_key_id: apiKey.id,
+              deactivated_count: deactivateResult.rowCount,
+            })
+          }
+
+          const freeTier = API_TIERS['free']
           await execute(
             `UPDATE api_keys
-             SET tier = 'starter', monthly_quota = $1, rate_limit_rpm = $2, stripe_subscription_id = NULL
+             SET tier = 'free', monthly_quota = $1, rate_limit_rpm = $2, stripe_subscription_id = NULL
              WHERE id = $3`,
-            [starterTier.monthly_quota, starterTier.rate_limit_rpm, apiKey.id]
+            [freeTier.monthly_quota, freeTier.rate_limit_rpm, apiKey.id]
           )
-          console.log(`[Stripe] API key ${apiKey.id} downgraded to starter tier`)
+          console.log(`[Stripe] API key ${apiKey.id} downgraded to free tier`)
         }
         break
       }
