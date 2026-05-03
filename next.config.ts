@@ -23,6 +23,16 @@ const nextConfig: NextConfig = {
 
   // Security headers
   async headers() {
+    // Next.js dev mode (esp. with Turbopack) uses eval() for HMR and React
+    // fast refresh. Production keeps the H-8 lockdown — 'unsafe-eval' is
+    // only added in dev, never shipped.
+    const isDev = process.env.NODE_ENV !== "production";
+    const scriptSrc = [
+      "script-src 'self' 'unsafe-inline'",
+      isDev ? "'unsafe-eval'" : "",
+      "https://www.googletagmanager.com https://www.googleadservices.com https://static.cloudflareinsights.com",
+    ].filter(Boolean).join(" ");
+
     return [
       {
         source: "/:path*",
@@ -59,10 +69,11 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              // H-8: 'unsafe-eval' removed. 'unsafe-inline' still required by
-              // Next.js runtime inline bootstrap; replacing it with nonces is
-              // tracked as post-launch work in SECURITY_REMEDIATION_PLAN.md.
-              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.googleadservices.com https://static.cloudflareinsights.com",
+              // H-8: 'unsafe-eval' removed in production. 'unsafe-inline' still
+              // required by Next.js runtime inline bootstrap; replacing it with
+              // nonces is tracked as post-launch work in SECURITY_REMEDIATION_PLAN.md.
+              // Dev mode adds 'unsafe-eval' (see scriptSrc above) for HMR/fast refresh.
+              scriptSrc,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https:",
               "font-src 'self' data: https://fonts.gstatic.com",
