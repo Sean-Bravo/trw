@@ -12,15 +12,15 @@ Tracking sheet for `@taxformatter/mcp-server` across MCP directories and registr
 
 | # | Directory | Status | Submitted | Listed at | Notes |
 |---|---|---|---|---|---|
-| 1 | **Smithery** | ✅ Live | — | _add URL_ | Submitted via GitHub connection. |
+| 1 | **Smithery** | ✅ Live | — | _add slug from Smithery dashboard, e.g. `https://smithery.ai/server/sean-bravo/taxformatter`_ | Submitted via GitHub connection. |
 | 2 | **Glama** | ⏳ Pending review | 2026-05-04 | _add URL_ | Re-submitted after repo went public. |
-| 3 | **Official MCP Registry** | ❓ Verify | — | _add URL_ | Listed per planning notes — needs URL confirmation. |
-| 4 | **mcp.run** | ❓ Verify | — | _add URL_ | Listed per planning notes — needs URL confirmation. |
-| 5 | **PulseMCP** | ⏳ Pending propagation | — | _add URL_ | Auto-ingests from Official MCP Registry weekly. Verified not yet listed on 2026-05-04. Will appear within ~7 days of #3 going live. |
-| 6 | **mcp.so** | ❓ Verify | — | _add URL_ | Submitted per planning notes — needs URL confirmation. |
+| 3 | **Official MCP Registry** | ✅ Live | 2026-05-04 | [API query](https://registry.modelcontextprotocol.io/v0/servers?search=taxformatter) | Published `0.1.2`. Registry is API-first — no public-facing detail page. |
+| 4 | **mcp.run** | ⏭️ Skipped | — | — | Rebranded to TurboMCP — now an enterprise gateway product, not a public directory. Don't submit. |
+| 5 | **PulseMCP** | ⏳ Pending propagation | — | _add URL_ | Auto-ingests from Official MCP Registry weekly. Will appear within ~7 days of 2026-05-04 (Official Registry live date). |
+| 6 | **mcp.so** | ⏳ Pending review | 2026-05-04 | _add URL_ | Submitted via web form (signed in via GitHub). |
 | 7 | **awesome-mcp-servers** | ⬜ Not started | — | — | GitHub PR to `punkpeye/awesome-mcp-servers`, Finance & Fintech section. |
 
-Legend: ✅ live · ⏳ submitted, awaiting review · ❓ status unverified, needs check · 🔄 auto-mirrored from another source · ⬜ not started · ❌ rejected
+Legend: ✅ live · ⏳ submitted, awaiting review · ⏭️ skipped (deprecated/rebranded) · ⬜ not started · ❌ rejected
 
 ---
 
@@ -40,27 +40,25 @@ Legend: ✅ live · ⏳ submitted, awaiting review · ❓ status unverified, nee
 - **Notes:** Description corrected to 25 files/month free tier (was 10 in original `glama.json`).
 
 ### 3. Official MCP Registry
-- **URL:** https://registry.modelcontextprotocol.io (or wherever the official registry lives)
-- **Submission method:** Likely PR-based (TBD)
-- **Manifest:** [`server.json`](../server.json) at repo root (added during initial registry submission)
-- **Status:** Listed per planning notes — verify on next session.
+- **URL:** https://registry.modelcontextprotocol.io
+- **Submission method:** Publish via the registry CLI/API using [`server.json`](../server.json) at the repo root. Validates against `https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json`.
+- **Manifest:** [`server.json`](../server.json)
+- **Listing query:** `curl https://registry.modelcontextprotocol.io/v0/servers?search=taxformatter`
+- **Status:** ✅ Live as of 2026-05-04, version `0.1.2`. Registry is API-first — no public-facing detail page yet, consumed by Smithery / PulseMCP / etc.
 
 ### 4. mcp.run
-- **URL:** https://www.mcp.run
-- **Submission method:** Reads `mcp-manifest.json`
-- **Manifest:** [`packages/mcp-server/mcp-manifest.json`](../packages/mcp-server/mcp-manifest.json)
-- **Status:** Listed per planning notes — verify URL.
+- **Status:** ⏭️ Skipped. mcp.run rebranded to **TurboMCP** — now an enterprise gateway product, not a public directory. Removed from the active submission list.
 
 ### 5. PulseMCP
 - **URL:** https://www.pulsemcp.com
-- **Submission method:** Auto-ingests from the Official MCP Registry daily, processes weekly. No manual submission required — but the Official Registry listing (#3) must be live and propagated first.
-- **Status:** Verified not yet listed on 2026-05-04. Pending propagation from #3.
+- **Submission method:** Auto-ingests from the Official MCP Registry daily, processes weekly. No manual submission required — but the Official Registry listing (#3) must be live first (now satisfied as of 2026-05-04).
+- **Status:** ⏳ Pending propagation. Verified not yet listed on 2026-05-04; expected within ~7 days.
 - **If a listing edit is ever needed after going live:** email the PulseMCP team rather than re-submitting.
 
 ### 6. mcp.so
 - **URL:** https://mcp.so
-- **Submission method:** Web form submission
-- **Status:** Submitted per planning notes — verify URL.
+- **Submission method:** Web form submission, signed in via GitHub
+- **Status:** ⏳ Submitted 2026-05-04, awaiting review.
 
 ### 7. awesome-mcp-servers (GitHub)
 - **URL:** https://github.com/punkpeye/awesome-mcp-servers
@@ -128,6 +126,14 @@ tax, crypto, finance, csv, pdf, banking, accounting, koinly, turbotax, coinledge
 
 ## Maintenance notes
 
-- **When the package is republished:** bump the `version` field in [`mcp-manifest.json`](../packages/mcp-server/mcp-manifest.json) to match `package.json`. Some directories surface stale versions otherwise.
+- **When the package is republished:** bump the `version` field in **all four** version-carrying manifests so directory listings stay aligned:
+  - [`packages/mcp-server/package.json`](../packages/mcp-server/package.json)
+  - [`packages/mcp-server/mcp-manifest.json`](../packages/mcp-server/mcp-manifest.json)
+  - [`server.json`](../server.json) (Official Registry — both top-level `version` AND `packages[0].version`)
+  - [`glama.json`](../glama.json) (no `version` field today, but if added, keep aligned)
+  - `smithery.yaml` carries no version field; nothing to bump there.
+
+  Some directories surface stale versions if any of these drift.
+
 - **When a directory listing goes live:** fill in the URL in the status table above and mark ✅. Update the announce blog post (Workstream 3 punch list) once 3+ are live.
 - **Free-tier copy lives in three places:** `mcp-manifest.json`, `smithery.yaml`, and `content/docs/api/index.md`. Update all three together if quotas change.
