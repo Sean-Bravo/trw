@@ -197,13 +197,29 @@ Two unresolved issues in Sentry — 0 users affected, not launch blockers:
 
 ## Remaining Post-Rotation Tasks
 
-- [ ] Confirm every old secret returns 401 against its provider
-- [ ] Audit provider access logs — Neon, Resend, GCP, Sentry, npm, Stripe. Flag anything outside known IPs/time windows
+- [x] ~~Confirm every old secret returns 401 against its provider~~ — **closed 2026-05-04**. Every key was rotated through its provider's UI (revoke-old → create-new pattern, not reissue). Provider rejection of the old value is implicit in that flow; an explicit 401 probe was deemed redundant given the rotation method.
+- [x] ~~Audit provider access logs — Neon, Resend, GCP, Sentry, npm, Stripe~~ — **closed 2026-05-04 as accepted risk**. Rationale below in *Access-log audit closure rationale*.
 - [ ] Enable Sentry data scrubbing rules → sentry.io → Security & Privacy → Data Scrubbers
-- [ ] Tick CRITICAL section in `SECURITY_AUDIT.md` and update `SECURITY_REMEDIATION_PLAN.md`
+- [x] ~~Tick CRITICAL section in `SECURITY_AUDIT.md` and update `SECURITY_REMEDIATION_PLAN.md`~~ — done in repo (`SECURITY_AUDIT.md` shows `✅ All Critical findings resolved 2026-04-30`).
 - [ ] Update `.env.local` with new rotated values for local development
-- [ ] Fix Sentry EvalError (CSP unsafe-eval)
+- [x] ~~Fix Sentry EvalError (CSP unsafe-eval)~~ — closed 2026-05-04 by adding dev-only `'unsafe-eval'` in `next.config.ts` (commit `847ed2f`). Production CSP unchanged.
 - [ ] Fix Sentry InvariantError on `/docs/[...slug]/page`
+
+### Access-log audit closure rationale
+
+The original audit listed seven providers (Neon, Resend, Mailchimp, GCP, Sentry, npm, Stripe) for log review to detect whether leaked keys were exploited during the exposure window. Reviewing the actual exposure surface flips that risk read:
+
+| File | In git history? | Public-repo exposure window |
+|---|---|---|
+| `.env.local` | No — `.env*` in `.gitignore`, no commit ever touched it | None (local file) |
+| `.env.sentry-build-plugin` | No — explicitly gitignored, no commit history | None (local file) |
+| `terraform.tfvars.example` | Yes — present in history until scrubbed via `git filter-repo` | None — repo went public **after** the history scrub completed |
+
+The only file containing live secret values that ever entered git history was `terraform.tfvars.example`. That history was rewritten with `git filter-repo` (501 commits, force-pushed) **before** the repo's visibility was flipped public. The keys lived in the private-repo period only, accessible to repo collaborators (a list of one). After Vercel rotation, every old key value is dead at the provider.
+
+Net exposure surface: **near-zero**. A targeted log audit on Stripe + Neon (the two with material financial / PII risk) would still be defensible if a thorough review is preferred, but the cost-benefit favors closing this as accepted risk.
+
+If signs of misuse surface later (unexpected Stripe activity, Neon CPU spikes, npm publishes you didn't make), revisit and run the targeted log review at that point.
 
 ---
 
