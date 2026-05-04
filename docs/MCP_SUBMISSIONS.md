@@ -12,7 +12,7 @@ Tracking sheet for `@taxformatter/mcp-server` across MCP directories and registr
 
 | # | Directory | Status | Submitted | Listed at | Notes |
 |---|---|---|---|---|---|
-| 1 | **Smithery** | ✅ Live | — | _add slug from Smithery dashboard, e.g. `https://smithery.ai/server/sean-bravo/taxformatter`_ | Submitted via GitHub connection. |
+| 1 | **Smithery** | ✅ Live | — | https://smithery.ai/server/sean-bavo/taxformatter | Submitted via GitHub connection. Namespace typo: `sean-bavo` not `sean-bravo` (autofill at signup). 61/100 health score, all 3 tools detected, hosted endpoint at `https://taxformatter--sean-bavo.run.tools`. |
 | 2 | **Glama** | ⏳ Pending review | 2026-05-04 | _add URL_ | Re-submitted after repo went public. |
 | 3 | **Official MCP Registry** | ✅ Live | 2026-05-04 | [API query](https://registry.modelcontextprotocol.io/v0/servers?search=taxformatter) | Published `0.1.2`. Registry is API-first — no public-facing detail page. |
 | 4 | **mcp.run** | ⏭️ Skipped | — | — | Rebranded to TurboMCP — now an enterprise gateway product, not a public directory. Don't submit. |
@@ -27,10 +27,13 @@ Legend: ✅ live · ⏳ submitted, awaiting review · ⏭️ skipped (deprecated
 ## Submission details
 
 ### 1. Smithery
-- **URL:** https://smithery.ai
+- **Listing URL:** https://smithery.ai/server/sean-bavo/taxformatter
+- **Hosted endpoint:** `https://taxformatter--sean-bavo.run.tools` — Smithery serves the MCP server as a hosted endpoint, usable by clients that can't run `npx`.
 - **Submission method:** GitHub connection (auto-reads `smithery.yaml` from repo root)
 - **Manifest:** [`smithery.yaml`](../smithery.yaml)
-- **Status:** Live
+- **Health score:** 61/100 (fresh listing — should improve with usage signals).
+- **Status:** Live. All 3 tools detected (`parse_crypto_csv`, `parse_bank_statement`, `list_supported_sources`); connection prompt + CLI integration auto-generated.
+- **Namespace typo:** the slug is `sean-bavo` not `sean-bravo` — autofill mistake at signup. Renaming the namespace via Settings would break any external links and is not worth chasing for the typo.
 
 ### 2. Glama
 - **URL:** https://glama.ai/mcp/servers
