@@ -1,6 +1,6 @@
 {
   "name": "@taxformatter/mcp-server",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "mcpName": "io.github.Sean-Bravo/taxformatter",
   "description": "MCP server for parsing crypto CSVs and bank statement PDFs via TaxFormatter API",
   "main": "dist/index.js",

@@ -14,7 +14,7 @@ startCommand:
         description: >-
           Your TaxFormatter API key (format tf_live_...). Get one at
           https://taxformatter.com/dashboard/developer — free tier
-          gives 10 files/month, no credit card required.
+          gives 25 files/month, no credit card required.
       taxformatterApiUrl:
         type: string
         title: TaxFormatter API URL

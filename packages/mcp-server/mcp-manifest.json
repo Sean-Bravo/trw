@@ -33,7 +33,7 @@
     {
       "name": "TAXFORMATTER_API_KEY",
       "required": true,
-      "description": "TaxFormatter API key (tf_live_...). Get one at https://taxformatter.com/dashboard/developer — free tier is 10 files/month, no credit card required."
+      "description": "TaxFormatter API key (tf_live_...). Get one at https://taxformatter.com/dashboard/developer — free tier is 25 files/month, no credit card required."
     },
     {
       "name": "TAXFORMATTER_API_URL",
