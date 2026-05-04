@@ -22,6 +22,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
+    "test": "cd ../.. && npx jest packages/mcp-server/test",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

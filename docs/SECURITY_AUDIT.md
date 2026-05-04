@@ -1821,6 +1821,105 @@ The following were explicitly **not** covered by this audit and should be addres
 - **Legal / regulatory compliance** (PCI DSS scope, GLBA controls, state privacy laws). Some findings touch these but a compliance review is a separate engagement.
 - **Mobile client** (if one exists) — the audit is limited to the web + backend.
 - **CI/CD pipeline** configuration (GitHub Actions workflows, secret handling in CI, branch protection rules).
+- **MCP server package** at `packages/mcp-server` — published as `@taxformatter/mcp-server` on npm. The original audit was scoped to the Next.js app and Python Lambda. Post-audit smoke-test coverage for this subpackage is documented in Appendix C below.
+
+---
+
+# Appendix C — Post-audit test coverage: `@taxformatter/mcp-server`
+
+**Status:** Added 2026-05-04 alongside the MCP directory submission push (Workstream 3). Smoke tests live at `packages/mcp-server/test/`.
+
+## Why this is in the security audit
+
+The MCP server runs on developer machines and AI agent runtimes (Claude Code, Cursor, etc.) with the user's API key in `TAXFORMATTER_API_KEY`. A bug in the client wrapper or tool dispatcher could:
+
+- Silently swallow API errors, so a misconfigured key keeps "succeeding" with empty results.
+- Log or echo back the API key in error messages.
+- Send the wrong endpoint or method, leaking key material to an unintended host.
+- Mishandle file reads (path traversal via `file_path` arg, symlinks).
+
+The smoke tests don't catch all of those — see "Residual gaps" below — but they pin the contract and detect regressions in the security-adjacent behaviors that *are* covered.
+
+## Test files
+
+| File | Suite | Tests |
+|------|-------|-------|
+| [packages/mcp-server/test/client.test.ts](../packages/mcp-server/test/client.test.ts) | `TaxFormatterClient` | 6 |
+| [packages/mcp-server/test/tools.test.ts](../packages/mcp-server/test/tools.test.ts) | `handleTool` dispatcher | 6 |
+
+**Total:** 12 tests, run via `cd packages/mcp-server && npm test` (delegates to the root Jest runner; no new dependencies added).
+
+## Coverage detail
+
+### `client.test.ts` — TaxFormatterClient
+
+Validates the network-boundary contract between the MCP server and the TaxFormatter API. Mocks `global.fetch`.
+
+1. **`parse` — POSTs to `/v1/parse` with base64 file_content and X-API-Key header.**
+   - Asserts URL composition (`baseUrl + '/v1/parse'`) so a future bug rerouting requests to a different host would fail loudly.
+   - Asserts `X-API-Key` header is set from the constructor arg, not hardcoded or forgotten.
+   - Asserts the file body is base64-encoded and that `Buffer.from(body.file_content, 'base64').toString()` round-trips back to the original bytes — guards against accidentally sending raw file content.
+
+2. **`parse` — forwards optional `exchange` / `output_format` / `bank` options** when provided. Detects regression where options would be silently dropped.
+
+3. **`listSources` — GETs `/v1/sources` with X-API-Key.** Same URL + auth-header pinning as `parse`.
+
+4. **`getUsage` — GETs `/v1/usage` with X-API-Key.** Round-trip fixture asserts `tier: 'free'` is parsed correctly (regression guard for the v3 free-tier rollout).
+
+5. **Error path — 401 surfaces as `TaxFormatterError`.**
+   - Asserts the upstream `code`, `message`, `statusCode`, and `suggestion` fields propagate to the thrown error.
+   - Critical because the MCP host (Claude Code, Cursor) renders the error to the user — silent swallowing or generic "request failed" messages would mask invalid-key situations and confuse end users.
+
+6. **Error path — 429 `quota_exceeded` (free-tier hard-block).**
+   - Pins the contract for the v3 free-tier 429 response shape so the MCP server reports `code = 'quota_exceeded'` and `statusCode = 429`. The MCP host can then surface "you've hit your free quota" rather than a generic 500.
+
+### `tools.test.ts` — handleTool dispatcher
+
+Validates each tool name actually shipped in `src/tools.ts`. Uses real temp files via `fs/promises.mkdtemp` so file-read paths are exercised end-to-end (not mocked away). Mocks the `TaxFormatterClient` so no network calls happen.
+
+1. **`parse_crypto_csv` — reads file from disk, calls `client.parse`, formats summary text.**
+   - Asserts the dispatcher reads the actual filesystem (not a mocked `fs`) — guards against a regression where `file_path` would be silently ignored.
+   - Asserts the file's `basename` is sent as `filename` (not the full path), so the absolute path of the user's machine is not leaked over the wire.
+   - Asserts the formatted output text contains the API summary, exchange, and transaction count — the strings the MCP host shows the user.
+
+2. **`parse_crypto_csv` — throws on missing file.** Path traversal isn't blocked at this layer (see Residual gaps), but at minimum a non-existent file produces a clear error, not a stack trace.
+
+3. **`parse_crypto_csv` — surfaces API errors with `status: 'error'` to the user as text.** Validates that an upstream parse failure (e.g., `unsupported_exchange`) reaches the MCP host as a readable error message, not an empty success.
+
+4. **`parse_bank_statement` — reads file, calls `client.parse` with the `bank` option, formats summary.** Same boundary contract as `parse_crypto_csv`. Note that *enforcement* of bank-PDF-requires-Growth-tier happens at the API edge (see free-tier work in `PLAN_FREE_TIER_V3.md` §Phase 2); the MCP server is intentionally a thin client and does not duplicate that check.
+
+5. **`list_supported_sources` — calls `client.listSources` and formats markdown output** with crypto exchanges, banks, and output formats. Pins the user-visible contract; a regression that dropped a section would fail this test.
+
+6. **Unknown tool name — returns "Unknown tool" message rather than throwing.** Defensive: an MCP host calling a renamed/removed tool gets a graceful error string instead of crashing the agent.
+
+## Residual gaps (NOT covered by these smoke tests)
+
+The smoke tests are deliberately scoped to the regression-critical contract surface. The following are known gaps that future test work, a dedicated security review of this package, or upstream library guarantees should address:
+
+- **Path traversal in `file_path`.** `parse_crypto_csv` and `parse_bank_statement` accept an arbitrary `file_path` from the MCP host and `resolve()` it. Today the MCP host (Claude Code) is trusted, so this is acceptable. If the MCP server is ever invoked from a less-trusted source (e.g., a hosted MCP runtime), `file_path` should be validated against an allowlist of directories.
+- **Symlink following.** `readFile` follows symlinks. If a user accidentally symlinks `~/secrets/` to a parse target, the file gets sent to the API. No test for this; out of scope for v0.1.
+- **API key in error messages.** No test asserts that the API key is *never* logged or echoed back. The current code doesn't include the key in any error string, but a future change could regress this silently.
+- **HTTPS enforcement on `baseUrl`.** `TAXFORMATTER_API_URL` env var could be set to `http://attacker.example` and the client would happily POST API keys over plaintext. No test pins this. Workaround for now: document that `TAXFORMATTER_API_URL` should only be set for testing against a local dev stack.
+- **Replay protection on retries.** No idempotency keys; a network-flaky retry could double-charge usage on the user's account. Out of scope for the MCP layer (the API itself doesn't currently support idempotency keys for `/v1/parse` either).
+- **Rate-limit handling.** A 429 surfaces as `TaxFormatterError` but the MCP server does not back off or retry. The MCP host gets one error and may or may not surface the `Retry-After` value. Acceptable for v0.1; consider a thin retry wrapper later.
+- **Real network integration test.** The smoke tests mock `fetch` entirely. A separate live integration test against a staging API key (gated on a CI secret) would catch end-to-end breakage.
+
+## How to run
+
+```bash
+# From the package directory
+cd packages/mcp-server
+npm test
+
+# Or from the repo root, run the same Jest invocation directly
+npx jest packages/mcp-server/test
+```
+
+Both invocations use the root Jest config and its existing TypeScript transform; no devDependencies were added to `packages/mcp-server`.
+
+## What this changes about the audit posture
+
+These tests do **not** close any of the original 51 findings — none of those findings were in `packages/mcp-server`. They establish a regression baseline for the published npm package so that future free-tier or response-shape changes don't silently break the contract MCP hosts depend on. Treat this appendix as documentation of *post-audit testing work*, not new audit findings.
 
 ---
 
