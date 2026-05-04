@@ -204,11 +204,12 @@ npm run lint          # ESLint
 | Premium | $189/year | Everything + Claude Opus + priority support |
 
 ### Developer (API)
-| Tier | Price | Quota | RPM |
-|------|-------|-------|-----|
-| Starter | $29/mo | 100 files | 30 |
-| Growth | $99/mo | 500 files | 60 |
-| Business | $249/mo | 2,000 files | 120 |
+| Tier | Price | Quota | RPM | Highlights |
+|------|-------|-------|-----|------------|
+| Free | $0 | 25 files | 10 | All 14 exchanges · No credit card |
+| Starter | $29/mo | 100 files | 30 | All 14 exchanges |
+| Growth | $99/mo | 500 files | 60 | + Bank PDF parsing |
+| Business | $249/mo | 2,000 files | 120 | + Custom integrations · SLA |
 
 ---
 
