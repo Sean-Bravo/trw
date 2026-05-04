@@ -3,7 +3,7 @@
   "name": "taxformatter",
   "displayName": "TaxFormatter",
   "description": "Parse crypto exchange CSVs and bank statement PDFs into structured transaction data, ready for Koinly / TurboTax / CoinLedger / ZenLedger. Calls the hosted TaxFormatter API.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "TaxFormatter",
   "license": "MIT",
   "homepage": "https://taxformatter.com/docs/api",
