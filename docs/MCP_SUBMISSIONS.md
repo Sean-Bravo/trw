@@ -18,7 +18,7 @@ Tracking sheet for `@taxformatter/mcp-server` across MCP directories and registr
 | 4 | **mcp.run** | ⏭️ Skipped | — | — | Rebranded to TurboMCP — now an enterprise gateway product, not a public directory. Don't submit. |
 | 5 | **PulseMCP** | ⏳ Pending propagation | — | _add URL_ | Auto-ingests from Official MCP Registry weekly. Will appear within ~7 days of 2026-05-04 (Official Registry live date). |
 | 6 | **mcp.so** | ⏳ Pending review | 2026-05-04 | _add URL_ | Submitted via web form (signed in via GitHub). |
-| 7 | **awesome-mcp-servers** | ⬜ Not started | — | — | GitHub PR to `punkpeye/awesome-mcp-servers`, Finance & Fintech section. |
+| 7 | **awesome-mcp-servers** | ⏳ PR open | 2026-05-04 | https://github.com/punkpeye/awesome-mcp-servers/pull/5869 | Inserted alphabetically between `sapph1re/findata-mcp` and `shareseer/shareseer-mcp-server`. |
 
 Legend: ✅ live · ⏳ submitted, awaiting review · ⏭️ skipped (deprecated/rebranded) · ⬜ not started · ❌ rejected
 
@@ -64,9 +64,10 @@ Legend: ✅ live · ⏳ submitted, awaiting review · ⏭️ skipped (deprecated
 - **Status:** ⏳ Submitted 2026-05-04, awaiting review.
 
 ### 7. awesome-mcp-servers (GitHub)
-- **URL:** https://github.com/punkpeye/awesome-mcp-servers
+- **Repo URL:** https://github.com/punkpeye/awesome-mcp-servers
+- **PR URL:** https://github.com/punkpeye/awesome-mcp-servers/pull/5869
 - **Submission method:** Fork → add entry to Finance & Fintech section → PR
-- **Status:** Not started.
+- **Status:** ⏳ PR open 2026-05-04, awaiting maintainer merge. Inserted alphabetically between `sapph1re/findata-mcp` and `shareseer/shareseer-mcp-server`.
 - **Recommended entry:**
   ```markdown
   - [@taxformatter/mcp-server](https://github.com/Sean-Bravo/trw) 📇 ☁️ 🏠 - Parse crypto exchange CSVs (Coinbase, Binance, Kraken, +11 more) and bank statement PDFs (Chase, BofA, Wells Fargo, +10 more) into Koinly, TurboTax, CoinLedger, or ZenLedger formats. Free tier: 25 files/month, no credit card. `npx -y @taxformatter/mcp-server`
