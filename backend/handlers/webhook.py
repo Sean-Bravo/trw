@@ -132,6 +132,12 @@ def handle_presigned_url(event: Dict) -> Dict:
     filename = body.get("filename")
     content_type = body.get("contentType", "text/csv")
     user_id = body.get("userId", "anonymous")
+    # Consumer subscription tier — server-resolved by the Next.js caller, never
+    # client-supplied. Rides S3 object metadata so it survives the S3 PUT →
+    # scanner Lambda → SQS → processor hop without a separate channel.
+    user_tier = body.get("userTier", "free")
+    if user_tier not in ("free", "pro", "premium"):
+        user_tier = "free"
 
     if not filename:
         return response(400, {"error": "filename is required"})
@@ -157,6 +163,7 @@ def handle_presigned_url(event: Dict) -> Dict:
                 "ContentType": content_type,
                 "Metadata": {
                     "user-id": user_id,
+                    "user-tier": user_tier,
                     "original-filename": filename,
                     "job-id": job_id,
                 },

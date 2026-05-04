@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -15,7 +15,9 @@ import {
 } from 'lucide-react';
 import { SmartDiffTable } from '@/components/dashboard/SmartDiffTable';
 import { ViewToggle } from '@/components/dashboard/ViewToggle';
+import { AIInsightsPanel } from '@/components/dashboard/AIInsightsPanel';
 import { PremiumFeatureGuard } from '@/components/premium/PremiumFeatureGuard';
+import { JobProvider, useJobContext } from '@/contexts/JobContext';
 import { generateDiffData } from '@/lib/diff-utils';
 import type { ViewMode, DiffData } from '@/types/diff';
 
@@ -34,8 +36,24 @@ interface JobData {
 
 interface JobDetailClientProps {
   job: JobData;
+  userId: string;
   userTier: string;
   userName: string;
+}
+
+/**
+ * Primes the JobContext with the current jobId on mount so AIInsightsPanel
+ * (which reads activeJob from context) can display the correct job. Renders
+ * the panel only after a successful parse.
+ */
+function JobInsights({ jobId, jobStatus }: { jobId: string; jobStatus: JobData['status'] }) {
+  const { setActiveJob } = useJobContext();
+  useEffect(() => {
+    setActiveJob(jobId);
+  }, [jobId, setActiveJob]);
+
+  if (jobStatus !== 'succeeded') return null;
+  return <AIInsightsPanel />;
 }
 
 const STATUS_CONFIG = {
@@ -76,7 +94,7 @@ const STATUS_CONFIG = {
   },
 };
 
-export function JobDetailClient({ job, userTier, userName }: JobDetailClientProps) {
+export function JobDetailClient({ job, userId, userTier, userName }: JobDetailClientProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('clean');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
@@ -281,6 +299,15 @@ export function JobDetailClient({ job, userTier, userName }: JobDetailClientProp
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* AI Insights — tier-routed (Free → Gemini, Pro → Sonnet, Premium → Opus) */}
+      {job.status === 'succeeded' && (
+        <div className="mt-6">
+          <JobProvider userId={userId}>
+            <JobInsights jobId={job.id} jobStatus={job.status} />
+          </JobProvider>
         </div>
       )}
 

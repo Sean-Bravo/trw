@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getUserTier } from '@/lib/auth-db';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { ApiKeyManager } from '@/components/dashboard/ApiKeyManager';
 
@@ -12,9 +13,11 @@ export const metadata = {
 export default async function DeveloperPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect('/login');
   }
+
+  const tier = await getUserTier(session.user.id);
 
   return (
     <div className="min-h-screen bg-[#0a1628] relative">
@@ -24,7 +27,7 @@ export default async function DeveloperPage() {
         <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-cyan-500/6 rounded-full blur-[120px]" />
       </div>
 
-      <DashboardHeader user={session.user} />
+      <DashboardHeader user={session.user} tier={tier} />
 
       <main className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-8">

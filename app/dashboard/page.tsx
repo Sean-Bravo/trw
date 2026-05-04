@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getUserTier } from '@/lib/auth-db';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 import { UploadSection } from '@/components/dashboard/UploadSection';
@@ -26,6 +27,8 @@ export default async function DashboardPage() {
     redirect('/api/auth/signout?callbackUrl=/api/auth/signin');
   }
 
+  const tier = await getUserTier(session.user.id);
+
   return (
     <div className="min-h-screen bg-[#0a1628] relative">
       {/* Gradient orbs */}
@@ -34,7 +37,7 @@ export default async function DashboardPage() {
         <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-cyan-500/6 rounded-full blur-[120px]" />
       </div>
 
-      <DashboardHeader user={session.user} />
+      <DashboardHeader user={session.user} tier={tier} />
 
       <DashboardClient userId={session.user.id}>
         <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

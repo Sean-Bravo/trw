@@ -80,6 +80,25 @@ export async function findUserById(id: string): Promise<UserWithSubscription | n
 }
 
 /**
+ * Consumer subscription tier — Free / Pro / Premium.
+ * Distinct from API key tier (free/starter/growth/business).
+ */
+export type UserTier = 'free' | 'pro' | 'premium';
+
+/**
+ * Resolve the consumer tier for a user. Defaults to 'free' if no active
+ * subscription row exists (paranoia — every user gets one at signup, see
+ * createUser below).
+ */
+export async function getUserTier(userId: string): Promise<UserTier> {
+  const row = await queryOne<{ tier: UserTier }>(
+    `SELECT tier FROM subscriptions WHERE user_id = $1 AND status = 'active'`,
+    [userId]
+  );
+  return row?.tier ?? 'free';
+}
+
+/**
  * Create a new user with email/password and verification code
  */
 export async function createUser(

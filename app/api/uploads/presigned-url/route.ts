@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { getUserTier } from '@/lib/auth-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 
@@ -55,7 +56,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Call AWS Lambda via API Gateway
+    // 4. Resolve consumer tier server-side. Anonymous uploads get 'free'.
+    // Tier rides S3 object metadata so the processor Lambda can route
+    // AI insights generation to the right model.
+    const userTier = session?.user?.id ? await getUserTier(session.user.id) : 'free';
+
+    // 5. Call AWS Lambda via API Gateway
     // Route: POST /presigned-url (see backend/handlers/webhook.py)
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/presigned-url`, {
       method: 'POST',
@@ -66,6 +72,7 @@ export async function POST(request: NextRequest) {
         filename,
         contentType: 'text/csv',
         userId,
+        userTier,
       }),
     });
 

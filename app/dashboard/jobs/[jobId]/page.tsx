@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getJobById } from '@/lib/jobs-db';
+import { getUserTier } from '@/lib/auth-db';
 import { JobDetailClient } from './JobDetailClient';
 
 export const metadata = {
@@ -32,6 +33,8 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
     notFound();
   }
 
+  const userTier = await getUserTier(session.user.id);
+
   return (
     <div className="min-h-screen bg-[#0a1628] relative">
       {/* Gradient orbs */}
@@ -53,7 +56,8 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
           filename: job.upload.filename,
           s3Key: job.upload.s3_key,
         }}
-        userTier="free"
+        userId={session.user.id}
+        userTier={userTier}
         userName={session.user.name || session.user.email?.split('@')[0] || 'User'}
       />
     </div>

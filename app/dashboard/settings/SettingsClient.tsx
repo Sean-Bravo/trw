@@ -5,9 +5,11 @@ import { User } from 'next-auth';
 import Link from 'next/link';
 import { Shield, ShieldCheck, Smartphone, Key, Copy, Check, Loader2, X, AlertTriangle } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import type { UserTier } from '@/lib/auth-db';
 
 interface SettingsClientProps {
   user: User;
+  tier: UserTier;
 }
 
 interface ConfirmModalProps {
@@ -67,7 +69,7 @@ function ConfirmModal({ isOpen, title, message, confirmText, confirmVariant = 'd
   );
 }
 
-export function SettingsClient({ user }: SettingsClientProps) {
+export function SettingsClient({ user, tier }: SettingsClientProps) {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showRegenerateCodes, setShowRegenerateCodes] = useState(false);
@@ -201,7 +203,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
 
   return (
     <div className="min-h-screen bg-[#0a1628]">
-      <DashboardHeader user={user} />
+      <DashboardHeader user={user} tier={tier} />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>

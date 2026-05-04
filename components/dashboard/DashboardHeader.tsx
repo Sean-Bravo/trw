@@ -8,17 +8,26 @@ import { User } from 'next-auth';
 import { Logo } from '@/components/ui/Logo';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Menu, X } from 'lucide-react';
+import type { UserTier } from '@/lib/auth-db';
 
 interface DashboardHeaderProps {
   user: User;
+  /** Consumer tier resolved server-side. Defaults to 'free' if not provided. */
+  tier?: UserTier;
 }
 
-export function DashboardHeader({ user }: DashboardHeaderProps) {
+const TIER_LABELS: Record<UserTier, string> = {
+  free: 'Starter',
+  pro: 'Pro',
+  premium: 'Premium',
+};
+
+export function DashboardHeader({ user, tier = 'free' }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const pathname = usePathname();
   const initial = ((user.name || user.email || 'U')[0] || 'U').toUpperCase();
-  const tierLabel = 'Starter';
+  const tierLabel = TIER_LABELS[tier];
 
   return (
     <header className="sticky top-0 z-50 bg-[#030712]/80 backdrop-blur-xl border-b border-zinc-800/50">

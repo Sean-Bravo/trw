@@ -281,6 +281,24 @@ def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
         # Always generate quick stats (no AI needed)
         quick_stats = generate_quick_stats(records)
 
+        # Free-tier cost guard: skip AI generation on unbounded inputs.
+        # Gemini's per-token cost is small but free-tier abuse would still hurt;
+        # the upstream 25-files/month cap throttles call frequency, this caps
+        # per-call prompt size. Paid tiers retain full access.
+        FREE_TIER_RECORD_CAP = 5000
+        if user_tier == "free" and len(records) > FREE_TIER_RECORD_CAP:
+            logger.info(
+                f"Skipping AI insights for free tier: {len(records)} records exceeds "
+                f"{FREE_TIER_RECORD_CAP}-row cap"
+            )
+            return {
+                "success": True,
+                "quick_stats": quick_stats,
+                "ai_insights": None,
+                "ai_error": "free_tier_size_limit",
+                "tier": user_tier,
+            }
+
         # Try to generate AI insights
         ai_result = generate_insights(records, user_tier, secrets)
 

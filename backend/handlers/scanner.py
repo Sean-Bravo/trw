@@ -109,6 +109,7 @@ def validate_file(bucket: str, key: str) -> Dict[str, Any]:
                 "file_size": file_size,
                 "content_type": content_type,
                 "user_id": metadata.get("user-id", "anonymous"),
+                "user_tier": metadata.get("user-tier", "free"),
                 "s3_bucket": bucket,
                 "s3_key": key,
             },
@@ -152,6 +153,7 @@ def queue_for_processing(metadata: Dict) -> bool:
             "filename": metadata["filename"],
             "file_size": metadata["file_size"],
             "user_id": metadata["user_id"],
+            "user_tier": metadata.get("user_tier", "free"),
         }
 
         response = sqs_client.send_message(
