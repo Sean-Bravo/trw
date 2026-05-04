@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Sean-Bravo/taxformatter",
+  "description": "Parse crypto CSVs and bank PDFs into clean transaction data for Koinly, TurboTax, CoinLedger.",
+  "repository": {
+    "url": "https://github.com/Sean-Bravo/trw",
+    "source": "github"
+  },
+  "version": "0.1.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@taxformatter/mcp-server",
+      "version": "0.1.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TAXFORMATTER_API_KEY",
+          "description": "Your TaxFormatter API key (starts with tf_live_). Get one free at taxformatter.com/dashboard/developer",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
