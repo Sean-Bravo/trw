@@ -24,10 +24,13 @@ describe('Pricing Component (API Tiers)', () => {
       expect(section).toBeInTheDocument();
     });
 
-    it('renders API pricing header', () => {
+    it('renders unified pricing header', () => {
       render(<Pricing />);
-      expect(screen.getByText('API Pricing')).toBeInTheDocument();
-      expect(screen.getByText('Pay for what you parse.')).toBeInTheDocument();
+      expect(screen.getByText('Pricing')).toBeInTheDocument();
+      expect(screen.getByText('One plan, two ways to use it.')).toBeInTheDocument();
+      expect(
+        screen.getByText(/Drop a file in the dashboard or call our API/i)
+      ).toBeInTheDocument();
     });
 
     it('renders all four API tiers (Phase 5: Free added)', () => {
@@ -126,7 +129,7 @@ describe('Pricing Component (API Tiers)', () => {
     // don't leak the tier through the URL.
     it('renders four tier CTA buttons (no api_tier in URL)', () => {
       render(<Pricing />);
-      // Four tier CTAs after Phase 5: Start Free / Get Started / Start Building / Get Started.
+      // Four tier CTAs: Start Free / Get Started / Start Building / Get Started.
       const ctaLabels = ['Start Free', 'Get Started', 'Start Building'];
       const buttons = screen.getAllByRole('button');
       const ctaButtons = buttons.filter((b) =>
@@ -134,8 +137,10 @@ describe('Pricing Component (API Tiers)', () => {
       );
       expect(ctaButtons.length).toBeGreaterThanOrEqual(4);
 
-      // No <a> link should still carry api_tier as a query param.
-      const links = screen.getAllByRole('link');
+      // No <a> link should carry api_tier as a query param. Use queryAll —
+      // post-unification the page may have zero <a> links (footer removed),
+      // which is fine.
+      const links = screen.queryAllByRole('link');
       const tierLinks = links.filter((l) =>
         l.getAttribute('href')?.includes('api_tier='),
       );
@@ -155,16 +160,18 @@ describe('Pricing Component (API Tiers)', () => {
     });
   });
 
-  describe('Footer', () => {
-    it('mentions dashboard for non-developers', () => {
+  describe('Unified messaging (post Option A)', () => {
+    it('does NOT render the dropped "Not a developer?" footer', () => {
       render(<Pricing />);
-      expect(screen.getByText(/Not a developer/)).toBeInTheDocument();
+      expect(screen.queryByText(/Not a developer/)).not.toBeInTheDocument();
     });
 
-    it('has link to dashboard', () => {
+    it('shows AI insights model on each tier card', () => {
       render(<Pricing />);
-      const dashLink = screen.getByText('taxformatter.com/dashboard');
-      expect(dashLink).toHaveAttribute('href', '/dashboard');
+      // Free + Starter both show Gemini — exact match would collide; use getAllByText.
+      expect(screen.getAllByText('Gemini AI insights').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Claude Sonnet AI insights')).toBeInTheDocument();
+      expect(screen.getByText('Claude Opus AI insights')).toBeInTheDocument();
     });
   });
 });

@@ -18,21 +18,29 @@ from csv_safety import sanitize_csv_records
 
 logger = logging.getLogger(__name__)
 
-# Model configurations
+# Model configurations — unified tier enum (api_keys.tier).
+# Free + Starter share Gemini (cheap-fast tier; Starter's upgrade is quota,
+# not AI). Growth and Business unlock the higher-quality models, paired with
+# their respective other capability upgrades (Bank PDFs at Growth, SLA at Business).
 TIER_CONFIG = {
     "free": {
         "provider": "google",
-        "model": "gemini-2.5-flash",  # Stable: best price-performance
+        "model": "gemini-2.5-flash",
         "max_tokens": 1024,
     },
-    "pro": {
+    "starter": {
+        "provider": "google",
+        "model": "gemini-2.5-flash",
+        "max_tokens": 1024,
+    },
+    "growth": {
         "provider": "anthropic",
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-sonnet-4-6",
         "max_tokens": 2048,
     },
-    "premium": {
+    "business": {
         "provider": "anthropic",
-        "model": "claude-opus-4-20250514",
+        "model": "claude-opus-4-7",
         "max_tokens": 4096,
     },
 }
@@ -48,7 +56,7 @@ class AIProvider(ABC):
 
 
 class AnthropicProvider(AIProvider):
-    """Claude AI provider for Pro and Premium tiers."""
+    """Claude AI provider for Growth (Sonnet) and Business (Opus) tiers."""
 
     def __init__(self, api_key: str, model: str, max_tokens: int):
         self.api_key = api_key

@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { query, queryOne } from '@/lib/db';
+import { query } from '@/lib/db';
 import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { getUserTier } from '@/lib/auth-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
-
-
-interface Subscription {
-  tier: 'free';
-}
 
 /**
  * GET /api/jobs/[jobId]/download
@@ -32,13 +28,8 @@ export async function GET(
     const userId = session.user.id;
     const { jobId } = await params;
 
-    // 2. Check subscription tier
-    const subscription = await queryOne<Subscription>(
-      `SELECT tier FROM subscriptions WHERE user_id = $1`,
-      [userId]
-    );
-
-    const tier = subscription?.tier || 'free';
+    // Resolve unified tier (api_keys.tier — highest active wins).
+    const tier = await getUserTier(userId);
 
     // Get file type and format from query params
     const { searchParams } = new URL(request.url);

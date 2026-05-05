@@ -80,19 +80,30 @@ export async function findUserById(id: string): Promise<UserWithSubscription | n
 }
 
 /**
- * Consumer subscription tier — Free / Pro / Premium.
- * Distinct from API key tier (free/starter/growth/business).
+ * Unified user tier — same enum for dashboard and API.
+ * Mirrors api_keys.tier (the canonical billing source).
  */
-export type UserTier = 'free' | 'pro' | 'premium';
+export type UserTier = 'free' | 'starter' | 'growth' | 'business';
 
 /**
- * Resolve the consumer tier for a user. Defaults to 'free' if no active
- * subscription row exists (paranoia — every user gets one at signup, see
- * createUser below).
+ * Resolve a user's effective tier from their active API keys. When a user
+ * holds multiple active keys (e.g., a free key + a paid key), the highest
+ * tier wins — the user paid for the better tier and should see it everywhere.
+ *
+ * Defaults to 'free' if no active key exists (anonymous, or pre-Phase-4
+ * accounts that predate auto-provisioning).
  */
 export async function getUserTier(userId: string): Promise<UserTier> {
   const row = await queryOne<{ tier: UserTier }>(
-    `SELECT tier FROM subscriptions WHERE user_id = $1 AND status = 'active'`,
+    `SELECT tier FROM api_keys
+     WHERE user_id = $1 AND is_active = true
+     ORDER BY CASE tier
+       WHEN 'business' THEN 4
+       WHEN 'growth'   THEN 3
+       WHEN 'starter'  THEN 2
+       ELSE 1
+     END DESC
+     LIMIT 1`,
     [userId]
   );
   return row?.tier ?? 'free';

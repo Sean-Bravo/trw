@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { queryOne } from '@/lib/db';
+import { getUserTier } from '@/lib/auth-db';
 
 // MVP Mode: Unlimited downloads for all users to maximize feedback
 const MVP_UNLIMITED_DOWNLOADS = true;
@@ -11,10 +12,6 @@ const FREE_TIER_MONTHLY_DOWNLOADS = 3;
 
 interface DownloadCount {
   count: string;
-}
-
-interface Subscription {
-  tier: string;
 }
 
 /**
@@ -33,13 +30,8 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Get subscription tier
-    const subscription = await queryOne<Subscription>(
-      `SELECT tier FROM subscriptions WHERE user_id = $1`,
-      [userId]
-    );
-
-    const tier = subscription?.tier || 'free';
+    // Resolve unified tier (api_keys.tier — highest active wins).
+    const tier = await getUserTier(userId);
 
     // MVP Mode: All tiers get unlimited downloads
     if (MVP_UNLIMITED_DOWNLOADS) {

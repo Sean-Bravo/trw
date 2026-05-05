@@ -132,11 +132,11 @@ def handle_presigned_url(event: Dict) -> Dict:
     filename = body.get("filename")
     content_type = body.get("contentType", "text/csv")
     user_id = body.get("userId", "anonymous")
-    # Consumer subscription tier — server-resolved by the Next.js caller, never
-    # client-supplied. Rides S3 object metadata so it survives the S3 PUT →
+    # Unified user tier (api_keys.tier) — server-resolved by the Next.js caller,
+    # never client-supplied. Rides S3 object metadata so it survives the S3 PUT →
     # scanner Lambda → SQS → processor hop without a separate channel.
     user_tier = body.get("userTier", "free")
-    if user_tier not in ("free", "pro", "premium"):
+    if user_tier not in ("free", "starter", "growth", "business"):
         user_tier = "free"
 
     if not filename:

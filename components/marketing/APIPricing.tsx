@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Container } from '../layout/Container';
-import { Check, Zap, ArrowRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 // L-1: pricing tier passed via sessionStorage instead of URL query
 // param. Query params end up in browser history, Referer headers, and
@@ -17,12 +16,12 @@ const tiers = [
     name: 'Free',
     price: '$0',
     period: '/ month',
-    description: 'For evaluating the API.',
+    description: 'Try it. No credit card.',
     features: [
       '25 files / month',
       '10 requests / minute',
       'All 14 exchanges',
-      'Auto-detection',
+      'Gemini AI insights',
       'JSON response',
     ],
     cta: 'Start Free',
@@ -34,12 +33,12 @@ const tiers = [
     name: 'Starter',
     price: '$29',
     period: '/ month',
-    description: 'For solo developers and small projects.',
+    description: 'Solo work and side projects.',
     features: [
       '100 files / month',
       '30 requests / minute',
       'All 14 exchanges',
-      'Auto-detection',
+      'Gemini AI insights',
       'JSON response',
     ],
     cta: 'Get Started',
@@ -51,15 +50,15 @@ const tiers = [
     name: 'Growth',
     price: '$99',
     period: '/ month',
-    description: 'For apps and services processing user files.',
+    description: 'Teams and SaaS apps. Bank PDFs unlocked.',
     badge: 'POPULAR',
     features: [
       '500 files / month',
       '60 requests / minute',
       'Bank PDF parsing',
+      'Claude Sonnet AI insights',
       'All output formats',
       'Priority support',
-      'Usage analytics',
     ],
     cta: 'Start Building',
     tier: 'growth',
@@ -71,12 +70,12 @@ const tiers = [
     name: 'Business',
     price: '$249',
     period: '/ month',
-    description: 'High-volume parsing for platforms and enterprises.',
+    description: 'High-volume processing with the best AI.',
     features: [
       '2,000 files / month',
       '120 requests / minute',
       'Everything in Growth',
-      'Dedicated support',
+      'Claude Opus AI insights',
       'Custom integrations',
       'SLA guarantee',
     ],
@@ -111,12 +110,12 @@ export function APIPricing() {
         <div className="relative z-10">
           {/* Header */}
           <div className="text-center mb-16">
-            <p className="text-[13px] font-semibold text-[#635bff] uppercase tracking-[0.15em] mb-4">API Pricing</p>
+            <p className="text-[13px] font-semibold text-[#635bff] uppercase tracking-[0.15em] mb-4">Pricing</p>
             <h2 className="font-poppins text-3xl md:text-[2.75rem] font-bold text-white mb-5 tracking-tight">
-              Pay for what you parse.
+              One plan, two ways to use it.
             </h2>
-            <p className="text-slate-400 max-w-lg mx-auto text-lg">
-              Simple plans that scale with you. No hidden fees.
+            <p className="text-slate-400 max-w-xl mx-auto text-lg">
+              Drop a file in the dashboard or call our API. Same quota, same AI insights, same plan.
             </p>
           </div>
 
@@ -174,21 +173,6 @@ export function APIPricing() {
             ))}
           </div>
 
-          {/* Also available note */}
-          <div className="mt-16 text-center">
-            <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/2 border border-white/5">
-              <Zap className="w-5 h-5 text-amber-400" />
-              <p className="text-sm text-slate-400">
-                <span className="text-white font-medium">Not a developer?</span>
-                {' '}Upload CSVs directly at{' '}
-                <Link href="/dashboard" className="text-[#635bff] hover:underline underline-offset-4">
-                  taxformatter.com/dashboard
-                </Link>
-                {' '}— no code required.
-              </p>
-              <ArrowRight className="w-4 h-4 text-slate-600" />
-            </div>
-          </div>
         </div>
       </Container>
     </section>

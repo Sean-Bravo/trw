@@ -41,7 +41,7 @@ class TestUserTierPropagation:
         scanner_mod.s3_client.head_object = MagicMock(
             return_value=_mock_head_object({
                 "user-id": "user-1",
-                "user-tier": "pro",
+                "user-tier": "growth",
                 "job-id": "job-abc",
             })
         )
@@ -51,7 +51,7 @@ class TestUserTierPropagation:
 
         assert result["valid"] is True
         assert result["metadata"]["user_id"] == "user-1"
-        assert result["metadata"]["user_tier"] == "pro"
+        assert result["metadata"]["user_tier"] == "growth"
 
     def test_validate_file_defaults_user_tier_to_free_when_missing(self):
         # Older uploads pre-Tiered-AI-Insights won't have the user-tier metadata.
@@ -83,7 +83,7 @@ class TestUserTierPropagation:
             "file_size": 1024,
             "content_type": "text/csv",
             "user_id": "user-1",
-            "user_tier": "premium",
+            "user_tier": "business",
             "s3_bucket": "uploads-bucket",
             "s3_key": "uploads/job-abc/test.csv",
         }
@@ -93,7 +93,7 @@ class TestUserTierPropagation:
         assert ok is True
         assert len(sent_messages) == 1
         body = json.loads(sent_messages[0]["MessageBody"])
-        assert body["user_tier"] == "premium"
+        assert body["user_tier"] == "business"
         assert body["user_id"] == "user-1"
         assert body["job_id"] == "job-abc"
 

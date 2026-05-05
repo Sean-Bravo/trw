@@ -67,38 +67,58 @@ class TestFreeTierSizeCap:
         mock_ai.assert_not_called()
 
     @patch("handlers.processor.get_secrets", return_value={})
-    def test_pro_tier_over_cap_still_calls_ai(self, mock_secrets):
+    def test_starter_tier_over_cap_still_calls_ai(self, mock_secrets):
+        # Starter is paid (Gemini-backed). The cap is free-only — paid tiers
+        # never short-circuit, regardless of which model they route to.
+        records = [{"date": "2024-01-01", "amount": 100}] * 5001
+
+        with patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 5001}), \
+             patch("ai_insights.generate_insights", return_value={
+                 "success": True,
+                 "insights": {"summary": "ok"},
+                 "model": "gemini-2.5-flash",
+                 "provider": "google",
+             }) as mock_ai:
+            result = generate_ai_insights(records, "starter")
+
+        assert result["success"] is True
+        assert result["ai_insights"] == {"summary": "ok"}
+        assert result["tier"] == "starter"
+        mock_ai.assert_called_once()
+
+    @patch("handlers.processor.get_secrets", return_value={})
+    def test_growth_tier_over_cap_still_calls_ai(self, mock_secrets):
         records = [{"date": "2024-01-01", "amount": 100}] * 5001
 
         with patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 5001}), \
              patch("ai_insights.generate_insights", return_value={
                  "success": True,
                  "insights": {"summary": "deep"},
-                 "model": "claude-sonnet-4-20250514",
+                 "model": "claude-sonnet-4-6",
                  "provider": "anthropic",
              }) as mock_ai:
-            result = generate_ai_insights(records, "pro")
+            result = generate_ai_insights(records, "growth")
 
         assert result["success"] is True
         assert result["ai_insights"] == {"summary": "deep"}
-        assert result["tier"] == "pro"
+        assert result["tier"] == "growth"
         mock_ai.assert_called_once()
 
     @patch("handlers.processor.get_secrets", return_value={})
-    def test_premium_tier_over_cap_still_calls_ai(self, mock_secrets):
+    def test_business_tier_over_cap_still_calls_ai(self, mock_secrets):
         records = [{"date": "2024-01-01", "amount": 100}] * 10000
 
         with patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 10000}), \
              patch("ai_insights.generate_insights", return_value={
                  "success": True,
                  "insights": {"summary": "opus"},
-                 "model": "claude-opus-4-20250514",
+                 "model": "claude-opus-4-7",
                  "provider": "anthropic",
              }) as mock_ai:
-            result = generate_ai_insights(records, "premium")
+            result = generate_ai_insights(records, "business")
 
         assert result["success"] is True
-        assert result["tier"] == "premium"
+        assert result["tier"] == "business"
         mock_ai.assert_called_once()
 
 
@@ -136,11 +156,11 @@ class TestGenerateAiInsights:
                  "success": False,
                  "error": "rate_limited",
              }):
-            result = generate_ai_insights(records, "pro")
+            result = generate_ai_insights(records, "growth")
 
         # Outer success is True (quick stats always works); ai_insights is None
         # and the underlying error is surfaced via ai_error.
         assert result["success"] is True
         assert result["ai_insights"] is None
         assert result["ai_error"] == "rate_limited"
-        assert result["tier"] == "pro"
+        assert result["tier"] == "growth"

@@ -17,9 +17,10 @@ interface DashboardHeaderProps {
 }
 
 const TIER_LABELS: Record<UserTier, string> = {
-  free: 'Starter',
-  pro: 'Pro',
-  premium: 'Premium',
+  free: 'Free',
+  starter: 'Starter',
+  growth: 'Growth',
+  business: 'Business',
 };
 
 export function DashboardHeader({ user, tier = 'free' }: DashboardHeaderProps) {

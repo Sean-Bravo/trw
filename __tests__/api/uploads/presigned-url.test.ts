@@ -74,13 +74,13 @@ describe('POST /api/uploads/presigned-url', () => {
     );
   });
 
-  it('forwards real user tier (pro) when subscription is upgraded', async () => {
-    mockGetUserTier.mockResolvedValueOnce('pro');
+  it('forwards real user tier (growth) when key is upgraded', async () => {
+    mockGetUserTier.mockResolvedValueOnce('growth');
     await POST(createMockRequest({ filename: 'x.csv', fileSize: 100 }) as any);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringMatching(/\/presigned-url$/),
       expect.objectContaining({
-        body: expect.stringContaining('"userTier":"pro"'),
+        body: expect.stringContaining('"userTier":"growth"'),
       })
     );
   });

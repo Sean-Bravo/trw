@@ -155,12 +155,12 @@ console.log(`${data.metadata.transaction_count} transactions parsed`);
 
 > **Free tier** — Every account gets a free API key with 25 files/month and 10 requests/minute on signup. No credit card required. [Get your API key here](/dashboard/developer).
 
-| Tier | Files/month | Requests/minute | Bank PDF | Price |
-|------|-------------|-----------------|----------|-------|
-| Free | 25 | 10 | — | $0 |
-| Starter | 100 | 30 | — | $29/mo |
-| Growth | 500 | 60 | ✓ | $99/mo |
-| Business | 2,000 | 120 | ✓ | $249/mo |
+| Tier | Files/month | Requests/minute | Bank PDF | AI Insights | Price |
+|------|-------------|-----------------|----------|-------------|-------|
+| Free | 25 | 10 | — | Gemini 2.5 Flash | $0 |
+| Starter | 100 | 30 | — | Gemini 2.5 Flash | $29/mo |
+| Growth | 500 | 60 | ✓ | Claude Sonnet 4.6 | $99/mo |
+| Business | 2,000 | 120 | ✓ | Claude Opus 4.7 | $249/mo |
 
 **Quota enforcement:**
 

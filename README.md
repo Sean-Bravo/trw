@@ -71,9 +71,9 @@ Every parsed file comes back with actionable analysis — scaled to your plan.
 
 | Tier | Model | Output |
 |------|-------|--------|
-| Free | Gemini 1.5 Flash | Quick stats + basic flagging |
-| Pro | Claude Sonnet 4 | Balanced analysis, breakdowns |
-| Premium | Claude Opus 4 | Deep analysis + tax suggestions |
+| Free / Starter | Gemini 2.5 Flash | Quick stats + basic flagging |
+| Growth | Claude Sonnet 4.6 | Balanced analysis, breakdowns |
+| Business | Claude Opus 4.7 | Deep analysis + tax suggestions |
 
 ### 🖥️ Consumer Dashboard
 Not a developer? The web app at [taxformatter.com](https://taxformatter.com) is a full drag-and-drop experience with real-time job status, exchange auto-detection, transformation previews, and one-click downloads.
@@ -196,20 +196,14 @@ npm run lint          # ESLint
 
 ## 💳 Pricing
 
-### Consumer (dashboard)
-| Tier | Price | Highlights |
-|------|-------|------------|
-| Free | $0 | 3 downloads/month · Gemini insights |
-| Pro | $89/year | Unlimited · Claude Sonnet insights |
-| Premium | $189/year | Everything + Claude Opus + priority support |
+One plan, two ways to use it — drop a file in the dashboard or call our API. Same quota, same AI insights.
 
-### Developer (API)
-| Tier | Price | Quota | RPM | Highlights |
-|------|-------|-------|-----|------------|
-| Free | $0 | 25 files | 10 | All 14 exchanges · No credit card |
-| Starter | $29/mo | 100 files | 30 | All 14 exchanges |
-| Growth | $99/mo | 500 files | 60 | + Bank PDF parsing |
-| Business | $249/mo | 2,000 files | 120 | + Custom integrations · SLA |
+| Tier | Price | Quota | RPM | AI Insights | Highlights |
+|------|-------|-------|-----|-------------|------------|
+| Free | $0 | 25 files | 10 | Gemini 2.5 Flash | All 14 exchanges · No credit card |
+| Starter | $29/mo | 100 files | 30 | Gemini 2.5 Flash | All 14 exchanges |
+| Growth | $99/mo | 500 files | 60 | Claude Sonnet 4.6 | + Bank PDF parsing |
+| Business | $249/mo | 2,000 files | 120 | Claude Opus 4.7 | + Custom integrations · SLA |
 
 ---
 
