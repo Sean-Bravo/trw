@@ -61,8 +61,10 @@ HAVING COUNT(*) > 1
 --        SELECT DISTINCT ON (user_id) id
 --          FROM api_keys
 --         WHERE tier = 'free' AND is_active = true
---         ORDER BY user_id, created_at DESC
+--         ORDER BY user_id, created_at DESC, id DESC
 --      );
+--   -- ORDER BY: created_at DESC picks the newest; id DESC is a deterministic
+--   -- tiebreaker for keys provisioned in the same second (race-safe rerun).
 --   -- Sanity-check: STEP 1's query should now return 0 rows.
 -- COMMIT;
 --
