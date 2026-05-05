@@ -1,0 +1,110 @@
+---
+title: "TaxFormatter for AI Agents: Now in the Official MCP Registry"
+description: "The TaxFormatter MCP server is live in the Official MCP Registry, Smithery, and three more directories — bundled with tiered AI insights and unified pricing for the dashboard and API."
+date: 2026-05-05
+author: "TaxFormatter Team"
+category: "updates"
+tags: ["MCP", "AI agents", "Claude", "Anthropic", "Gemini", "registry", "launch", "AI insights"]
+image: "/blog/mcp-server-agents.svg"
+published: true
+featured: true
+---
+
+## Three Things Shipped
+
+The TaxFormatter MCP server is now live in the [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=taxformatter). It's also live on [Smithery](https://smithery.ai/server/sean-bavo/taxformatter), pending on Glama and mcp.so, and PRed into [`punkpeye/awesome-mcp-servers`](https://github.com/punkpeye/awesome-mcp-servers/pull/5869).
+
+While we were getting distribution sorted, we also shipped two things that go with it:
+
+1. **Tiered AI Insights** — every parse now comes back with model-scaled analysis (Gemini for Free/Starter, Claude Sonnet 4.6 for Growth, Claude Opus 4.7 for Business).
+2. **One pricing, two surfaces** — collapsed two parallel pricing tables into one. Same quota, same AI insights, same plan, whether you drop a file in the dashboard or call `/v1/parse`.
+
+This post is the field guide for builders pointing AI agents at financial files.
+
+## TaxFormatter Is Now a One-Line Install for Any AI Agent
+
+If you're shipping an AI assistant that touches accounting, bookkeeping, or tax workflows, your agent probably has a "I can't reliably parse this CSV" problem. LLMs hallucinate transaction amounts when they try to read tabular data directly, especially across the dozen-plus formats in the wild from Coinbase, Binance, Kraken, Chase, Mercury, etc.
+
+The MCP server fixes this. Three deterministic tools (`parse_crypto_csv`, `parse_bank_statement`, `list_supported_sources`), backed by the same parsing engine that powers the API, now installable in any MCP-compatible client:
+
+```bash
+npx -y @taxformatter/mcp-server
+```
+
+Configure once in your client's MCP settings, set `TAXFORMATTER_API_KEY`, and your agent gets verified structured data instead of a best-guess parse:
+
+```json
+{
+  "mcpServers": {
+    "taxformatter": {
+      "command": "npx",
+      "args": ["-y", "@taxformatter/mcp-server"],
+      "env": {
+        "TAXFORMATTER_API_KEY": "tf_live_your_key_here"
+      }
+    }
+  }
+}
+```
+
+Works in Claude Code, Cursor, Windsurf, and any other client that speaks the Model Context Protocol. Smithery also serves a hosted endpoint at `https://taxformatter--sean-bavo.run.tools` for clients that can't run `npx`.
+
+For the deep dive on how the MCP server itself works — tool schemas, agent conversation patterns, edge cases — see the [original MCP server post](/blog/taxformatter-mcp-server-ai-agents). This post focuses on what's new.
+
+## Tiered AI Insights: Every Parse Now Comes With Analysis
+
+When you parse a file (via the MCP server, the API, or the dashboard), you no longer get *just* the structured transactions back. Each parse now produces a second artifact: an AI-generated insight document scaled to your subscription tier.
+
+| Tier | Model | What you get |
+|------|-------|--------------|
+| Free / Starter | Gemini 2.5 Flash | Quick stats + basic flagging — totals, transaction-type breakdown, date range |
+| Growth | Claude Sonnet 4.6 | Balanced analysis — narrative summary, asset concentration, taxable-event call-outs, data quality notes |
+| Business | Claude Opus 4.7 | Deep analysis — full tax-relevance walkthrough, edge-case detection, suggestions specific to your situation |
+
+The split exists because the right model for a 25-row eval-the-API parse isn't the right model for a 2000-row business-tier parse. Gemini Flash is fast and cheap and produces solid summaries; Sonnet and Opus think harder about tax-relevant patterns that matter when there's real money involved.
+
+**For agent builders**, this is a free upgrade. If your agent calls `parse_crypto_csv` against a Business-tier API key, the response now includes Opus-grade analysis that your agent can either surface directly to the user or feed into downstream reasoning. No extra API call.
+
+**For dashboard users**, insights render automatically on the job detail page after a parse completes. The tier badge on the panel tells you which model produced the analysis.
+
+The quick stats (totals, transaction counts, date ranges) always run regardless of tier — those are deterministic Python, not AI. The AI layer runs *on top* and degrades gracefully: if the model call fails for any reason, you still get the quick stats with an `ai_error` field explaining why.
+
+## One Plan, Two Surfaces
+
+For a while we ran two pricing systems in parallel — a "dashboard" tier (Free / Pro / Premium) and a "developer" tier (Free / Starter / Growth / Business). The dashboard set was brochure-only — there was no way to actually buy it. We finally killed that split.
+
+Now there's one set of tiers, and your subscription works the same on both surfaces:
+
+| Tier | Price | Files / month | Requests / minute | AI Insights | Notable |
+|------|-------|---------------|-------------------|-------------|---------|
+| Free | $0 | 25 | 10 | Gemini 2.5 Flash | All 14 exchanges, no credit card |
+| Starter | $29 / mo | 100 | 30 | Gemini 2.5 Flash | Solo work and side projects |
+| Growth | $99 / mo | 500 | 60 | Claude Sonnet 4.6 | Bank PDF parsing unlocked |
+| Business | $249 / mo | 2,000 | 120 | Claude Opus 4.7 | High-volume + best AI + SLA |
+
+Every paid tier has two upgrade reasons: more volume *and* a capability bump (Bank PDFs at Growth, best-in-class AI at Business). One Stripe checkout, one billing record, one surface to manage your subscription.
+
+If you've been using the dashboard against a Free API key auto-provisioned at signup — nothing changes. If you've been using the API directly — nothing changes. The simplification is mostly behind the scenes; what's visible is that the [pricing page](/pricing) now reads "One plan, two ways to use it. Drop a file in the dashboard or call our API."
+
+## Why This Matters for AI Agent Builders
+
+The interesting story here, if you're building agents that touch financial workflows, is the combination:
+
+- **Distribution.** Listing in the Official MCP Registry means your agent's MCP discovery layer (whatever your stack uses) can find TaxFormatter without a manual config push. PulseMCP auto-ingests from the registry; Smithery shows the hosted endpoint; the awesome-mcp-servers PR provides the human-discoverable backlink.
+- **Tiered analysis built in.** When your agent parses a bank statement at the Business tier, the response already contains Opus-quality insight text. That's analysis your agent can quote, summarize, or chain into the next reasoning step — without a separate `claude-3-opus` call from your own infrastructure.
+- **Predictable pricing.** Your agent's quota is the same whether it's hitting the API directly or proxying through the dashboard surface. Easier to bill, easier to forecast.
+
+Most "tax for AI" projects we see right now stop at "send the file to GPT and pray." If you're building something more serious — an agent that actually files returns, categorizes business expenses, or reconciles a year's worth of crypto trades — you need deterministic parsing plus tier-appropriate analysis. That's what this stack is.
+
+## Get Started
+
+1. **Sign up** at [taxformatter.com](https://www.taxformatter.com/signup) — every account gets a Free API key auto-provisioned (25 files/month, no credit card).
+2. **Install the MCP server**: `npm install -g @taxformatter/mcp-server`
+3. **Configure your client** — drop the JSON snippet above into your MCP settings with your API key.
+4. **Test it** — ask your agent to parse a sample CSV. The insight payload arrives in the response.
+
+Full API reference at [taxformatter.com/docs/api](https://www.taxformatter.com/docs/api). Package docs on [npm](https://www.npmjs.com/package/@taxformatter/mcp-server).
+
+---
+
+*Building an agent integration on top of TaxFormatter? We'd love to hear about it — reach out at support@taxformatter.com.*
