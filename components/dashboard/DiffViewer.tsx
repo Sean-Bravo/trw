@@ -66,7 +66,7 @@ export function DiffViewer() {
     if (activeJob && statusMsg) {
       const isError = activeJob.status === 'failed';
       return (
-        <div className={`bg-white/[0.03] backdrop-blur-sm border rounded-2xl p-6 ${
+        <div className={`bg-white/3 backdrop-blur-sm border rounded-2xl p-6 ${
           isError ? 'border-red-500/30' : 'border-white/10'
         }`}>
           <div className="flex items-center gap-3 mb-4">
@@ -99,7 +99,7 @@ export function DiffViewer() {
 
     // Empty state - no job selected
     return (
-      <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+      <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-lg bg-indigo-500/10">
             <GitCompare className="w-5 h-5 text-indigo-400" />
@@ -121,7 +121,7 @@ export function DiffViewer() {
   const hasMoreRows = Math.min(original.length, processed.length) > 3;
 
   return (
-    <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+    <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
