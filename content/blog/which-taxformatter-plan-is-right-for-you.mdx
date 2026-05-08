@@ -1,0 +1,115 @@
+---
+title: "Which TaxFormatter Plan Is Right for You? A Breakdown of All Four Tiers"
+description: "Free, Starter, Growth, or Business — which TaxFormatter plan fits your use case? A plain-English breakdown of file limits, AI models, and bank PDF parsing across every tier."
+date: 2026-05-08
+author: "TaxFormatter Team"
+category: "guides"
+tags: ["pricing", "plans", "tiers", "Free", "Starter", "Growth", "Business", "bank PDF", "AI insights"]
+published: true
+featured: false
+---
+
+We get this question a lot: *"Which plan should I start on?"*
+
+The honest answer is that it depends on how many files you're processing each month and whether you need bank PDF parsing. But that's not very useful if you're just trying to pick a tier on the pricing page, so let's go deeper.
+
+TaxFormatter has four plans — Free, Starter, Growth, and Business — and they all use the same API and the same dashboard. The differences come down to three things: **how many files you can process**, **which AI model handles the analysis**, and **whether you get bank PDF parsing**.
+
+Here's a closer look at each one.
+
+## Free — $0/month
+
+This is the "kick the tires" tier. No credit card, no trial expiration, no surprise charges. You just sign up and start uploading.
+
+You get:
+
+- 25 files per month
+- 10 requests per minute
+- All 14 supported exchanges
+- Gemini AI insights
+- JSON response format
+
+**Who it's for:** Developers who want to test the API before committing. Solo crypto traders with a small handful of accounts. Anyone who wants to see what TaxFormatter actually does before paying for it.
+
+**Where it stops being enough:** The 25-file ceiling is the main limit. If you're processing a full year of trading history across multiple exchanges, you'll burn through that pretty quickly. The 10 requests per minute also makes it impractical for any kind of automated batch workflow.
+
+If you're integrating TaxFormatter into a side project just to learn the API, this is genuinely all you need. There's no asterisk — Free uses the same parsing pipeline as the paid tiers.
+
+## Starter — $29/month
+
+Starter is the natural next step. Same feature set as Free, just with the volume turned up.
+
+You get:
+
+- 100 files per month (4× Free)
+- 30 requests per minute (3× Free)
+- All 14 exchanges
+- Gemini AI insights
+- JSON response format
+
+**Who it's for:** Solo developers building a small product. Indie hackers with a side project that has a handful of users. Crypto-native accountants handling a few clients per month. Anyone whose volume sits between "occasional" and "real business."
+
+**Where it stops being enough:** Two places. First, you hit the 100-file cap. Second — and this is the bigger one — Starter does *not* include bank PDF parsing. If your users are uploading bank statements, you need Growth.
+
+The way to think about Starter: it's the right plan when you're processing crypto exchange CSVs and your volume is predictable but modest. The moment you need to handle a PDF from Chase or Bank of America, you've outgrown it.
+
+## Growth — $99/month (Most Popular)
+
+Growth is where TaxFormatter gets serious. This is the tier most teams and SaaS apps end up on.
+
+You get:
+
+- 500 files per month (5× Starter)
+- 60 requests per minute (2× Starter)
+- **Bank PDF parsing** — this is the big unlock
+- **Claude Sonnet AI insights** instead of Gemini
+- All output formats (Koinly, TurboTax, CoinLedger, ZenLedger)
+- Priority support
+
+Two upgrades matter here.
+
+**Bank PDF parsing.** Growth is the first tier that lets you drop in a PDF bank statement and get back structured transaction data. Under the hood this is AWS Textract plus our normalization layer, and it's the feature that unlocks the AP automation, accounting, and bookkeeping use cases. If you're building a product that touches small business finance, you almost certainly need this.
+
+**Claude Sonnet for AI insights.** Free and Starter use Gemini, which is fast and cheap and good enough for straightforward parsing. Growth swaps in Claude Sonnet for the AI-driven analysis layer — which means better handling of edge cases, ambiguous transactions, and weird formatting that the deterministic parsers can't always resolve cleanly.
+
+**Who it's for:** Teams. Funded SaaS products. Bookkeeping firms. Fintech apps with real users. Anyone who needs the bank PDF capability or whose volume has crossed into "this is a real line item in the budget" territory.
+
+**Where it stops being enough:** Volume, mostly. 500 files covers a lot of ground, but high-volume processing pipelines or larger fintech apps will burn through it.
+
+## Business — $249/month
+
+Business is the high-volume tier with the best models.
+
+You get:
+
+- 2,000 files per month (4× Growth)
+- 120 requests per minute (2× Growth)
+- Everything in Growth
+- **Claude Opus AI insights** — our most capable model
+- Custom integrations
+- SLA guarantee
+
+The two things that distinguish Business from Growth:
+
+**Claude Opus instead of Sonnet.** Opus is the strongest model in the Claude family. For most parsing tasks, Sonnet is genuinely fine — but if you're processing a high volume of complex financial documents and the cost of a misread transaction is high, Opus is worth the upgrade. Think: investment statements with non-standard formats, multi-currency reconciliation, or unusual accounting setups.
+
+**SLA guarantee and custom integrations.** Once you're at this tier, you're typically embedded enough in TaxFormatter that uptime commitments and bespoke integration work become part of the conversation.
+
+**Who it's for:** High-volume SaaS products. Fintech companies processing thousands of statements a month. Accounting firms with large client books. Anyone who wants the most accurate AI layer available and the operational guarantees that come with it.
+
+## How to Pick
+
+Here's the simple version:
+
+- **Just want to try it?** Free.
+- **Solo project, crypto only, modest volume?** Starter.
+- **Team, real product, need bank PDFs?** Growth. (This is what most paying customers pick.)
+- **High volume or want the best model?** Business.
+
+The other thing worth knowing: same plan covers both the dashboard and the API. If you start by dropping files into the web UI and later want to integrate the API, your quota and features come with you. There's no separate "API plan" to upgrade to.
+
+You can [start free](https://www.taxformatter.com/) without a credit card and upgrade once you know what you actually need. Most teams figure out their tier within their first week of usage.
+
+---
+
+*Questions about which plan fits your use case? Reach out — we'd rather help you pick the right tier than have you over- or under-buy.*
