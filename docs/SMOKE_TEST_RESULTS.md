@@ -1,22 +1,24 @@
 # Tiered AI Insights — Smoke Test Results
 
-**Date:** 2026-05-08
+**Date:** 2026-05-08 (tiers) + 2026-05-09 (5K cap regression)
 **Environment:** Production (us-east-1)
-**Test fixture:** `backend/tests/fixtures/coinbase_1k_rows.csv` (1000 transactions)
-**Final status:** ✅ All 4 tiers verified end-to-end
+**Test fixtures:** `backend/tests/fixtures/coinbase_1k_rows.csv` (1000 tx, tier dispatch); `backend/tests/fixtures/coinbase_10k_rows.csv` (10000 tx, 5K cap regression)
+**Final status:** ✅ All 4 tiers + 5K cap regression verified end-to-end
 
 ---
 
 ## Executive summary
 
-| Result | Count | Tiers |
-|--------|-------|-------|
-| ✅ Pass | 4 / 4 | Free, Starter, Growth, Business |
-| ❌ Fail | 0 / 4 | — |
+| Result | Count | Coverage |
+|--------|-------|----------|
+| ✅ Pass | 5 / 5 | Free, Starter, Growth, Business + free-tier 5000-row cap |
+| ❌ Fail | 0 / 5 | — |
 
-**Pass criteria:** `insights.json` in S3 contains correct `tier`, expected `model` ID, expected `provider`, `ai_error: null`, and `ai_insights` populated.
+**Pass criteria (tiers):** `insights.json` in S3 contains correct `tier`, expected `model` ID, expected `provider`, `ai_error: null`, and `ai_insights` populated.
 
-**Outcome:** All four tiers passed end-to-end after a single mid-test remediation (Anthropic API key rotation in Secrets Manager + Lambda cold-start). The unification routing, tier propagation, model dispatch, and provider integrations are all proven correct in production.
+**Pass criteria (cap regression):** `insights.json` in S3 has `ai_error: "free_tier_size_limit"`, `ai_insights: null`, `model: null` (no provider call attempted), and `quick_stats` populated with full transaction count.
+
+**Outcome:** All four tiers passed end-to-end after a single mid-test remediation (Anthropic API key rotation in Secrets Manager + Lambda cold-start). The free-tier 5000-row cap intercepts before any provider call as designed. Unification routing, tier propagation, model dispatch, provider integrations, and cost-guard short-circuit are all proven correct in production. (The cap regression also surfaced a separate, pre-existing `quick_stats` shape mismatch — see "Open issues" item 4 — non-blocking.)
 
 ---
 
@@ -164,7 +166,7 @@ Total remediation time: ~5 minutes from diagnosis to verified pass.
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Free-tier 5000-row cap regression test | ⏳ Not started | Upload `coinbase_10k_rows.csv` from `freebie+`; expect `ai_error: "free_tier_size_limit"`. Independent of all the above; ~5 min when ready. |
+| Free-tier 5000-row cap regression test | ✅ Verified 2026-05-09 | Job `f0668cdd-d34e-4654-889e-bec1788ca0b6`. `ai_error: "free_tier_size_limit"`, `ai_insights: null`, `model: null`, `quick_stats.total_transactions: 10000`. Cap fires before any provider call. |
 | Announce blog post publish | ⏳ Drafted, not published | Located at `content/blog/taxformatter-mcp-registry-launch.mdx`. Pending smoke completion gate (AI insights smoke now satisfied; only the 5K cap test remains). |
 | Stripe consumer checkout | ⏳ Deferred | Decision made: drop consumer pricing entirely in favor of unified API tier system. Not needed. |
 
@@ -183,6 +185,14 @@ Total remediation time: ~5 minutes from diagnosis to verified pass.
    (Verify column name matches your schema.)
 
 3. **Resend suppression list.** `freebie@taxformatter.com` (no plus) still suppressed from the original bounce. Harmless if left; can be cleared via Resend dashboard if the address is ever needed.
+
+4. **`generate_quick_stats` doesn't read the parser's record shape.** Surfaced by the 5K cap test (job `f0668cdd-d34e-4654-889e-bec1788ca0b6`): `quick_stats.transaction_types` was `{"unknown": 10000}` and `date_range` was `{start: null, end: null}`, even though the parser correctly extracted Buy/Sell/Send/Receive types (visible in dashboard "Transformation Preview"). [`backend/services/ai_insights.py:450`](../backend/services/ai_insights.py#L450) reads `record.get("type", record.get("transaction_type", "unknown"))`, but the parser emits tax-software-formatted records keyed by `Description`, `Currency Name`, `Date Sold`, `Proceeds`, etc. — there is no `"type"` field. Same shape mismatch on `date_range` (expects `"date"/"timestamp"/"time"`).
+
+   **Why this hasn't been visible until now:** when AI insights succeed, the dashboard renders the model-generated breakdown which masks the broken deterministic numbers. The 5K cap path is the only flow that surfaces them.
+
+   **Fix direction:** either teach `generate_quick_stats` to read parser-output field names (e.g., infer type from `Description`, dates from `Date Sold`), or have the processor build a normalized intermediate shape before calling `generate_quick_stats`. Either way the right field semantics are: type ∈ {buy, sell, transfer, fee}, date ∈ ISO timestamp.
+
+   **User-visible impact today:** dashboard breakdown chips show `0 / 0 / 0 / 0` whenever AI is capped or fails. Total transaction count (`10,000`) renders correctly because that's based on `len(records)`. Cosmetic, not data-loss. Follow-up, not blocking.
 
 ---
 
