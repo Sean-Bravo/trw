@@ -275,14 +275,18 @@ def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
     """
     try:
         from ai_insights import generate_insights, generate_quick_stats
-        from quick_stats_normalizer import normalize_records
+        from quick_stats_normalizer import normalize_records, count_fees
 
         secrets = get_secrets()
 
         # Records here are UniversalRecord dicts (Koinly column names);
         # normalize to {type, date, asset} so generate_quick_stats's
-        # field-name contract holds. See quick_stats_normalizer for why.
+        # field-name contract holds. Fees are counted out-of-band and
+        # merged in afterward so total_transactions == len(records).
         quick_stats = generate_quick_stats(normalize_records(records))
+        fee_count = count_fees(records)
+        if fee_count:
+            quick_stats.setdefault("transaction_types", {})["fee"] = fee_count
 
         # Free-tier cost guard: skip AI generation on unbounded inputs.
         # Gemini's per-token cost is small but free-tier abuse would still hurt;

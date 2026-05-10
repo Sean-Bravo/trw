@@ -78,39 +78,32 @@ def normalize_for_stats(record: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _fee_record_for(record: Dict[str, Any]) -> Dict[str, Any] | None:
-    """If the record has a non-zero Fee Amount, return a synthetic 'fee' row;
-    otherwise None. Returning a separate row lets generate_quick_stats count
-    fees alongside other types without changing its shape contract.
-    """
-    fee_amount = record.get("Fee Amount")
-    if fee_amount is None or fee_amount == "":
-        return None
-    try:
-        if float(fee_amount) > 0:
-            return {
-                "type": "fee",
-                "date": record.get("Date") or None,
-                "asset": (record.get("Fee Currency") or "").strip(),
-            }
-    except (ValueError, TypeError):
-        return None
-    return None
-
-
 def normalize_records(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Vectorized form: apply normalize_for_stats over a list, plus emit a
-    synthetic 'fee' record alongside whenever Fee Amount > 0.
+    """Vectorized form: apply normalize_for_stats over a list, one-to-one.
 
-    Output length is len(records) + count(records with non-zero Fee Amount).
-    Sum-to-N invariant on transaction_types becomes:
-        sum(buy + sell + transfer) == len(records)
-        count(fee)                  == count of records with non-zero Fee Amount
+    Output length equals input length. Fees are counted separately via
+    count_fees() rather than emitted as synthetic rows, because the latter
+    would inflate generate_quick_stats's total_transactions = len(records)
+    (every real transaction has a fee, so total would double).
     """
-    out: List[Dict[str, Any]] = []
+    return [normalize_for_stats(r) for r in records]
+
+
+def count_fees(records: List[Dict[str, Any]]) -> int:
+    """Count records with a non-zero Fee Amount.
+
+    Callers stuff the result into quick_stats.transaction_types['fee'] after
+    generate_quick_stats returns. Keeps the fee count visible to the
+    dashboard chip without polluting total_transactions.
+    """
+    n = 0
     for r in records:
-        out.append(normalize_for_stats(r))
-        fee_row = _fee_record_for(r)
-        if fee_row is not None:
-            out.append(fee_row)
-    return out
+        fee_amount = r.get("Fee Amount")
+        if fee_amount is None or fee_amount == "":
+            continue
+        try:
+            if float(fee_amount) > 0:
+                n += 1
+        except (ValueError, TypeError):
+            continue
+    return n

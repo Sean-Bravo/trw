@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services"))
 from quick_stats_normalizer import (  # noqa: E402
     normalize_for_stats,
     normalize_records,
+    count_fees,
     _infer_type,
     _pick_asset,
 )
@@ -127,68 +128,84 @@ class TestNormalizeForStats:
 # ---------- normalize_records (the big one) ----------
 
 class TestNormalizeRecords:
-    def test_no_fees_preserves_length(self):
+    """normalize_records is one-to-one with input — fees are NOT emitted as
+    synthetic rows (that inflated total_transactions). They're counted
+    separately via count_fees() and merged at the call site.
+    """
+
+    def test_one_to_one_with_input(self):
         records = [
-            _record(Description="Coinbase buy", **{"Fee Amount": 0}),
-            _record(Description="Coinbase sell", **{"Fee Amount": 0}),
-            _record(Description="Coinbase send", **{"Fee Amount": 0}),
+            _record(Description="Coinbase buy"),
+            _record(Description="Coinbase sell"),
+            _record(Description="Coinbase send"),
         ]
         out = normalize_records(records)
         assert len(out) == 3
         assert {x["type"] for x in out} == {"buy", "sell", "transfer"}
 
-    def test_fee_emits_synthetic_record(self):
-        records = [_record(Description="Coinbase buy", **{"Fee Amount": 1.5, "Fee Currency": "USD"})]
-        out = normalize_records(records)
-        assert len(out) == 2
-        assert out[0]["type"] == "buy"
-        assert out[1] == {"type": "fee", "date": "2024-06-01T12:00:00Z", "asset": "USD"}
+    def test_fees_do_not_create_extra_rows(self):
+        """Reviewer-flagged regression: synthetic fee rows used to inflate
+        total_transactions. Confirm that's gone."""
+        records = [
+            _record(Description="Coinbase buy",  **{"Fee Amount": 1.5}),
+            _record(Description="Coinbase sell", **{"Fee Amount": 0.20}),
+            _record(Description="Coinbase send", **{"Fee Amount": 0}),
+        ]
+        assert len(normalize_records(records)) == len(records) == 3
 
-    def test_zero_fee_no_synthetic(self):
-        records = [_record(**{"Fee Amount": 0})]
-        assert len(normalize_records(records)) == 1
 
-    def test_none_fee_no_synthetic(self):
-        records = [_record(**{"Fee Amount": None})]
-        assert len(normalize_records(records)) == 1
+class TestCountFees:
+    def test_counts_only_non_zero_fees(self):
+        records = [
+            _record(**{"Fee Amount": 1.5}),
+            _record(**{"Fee Amount": 0.05}),
+            _record(**{"Fee Amount": 0}),
+            _record(**{"Fee Amount": None}),
+            _record(**{"Fee Amount": ""}),
+        ]
+        assert count_fees(records) == 2
 
-    def test_empty_string_fee_no_synthetic(self):
-        records = [_record(**{"Fee Amount": ""})]
-        assert len(normalize_records(records)) == 1
+    def test_string_numeric_fee_counts(self):
+        records = [_record(**{"Fee Amount": "0.05"})]
+        assert count_fees(records) == 1
 
-    def test_garbage_fee_no_crash(self):
+    def test_garbage_fee_skipped(self):
         records = [_record(**{"Fee Amount": "not a number"})]
-        # Shouldn't raise; just no synthetic row
-        assert len(normalize_records(records)) == 1
+        assert count_fees(records) == 0
 
-    def test_string_numeric_fee_works(self):
-        records = [_record(**{"Fee Amount": "0.05", "Fee Currency": "ETH"})]
-        out = normalize_records(records)
-        assert len(out) == 2
-        assert out[1] == {"type": "fee", "date": "2024-06-01T12:00:00Z", "asset": "ETH"}
+    def test_empty_input_returns_zero(self):
+        assert count_fees([]) == 0
 
 
 # ---------- Sum-to-N invariant (the integration assertion) ----------
 
 class TestSumInvariantThroughQuickStats:
-    """Pipe normalized records through generate_quick_stats and assert the
-    counts the dashboard chips will consume.
+    """Simulate the processor call site: feed normalized records to
+    generate_quick_stats, then merge fee_count into transaction_types.
+    Verify the dashboard chip values AND total_transactions stay honest.
     """
 
     def test_invariant_on_mixed_batch(self):
         records = [
-            _record(Description="Coinbase buy",  **{"Fee Amount": 0.10}),  # +fee
+            _record(Description="Coinbase buy",  **{"Fee Amount": 0.10}),
             _record(Description="Coinbase buy",  **{"Fee Amount": 0}),
-            _record(Description="Coinbase sell", **{"Fee Amount": 0.20}),  # +fee
+            _record(Description="Coinbase sell", **{"Fee Amount": 0.20}),
             _record(Description="Coinbase send", **{"Fee Amount": 0}),
-            _record(Description="Coinbase send", **{"Fee Amount": 0.05}),  # +fee
+            _record(Description="Coinbase send", **{"Fee Amount": 0.05}),
         ]
-        # 5 records, 3 with non-zero fee
+        # Simulate processor.py call site
         normalized = normalize_records(records)
         stats = generate_quick_stats(normalized)
+        fee_count = count_fees(records)
+        if fee_count:
+            stats["transaction_types"]["fee"] = fee_count
+
         types = stats["transaction_types"]
 
-        # buy + sell + transfer counts equal len(records)
+        # total_transactions stays equal to real record count
+        assert stats["total_transactions"] == len(records) == 5
+
+        # buy + sell + transfer counts equal len(records) — fees don't inflate
         non_fee_total = (
             types.get("buy", 0)
             + types.get("sell", 0)
@@ -202,6 +219,17 @@ class TestSumInvariantThroughQuickStats:
         # fee count equals records with non-zero Fee Amount
         non_zero_fees = sum(1 for r in records if (r.get("Fee Amount") or 0) > 0)
         assert types.get("fee") == non_zero_fees == 3
+
+    def test_no_fees_no_fee_key(self):
+        """If no records have fees, the 'fee' key isn't added to the dict."""
+        records = [_record(Description="Coinbase buy", **{"Fee Amount": 0})]
+        normalized = normalize_records(records)
+        stats = generate_quick_stats(normalized)
+        fee_count = count_fees(records)
+        if fee_count:
+            stats["transaction_types"]["fee"] = fee_count
+        assert "fee" not in stats["transaction_types"]
+        assert stats["total_transactions"] == 1
 
 
 # ---------- Mixed None/ISO date handling through date_range ----------
