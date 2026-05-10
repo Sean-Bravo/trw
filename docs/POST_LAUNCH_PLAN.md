@@ -92,19 +92,21 @@ Status: **closed out on 2026-04-30.** Full report in [Workstream_2_ report.md](.
 
 ## Workstream 3 — MCP directory registration
 
-Status: **not started.** Package already on npm.
+Status: **substantively shipped on 2026-05-04 / 2026-05-05.** Gate met — accepted on Smithery and Glama (gate required 2 of 3). Bonus: also accepted into the [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=taxformatter) (not on the original checklist when this plan was written; came online during the workstream). Announce blog post at [`taxformatter-mcp-registry-launch.mdx`](../content/blog/taxformatter-mcp-registry-launch.mdx) shipped 2026-05-05. Listings re-verified live on 2026-05-09. Remaining items below are non-blocking polish.
 
-- [ ] Verify tests: `cd packages/mcp-server && npm test`. If 0 tests, author smoke tests per tool (`parse`, `list_sources`, `get_usage`) + one error-path test (invalid API key → `TaxFormatterError`)
-- [ ] Author `packages/mcp-server/mcp-manifest.json` — `name`, `description`, `tools[]` (3 entries matching `packages/mcp-server/src/tools/*.ts`), `env[]` (`TAXFORMATTER_API_KEY` required, `TAXFORMATTER_API_URL` optional), `homepage`, `license`, `install` command
-- [ ] Create `smithery.yaml` in repo root — Smithery's required format, alongside the existing untracked `glama.json`
-- [ ] Add `packages/mcp-server/logo.svg` (512×512; reuse brand mark from [components/ui/Logo.tsx](components/ui/Logo.tsx))
+- [x] Verify tests: `packages/mcp-server/test/` has `client.test.ts` + `tools.test.ts`; `npm test` script wired to root jest
+- [x] Author `packages/mcp-server/mcp-manifest.json`
+- [x] Create `smithery.yaml` in repo root (alongside `glama.json`)
+- [x] Add `packages/mcp-server/logo.svg`
 - [ ] _(Optional)_ Record a 30-second demo (Claude Code calling parse end-to-end); host somewhere linkable. None of the three directories require this — moves the needle on conversion, not submission
-- [ ] **Smithery** (smithery.ai) — submit via GitHub connection; add their badge to [packages/mcp-server/README.md](packages/mcp-server/README.md)
-- [ ] **mcp.run** — submit via web form / GitHub integration
-- [ ] **Glama** (glama.ai/mcp/servers) — submit via web form
-- [ ] Update [TAXFORMATTER_RELEASE_STATUS.md](TAXFORMATTER_RELEASE_STATUS.md) lines 99 & 209 with the three directory-listing URLs once accepted
+- [x] **Smithery** (smithery.ai) — live at [smithery.ai/servers/sean-bavo/taxformatter](https://smithery.ai/servers/sean-bavo/taxformatter)
+- [ ] **mcp.run** — not submitted; domain now redirects to turbomcp.ai which 404s for our slug. Status of this directory itself unclear; deprioritized
+- [x] **Glama** (glama.ai/mcp/servers) — live at [glama.ai/mcp/servers/Sean-Bravo/trw](https://glama.ai/mcp/servers/Sean-Bravo/trw) (UA-gated; works in browsers)
+- [x] **Bonus: Official MCP Registry** — live at `io.github.Sean-Bravo/taxformatter` v0.1.2 (status=active, published 2026-05-04)
+- [x] **Bonus: awesome-mcp-servers PR** — [#5869](https://github.com/punkpeye/awesome-mcp-servers/pull/5869) open, `mergeable_state: clean`, awaiting maintainer review
+- [ ] Update [TAXFORMATTER_RELEASE_STATUS.md](TAXFORMATTER_RELEASE_STATUS.md) line 209 (and similar references) with the three directory-listing URLs — still references "Submit MCP server to directories" as if pending
 - [ ] (Optional) `.github/workflows/publish-npm.yml` — version-tag-triggered `npm publish` for mcp-server + sdk-node; eliminates manual publish for future versions
-- [ ] Announce: short `/blog` post linking to each directory listing (reuse context from [three-ways-to-use-taxformatter.mdx](content/blog/three-ways-to-use-taxformatter.mdx))
+- [x] Announce: blog post [`taxformatter-mcp-registry-launch.mdx`](../content/blog/taxformatter-mcp-registry-launch.mdx) (`published: true`) — also covers tiered AI insights wire-up + pricing unification
 
 ---
 
