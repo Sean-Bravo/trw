@@ -186,13 +186,17 @@ Total remediation time: ~5 minutes from diagnosis to verified pass.
 
 3. **Resend suppression list.** `freebie@taxformatter.com` (no plus) still suppressed from the original bounce. Harmless if left; can be cleared via Resend dashboard if the address is ever needed.
 
-4. **`generate_quick_stats` doesn't read the parser's record shape.** Surfaced by the 5K cap test (job `f0668cdd-d34e-4654-889e-bec1788ca0b6`): `quick_stats.transaction_types` was `{"unknown": 10000}` and `date_range` was `{start: null, end: null}`, even though the parser correctly extracted Buy/Sell/Send/Receive types (visible in dashboard "Transformation Preview"). [`backend/services/ai_insights.py:450`](../backend/services/ai_insights.py#L450) reads `record.get("type", record.get("transaction_type", "unknown"))`, but the parser emits tax-software-formatted records keyed by `Description`, `Currency Name`, `Date Sold`, `Proceeds`, etc. — there is no `"type"` field. Same shape mismatch on `date_range` (expects `"date"/"timestamp"/"time"`).
+4. **`generate_quick_stats` doesn't read the parser's record shape.** ✅ **Resolved 2026-05-10** (commits `ae0d3af`, `0c21323`). Original bug: surfaced by the 5K cap test (job `f0668cdd-d34e-4654-889e-bec1788ca0b6`) — `quick_stats.transaction_types` was `{"unknown": 10000}` and `date_range` was `{start: null, end: null}` because [`backend/services/ai_insights.py:450`](../backend/services/ai_insights.py#L450) reads `record.get("type", record.get("transaction_type", "unknown"))` but the parser emits Koinly-format records keyed by `Description`, `Date`, `Sent Currency`, etc. Same shape mismatch hit `date_range`.
 
-   **Why this hasn't been visible until now:** when AI insights succeed, the dashboard renders the model-generated breakdown which masks the broken deterministic numbers. The 5K cap path is the only flow that surfaces them.
+   **Fix shipped:** new adapter [`backend/services/quick_stats_normalizer.py`](../backend/services/quick_stats_normalizer.py) — chose Option B (an adapter between parser and stats function) over patching `generate_quick_stats` itself, because parser-aware logic in a stats function would silently degrade as parsers evolve. `generate_quick_stats` is unchanged; its `{type, date, asset}` contract holds. The processor calls `normalize_records(records)` to get the right shape, plus `count_fees(records)` separately merged into `quick_stats.transaction_types['fee']` (synthetic fee rows in the records list inflated `total_transactions`, fixed by counting fees out-of-band — see `0c21323`).
 
-   **Fix direction:** either teach `generate_quick_stats` to read parser-output field names (e.g., infer type from `Description`, dates from `Date Sold`), or have the processor build a normalized intermediate shape before calling `generate_quick_stats`. Either way the right field semantics are: type ∈ {buy, sell, transfer, fee}, date ∈ ISO timestamp.
+   **Verified end-to-end** via fresh 5K cap upload from `freebie+`, job `171224db-f4c1-4e32-9d5c-5161fbd42163`:
+   - `total_transactions: 10000` (not 20000 like the first iteration)
+   - `transaction_types: { buy: 2481, sell: 2479, transfer: 5040, fee: 10000 }` — sums to 10000 across buy/sell/transfer; fee count equals records with non-zero `Fee Amount`
+   - `date_range: { start: "2024-01-01 00:00:00", end: "2025-02-20 15:00:00" }` — non-null ISO timestamps
+   - Dashboard chips render correct numbers, including when AI is capped/failed (the original cosmetic gripe)
 
-   **User-visible impact today:** dashboard breakdown chips show `0 / 0 / 0 / 0` whenever AI is capped or fails. Total transaction count (`10,000`) renders correctly because that's based on `len(records)`. Cosmetic, not data-loss. Follow-up, not blocking.
+   Token mapping handles convert→buy (tax-correct), earn/stake/airdrop/etc.→transfer, with warn-level CloudWatch logs on fallback for parser-drift visibility. 24 unit tests cover token cases, fee counting, mixed None/ISO date ranges, and the sum-to-N invariant.
 
 ---
 
