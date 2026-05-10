@@ -313,6 +313,7 @@ def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict
         transaction_count=result.get("metadata", {}).get("transaction_count"),
         ip_address=get_client_ip(event),
         request_id=request_id,
+        tier=key_record.get("tier"),
     )
 
     # Add processing time and overage headers (paid soft-flag — free is hard-blocked above)

@@ -186,6 +186,7 @@ def record_request(
     transaction_count: Optional[int] = None,
     ip_address: Optional[str] = None,
     request_id: Optional[str] = None,
+    tier: Optional[str] = None,
 ) -> None:
     """Log an API request to the api_requests table."""
     conn = get_db()
@@ -195,8 +196,8 @@ def record_request(
                 """INSERT INTO api_requests
                    (api_key_id, endpoint, method, status_code, response_time_ms,
                     error_code, file_size, source_type, detected_source,
-                    transaction_count, ip_address, request_id)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    transaction_count, ip_address, request_id, tier)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     key_id,
                     endpoint,
@@ -210,6 +211,7 @@ def record_request(
                     transaction_count,
                     ip_address,
                     request_id,
+                    tier,
                 ),
             )
         conn.commit()
