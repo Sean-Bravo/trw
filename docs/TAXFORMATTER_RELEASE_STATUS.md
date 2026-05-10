@@ -96,7 +96,7 @@ npm info @taxformatter/mcp-server
 
 **Post-publish:**
 - [ ] `npx @taxformatter/mcp-server` runs without error (will fail without API key, but should start)
-- [ ] Submit to MCP directories: [Smithery](https://smithery.ai), [mcp.run](https://mcp.run), [Glama](https://glama.ai/mcp/servers)
+- [x] Submit to MCP directories: [Smithery](https://smithery.ai/servers/sean-bavo/taxformatter) ✅ live, [Glama](https://glama.ai/mcp/servers/Sean-Bravo/trw) ✅ live, [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=taxformatter) ✅ live (bonus), [awesome-mcp-servers PR #5869](https://github.com/punkpeye/awesome-mcp-servers/pull/5869) ⏳ open. mcp.run deprioritized (domain redirected/unclear).
 
 ---
 
@@ -206,7 +206,7 @@ All items verified and passing as of 2026-04-03.
   - Conversion tracking: `AW-17945154043`
 
 ### Developer Distribution
-- [ ] Submit MCP server to directories (Smithery, mcp.run, Glama)
+- [x] Submit MCP server to directories — Smithery + Glama + Official MCP Registry live; awesome-mcp-servers PR #5869 open. See top of file (line 99) for URLs.
 - [ ] Product Hunt launch
 - [ ] Reddit: r/selfhosted, r/cryptocurrency, r/taxpros
 - [ ] Hacker News: Show HN post
