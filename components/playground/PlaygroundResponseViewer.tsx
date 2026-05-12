@@ -38,8 +38,8 @@ export function PlaygroundResponseViewer({
   };
 
   return (
-    <div className="rounded-xl border border-white/5 bg-[#111b2e] overflow-hidden flex flex-col h-full min-h-[480px]">
-      <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+    <div className="rounded-xl border border-white/10 bg-slate-800 overflow-hidden flex flex-col h-full min-h-[480px]">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
         <div className="flex items-center gap-3">
           <Terminal className="w-4 h-4 text-slate-500" />
           <span className="text-sm font-medium text-slate-300">Response</span>
