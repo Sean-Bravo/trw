@@ -113,14 +113,14 @@ export function APICapabilities() {
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Crypto Exchanges</h3>
                     <span className="text-[11px] text-slate-500 font-mono">{exchanges.length}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     {exchanges.map((ex) => (
                       <div
                         key={ex.name}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-[#635bff]/20 hover:bg-[#635bff]/4 transition-all group"
+                        className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-[#635bff]/20 hover:bg-[#635bff]/4 transition-all group min-w-0"
                       >
-                        <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors">{ex.name}</span>
-                        <span className="text-[10px] text-slate-600 font-mono">{ex.format}</span>
+                        <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors truncate">{ex.name}</span>
+                        <span className="text-[10px] text-slate-600 font-mono shrink-0">{ex.format}</span>
                       </div>
                     ))}
                   </div>
@@ -133,15 +133,15 @@ export function APICapabilities() {
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Bank PDFs</h3>
                     <span className="text-[11px] text-slate-500 font-mono">{banks.length}+</span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     {banks.map((bank) => (
                       <div
                         key={bank.name}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-emerald-500/20 hover:bg-emerald-500/4 transition-all group"
+                        className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-emerald-500/20 hover:bg-emerald-500/4 transition-all group min-w-0"
                       >
-                        <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors">{bank.name}</span>
+                        <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors truncate">{bank.name}</span>
                         {bank.status === 'tested' && (
-                          <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">✓</span>
+                          <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider shrink-0">✓</span>
                         )}
                       </div>
                     ))}
@@ -167,11 +167,11 @@ export function APICapabilities() {
                     <div className="w-2 h-2 rounded-full bg-sky-400" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Output Formats</h3>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="grid grid-cols-2 gap-1.5">
                     {outputFormats.map((fmt) => (
                       <div
                         key={fmt}
-                        className="px-3 py-2 rounded-lg bg-white/2 border border-white/5 text-[13px] text-slate-300 font-medium"
+                        className="px-3 py-2 rounded-lg bg-white/2 border border-white/5 text-[13px] text-slate-300 font-medium text-center"
                       >
                         {fmt}
                       </div>
