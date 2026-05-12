@@ -151,7 +151,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
   return (
     <div className="flex flex-col gap-5">
       {/* Key mode */}
-      <section className="rounded-xl border border-white/5 bg-[#111b2e] p-4">
+      <section className="rounded-xl border border-white/10 bg-slate-800 p-4">
         <div className="flex items-center gap-2 mb-3">
           <KeyRound className="w-4 h-4 text-slate-500" />
           <h3 className="text-sm font-medium text-slate-300">Authentication</h3>
@@ -164,7 +164,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 keyMode === mode
                   ? 'bg-primary-500/20 text-primary-300 border border-primary-500/40'
-                  : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-transparent'
+                  : 'bg-slate-700/60 text-slate-400 hover:text-slate-200 border border-transparent'
               }`}
             >
               {mode === 'demo' ? 'Use demo key' : 'Use my key'}
@@ -184,13 +184,13 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
             placeholder="tf_live_..."
             autoComplete="off"
             spellCheck={false}
-            className="w-full rounded-lg bg-slate-900/80 border border-slate-700 px-3 py-2 text-sm font-mono text-slate-200 placeholder:text-slate-600 focus:border-primary-500 focus:outline-none"
+            className="w-full rounded-lg bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm font-mono text-slate-200 placeholder:text-slate-600 focus:border-primary-500 focus:outline-none"
           />
         )}
       </section>
 
       {/* File source */}
-      <section className="rounded-xl border border-white/5 bg-[#111b2e] p-4">
+      <section className="rounded-xl border border-white/10 bg-slate-800 p-4">
         <div className="flex items-center gap-2 mb-3">
           <FileText className="w-4 h-4 text-slate-500" />
           <h3 className="text-sm font-medium text-slate-300">Input file</h3>
@@ -203,7 +203,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 fileSource === source
                   ? 'bg-primary-500/20 text-primary-300 border border-primary-500/40'
-                  : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-transparent'
+                  : 'bg-slate-700/60 text-slate-400 hover:text-slate-200 border border-transparent'
               }`}
             >
               {source === 'sample' ? 'Try a sample' : 'Upload your own'}
@@ -221,7 +221,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
                 setOutputFormat(next.defaultFormat);
               }
             }}
-            className="w-full rounded-lg bg-slate-900/80 border border-slate-700 px-3 py-2 text-sm text-slate-200 focus:border-primary-500 focus:outline-none"
+            className="w-full rounded-lg bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm text-slate-200 focus:border-primary-500 focus:outline-none"
           >
             {SAMPLES.map((s) => (
               <option key={s.id} value={s.id}>
@@ -230,7 +230,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
             ))}
           </select>
         ) : (
-          <label className="flex items-center gap-3 rounded-lg border border-dashed border-slate-700 bg-slate-900/50 px-3 py-3 cursor-pointer hover:border-primary-500/50 transition-colors">
+          <label className="flex items-center gap-3 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-3 py-3 cursor-pointer hover:border-primary-500/50 transition-colors">
             <Upload className="w-4 h-4 text-slate-500" />
             <span className="text-xs text-slate-400 truncate">
               {uploadedFile ? uploadedFile.name : 'Choose a CSV, XLSX, or PDF (≤1 MB)'}
@@ -252,7 +252,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
       </section>
 
       {/* Output format */}
-      <section className="rounded-xl border border-white/5 bg-[#111b2e] p-4">
+      <section className="rounded-xl border border-white/10 bg-slate-800 p-4">
         <h3 className="text-sm font-medium text-slate-300 mb-3">Output format</h3>
         <div className="grid grid-cols-2 gap-2">
           {OUTPUT_FORMATS.map((fmt) => (
@@ -262,7 +262,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
               className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                 outputFormat === fmt.value
                   ? 'bg-primary-500/20 text-primary-300 border border-primary-500/40'
-                  : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-transparent'
+                  : 'bg-slate-700/60 text-slate-400 hover:text-slate-200 border border-transparent'
               }`}
             >
               {fmt.label}
@@ -272,8 +272,8 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
       </section>
 
       {/* Live curl preview */}
-      <section className="rounded-xl border border-white/5 bg-[#111b2e] overflow-hidden">
-        <div className="border-b border-white/5 px-4 py-2.5">
+      <section className="rounded-xl border border-white/10 bg-slate-800 overflow-hidden">
+        <div className="border-b border-white/10 px-4 py-2.5">
           <span className="text-xs font-medium text-slate-400">cURL preview</span>
         </div>
         <pre className="p-3 overflow-x-auto text-[11px] leading-relaxed text-slate-400 font-mono">

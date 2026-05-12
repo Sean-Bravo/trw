@@ -52,7 +52,7 @@ export default function PlaygroundPage() {
 
   if (!enabled) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center px-4">
         <div className="max-w-md text-center">
           <h1 className="text-2xl font-semibold mb-3">Playground temporarily unavailable</h1>
           <p className="text-slate-400 mb-6">
@@ -72,7 +72,7 @@ export default function PlaygroundPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-slate-900 text-slate-100">
       <div className="fixed inset-0 pointer-events-none bg-mesh-dark opacity-60" />
 
       <main className="relative z-10 max-w-6xl mx-auto px-4 py-10">
@@ -113,7 +113,7 @@ export default function PlaygroundPage() {
         </div>
 
         {/* Footer CTA */}
-        <div className="mt-10 rounded-xl border border-white/5 bg-[#111b2e] px-6 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="mt-10 rounded-xl border border-white/10 bg-slate-800 px-6 py-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h3 className="text-sm font-semibold text-slate-200 mb-1">Ready to integrate?</h3>
             <p className="text-sm text-slate-400">
