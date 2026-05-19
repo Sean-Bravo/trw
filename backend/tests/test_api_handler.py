@@ -32,7 +32,9 @@ from handlers.api import (
     handle_v1_health,
     handle_v1_parse,
     API_VERSION,
+    DEFAULT_ORIGIN,
 )
+import handlers.api as api_module
 
 
 # ---------------------------------------------------------------------------
@@ -83,10 +85,31 @@ def make_event(route_key="GET /v1/health", headers=None, body=None):
 # ---------------------------------------------------------------------------
 
 class TestUtilities:
-    def test_response_includes_cors_headers(self):
+    def test_response_cors_defaults_to_canonical_origin(self):
+        # H-11: no request origin set → falls back to DEFAULT_ORIGIN, not "*".
+        api_module._current_request_origin = None
         resp = response(200, {"ok": True})
-        assert resp["headers"]["Access-Control-Allow-Origin"] == "*"
+        assert resp["headers"]["Access-Control-Allow-Origin"] == DEFAULT_ORIGIN
+        assert resp["headers"]["Vary"] == "Origin"
         assert resp["headers"]["X-Api-Version"] == API_VERSION
+
+    def test_response_cors_echoes_allowlisted_origin(self):
+        # H-11: allowlisted request origin is echoed back.
+        api_module._current_request_origin = "http://localhost:3000"
+        try:
+            resp = response(200, {"ok": True})
+            assert resp["headers"]["Access-Control-Allow-Origin"] == "http://localhost:3000"
+        finally:
+            api_module._current_request_origin = None
+
+    def test_response_cors_rejects_unlisted_origin(self):
+        # H-11: non-allowlisted origin falls back to DEFAULT_ORIGIN.
+        api_module._current_request_origin = "https://evil.example.com"
+        try:
+            resp = response(200, {"ok": True})
+            assert resp["headers"]["Access-Control-Allow-Origin"] == DEFAULT_ORIGIN
+        finally:
+            api_module._current_request_origin = None
 
     def test_response_serializes_nan_floats_as_null(self):
         """Regression for SMOKE_TEST_RESULTS.md item 6: parser emitted
