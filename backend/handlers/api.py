@@ -8,6 +8,7 @@ All routes require X-API-Key header (except /v1/health and /v1/sources).
 import base64
 import json
 import logging
+import math
 import os
 import sys
 import time
@@ -69,6 +70,22 @@ def _allowed_origin() -> str:
     return DEFAULT_ORIGIN
 
 
+def _sanitize_for_json(obj: Any) -> Any:
+    """Replace NaN/Infinity floats with None — Python's json.dumps emits
+    them as bare ``NaN`` / ``Infinity`` tokens (allow_nan=True default),
+    which violate the JSON spec and reject in browsers / strict parsers.
+    See SMOKE_TEST_RESULTS.md item 6 for the production failure that
+    motivated this. Recurses through dicts and lists; pass-through for
+    everything else."""
+    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_for_json(v) for v in obj]
+    return obj
+
+
 def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dict:
     """Generate API Gateway response."""
     default_headers = {
@@ -85,7 +102,7 @@ def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dic
     return {
         "statusCode": status_code,
         "headers": default_headers,
-        "body": json.dumps(body, default=str),
+        "body": json.dumps(_sanitize_for_json(body), default=str),
     }
 
 
