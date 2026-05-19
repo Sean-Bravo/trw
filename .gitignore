@@ -77,3 +77,4 @@ __pycache__/
 # Secret rotation artifacts — never commit
 rotation-replacements.txt
 .next/
+outbound_prospects.*
