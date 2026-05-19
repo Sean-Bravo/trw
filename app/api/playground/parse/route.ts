@@ -108,7 +108,18 @@ export async function POST(request: NextRequest) {
   try {
     const json: unknown = JSON.parse(text);
     return NextResponse.json(json, { status: upstream.status });
-  } catch {
+  } catch (parseErr) {
+    // Capture upstream details so the next intermittent non-JSON failure
+    // isn't opaque — see SMOKE_TEST_RESULTS.md item 6 for full context.
+    // apigwRequestId joins to API Gateway / CloudWatch for end-to-end trace.
+    console.error('[playground] upstream returned non-JSON', {
+      status: upstream.status,
+      contentType: upstream.headers.get('Content-Type'),
+      contentLength: upstream.headers.get('Content-Length'),
+      apigwRequestId: upstream.headers.get('apigw-requestid'),
+      parseError: parseErr instanceof Error ? parseErr.message : String(parseErr),
+      bodyPreview: text.slice(0, 500),
+    });
     return new NextResponse(text, {
       status: upstream.status,
       headers: {
