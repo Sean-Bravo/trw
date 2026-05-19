@@ -151,6 +151,33 @@ class TestUtilities:
         assert parsed["null"] is None
         assert parsed["nested"]["list"] == [1, 2.5, "x", None]
 
+    def test_response_rounds_float_imprecision_to_8_decimals(self):
+        """Float64 imprecision leaks into the wire without rounding.
+        e.g. 3488.4 stored as 3488.3999999999996 — devs eyeballing the API
+        response see noise. Round to 8 decimals (crypto standard, 1 satoshi)
+        which collapses fiat noise cleanly without losing crypto precision."""
+        body = {
+            "fiat_noisy": 3488.3999999999996,  # 3488.4 + float64 noise
+            "fiat_clean": 3488.4,
+            "fiat_zero_pad": 32.40,  # already clean — stays clean
+            "crypto_satoshi": 0.00000001,  # 1 satoshi — must be preserved
+            "crypto_small": 0.05,
+            "compute_noise": 0.1 + 0.2,  # 0.30000000000000004 in float64
+            "ints_untouched": 100,
+        }
+        resp = response(200, body)
+        parsed = json.loads(resp["body"])
+        assert parsed["fiat_noisy"] == 3488.4
+        assert parsed["fiat_clean"] == 3488.4
+        assert parsed["fiat_zero_pad"] == 32.4
+        assert parsed["crypto_satoshi"] == 0.00000001
+        assert parsed["crypto_small"] == 0.05
+        assert parsed["compute_noise"] == 0.3
+        assert parsed["ints_untouched"] == 100
+        # Sanity: wire string should not contain the long imprecise reprs.
+        assert "3488.3999999999996" not in resp["body"]
+        assert "0.30000000000000004" not in resp["body"]
+
     def test_error_response_includes_code_and_message(self):
         resp = error_response(400, "bad_input", "Something went wrong")
         body = json.loads(resp["body"])

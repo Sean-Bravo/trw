@@ -70,15 +70,32 @@ def _allowed_origin() -> str:
     return DEFAULT_ORIGIN
 
 
+_FLOAT_OUTPUT_PRECISION = 8  # 1 satoshi for crypto; lossless for 2-decimal fiat.
+
+
 def _sanitize_for_json(obj: Any) -> Any:
-    """Replace NaN/Infinity floats with None — Python's json.dumps emits
-    them as bare ``NaN`` / ``Infinity`` tokens (allow_nan=True default),
-    which violate the JSON spec and reject in browsers / strict parsers.
-    See SMOKE_TEST_RESULTS.md item 6 for the production failure that
-    motivated this. Recurses through dicts and lists; pass-through for
-    everything else."""
-    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
-        return None
+    """Normalize float values in the response body before serialization.
+
+    Two concerns, one pass:
+
+    1. NaN / ±Infinity → None. ``json.dumps`` defaults to ``allow_nan=True``
+       and writes bare ``NaN`` / ``Infinity`` tokens, which violate the JSON
+       spec and crash browser ``JSON.parse``. See SMOKE_TEST_RESULTS.md item 6
+       for the production failure that motivated this.
+
+    2. Round finite floats to ``_FLOAT_OUTPUT_PRECISION`` decimals. Without
+       this, float64 imprecision leaks into the wire — e.g. ``32.40``
+       represented internally as ``32.39999999999...`` and serialized that
+       way. Eight decimals is the crypto standard (1 satoshi), and any
+       fiat 2-decimal value rounds cleanly (``3488.3999999999996`` →
+       ``3488.4``).
+
+    Recurses through dicts and lists; pass-through for everything else.
+    """
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return round(obj, _FLOAT_OUTPUT_PRECISION)
     if isinstance(obj, dict):
         return {k: _sanitize_for_json(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
