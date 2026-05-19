@@ -198,6 +198,16 @@ Total remediation time: ~5 minutes from diagnosis to verified pass.
 
    Token mapping handles convert→buy (tax-correct), earn/stake/airdrop/etc.→transfer, with warn-level CloudWatch logs on fallback for parser-drift visibility. 24 unit tests cover token cases, fee counting, mixed None/ISO date ranges, and the sum-to-N invariant.
 
+5. **API emitted bare `NaN` / `Infinity` JSON tokens.** ✅ **Resolved 2026-05-19** (PR #24 + deploy). Discovered while smoke-testing the playground: response body looked like `"Sent Amount": NaN`, browser `JSON.parse` rejected it with `Unexpected token 'N'`, and the playground UI showed a generic "Upstream returned non-JSON response." error. Root cause: parser emitted `float('nan')` in transaction rows (from blank/missing numeric columns), and `json.dumps` defaults to `allow_nan=True`, which writes the non-spec literals `NaN` / `Infinity` / `-Infinity` directly into the wire body. Strict parsers — including every browser's `JSON.parse` — refuse it.
+
+   **Fix shipped:** [`_sanitize_for_json()`](../backend/handlers/api.py) recursively walks dicts/lists in the response body and replaces any `float` that is `NaN` or `±Infinity` with `None`. Applied at the response boundary in `response()`, so all routes inherit it. Test coverage: `test_response_serializes_nan_floats_as_null` and `test_response_preserves_normal_values` in [`backend/tests/test_api_handler.py`](../backend/tests/test_api_handler.py).
+
+   **Deploy gap caught:** PR #24 merged at 18:55 UTC, but the API Lambda was last deployed at 18:31 UTC — 24 minutes before the fix landed. Production kept emitting `NaN` for another ~75 minutes until `./backend/deploy.sh deploy` was run. Lesson: Lambda deploys are manual and don't auto-trigger on merge to `main` — easy to forget.
+
+   **Diagnostic path:** PR #23 (merged earlier the same day) had added `console.error('[playground] upstream returned non-JSON', { status, contentType, contentLength, apigwRequestId, parseError, bodyPreview })` to the BFF in [`app/api/playground/parse/route.ts`](../app/api/playground/parse/route.ts). The Vercel log entry showed `status: 200`, `contentType: 'application/json'`, and a `bodyPreview` containing the literal token `NaN` — pinpointing the issue in under a minute and proving the value of logging upstream details on parse failures. Worth keeping.
+
+   **Verified end-to-end 2026-05-19 20:12 UTC** via playground replay of the same Coinbase CSV: row 5 (`2024-01-18`) returned `"Sent Amount": null, "Fee Amount": null` (previously bare `NaN`); response parses cleanly in the browser; `LastModified: 2026-05-19T20:12:51` confirms new code is live.
+
 ---
 
 ## Files referenced
