@@ -111,6 +111,46 @@ class TestUtilities:
         finally:
             api_module._current_request_origin = None
 
+    def test_response_serializes_nan_floats_as_null(self):
+        """Regression for SMOKE_TEST_RESULTS.md item 6: parser emitted
+        float('nan') in transaction rows, json.dumps wrote bare NaN tokens,
+        and browser JSON.parse rejected the body as invalid JSON."""
+        body = {
+            "status": "success",
+            "transactions": [
+                {"Sent Amount": float("nan"), "Received Amount": 1.0},
+                {"Sent Amount": 2.0, "Received Amount": float("inf")},
+            ],
+        }
+        resp = response(200, body)
+        # Body string must be valid JSON (no bare NaN/Infinity tokens).
+        parsed = json.loads(resp["body"])
+        assert parsed["transactions"][0]["Sent Amount"] is None
+        assert parsed["transactions"][0]["Received Amount"] == 1.0
+        assert parsed["transactions"][1]["Sent Amount"] == 2.0
+        assert parsed["transactions"][1]["Received Amount"] is None
+        # Confirm the wire format would survive strict parsers (no allow_nan).
+        json.loads(resp["body"])  # already done above, but explicit re-parse OK
+
+    def test_response_preserves_normal_values(self):
+        """Sanitizer must not mangle valid numbers, strings, bools, None."""
+        body = {
+            "int": 42,
+            "float": 3.14,
+            "str": "hello",
+            "bool": True,
+            "null": None,
+            "nested": {"list": [1, 2.5, "x", None]},
+        }
+        resp = response(200, body)
+        parsed = json.loads(resp["body"])
+        assert parsed["int"] == 42
+        assert parsed["float"] == 3.14
+        assert parsed["str"] == "hello"
+        assert parsed["bool"] is True
+        assert parsed["null"] is None
+        assert parsed["nested"]["list"] == [1, 2.5, "x", None]
+
     def test_error_response_includes_code_and_message(self):
         resp = error_response(400, "bad_input", "Something went wrong")
         body = json.loads(resp["body"])
