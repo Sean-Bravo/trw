@@ -198,6 +198,67 @@ Total remediation time: ~5 minutes from diagnosis to verified pass.
 
    Token mapping handles convert→buy (tax-correct), earn/stake/airdrop/etc.→transfer, with warn-level CloudWatch logs on fallback for parser-drift visibility. 24 unit tests cover token cases, fee counting, mixed None/ISO date ranges, and the sum-to-N invariant.
 
+5. **Business users can't create additional API keys from dashboard — UI silently creates free keys.** Surfaced 2026-05-18 during playground smoke setup on a Business-plan account. **Severity:** high but not launch-blocking.
+
+   **Repro:** Business-plan user with one Business key deletes it (leaving one Free key), clicks "Create" on the dashboard, gets `409 Only one active free API key per user`.
+
+   **Root cause is design, not code bug.** The dashboard's "Create" button has no tier selector and always sends `{ name }` only ([components/dashboard/ApiKeyManager.tsx:132](../components/dashboard/ApiKeyManager.tsx#L132)). The POST handler calls `createApiKey(userId, name)` with no tier ([app/api/developer/keys/route.ts:61](../app/api/developer/keys/route.ts#L61)), which defaults to `'free'` ([lib/api-keys.ts:65](../lib/api-keys.ts#L65)). The 1-free-key cap then fires correctly — it's enforced both in code ([lib/api-keys.ts:80-92](../lib/api-keys.ts#L80)) and by a partial unique index from migration 013. Business-tier keys are intentionally provisioned through the Stripe checkout flow (`autoSubscribe()` at [components/dashboard/ApiKeyManager.tsx:113](../components/dashboard/ApiKeyManager.tsx#L113)), not this button. The product UX never communicates that.
+
+   **Why not launch-blocking:** day-1 Reddit traffic is overwhelmingly new free signups, not existing Business subscribers wanting a second key. The affected population on launch day is near-zero.
+
+   **Why still high-severity:** when a real Business customer eventually hits this, the product looks broken — they're paying and the dashboard refuses to give them a key. This is a customer-trust bug, not just a UX rough edge.
+
+   **Fix (post-launch, pick one):**
+   - **A — minimal:** Change the error string when a Business+ user hits the cap to point at the Stripe flow: "Business users: create additional keys via Subscription → Manage." Cheapest acceptable mitigation; ship first.
+   - **B — proper:** Add a tier selector to the create dialog, default to user's current plan tier, route Business creates through the existing Stripe provisioning path.
+   - **C — server-side default:** Change `createApiKey`'s default to infer from the user's subscription tier rather than hardcoding `'free'`. Most "correct" but touches semantics other callers may depend on; would need an audit of all `createApiKey` call sites first.
+
+   **Owner:** post-launch. Ship A immediately after launch, plan B for the next dashboard pass.
+
+6. **Playground intermittently returns `200 + {"error":"Upstream returned non-JSON response."}`.** Surfaced 2026-05-18 during the same playground smoke session that uncovered item 5. **Severity:** medium. Failure cleared on retry within minutes; not launch-blocking, but launch-week priority to instrument so the next failure is diagnosable instead of opaque.
+
+   **Symptom:** [/playground](https://taxformatter.com/playground) loads the bundled Coinbase sample, clicks Send, gets HTTP 200 with body `{"error":"Upstream returned non-JSON response."}`. Two latency profiles observed in the same session: ~570 ms (warm) and 8.04 s / 10.24 s (cold-start). Re-firing the same request a minute or two later succeeded with `"status":"success"`, 18 transactions parsed, 2 rows cleanly skipped — proves the parser and end-to-end path work, the failure is intermittent.
+
+   **What we ruled out tonight** (each verified, not just guessed):
+   - **Lambda handler exception** — CloudWatch logs at `/aws/lambda/taxformatter-prod-api` show the cold-start invocation (RequestId `e642fbbc`) completed cleanly: `END` line present, no traceback, no `internal_error`, Duration 5488 ms. Subsequent warm invocations (`27761b02`, `b9f4e445`) completed in ~56 ms with the same "Detected exchange: Coinbase" trace and no errors. Whatever produced the non-JSON did not surface as a Python exception inside the handler.
+   - **Demo API key** — rotated `DEMO_API_KEY` Vercel env var via fresh-key creation + redeploy; failure reproduced with the new key.
+   - **Upstream production API** — curl against `https://api.taxformatter.com/v1/parse` with the rotated key:
+     - error path (bogus CSV → `unsupported_exchange`): clean `application/json` 422, content-length 302
+     - success path ([backend/tests/fixtures/valid/coinbase_2025_valid.csv](../backend/tests/fixtures/valid/coinbase_2025_valid.csv)): clean `application/json` 200, content-length 1324, 4 parsed transactions
+
+     Upstream is healthy on both branches.
+   - **BFF wrapping logic** — [app/api/playground/parse/route.ts:107-118](../app/api/playground/parse/route.ts#L107) passes upstream body and status through verbatim; no wrapping or transformation. The `"Upstream returned non-JSON response."` string lives only in the client-side fallback at [app/playground/page.tsx:40](../app/playground/page.tsx#L40), which fires when the browser's `res.json()` throws.
+   - **CDN/WAF synthetic 200** — the curl response headers showed the expected `apigw-requestid`, `x-tf-processing-time`, and `x-api-version` — proof there's no CloudFront or WAF rewriting responses for this path.
+
+   **Still unproven** (what the failure could still be — each requires the next live repro + BFF logging to confirm/refute):
+   - API Gateway response transformation under specific conditions (response template, integration response mapping mismatch on cold-Lambda response shape).
+   - Lambda response payload serialization edge case (e.g., a value the runtime can't serialize even though `json.dumps(..., default=str)` succeeded inside the handler).
+   - Vercel-side fetch quirk under cold-start timing (e.g., `upstream.text()` returning a partial body before connection close).
+   - Edge / CloudFront intercept on a non-deterministic condition.
+
+   **Tactical fix — first thing 2026-05-19, ~20 minutes including deploy:** instrument the BFF catch branch at [app/api/playground/parse/route.ts:111-118](../app/api/playground/parse/route.ts#L111) to log on `JSON.parse` failure:
+
+   ```typescript
+   } catch (parseErr) {
+     console.error('[playground] upstream returned non-JSON', {
+       status: upstream.status,
+       contentType: upstream.headers.get('Content-Type'),
+       contentLength: upstream.headers.get('Content-Length'),
+       apigwRequestId: upstream.headers.get('apigw-requestid'),
+       bodyPreview: text.slice(0, 500),
+     });
+     return new NextResponse(text, { ... });
+   }
+   ```
+
+   Zero behavior change for users. Next failure shows up in Vercel logs with full upstream context — `apigw-requestid` joins back to API Gateway / CloudWatch for end-to-end trace. Without this, every future failure is as opaque as tonight's.
+
+   **Reproduction plan after logging ships:** hammer the playground 20× back-to-back with the bundled Coinbase sample. Force at least one cold-start (any backend redeploy or 15+ min idle). Goal: capture one failure with the new logging, then diagnose from the captured `bodyPreview` (HTML → APIGW/CloudFront error page; plaintext "Endpoint request timed out" → APIGW timeout; truncated JSON → 6 MB cap or transform mangling; anything else → adjust).
+
+   **Verification gate:** 20 consecutive successful playground calls including at least one forced cold-start.
+
+   **Related observation (not blocking this fix, but launch-adjacent):** all 13 CloudWatch alarms are in **Insufficient data**, last state-transition 2026-05-10/14 — production monitoring is dark. The "no 5xx alarm firing" signal that initially looked reassuring is meaningless because the alarms aren't evaluating data. Worth one targeted alarm on `/v1/parse` non-2xx rate (or non-JSON 200 from APIGW access logs) so the next regression doesn't depend on someone manually hitting the playground to notice.
+
 ---
 
 ## Files referenced
