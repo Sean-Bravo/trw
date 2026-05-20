@@ -35,6 +35,20 @@ def test_leaves_safe_strings_alone():
     assert sanitize_csv_cell("") == ""
 
 
+def test_does_not_quote_negative_numbers():
+    # Negative amounts are numbers, not formulas. Quoting "-50.00" corrupts
+    # accounting/tax CSV exports (imported as text instead of a number).
+    assert sanitize_csv_cell("-50.00") == "-50.00"
+    assert sanitize_csv_cell("-1234.56") == "-1234.56"
+    assert sanitize_csv_cell("-1") == "-1"
+
+
+def test_still_quotes_minus_led_non_numbers():
+    # A leading "-" that is NOT a bare number is still a formula risk.
+    assert sanitize_csv_cell("-1+1").startswith("'")
+    assert sanitize_csv_cell("-1+cmd|'/c calc'!A1").startswith("'")
+
+
 def test_passes_through_non_strings():
     assert sanitize_csv_cell(42) == 42
     assert sanitize_csv_cell(3.14) == 3.14

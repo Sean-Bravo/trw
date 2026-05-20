@@ -14,16 +14,25 @@ neutralizes the formula.
 See SECURITY_AUDIT.md §M-10
 """
 
+import re
 from typing import Any, Dict, Iterable, List
 
 _FORMULA_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
+
+# A leading "-" also begins every negative number. Quoting those corrupts
+# financial exports — accounting tools (QuickBooks/Xero) and tax tools
+# (Koinly/TurboTax) import "'-50.00" as text, not a number. A bare numeric
+# literal cannot be a dangerous formula (it evaluates to itself), so we
+# exempt it. Anything with extra characters (e.g. "-1+1", "=cmd|...") is
+# NOT a pure number and is still neutralized.
+_NUMERIC_LITERAL = re.compile(r"-?\d+(\.\d+)?")
 
 
 def sanitize_csv_cell(value: Any) -> Any:
     """Prefix dangerous strings with ' so spreadsheets render as text."""
     if not isinstance(value, str) or not value:
         return value
-    if value[0] in _FORMULA_TRIGGERS:
+    if value[0] in _FORMULA_TRIGGERS and not _NUMERIC_LITERAL.fullmatch(value):
         return "'" + value
     return value
 
