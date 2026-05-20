@@ -13,6 +13,7 @@
 | -------- | ----------------- | ------ |
 | **Critical** | 0 | — (one false-positive raised then withdrawn; see §1) |
 | **High** | 2 | ✅ both fixed + pushed (PRs B, C) |
+| **Data-integrity** | 1 | ✅ fixed + pushed (PR D — CSV sanitizer corrupted negative amounts; see §5) |
 | **Medium** | 3 | ⏳ open, non-blocking |
 | **Low** | 4 | ⏳ open, non-blocking |
 
@@ -20,7 +21,7 @@
 
 ### Launch-gate verdict
 
-> **Gate met once PRs B and C merge.** Zero Critical. The two new High findings (IDOR on crypto job routes; over-broad CSRF exemption) are remediated and pushed; merging them brings open Critical/High to **0 / 0**. Remaining Medium/Low items are documented accepted risk for a post-launch follow-up.
+> **Gate met once PRs B, C, and D merge.** Zero Critical. The two new High findings (IDOR on crypto job routes; over-broad CSRF exemption) are remediated and pushed; merging them brings open Critical/High to **0 / 0**. Running the test suite (launch-gate step 2, see §5) surfaced a data-integrity bug — the M-10 CSV sanitizer was corrupting every negative amount in accounting/tax exports — now fixed in PR D. Remaining Medium/Low items are documented accepted risk for a post-launch follow-up.
 
 ---
 
@@ -85,8 +86,9 @@ New (non-blocking):
 | **A** | `fix/security-redact-tfvars-example` | Low (cosmetic) | Replace dead key strings in `terraform.tfvars.example` with placeholders | matches file style; keys already dead |
 | **B** | `fix/security-jobs-idor-ownership` | High ×2 | Add `getJobById` ownership guard to crypto job `download` + `insights` routes | `tsc --noEmit` clean; mirrors approved H-2 pattern |
 | **C** | `fix/security-csrf-auth-exemption` | High | Narrow CSRF exemption to NextAuth core paths; custom auth routes now get the Origin check | 75 middleware tests pass incl. new regression cases; `tsc` clean |
+| **D** | `fix/backend-test-isolation-and-ci` | Data-integrity + test infra | CSV sanitizer numeric exemption (§5); fix cross-file `sys.modules` mock pollution; add a `pytest` job to CI | full `pytest tests/` green (370 passed); `ci.yml` valid |
 
-PR A is optional cleanup (no rotation or history scrub needed — both completed 2026-04-30). PRs **B and C are the launch blockers**; merging them meets the gate.
+PR A is optional cleanup (no rotation or history scrub needed — both completed 2026-04-30). PRs **B, C, and D are the launch blockers**; merging them meets the gate.
 
 ---
 
@@ -95,13 +97,32 @@ PR A is optional cleanup (no rotation or history scrub needed — both completed
 Per [SECURITY_REMEDIATION_PLAN.md](SECURITY_REMEDIATION_PLAN.md) lines 133–142:
 
 - [x] Re-run the 6-class audit methodology (this report)
-- [x] Confirm zero Critical / zero High — **met once PRs B + C merge**
+- [x] Confirm zero Critical / zero High — **met once PRs B + C + D merge**
 - [x] Confirm Medium count acceptable — 3 open Mediums documented above as accepted post-launch risk
-- [ ] Run full test suite (`npm test`, `pytest`) — backend `pytest` green this session; run full JS suite after B/C merge
+- [x] Run full test suite (`npm test`, `pytest`) — see §5: JS green; `pytest tests/` green (370 passed) after the PR-D fixes; pytest now wired into CI
 - [ ] Cross-browser smoke test
 - [ ] **Then** launch
 
-## §5 — Post-launch follow-up backlog (non-blocking)
+---
+
+## §5 — Test-suite verification (launch-gate step 2)
+
+Running the full suite was step 2 of the launch gate. It exposed three issues — two test-infra, one real product bug — all fixed in **PR D** (`fix/backend-test-isolation-and-ci`).
+
+### JS (jest)
+✅ All green, 0 failures. (The raw run reports ~5070 tests / 336 suites because jest also scans the five `.claude/worktrees/*` copies; the unique suite is fully green.)
+
+### Python (pytest) — three problems found
+
+1. **Cross-file `sys.modules` mock pollution (test infra).** `test_api_handler.py`, `test_api_auth.py`, and `test_processor.py` each replaced `pandas`/`numpy`/`chardet` with `MagicMock` at module load and never restored them. Since pytest shares one process, every parser/engine test collected later imported the mock and failed — **68 false failures** in a single `pytest tests/` run. Fixed by saving and restoring the real libraries around each module-under-test import.
+
+2. **Data-integrity bug — M-10 CSV sanitizer corrupts negative amounts (real).** `sanitize_csv_cell` (`backend/services/csv_safety.py`) prepended `'` to any cell starting with `- = + @`. Exporters run it over the numeric amount column ([`exporter.py:54`](../backend/services/bank_statement/exporter.py)), so `-50.00` became `'-50.00`. Accounting tools (QuickBooks/Xero) and tax tools (Koinly/TurboTax) then import every negative amount as **text, not a number** — breaking reconciliation. The two failing QBO tests (`test_qbo_amount_format`, `test_qbo_preserves_negative_amounts`) correctly caught it; they had been red since M-10 landed, masked because CI never ran pytest. **Fixed** by exempting bare numeric literals from quoting (a number evaluates to itself and cannot be a dangerous formula); `=cmd|...`, `-1+1`, and other non-numeric trigger-led values are still neutralized. Note: this refines the M-10 control — M-10's formula protection is preserved.
+
+3. **CI never ran pytest (process gap).** `ci.yml` ran `pip-audit` but never executed the Python tests, so backend regressions could not be caught by CI — which is why #2 went unnoticed. Added a `backend-test` job that installs the pinned Lambda manifests + pytest and runs `pytest tests/` from `backend/`.
+
+**Result:** a single `pytest tests/` now passes **370 / 370**, and the suite runs on every push/PR.
+
+## §6 — Post-launch follow-up backlog (non-blocking)
 
 1. `reset-password` complexity-policy bypass (Medium)
 2. `2fa/disable` step-up re-auth (Medium)
