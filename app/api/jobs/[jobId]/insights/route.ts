@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { getJobById } from '@/lib/jobs-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 
@@ -24,6 +25,13 @@ export async function GET(
     }
 
     const { jobId } = await params;
+
+    // IDOR guard: verify the job belongs to the caller before returning
+    // AI insights — jobId is not a capability. (Mirrors H-2.)
+    const dbJob = await getJobById(jobId);
+    if (!dbJob || dbJob.upload.user_id !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // 2. Call AWS Lambda via API Gateway
     // Route: GET /insights/{jobId} (see backend/handlers/webhook.py)

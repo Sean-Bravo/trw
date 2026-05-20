@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { query } from '@/lib/db';
 import { API_GATEWAY_URL } from '@/lib/lambda-client';
 import { getUserTier } from '@/lib/auth-db';
+import { getJobById } from '@/lib/jobs-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 
@@ -27,6 +28,14 @@ export async function GET(
 
     const userId = session.user.id;
     const { jobId } = await params;
+
+    // IDOR guard: jobId UUIDs leak through browser history, referrers, and
+    // screenshots — they cannot be treated as a capability. Verify the job
+    // belongs to the caller before returning a download URL. (Mirrors H-2.)
+    const dbJob = await getJobById(jobId);
+    if (!dbJob || dbJob.upload.user_id !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // Resolve unified tier (api_keys.tier — highest active wins).
     const tier = await getUserTier(userId);
