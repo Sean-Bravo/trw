@@ -9,8 +9,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Patch all external deps before importing api_auth
+# Patch all external deps before importing api_auth.
+# pandas/numpy/chardet are saved here and restored after the import below:
+# without the restore, these module-level MagicMocks leak through
+# sys.modules and break parser/engine tests collected later in the same
+# pytest process (they need the real libraries).
 import sys
+_REAL_DATA_LIBS = {name: sys.modules.get(name) for name in ("pandas", "numpy", "chardet")}
 sys.modules["boto3"] = MagicMock()
 mock_psycopg2 = MagicMock()
 sys.modules["psycopg2"] = mock_psycopg2
@@ -31,6 +36,14 @@ from services.api_auth import (
     record_request,
     _rpm_tracker,
 )
+
+# Restore real data libs so later-collected test modules import them
+# instead of the MagicMocks installed above.
+for _name, _mod in _REAL_DATA_LIBS.items():
+    if _mod is not None:
+        sys.modules[_name] = _mod
+    else:
+        sys.modules.pop(_name, None)
 
 
 # ---------------------------------------------------------------------------

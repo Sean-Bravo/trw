@@ -11,7 +11,12 @@ import pytest
 import sys
 import os
 
-# Patch all external deps before import
+# Patch all external deps before import.
+# pandas/numpy/chardet are saved here and restored after the import below:
+# without the restore, these module-level MagicMocks leak through
+# sys.modules and break parser/engine tests collected later in the same
+# pytest process (they need the real libraries).
+_REAL_DATA_LIBS = {name: sys.modules.get(name) for name in ("pandas", "numpy", "chardet")}
 sys.modules["boto3"] = MagicMock()
 mock_psycopg2 = MagicMock()
 sys.modules["psycopg2"] = mock_psycopg2
@@ -35,6 +40,14 @@ from handlers.api import (
     DEFAULT_ORIGIN,
 )
 import handlers.api as api_module
+
+# Restore real data libs so later-collected test modules import them
+# instead of the MagicMocks installed above.
+for _name, _mod in _REAL_DATA_LIBS.items():
+    if _mod is not None:
+        sys.modules[_name] = _mod
+    else:
+        sys.modules.pop(_name, None)
 
 
 # ---------------------------------------------------------------------------
