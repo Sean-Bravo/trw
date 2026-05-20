@@ -147,5 +147,48 @@ describe('CSRF middleware (H-4)', () => {
       );
       expect(res.status).not.toBe(403);
     });
+
+    it.each([
+      '/api/auth/session',
+      '/api/auth/csrf',
+      '/api/auth/signin',
+      '/api/auth/signin/google',
+      '/api/auth/signout',
+      '/api/auth/callback/credentials',
+    ])('exempts NextAuth core path %s', (pathname) => {
+      const res = middleware(makeRequest({ method: 'POST', pathname }));
+      expect(res.status).not.toBe(403);
+    });
+  });
+
+  // Regression: a blanket /api/auth/ exemption left custom auth routes
+  // (2fa/disable, register, reset-password, …) forgeable cross-site.
+  describe('Custom /api/auth/* routes are NOT exempt (CSRF regression)', () => {
+    it.each([
+      '/api/auth/2fa/disable',
+      '/api/auth/2fa/setup',
+      '/api/auth/2fa/regenerate-codes',
+      '/api/auth/register',
+      '/api/auth/forgot-password',
+      '/api/auth/reset-password',
+      '/api/auth/resend-code',
+      '/api/auth/verify',
+    ])('rejects POST to %s with a foreign origin', (pathname) => {
+      const res = middleware(
+        makeRequest({ method: 'POST', pathname, origin: 'https://evil.com' }),
+      );
+      expect(res.status).toBe(403);
+    });
+
+    it('still allows a custom auth POST from the app origin', () => {
+      const res = middleware(
+        makeRequest({
+          method: 'POST',
+          pathname: '/api/auth/2fa/disable',
+          origin: 'https://taxformatter.com',
+        }),
+      );
+      expect(res.status).not.toBe(403);
+    });
   });
 });
