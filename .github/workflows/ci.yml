@@ -48,6 +48,31 @@ jobs:
         with:
           fail_ci_if_error: false
 
+  backend-test:
+    name: Backend Tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Pinned Lambda manifests cover the real data libs the tests need
+      # (numpy/pandas/chardet/pdfplumber/PyYAML + anthropic). boto3/psycopg2
+      # are mocked in-test; the Gemini path uses REST (no SDK).
+      - name: Install backend + test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements-api.txt -r backend/requirements-processor.txt
+          pip install pytest pytest-cov
+
+      # Tests import handlers/services as top-level packages, so run from backend/.
+      - name: Run backend test suite
+        run: python -m pytest tests/
+        working-directory: backend
+
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
