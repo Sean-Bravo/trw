@@ -6,14 +6,17 @@ import { getServerSession } from 'next-auth';
 import { GET } from '@/app/api/jobs/[jobId]/download/route';
 import { createMockRequest } from '../../utils/mock-request';
 import * as db from '@/lib/db';
+import { getJobById } from '@/lib/jobs-db';
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }));
 jest.mock('@/app/api/auth/[...nextauth]/route', () => ({ authOptions: {} }));
 jest.mock('@/lib/db');
+jest.mock('@/lib/jobs-db', () => ({ getJobById: jest.fn() }));
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockQueryOne = db.queryOne as jest.MockedFunction<typeof db.queryOne>;
 const mockQuery = db.query as jest.MockedFunction<typeof db.query>;
+const mockGetJobById = getJobById as jest.MockedFunction<typeof getJobById>;
 
 function ctx(jobId: string) {
   return { params: Promise.resolve({ jobId }) };
@@ -29,6 +32,8 @@ describe('GET /api/jobs/[jobId]/download', () => {
       expires: '2025-12-31',
     });
     mockQueryOne.mockResolvedValue({ tier: 'free' });
+    // Job owned by the authenticated user (user-1) so the IDOR guard passes.
+    mockGetJobById.mockResolvedValue({ id: 'j1', upload: { user_id: 'user-1' } } as any);
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -94,5 +99,19 @@ describe('GET /api/jobs/[jobId]/download', () => {
     const res = await GET(createMockRequest({}) as any, ctx('j1'));
     expect(res.status).toBe(500);
     expect((await res.json()).error).toBe('Internal server error');
+  });
+
+  it('returns 403 when the job belongs to another user (IDOR guard)', async () => {
+    mockGetJobById.mockResolvedValue({ id: 'j1', upload: { user_id: 'user-2' } } as any);
+    const res = await GET(createMockRequest({}) as any, ctx('j1'));
+    expect(res.status).toBe(403);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 when the job does not exist', async () => {
+    mockGetJobById.mockResolvedValue(null);
+    const res = await GET(createMockRequest({}) as any, ctx('j1'));
+    expect(res.status).toBe(403);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
