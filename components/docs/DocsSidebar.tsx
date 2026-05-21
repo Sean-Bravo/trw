@@ -43,7 +43,7 @@ export function DocsSidebar({ sections, onLinkClick }: DocsSidebarProps) {
               </div>
               <ul className="space-y-1 ml-8 border-l border-slate-200 dark:border-slate-700 pl-4">
                 {section.pages.map((page) => {
-                  const href = `/docs/${section.slug}/${page.slug}`
+                  const href = page.href ?? `/docs/${section.slug}/${page.slug}`
                   const isActive = pathname === href
 
                   return (

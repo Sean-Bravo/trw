@@ -68,7 +68,7 @@ export const DOCS_SECTIONS: DocSection[] = [
     description: 'Common questions and answers about TaxFormatter',
     icon: HelpCircle,
     pages: [
-      { title: 'FAQ', slug: 'faq' },
+      { title: 'FAQ', slug: 'faq', href: '/docs/faq' },
     ],
   },
 ]
