@@ -3,7 +3,10 @@ name: Publish Python SDK to PyPI
 on:
   push:
     tags:
-      - "v*.*.*"
+      # SDK releases use sdk-vX.Y.Z tags, decoupled from repo/app release
+      # tags (e.g. v1.0.0). A plain v*.*.* tag here previously tried to
+      # republish the SDK and failed on PyPI's duplicate-version check.
+      - "sdk-v*.*.*"
 
 jobs:
   test:
@@ -51,3 +54,5 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: packages/sdk-python/dist/
+          # Safety net: skip (don't fail) if this version is already on PyPI.
+          skip-existing: true
