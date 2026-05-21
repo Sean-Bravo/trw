@@ -6,6 +6,12 @@ import type { LucideIcon } from 'lucide-react'
 export interface DocPage {
   title: string
   slug: string
+  /**
+   * Optional explicit href. Overrides the default `/docs/<section>/<slug>`
+   * computed by the sidebar — used for single-page sections (e.g. FAQ) whose
+   * content lives at the section root (`/docs/faq`) rather than a nested URL.
+   */
+  href?: string
 }
 
 /**
