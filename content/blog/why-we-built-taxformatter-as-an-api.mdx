@@ -1,0 +1,58 @@
+---
+title: "Why We Built TaxFormatter as an API Instead of a SaaS"
+description: "The default way to build a crypto and bank tax tool is a SaaS web app — upload, click, download, subscribe. We built the opposite: an API first, with the UI as just another client. Here's the reasoning, and the trade-offs we accepted."
+date: "2026-05-23"
+author: "TaxFormatter Team"
+category: "updates"
+tags: ["API", "API-first", "SaaS", "engineering", "product", "MCP", "fintech", "developer"]
+published: true
+featured: false
+---
+
+## The default we chose not to build
+
+If you set out to build a tool that fixes messy crypto and bank files, the obvious shape is a SaaS web app: a landing page, an upload box, a spinner, a download button, a monthly subscription. That's what almost everyone in this space ships, and it's what we assumed we'd ship too.
+
+We built the opposite. TaxFormatter is an API first, and the website is one of its clients — not the other way around. Here's why we made that call, and the parts that were genuinely harder because of it.
+
+## The valuable part was never the upload button
+
+The durable value in a tool like this isn't the interface. It's the parsing engine: detecting which of 14 exchanges produced a CSV, reconciling four different date conventions, de-duplicating rows that overlap because someone exported the same range twice, and surviving the fact that Coinbase quietly changes its export format every year or so. Bank statement PDFs are worse — wrapped descriptions, repeated page headers, the works.
+
+That engine is the thing worth paying for. A SaaS-first design takes that value and buries it behind a wizard that only a human, clicking one file at a time, can reach. We decided the engine should *be* the product, and everything else should be a thin layer on top of it.
+
+## SaaS quietly assumes a human is always in the loop
+
+A web-app-first product is built around one user: a person at a keyboard, doing one file, watching a progress bar. That's a real user, and we serve them. But it's not the only one, and increasingly not the most important one.
+
+The people who deal with messy financial files *at volume* don't want a wizard. An accountant cleaning 60 clients' exports wants a script. A fintech team importing user transactions wants an endpoint, not an iframe. And an AI agent asked to "import my Coinbase history" wants a tool it can call, not a multi-step UI it has to pretend to be a human inside of. API-first meets all three where they actually work.
+
+## One engine, many front doors
+
+Because the parsing core is an API, every surface we ship is just another client of the same engine. The web uploader, the in-browser playground, the developer dashboard, and the MCP server all sit in front of one parsing core. Adding a new way to use TaxFormatter means writing a new client — not a new parser.
+
+That's the part developers tend to appreciate: there's no "real" version hidden behind the marketing site. The same thing you'd call from your code is the thing the website calls.
+
+## The MCP server was almost free
+
+This is the clearest payoff. When AI agents became a real distribution channel, we didn't have to rebuild anything — an agent is just one more API client. The [TaxFormatter MCP server](/blog/taxformatter-mcp-server-ai-agents) shipped as a thin wrapper over the same endpoint and is now live in the [official MCP registry and several directories](/blog/taxformatter-mcp-registry-launch). A SaaS-first competitor has to bolt an API onto a UI-shaped product after the fact. We got it for the cost of a wrapper.
+
+## Transparency beats a black box
+
+Developers don't trust black boxes, and an API-first design doesn't let you ship one. It forced us to be explicit: documented endpoints, structured JSON out (ready for Koinly, TurboTax, CoinLedger, or ZenLedger), predictable error codes, and a free tier — 25 files a month, no credit card — so you can test against your *own* messy files before you commit to anything. You find out whether it actually parses your weird 2021 Kraken export in about five minutes, not after a sales call.
+
+## The trade-offs we accepted
+
+This isn't a free lunch, and it'd be dishonest to pretend otherwise.
+
+API-first is a harder *first* sell. A non-technical user can't do anything with the sentence "we have a great parsing API," so we still had to build a genuinely good web app for them — it's just architected as a client, not the product. Marketing an endpoint is harder than marketing a screenshot. And you carry the discipline cost of versioning and documenting things publicly, forever.
+
+We took those trade-offs because the engine compounds and the UI doesn't. Every hour spent making the parser handle one more exchange pays off across every surface at once — web, API, and agents — instead of in one app. We're not anti-SaaS; we think the SaaS *is* a client. The mistake is making it the whole product.
+
+## Try the part that matters
+
+If you've been gluing together one-off CSV parsers, or you want your agent to handle financial files without custom code, start with the engine directly. The [API docs](/docs/api) get you a key and a first parse in a few minutes, the free tier needs no card, and the [MCP server](/blog/taxformatter-mcp-server-ai-agents) gets you running inside Claude, Cursor, or any MCP client even faster.
+
+---
+
+*Building something that needs to parse financial files? Tell us your ugliest export — email [support@taxformatter.com](mailto:support@taxformatter.com) and we'll tell you straight whether the API handles it.*
