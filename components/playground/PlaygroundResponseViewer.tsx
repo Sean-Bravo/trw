@@ -41,7 +41,7 @@ export function PlaygroundResponseViewer({
     <div className="rounded-xl border border-white/10 bg-slate-800 overflow-hidden flex flex-col h-full min-h-[480px]">
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
         <div className="flex items-center gap-3">
-          <Terminal className="w-4 h-4 text-slate-500" />
+          <Terminal className="w-4 h-4 text-slate-400" />
           <span className="text-sm font-medium text-slate-300">Response</span>
           {status === 'response' && httpStatus !== undefined && (
             <span
@@ -51,7 +51,7 @@ export function PlaygroundResponseViewer({
             </span>
           )}
           {status === 'response' && latencyMs !== undefined && (
-            <span className="text-[11px] font-mono text-slate-500">
+            <span className="text-[11px] font-mono text-slate-400">
               {latencyMs < 1000 ? `${latencyMs}ms` : `${(latencyMs / 1000).toFixed(2)}s`}
             </span>
           )}
@@ -80,7 +80,7 @@ export function PlaygroundResponseViewer({
       <div className="flex-1 overflow-auto">
         {status === 'idle' && (
           <div className="h-full flex items-center justify-center p-8 text-center">
-            <p className="text-sm text-slate-500 max-w-xs">
+            <p className="text-sm text-slate-400 max-w-xs">
               Send a request to see the response here. The playground hits the real
               <span className="font-mono text-slate-400"> /v1/parse </span>
               endpoint — same response shape as your production code.
