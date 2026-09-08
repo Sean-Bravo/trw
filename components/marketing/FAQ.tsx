@@ -122,7 +122,7 @@ export function FAQ() {
               <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1]">
                 Things devs actually ask.
               </h2>
-              <p className="text-slate-500 text-lg mt-6 tracking-tight">
+              <p className="text-slate-400 text-lg mt-6 tracking-tight">
                  No fluff. Real answers about the API, MCP server, and how it all works.
               </p>
             </div>

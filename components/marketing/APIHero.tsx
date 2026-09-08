@@ -154,7 +154,7 @@ export function APIHero() {
                     <div className="w-3 h-3 rounded-full bg-[#febc2e]/80" />
                     <div className="w-3 h-3 rounded-full bg-[#28c840]/80" />
                   </div>
-                  <span className="text-[11px] font-mono text-slate-600">api.taxformatter.com</span>
+                  <span className="text-[11px] font-mono text-slate-400">api.taxformatter.com</span>
                   <div className="w-16" />
                 </div>
 
@@ -162,7 +162,7 @@ export function APIHero() {
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">POST</span>
-                    <span className="text-[11px] font-mono text-slate-500">/v1/parse</span>
+                    <span className="text-[11px] font-mono text-slate-400">/v1/parse</span>
                   </div>
                   <div className="font-mono text-[13px] leading-[1.7] space-y-0">
                     {codeLines.map((line, i) => (
@@ -182,7 +182,7 @@ export function APIHero() {
                   <div className="border-t border-white/4 p-5 bg-white/1">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">200</span>
-                      <span className="text-[11px] font-mono text-slate-500">842ms</span>
+                      <span className="text-[11px] font-mono text-slate-400">842ms</span>
                     </div>
                     <div className="font-mono text-[13px] leading-[1.7]">
                       {responseLines.map((line, i) => (

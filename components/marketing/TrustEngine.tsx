@@ -172,25 +172,25 @@ const TrustEngine = () => {
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <div className="text-[13px] font-semibold text-slate-200">Zero-persistence Lambda</div>
-                <p className="text-[12px] text-slate-500 leading-relaxed">
+                <p className="text-[12px] text-slate-400 leading-relaxed">
                   File payloads are processed in volatile RAM (1024MB). No /tmp writes, no disk, no cache. Lambda execution context is flushed after every response.
                 </p>
               </div>
               <div className="space-y-2">
                 <div className="text-[13px] font-semibold text-slate-200">Metadata-only logging</div>
-                <p className="text-[12px] text-slate-500 leading-relaxed">
+                <p className="text-[12px] text-slate-400 leading-relaxed">
                   We log: key hash, status code, byte size, latency. We never log: file content, transaction data, PII. Every response includes <code className="text-emerald-400/80 text-[11px]">X-TF-Processing-Time</code> so you can monitor overhead.
                 </p>
               </div>
               <div className="space-y-2">
                 <div className="text-[13px] font-semibold text-slate-200">SHA-256 key hashing</div>
-                <p className="text-[12px] text-slate-500 leading-relaxed">
+                <p className="text-[12px] text-slate-400 leading-relaxed">
                   API keys are one-way hashed at rest. Even in a full database breach, your active keys are unreadable. Keys are prefixed <code className="text-emerald-400/80 text-[11px]">tf_live_</code> for identification only.
                 </p>
               </div>
               <div className="space-y-2">
                 <div className="text-[13px] font-semibold text-slate-200">TLS 1.3 in transit</div>
-                <p className="text-[12px] text-slate-500 leading-relaxed">
+                <p className="text-[12px] text-slate-400 leading-relaxed">
                   All POST payloads encrypted end-to-end. No plaintext financial data touches the wire between your app and our API Gateway.
                 </p>
               </div>

@@ -27,7 +27,7 @@ const tiers = [
     cta: 'Start Free',
     tier: 'free',
     style: 'bg-white/2 border-white/6',
-    checkColor: 'text-slate-500',
+    checkColor: 'text-slate-400',
   },
   {
     name: 'Starter',
@@ -44,7 +44,7 @@ const tiers = [
     cta: 'Get Started',
     tier: 'starter',
     style: 'bg-white/2 border-white/6',
-    checkColor: 'text-slate-500',
+    checkColor: 'text-slate-400',
   },
   {
     name: 'Growth',
@@ -82,7 +82,7 @@ const tiers = [
     cta: 'Get Started',
     tier: 'business',
     style: 'bg-white/2 border-white/6',
-    checkColor: 'text-slate-500',
+    checkColor: 'text-slate-400',
   },
 ];
 
@@ -138,9 +138,9 @@ export function APIPricing() {
                   <h3 className="text-lg font-semibold text-slate-300 mb-3">{tier.name}</h3>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-4xl font-bold text-white">{tier.price}</span>
-                    <span className="text-slate-500 text-sm">{tier.period}</span>
+                    <span className="text-slate-400 text-sm">{tier.period}</span>
                   </div>
-                  <p className="text-sm text-slate-500 mt-3">{tier.description}</p>
+                  <p className="text-sm text-slate-400 mt-3">{tier.description}</p>
                 </div>
 
                 <ul className="space-y-3.5 mb-8 flex-1">
@@ -168,7 +168,7 @@ export function APIPricing() {
                     column height and lifts its CTA 24px above the other three. */}
                 <div className="min-h-4 mt-2">
                   {tier.tier === 'free' && (
-                    <p className="text-xs text-slate-500 text-center">
+                    <p className="text-xs text-slate-400 text-center">
                       No credit card required
                     </p>
                   )}

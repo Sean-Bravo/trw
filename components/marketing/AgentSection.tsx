@@ -72,16 +72,16 @@ export function AgentSection() {
 
             {/* Prominent install command */}
             <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-surface-card border border-white/8">
-              <span className="text-slate-500 text-sm">$</span>
+              <span className="text-slate-400 text-sm">$</span>
               <code className="text-[15px] font-mono text-emerald-400">npx @taxformatter/mcp-server</code>
               <button
                 onClick={() => navigator.clipboard.writeText('npx @taxformatter/mcp-server')}
-                className="ml-2 text-slate-500 hover:text-white transition-colors text-xs border border-white/10 rounded px-2 py-1"
+                className="ml-2 text-slate-400 hover:text-white transition-colors text-xs border border-white/10 rounded px-2 py-1"
               >
                 Copy
               </button>
             </div>
-            <p className="text-[12px] text-slate-600 mt-3">
+            <p className="text-[12px] text-slate-400 mt-3">
               Works with Claude Code, Cursor, Windsurf, and any MCP-compatible client.
             </p>
           </div>
@@ -100,7 +100,7 @@ export function AgentSection() {
                 <div className="absolute -inset-px bg-gradient-to-b from-[#635bff]/10 to-transparent rounded-xl" />
                 <div className="relative bg-surface-card rounded-xl border border-white/5 overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-3 border-b border-white/4 bg-white/1.5">
-                    <span className="text-[11px] font-mono text-slate-600">claude_desktop_config.json</span>
+                    <span className="text-[11px] font-mono text-slate-400">claude_desktop_config.json</span>
                   </div>
                   <pre className="p-5 font-mono text-[13px] leading-[1.75] text-slate-300 overflow-x-auto">
                     <code>{mcpConfig}</code>
@@ -119,7 +119,7 @@ export function AgentSection() {
                     <MessageSquare className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-[13px] text-slate-500 mb-1">You say:</p>
+                    <p className="text-[13px] text-slate-400 mb-1">You say:</p>
                     <p className="text-[15px] text-slate-200 leading-relaxed">
                       &ldquo;Parse my Coinbase CSV from Downloads and tell me my total capital gains for 2024.&rdquo;
                     </p>
@@ -132,7 +132,7 @@ export function AgentSection() {
             <div className="space-y-4">
               <div className="mb-4">
                 <h3 className="text-white font-semibold text-lg">3 MCP tools exposed</h3>
-                <p className="text-sm text-slate-500 mt-1">Your agent gets these capabilities automatically.</p>
+                <p className="text-sm text-slate-400 mt-1">Your agent gets these capabilities automatically.</p>
               </div>
               {tools.map((tool) => (
                 <div

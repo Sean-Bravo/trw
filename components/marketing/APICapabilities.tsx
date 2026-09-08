@@ -111,7 +111,7 @@ export function APICapabilities() {
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 rounded-full bg-[#635bff]" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Crypto Exchanges</h3>
-                    <span className="text-[11px] text-slate-500 font-mono">{exchanges.length}</span>
+                    <span className="text-[11px] text-slate-400 font-mono">{exchanges.length}</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     {exchanges.map((ex) => (
@@ -120,7 +120,7 @@ export function APICapabilities() {
                         className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-[#635bff]/20 hover:bg-[#635bff]/4 transition-all group min-w-0"
                       >
                         <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors truncate">{ex.name}</span>
-                        <span className="text-[10px] text-slate-600 font-mono shrink-0">{ex.format}</span>
+                        <span className="text-[10px] text-slate-400 font-mono shrink-0">{ex.format}</span>
                       </div>
                     ))}
                   </div>
@@ -131,7 +131,7 @@ export function APICapabilities() {
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Bank PDFs</h3>
-                    <span className="text-[11px] text-slate-500 font-mono">{banks.length}+</span>
+                    <span className="text-[11px] text-slate-400 font-mono">{banks.length}+</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     {banks.map((bank) => (
@@ -155,7 +155,7 @@ export function APICapabilities() {
                 <div className="my-4 w-14 h-14 rounded-xl bg-white/4 border border-white/8 flex items-center justify-center">
                   <Zap className="w-6 h-6 text-amber-400" />
                 </div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-widest my-2 font-semibold">Engine</div>
+                <div className="text-[10px] text-slate-400 uppercase tracking-widest my-2 font-semibold">Engine</div>
                 <div className="w-px flex-1 bg-linear-to-b from-slate-600 via-slate-600 to-transparent" />
               </div>
 
@@ -177,8 +177,8 @@ export function APICapabilities() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-[11px] text-slate-600 mt-3 pl-1">
-                    Set <code className="font-mono text-slate-500">output_format</code> in your request. Default: Koinly.
+                  <p className="text-[11px] text-slate-400 mt-3 pl-1">
+                    Set <code className="font-mono text-slate-400">output_format</code> in your request. Default: Koinly.
                   </p>
                 </div>
 
@@ -192,7 +192,7 @@ export function APICapabilities() {
                       <feat.icon className={`w-4 h-4 mt-0.5 ${feat.accent} shrink-0`} />
                       <div>
                         <span className="text-[13px] font-semibold text-white">{feat.title}</span>
-                        <span className="text-[12px] text-slate-500 ml-2">{feat.desc}</span>
+                        <span className="text-[12px] text-slate-400 ml-2">{feat.desc}</span>
                       </div>
                     </div>
                   ))}
@@ -204,7 +204,7 @@ export function APICapabilities() {
           {/* Response preview */}
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-4">
-              <span className="text-[11px] text-slate-500 uppercase tracking-widest font-semibold">Every response includes</span>
+              <span className="text-[11px] text-slate-400 uppercase tracking-widest font-semibold">Every response includes</span>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               {[
