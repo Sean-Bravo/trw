@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
     category: post.category,
     readingTime: String(post.readingTime),
   })
-  const ogImageUrl = `https://taxformatter.com/api/og?${ogParams.toString()}`
+  const ogImageUrl = `https://www.taxformatter.com/api/og?${ogParams.toString()}`
 
   return {
     title: `${post.title} | TaxFormatter`,
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
       type: 'article',
       publishedTime: post.date,
       authors: [post.author],
-      url: `https://taxformatter.com${post.url}`,
+      url: `https://www.taxformatter.com${post.url}`,
       images: [{ url: ogImageUrl, width: 1200, height: 630, alt: post.title }],
     },
     twitter: {
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
       images: [ogImageUrl],
     },
     alternates: {
-      canonical: `https://taxformatter.com${post.url}`,
+      canonical: `https://www.taxformatter.com${post.url}`,
     },
   }
 }

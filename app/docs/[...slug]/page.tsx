@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
       title,
       description,
       type: 'article',
-      url: `https://taxformatter.com${doc.url}`,
+      url: `https://www.taxformatter.com${doc.url}`,
       siteName: 'TaxFormatter',
     },
     twitter: {
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
       description,
     },
     alternates: {
-      canonical: `https://taxformatter.com${doc.url}`,
+      canonical: `https://www.taxformatter.com${doc.url}`,
     },
   }
 }
@@ -103,27 +103,27 @@ export default async function DocPage({ params }: DocPageProps) {
         {
           name: 'Export CSV from your exchange',
           text: 'Log in to your cryptocurrency exchange (Binance, Coinbase, Kraken, KuCoin, or Bybit) and navigate to your trade history or transaction history section. Download your transaction data as a CSV file.',
-          url: 'https://taxformatter.com/docs/getting-started/upload-your-first-csv#how-to-export-from-your-exchange'
+          url: 'https://www.taxformatter.com/docs/getting-started/upload-your-first-csv#how-to-export-from-your-exchange'
         },
         {
           name: 'Visit TaxFormatter',
           text: 'Go to taxformatter.com in your web browser to access the CSV upload tool.',
-          url: 'https://taxformatter.com'
+          url: 'https://www.taxformatter.com'
         },
         {
           name: 'Upload your CSV file',
           text: 'Click or drag your CSV file into the upload area on the TaxFormatter homepage. The AI will automatically detect your exchange and begin analyzing your data.',
-          url: 'https://taxformatter.com/docs/getting-started/upload-your-first-csv#upload-to-taxformatter'
+          url: 'https://www.taxformatter.com/docs/getting-started/upload-your-first-csv#upload-to-taxformatter'
         },
         {
           name: 'Review AI insights',
           text: 'Watch the AI Insights panels appear as TaxFormatter analyzes your data. The system will flag potential tax issues like wash sales, staking income, and other reportable events.',
-          url: 'https://taxformatter.com/docs/understanding-your-results'
+          url: 'https://www.taxformatter.com/docs/understanding-your-results'
         },
         {
           name: 'Download formatted CSV',
           text: 'Once processing is complete, download your formatted CSV file. The file will be named with your exchange and date (e.g., binance_formatted_2025-12-27.csv) and will be ready for import into tax software.',
-          url: 'https://taxformatter.com/docs/exporting-your-data'
+          url: 'https://www.taxformatter.com/docs/exporting-your-data'
         }
       ]
     }

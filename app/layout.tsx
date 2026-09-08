@@ -30,14 +30,14 @@ export const metadata: Metadata = {
   authors: [{ name: "TaxFormatter" }],
   creator: "TaxFormatter",
   publisher: "TaxFormatter",
-  metadataBase: new URL("https://taxformatter.com"),
+  metadataBase: new URL("https://www.taxformatter.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://taxformatter.com",
+    url: "https://www.taxformatter.com",
     title: "TaxFormatter — Crypto CSV Parsing API & MCP Server",
     description: "Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 7+ banks, 4 tax formats. One API call. MCP server for AI agents.",
     siteName: "TaxFormatter",

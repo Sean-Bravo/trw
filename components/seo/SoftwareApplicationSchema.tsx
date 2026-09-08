@@ -9,8 +9,8 @@ export function SoftwareApplicationSchema() {
     applicationSubCategory: 'FinanceApplication',
     operatingSystem: 'Web Browser',
     description: 'Developer API for parsing crypto exchange CSVs and bank statement PDFs into structured JSON. Supports 14 exchanges, 13 banks, and 4 tax output formats. Includes MCP server for AI agents and SDKs for Node.js and Python.',
-    url: 'https://taxformatter.com',
-    screenshot: 'https://taxformatter.com/og-image.png',
+    url: 'https://www.taxformatter.com',
+    screenshot: 'https://www.taxformatter.com/og-image.png',
     offers: [
       {
         '@type': 'Offer',

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title: 'TaxFormatter Blog - Crypto Tax Tips & Guides',
     description: 'Expert guides on crypto taxes, CSV repair, and tax optimization.',
     type: 'website',
-    url: 'https://taxformatter.com/blog',
+    url: 'https://www.taxformatter.com/blog',
   },
 }
 
