@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: BlogPostProps): Promise<Metad
   const ogImageUrl = `https://www.taxformatter.com/api/og?${ogParams.toString()}`
 
   return {
-    title: `${post.title} | TaxFormatter`,
+    title: post.title,
     description: post.description,
     openGraph: {
       title: post.title,
@@ -86,7 +86,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
               {/* Back Link */}
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 font-medium transition-colors mb-8 text-sm"
+                className="inline-flex items-center gap-2 text-slate-400 hover:text-white font-medium transition-colors mb-8 text-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Engineering Blog
@@ -108,7 +108,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
                 </span>
               </div>
 
-              <h1 className="font-poppins text-3xl sm:text-5xl font-bold text-slate-900 mb-6 leading-tight">
+              <h1 className="font-poppins text-3xl sm:text-5xl font-bold text-white mb-6 leading-tight">
                 {post.title}
               </h1>
 
@@ -142,14 +142,14 @@ export default async function BlogPost({ params }: BlogPostProps) {
               <div className="sticky top-24 space-y-8">
 
                 {/* Author Card */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <div className="bg-white/[0.03] rounded-xl border border-white/10 p-6 shadow-sm">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Written By</h3>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 font-bold border border-slate-200">
+                    <div className="w-10 h-10 bg-white/[0.06] rounded-full flex items-center justify-center text-slate-300 font-bold border border-white/10">
                       {post.author.charAt(0)}
                     </div>
                     <div>
-                      <p className="font-bold text-slate-900 text-sm">{post.author}</p>
+                      <p className="font-bold text-white text-sm">{post.author}</p>
                       <p className="text-xs text-slate-400">TaxFormatter Engineering</p>
                     </div>
                   </div>
@@ -161,7 +161,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Related Topics</h3>
                     <div className="flex flex-wrap gap-2">
                       {post.tags.map(tag => (
-                        <span key={tag} className="px-2.5 py-1 bg-slate-100 text-slate-400 rounded-md text-xs font-medium border border-slate-200">
+                        <span key={tag} className="px-2.5 py-1 bg-white/[0.06] text-slate-300 rounded-md text-xs font-medium border border-white/10">
                           {tag}
                         </span>
                       ))}
