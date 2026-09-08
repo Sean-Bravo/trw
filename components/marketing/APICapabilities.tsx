@@ -131,8 +131,12 @@ export function APICapabilities() {
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Bank PDFs</h3>
-                    <span className="text-[11px] text-slate-400 font-mono">{banks.length}+</span>
+                    <span className="text-[11px] text-slate-400 font-mono">{banks.length}</span>
                   </div>
+                  <p className="text-[11px] text-slate-400 mb-3 flex items-center gap-1.5">
+                    <span className="text-emerald-400 font-bold">✓</span>
+                    verified against real statements &mdash; the rest are configured but untested
+                  </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     {banks.map((bank) => (
                       <div
@@ -141,7 +145,7 @@ export function APICapabilities() {
                       >
                         <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors truncate">{bank.name}</span>
                         {bank.status === 'tested' && (
-                          <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider shrink-0">✓</span>
+                          <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider shrink-0" title="Verified against real statements">✓</span>
                         )}
                       </div>
                     ))}
