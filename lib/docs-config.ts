@@ -1,4 +1,5 @@
 import {
+  Code2,
   Rocket,
   BarChart3,
   AlertTriangle,
@@ -12,6 +13,17 @@ import type { DocSection } from '@/types/docs'
  * Defines all doc sections and pages for the application
  */
 export const DOCS_SECTIONS: DocSection[] = [
+  {
+    title: 'Developer API',
+    slug: 'api',
+    description: 'Parse crypto CSVs and bank statement PDFs programmatically over REST',
+    icon: Code2,
+    // Single-page section: the content lives at /docs/api, so the page needs
+    // the explicit href override rather than the computed nested URL.
+    pages: [
+      { title: 'API Reference', slug: 'api', href: '/docs/api' },
+    ],
+  },
   {
     title: 'Getting Started',
     slug: 'getting-started',

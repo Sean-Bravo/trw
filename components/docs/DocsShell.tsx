@@ -70,7 +70,7 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Documentation</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-1 sm:mt-2 text-sm sm:text-base">
-                  Everything you need to know about TaxFormatter. From uploading your first CSV to exporting tax-ready data.
+                  The REST API reference, plus guides for the dashboard uploader.
                 </p>
               </div>
             </div>
