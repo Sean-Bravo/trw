@@ -113,7 +113,7 @@ export function APIHero() {
                 href="/signup"
                 showArrow
                 onClick={() => trackSignUp()}
-                className="text-[15px] px-7 py-3 h-12 !bg-emerald-500 hover:!bg-emerald-400 !border-emerald-500"
+                className="text-[15px] px-7 py-3 h-12"
               >
                 Get API Key
               </Button>

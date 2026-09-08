@@ -39,43 +39,43 @@ const features = [
     icon: Repeat2,
     title: 'Auto-detection',
     desc: 'Send any CSV — we detect the exchange from headers alone.',
-    accent: 'text-[#635bff]',
-    bg: 'from-[#635bff]/8 to-transparent',
+    accent: 'text-primary-400',
+    bg: 'from-primary-500/8 to-transparent',
   },
   {
     icon: FileText,
     title: 'PDF Parsing',
     desc: 'Bank statements in, structured JSON out.',
-    accent: 'text-emerald-400',
-    bg: 'from-emerald-500/8 to-transparent',
+    accent: 'text-primary-400',
+    bg: 'from-primary-500/8 to-transparent',
   },
   {
     icon: Code2,
     title: 'Structured Errors',
     desc: 'Machine-readable codes with actionable suggestions.',
-    accent: 'text-amber-400',
-    bg: 'from-amber-500/8 to-transparent',
+    accent: 'text-primary-400',
+    bg: 'from-primary-500/8 to-transparent',
   },
   {
     icon: Shield,
     title: 'Ephemeral',
     desc: 'In-memory processing. Nothing stored. Ever.',
-    accent: 'text-sky-400',
-    bg: 'from-sky-500/8 to-transparent',
+    accent: 'text-emerald-400',
+    bg: 'from-emerald-500/8 to-transparent',
   },
   {
     icon: Clock,
     title: 'Sub-2s',
     desc: 'CSVs under 1s. PDFs under 2s. Timing in every response.',
-    accent: 'text-rose-400',
-    bg: 'from-rose-500/8 to-transparent',
+    accent: 'text-primary-400',
+    bg: 'from-primary-500/8 to-transparent',
   },
   {
     icon: Building2,
     title: 'Enterprise Ready',
     desc: 'Rate limits, usage tracking, key management, Stripe billing.',
-    accent: 'text-violet-400',
-    bg: 'from-violet-500/8 to-transparent',
+    accent: 'text-primary-400',
+    bg: 'from-primary-500/8 to-transparent',
   },
 ];
 
@@ -91,7 +91,7 @@ export function APICapabilities() {
         <div className="relative z-10">
           {/* Header */}
           <div className="text-center mb-16">
-            <p className="text-[13px] font-semibold text-emerald-400 uppercase tracking-[0.15em] mb-4">What it parses</p>
+            <p className="text-[13px] font-semibold text-primary-400 uppercase tracking-[0.15em] mb-4">What it parses</p>
             <h2 className="font-poppins text-3xl md:text-[2.75rem] font-bold text-white mb-5 tracking-tight">
               One endpoint. Every format.
             </h2>

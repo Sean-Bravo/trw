@@ -86,14 +86,11 @@ const vibeIcons: Record<VibeType, LucideIcon> = {
   curious: HelpCircle,
 };
 
-const vibeAccents: Record<VibeType, string> = {
-  frustrated: 'border-orange-500/50 text-orange-400 shadow-orange-500/20',
-  paranoid: 'border-purple-500/50 text-purple-400 shadow-purple-500/20',
-  skeptic: 'border-yellow-500/50 text-yellow-400 shadow-yellow-500/20',
-  hopeful: 'border-emerald-500/50 text-emerald-400 shadow-emerald-500/20',
-  worried: 'border-blue-500/50 text-blue-400 shadow-blue-500/20',
-  curious: 'border-pink-500/50 text-pink-400 shadow-pink-500/20',
-};
+// One accent for every vibe. Six competing colours (orange, purple, yellow,
+// emerald, blue, pink) carried no meaning the vibe icon doesn't already carry,
+// and made the FAQ read as a different site. The icons still differentiate.
+const ANSWER_ACCENT = 'border-[#635bff]/50 text-primary-400 shadow-[#635bff]/20';
+const ANSWER_ACCENT_TEXT = 'text-primary-400';
 
 export function FAQ() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -144,7 +141,7 @@ export function FAQ() {
                       className={clsx(
                         'group text-left px-6 py-5 rounded-xl transition-all duration-300 border flex items-center justify-between',
                         isActive 
-                          ? `bg-zinc-900/50 border-zinc-700 ${vibeAccents[item.vibe].split(' ')[1]}` 
+                          ? `bg-zinc-900/50 border-zinc-700 ${ANSWER_ACCENT_TEXT}` 
                           : 'bg-transparent border-transparent hover:bg-zinc-900/30 text-zinc-400 hover:text-white'
                       )}
                     >
@@ -164,11 +161,11 @@ export function FAQ() {
               <div className="col-span-7 sticky top-8">
                 <div className={clsx(
                   "bg-zinc-900/80 p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500 shadow-xl relative overflow-hidden",
-                  vibeAccents[activeItem.vibe]
+                  ANSWER_ACCENT
                 )}>
                   <div className={clsx(
                     "absolute -top-20 -right-20 w-64 h-64 bg-current opacity-[0.08] blur-3xl rounded-full pointer-events-none transition-colors duration-500",
-                    vibeAccents[activeItem.vibe].split(' ')[1]
+                    ANSWER_ACCENT_TEXT
                   )} />
 
                   <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
@@ -192,7 +189,7 @@ export function FAQ() {
                     key={index}
                     className={clsx(
                       "rounded-2xl border transition-all duration-300 overflow-hidden",
-                      isExpanded ? `bg-zinc-900/80 ${vibeAccents[item.vibe]}` : "bg-zinc-900/30 border-white/5"
+                      isExpanded ? `bg-zinc-900/80 ${ANSWER_ACCENT}` : "bg-zinc-900/30 border-white/5"
                     )}
                   >
                     <button

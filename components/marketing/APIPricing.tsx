@@ -110,7 +110,7 @@ export function APIPricing() {
         <div className="relative z-10">
           {/* Header */}
           <div className="text-center mb-16">
-            <p className="text-[13px] font-semibold text-[#635bff] uppercase tracking-[0.15em] mb-4">Pricing</p>
+            <p className="text-[13px] font-semibold text-primary-400 uppercase tracking-[0.15em] mb-4">Pricing</p>
             <h2 className="font-poppins text-3xl md:text-[2.75rem] font-bold text-white mb-5 tracking-tight">
               One plan, two ways to use it.
             </h2>

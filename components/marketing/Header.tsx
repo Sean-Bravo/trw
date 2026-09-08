@@ -82,7 +82,7 @@ export function Header() {
               variant="primary"
               href="/signup"
               onClick={() => trackSignUp()}
-              className="hidden md:inline-flex bg-[#3b82f6]! hover:bg-[#2563eb]! active:bg-[#1d4ed8]! shadow-[#3b82f6]/25! hover:shadow-[#3b82f6]/30!"
+              className="hidden md:inline-flex"
             >
               Get Started
             </Button>
@@ -144,7 +144,7 @@ export function Header() {
                   <Button
                     variant="primary"
                     href="/signup"
-                    className="w-full justify-center bg-[#3b82f6]! hover:bg-[#2563eb]! active:bg-[#1d4ed8]!"
+                    className="w-full justify-center"
                     onClick={() => {
                       trackSignUp()
                       setMobileMenuOpen(false)

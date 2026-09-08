@@ -88,7 +88,7 @@ export function APIDemo() {
         <div className="relative z-10 max-w-4xl mx-auto">
           {/* Section header */}
           <div className="text-center mb-12">
-            <p className="text-[13px] font-semibold text-[#635bff] uppercase tracking-[0.15em] mb-4">Integration</p>
+            <p className="text-[13px] font-semibold text-primary-400 uppercase tracking-[0.15em] mb-4">Integration</p>
             <h2 className="font-poppins text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
               Three lines to parse.
               <br />
