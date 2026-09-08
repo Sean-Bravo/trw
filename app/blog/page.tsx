@@ -8,6 +8,7 @@ import { Container } from '@/components/layout/Container'
 import { ArrowRight, FileText, TrendingUp, Terminal, BookOpen } from 'lucide-react'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/blog' },
   title: 'Blog - Crypto Tax Tips & Guides',
   description: 'Learn about crypto taxes, CSV file fixes, and tax optimization strategies. Expert guides from the TaxFormatter team.',
   openGraph: {

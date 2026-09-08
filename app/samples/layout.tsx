@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sample Outputs | TaxFormatter',
+  alternates: { canonical: '/samples' },
+  title: 'Sample Outputs',
   description: 'Download sample CSVs for TurboTax, Koinly, QuickBooks Online, and Xero. See exactly what TaxFormatter produces.',
 };
 

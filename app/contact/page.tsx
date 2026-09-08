@@ -18,7 +18,8 @@ import {
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | TaxFormatter',
+  alternates: { canonical: '/contact' },
+  title: 'Contact Us',
   description: 'Get in touch with the TaxFormatter team. We\'re here to help with questions about CSV formatting, crypto taxes, and bank statement conversions.',
 };
 

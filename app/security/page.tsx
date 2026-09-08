@@ -21,7 +21,8 @@ import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
 
 export const metadata: Metadata = {
-  title: 'Security Center | TaxFormatter',
+  alternates: { canonical: '/security' },
+  title: 'Security Center',
   description: 'Stateless processing, SHA-256 hashed API keys, zero payload logging, and user-controlled retention — across our dashboard, REST API, and MCP server.',
 };
 

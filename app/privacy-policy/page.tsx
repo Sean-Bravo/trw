@@ -4,7 +4,8 @@ import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | TaxFormatter',
+  alternates: { canonical: '/privacy-policy' },
+  title: 'Privacy Policy',
   description: 'Learn how TaxFormatter collects, uses, and protects your personal information.',
 };
 

@@ -5,7 +5,8 @@ import { Footer } from '@/components/marketing/Footer';
 import { Container } from '@/components/layout/Container';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | TaxFormatter',
+  alternates: { canonical: '/terms' },
+  title: 'Terms of Service',
   description: 'Read the terms and conditions for using TaxFormatter CSV formatting and tax preparation service.',
 };
 

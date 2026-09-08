@@ -5,7 +5,8 @@ import { FAQ } from '@/components/marketing/FAQ';
 import { Footer } from '@/components/marketing/Footer';
 
 export const metadata: Metadata = {
-  title: 'Pricing | TaxFormatter API',
+  alternates: { canonical: '/pricing' },
+  title: 'API Pricing',
   description: 'Simple API pricing that scales with you. Parse crypto CSVs and bank statement PDFs programmatically.',
   openGraph: {
     title: 'Pricing | TaxFormatter API',
