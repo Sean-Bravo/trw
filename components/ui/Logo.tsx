@@ -8,7 +8,9 @@ interface LogoProps {
   asChild?: boolean;
 }
 
-export function Logo({ className = '', iconOnly = false, variant = 'dark', asChild = false }: LogoProps) {
+// The site is dark-only, so every surface a Logo sits on is dark; `light`
+// (white wordmark) is the default. `dark` stays for any light surface.
+export function Logo({ className = '', iconOnly = false, variant = 'light', asChild = false }: LogoProps) {
   const textColor = variant === 'light' ? 'text-white' : 'text-[#1a365d]';
 
   const content = (
