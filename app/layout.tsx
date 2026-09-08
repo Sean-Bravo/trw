@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { GoogleAds } from "@/components/analytics/GoogleAds";
@@ -81,10 +80,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a365d" },
-  ],
+  themeColor: "#020617",
 };
 
 export default function RootLayout({
@@ -93,7 +89,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`dark ${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
       <head>
         <OrganizationSchema />
         <WebSiteSchema />
@@ -101,14 +97,7 @@ export default function RootLayout({
       <body className="antialiased">
         <GoogleAnalytics />
         <GoogleAds />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

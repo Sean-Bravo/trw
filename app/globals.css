@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Site is dark-only. Tailwind v4 defaults `dark:` to prefers-color-scheme;
+   bind it to the `dark` class that <html> always carries so the dark styles
+   render regardless of the visitor's OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Syntax highlighting theme for MDX code blocks — tokens are tagged by
    rehype-highlight (blog + docs pipelines), and this theme paints them. */
 @import "highlight.js/styles/github-dark.css";
