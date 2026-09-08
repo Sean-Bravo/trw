@@ -89,6 +89,13 @@
   --color-gray-900: #0f172a;
 
   /* Dark Mode Colors */
+  /* Marketing page surfaces. The homepage previously used four unrelated
+     blacks (#0b1121, #0d1425, #020617, #0a0a0a) on a single scroll; these are
+     the two page levels it alternates between, plus the card surface. */
+  --color-surface-base: #0b1121;
+  --color-surface-alt: #0d1425;
+  --color-surface-card: #111b2e;
+
   --color-dark-bg: #020617;
   --color-dark-bg-secondary: #0f172a;
   --color-dark-text: #f1f5f9;

@@ -45,7 +45,7 @@ const tools = [
 
 export function AgentSection() {
   return (
-    <section className="py-28 bg-[#0d1425] relative overflow-hidden">
+    <section className="py-28 bg-surface-alt relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-[#635bff]/3 rounded-full blur-[150px]" />
@@ -71,7 +71,7 @@ export function AgentSection() {
             </p>
 
             {/* Prominent install command */}
-            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-[#111b2e] border border-white/8">
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-surface-card border border-white/8">
               <span className="text-slate-500 text-sm">$</span>
               <code className="text-[15px] font-mono text-emerald-400">npx @taxformatter/mcp-server</code>
               <button
@@ -98,7 +98,7 @@ export function AgentSection() {
               </div>
               <div className="relative">
                 <div className="absolute -inset-px bg-gradient-to-b from-[#635bff]/10 to-transparent rounded-xl" />
-                <div className="relative bg-[#111b2e] rounded-xl border border-white/5 overflow-hidden">
+                <div className="relative bg-surface-card rounded-xl border border-white/5 overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-3 border-b border-white/4 bg-white/1.5">
                     <span className="text-[11px] font-mono text-slate-600">claude_desktop_config.json</span>
                   </div>

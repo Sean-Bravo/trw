@@ -56,7 +56,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-slate-900 dark:bg-slate-950 text-white">
+    <footer className="bg-surface-alt text-white">
       {/* CTA Section */}
       <div className="py-20 border-b border-slate-800">
         <Container>

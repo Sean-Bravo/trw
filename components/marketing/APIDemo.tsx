@@ -80,7 +80,7 @@ export function APIDemo() {
   };
 
   return (
-    <section id="features" className="py-24 bg-[#0b1121] relative overflow-hidden">
+    <section id="features" className="py-24 bg-surface-base relative overflow-hidden">
       {/* Subtle radial accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
 
@@ -102,7 +102,7 @@ export function APIDemo() {
           {/* Code block */}
           <div className="relative">
             <div className="absolute -inset-px bg-gradient-to-b from-white/8 to-transparent rounded-xl" />
-            <div className="relative bg-[#111b2e] rounded-xl border border-white/5 overflow-hidden">
+            <div className="relative bg-surface-card rounded-xl border border-white/5 overflow-hidden">
               {/* Tab bar */}
               <div className="flex items-center justify-between border-b border-white/5 px-1">
                 <div className="flex">

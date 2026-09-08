@@ -50,7 +50,7 @@ export function APIHero() {
   }, [showResponse, responseVisible]);
 
   return (
-    <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-[#0b1121] pt-16 pb-20">
+    <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-surface-base pt-16 pb-20">
       {/* Background effects */}
       <div className="absolute inset-0">
         {/* Gradient orbs */}
@@ -148,7 +148,7 @@ export function APIHero() {
               {/* Glow behind */}
               <div className="absolute -inset-3 bg-gradient-to-br from-[#635bff]/15 via-transparent to-[#00d4aa]/10 rounded-2xl blur-xl" />
 
-              <div className="relative bg-[#111b2e] rounded-xl border border-white/6 overflow-hidden shadow-2xl">
+              <div className="relative bg-surface-card rounded-xl border border-white/6 overflow-hidden shadow-2xl">
                 {/* Terminal chrome */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/4 bg-white/2">
                   <div className="flex gap-2">

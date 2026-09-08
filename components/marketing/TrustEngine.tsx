@@ -4,7 +4,7 @@ import { Shield, Lock, EyeOff, FileDiff, Ban, Check, Server, Database, Key, Glob
 
 const TrustEngine = () => {
   return (
-    <section className="bg-[#020617] py-24 overflow-hidden relative">
+    <section className="bg-surface-alt py-24 overflow-hidden relative">
       {/* REFINEMENT 1: Deeper Background Atmosphere */}
       {/* Grid pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] opacity-[0.07] pointer-events-none"></div>
