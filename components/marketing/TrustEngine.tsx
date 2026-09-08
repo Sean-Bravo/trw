@@ -18,11 +18,11 @@ const TrustEngine = () => {
             <Shield className="w-10 h-10 text-emerald-400" strokeWidth={1.5} />
             <Lock className="w-5 h-5 text-emerald-300 absolute" strokeWidth={2} />
           </div>
-          {/* REFINEMENT 3: More Aggressive Typography Gradient */}
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-            ENGINEERED FOR <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-yellow-300 to-orange-400 font-extrabold">PARANOIA</span>
+          <p className="text-[13px] font-semibold text-primary-400 uppercase tracking-[0.15em] mb-4">Security</p>
+          <h2 className="font-poppins text-3xl md:text-[2.75rem] font-bold text-white mb-5 tracking-tight">
+            Engineered for paranoia.
           </h2>
-          <p className="text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-slate-400 leading-relaxed max-w-2xl mx-auto text-lg">
             We assume your data is toxic. Our system is designed to touch it, fix it, and <span className="text-slate-200 font-medium relative inline-block">forget it completely<span className="absolute bottom-0 left-0 w-full h-px bg-slate-400/50"></span></span>.
           </p>
         </div>
@@ -74,12 +74,12 @@ const TrustEngine = () => {
               Your financial data is a liability. Files are <span className="text-slate-200">cryptographically wiped</span> from hot storage instantly after processing. We don't hold what we don't need.
             </p>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs font-mono font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/4 border border-white/8 backdrop-blur-sm text-[13px] font-medium text-slate-400 tracking-wide">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
               </span>
-              STATUS: AUTO-WIPE ENGAGED
+              Auto-wipe engaged
             </div>
           </div>
 
@@ -115,9 +115,9 @@ const TrustEngine = () => {
               Don't trust "magic." Our engine fixes formats, not financials. We provide a <span className="text-slate-200">cell-level audit trail</span> for every modification. Verify every single decimal point.
             </p>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 text-xs font-mono font-medium">
-              <Check className="w-3.5 h-3.5" strokeWidth={3} />
-              STATUS: AUDIT TRAIL ACTIVE
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/4 border border-white/8 backdrop-blur-sm text-[13px] font-medium text-slate-400 tracking-wide">
+              <Check className="w-3.5 h-3.5 text-emerald-400" strokeWidth={3} />
+              Audit trail active
             </div>
           </div>
 
@@ -155,9 +155,9 @@ const TrustEngine = () => {
               We never ask for private keys or withdrawal rights. Our parsers are <span className="text-slate-200">strictly read-only</span> and will instantly reject any key with elevated permissions.
             </p>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-400/10 border border-blue-400/20 text-blue-400 text-xs font-mono font-medium">
-              <Shield className="w-3.5 h-3.5" />
-              STATUS: PERMISSIONS LOCKED
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/4 border border-white/8 backdrop-blur-sm text-[13px] font-medium text-slate-400 tracking-wide">
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              Permissions locked
             </div>
           </div>
         </div>
