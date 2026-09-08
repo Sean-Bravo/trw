@@ -101,7 +101,7 @@ export function APIHero() {
 
             {/* Sub */}
             <p className="text-lg text-slate-400 leading-relaxed mb-10 max-w-md animate-fade-in-up" style={{ animationDelay: '160ms' }}>
-              14 crypto exchanges. 7+ bank formats. Auto-detection, structured JSON output, and tax-ready formatting — built for developers and AI agents.
+              Auto-detection, structured JSON output, and tax-ready formatting — built for developers and AI agents.
             </p>
 
             {/* CTAs */}
@@ -128,7 +128,7 @@ export function APIHero() {
             <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-white/3 border border-white/6 backdrop-blur-sm animate-fade-in-up" style={{ animationDelay: '320ms' }}>
               {[
                 '14 exchanges',
-                '7+ banks',
+                '7 banks',
                 '4 output formats',
                 '<2s response',
               ].map((stat, i) => (
