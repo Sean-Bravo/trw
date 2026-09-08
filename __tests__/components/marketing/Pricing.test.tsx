@@ -166,12 +166,19 @@ describe('Pricing Component (API Tiers)', () => {
       expect(screen.queryByText(/Not a developer/)).not.toBeInTheDocument();
     });
 
-    it('shows AI insights model on each tier card', () => {
+    it('differentiates categorization quality on each tier card', () => {
       render(<Pricing />);
-      // Free + Starter both show Gemini — exact match would collide; use getAllByText.
-      expect(screen.getAllByText('Gemini AI insights').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Claude Sonnet AI insights')).toBeInTheDocument();
-      expect(screen.getByText('Claude Opus AI insights')).toBeInTheDocument();
+      // Free + Starter share the standard tier — exact match would collide.
+      expect(screen.getAllByText('Standard categorization').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Detailed categorization')).toBeInTheDocument();
+      expect(screen.getByText('Highest-accuracy categorization')).toBeInTheDocument();
+    });
+
+    it('does not name AI vendors in public pricing copy', () => {
+      render(<Pricing />);
+      // Tiers used to read "Gemini / Claude Sonnet / Claude Opus AI insights",
+      // which tells an API buyer nothing and commits us publicly to a vendor.
+      expect(screen.queryByText(/Gemini|Sonnet|Opus/i)).not.toBeInTheDocument();
     });
   });
 });
