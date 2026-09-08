@@ -164,11 +164,15 @@ export function APIPricing() {
                   {tier.cta}
                 </button>
 
-                {tier.tier === 'free' && (
-                  <p className="text-xs text-slate-500 mt-2 text-center">
-                    No credit card required
-                  </p>
-                )}
+                {/* Reserved on every card: without it the Free tier's note eats
+                    column height and lifts its CTA 24px above the other three. */}
+                <div className="min-h-4 mt-2">
+                  {tier.tier === 'free' && (
+                    <p className="text-xs text-slate-500 text-center">
+                      No credit card required
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
