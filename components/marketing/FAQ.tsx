@@ -104,7 +104,7 @@ export function FAQ() {
   return (
     <>
       <FAQSchema items={schemaItems} />
-      <section className="bg-surface-base py-24 sm:py-32 relative overflow-hidden">
+      <section className="bg-surface-base py-20 relative overflow-hidden">
         <div 
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{

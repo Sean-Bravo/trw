@@ -102,7 +102,7 @@ export function APIPricing() {
   };
 
   return (
-    <section className="py-28 bg-surface-base relative overflow-hidden" id="pricing">
+    <section className="py-20 bg-surface-base relative overflow-hidden" id="pricing">
       {/* Background */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-225 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
 

@@ -83,7 +83,7 @@ const outputFormats = ['Koinly', 'TurboTax', 'CoinLedger', 'ZenLedger'];
 
 export function APICapabilities() {
   return (
-    <section className="py-28 bg-surface-alt relative overflow-hidden" id="capabilities">
+    <section className="py-20 bg-surface-alt relative overflow-hidden" id="capabilities">
       {/* Subtle gradient */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-225 h-125 bg-[#635bff]/3 rounded-[100%] blur-[150px]" />
 

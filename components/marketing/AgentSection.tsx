@@ -45,7 +45,7 @@ const tools = [
 
 export function AgentSection() {
   return (
-    <section className="py-28 bg-surface-alt relative overflow-hidden">
+    <section className="py-20 bg-surface-alt relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-[#635bff]/3 rounded-full blur-[150px]" />

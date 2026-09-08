@@ -4,7 +4,7 @@ import { Shield, Lock, EyeOff, FileDiff, Ban, Check, Server, Database, Key, Glob
 
 const TrustEngine = () => {
   return (
-    <section className="bg-surface-alt py-24 overflow-hidden relative">
+    <section className="bg-surface-alt py-20 overflow-hidden relative">
       {/* REFINEMENT 1: Deeper Background Atmosphere */}
       {/* Grid pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] opacity-[0.07] pointer-events-none"></div>
@@ -13,7 +13,7 @@ const TrustEngine = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-24">
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center justify-center p-3 mb-6 bg-emerald-500/10 rounded-2xl ring-1 ring-emerald-500/20 animate-[pulse_3s_ease-in-out_infinite]">
             <Shield className="w-10 h-10 text-emerald-400" strokeWidth={1.5} />
             <Lock className="w-5 h-5 text-emerald-300 absolute" strokeWidth={2} />

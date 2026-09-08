@@ -92,10 +92,8 @@ export function APIHero() {
             </div>
 
             {/* Headline */}
-            <h1 className="font-poppins text-[2.75rem] sm:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.08] tracking-[-0.02em] mb-6 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-              Parse any crypto CSV
-              <br />
-              or bank PDF.
+            <h1 className="font-poppins text-[2.75rem] sm:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.08] tracking-[-0.02em] text-balance mb-6 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+              Parse any crypto CSV or bank PDF.
               <span className="block mt-3 bg-gradient-to-r from-[#635bff] via-[#818cf8] to-[#00d4aa] bg-clip-text text-transparent">
                 One API call.
               </span>
