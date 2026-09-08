@@ -80,7 +80,7 @@ export function APIDemo() {
   };
 
   return (
-    <section className="py-24 bg-[#0b1121] relative overflow-hidden">
+    <section id="features" className="py-24 bg-[#0b1121] relative overflow-hidden">
       {/* Subtle radial accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
 
