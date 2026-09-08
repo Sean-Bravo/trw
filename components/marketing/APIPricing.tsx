@@ -21,7 +21,7 @@ const tiers = [
       '25 files / month',
       '10 requests / minute',
       'All 14 exchanges',
-      'Gemini AI insights',
+      'Standard categorization',
       'JSON response',
     ],
     cta: 'Start Free',
@@ -38,7 +38,7 @@ const tiers = [
       '100 files / month',
       '30 requests / minute',
       'All 14 exchanges',
-      'Gemini AI insights',
+      'Standard categorization',
       'JSON response',
     ],
     cta: 'Get Started',
@@ -56,7 +56,7 @@ const tiers = [
       '500 files / month',
       '60 requests / minute',
       'Bank PDF parsing',
-      'Claude Sonnet AI insights',
+      'Detailed categorization',
       'All output formats',
       'Priority support',
     ],
@@ -75,7 +75,7 @@ const tiers = [
       '2,000 files / month',
       '120 requests / minute',
       'Everything in Growth',
-      'Claude Opus AI insights',
+      'Highest-accuracy categorization',
       'Custom integrations',
       'SLA guarantee',
     ],
@@ -115,7 +115,7 @@ export function APIPricing() {
               One plan, two ways to use it.
             </h2>
             <p className="text-slate-400 max-w-xl mx-auto text-lg">
-              Drop a file in the dashboard or call our API. Same quota, same AI insights, same plan.
+              Drop a file in the dashboard or call our API. Same quota, same categorization, same plan.
             </p>
           </div>
 
