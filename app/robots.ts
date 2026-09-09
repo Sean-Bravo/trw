@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/private/'],
     },
-    sitemap: 'https://taxformatter.com/sitemap.xml',
+    sitemap: 'https://www.taxformatter.com/sitemap.xml',
   };
 }

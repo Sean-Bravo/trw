@@ -5,8 +5,8 @@ export function OrganizationSchema() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'TaxFormatter',
-    url: 'https://taxformatter.com',
-    logo: 'https://taxformatter.com/logo-icon.svg',
+    url: 'https://www.taxformatter.com',
+    logo: 'https://www.taxformatter.com/logo-icon.svg',
     description: 'Developer API platform for parsing crypto exchange CSVs and bank statement PDFs into structured, tax-ready data. REST API, MCP server, and SDKs for Node.js and Python.',
     foundingDate: '2024',
     sameAs: [
@@ -34,11 +34,11 @@ export function WebSiteSchema() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'TaxFormatter',
-    url: 'https://taxformatter.com',
+    url: 'https://www.taxformatter.com',
     description: 'Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 13 banks, 4 tax formats. MCP server for AI agents.',
     potentialAction: {
       '@type': 'SearchAction',
-      target: 'https://taxformatter.com/docs?search={search_term_string}',
+      target: 'https://www.taxformatter.com/docs?search={search_term_string}',
       'query-input': 'required name=search_term_string',
     } as any,
   };

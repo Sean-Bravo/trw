@@ -17,7 +17,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      ...(item.href && { item: `https://taxformatter.com${item.href}` }),
+      ...(item.href && { item: `https://www.taxformatter.com${item.href}` }),
     })),
   };
 

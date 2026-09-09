@@ -3,7 +3,7 @@ import { allPosts } from '@/lib/content/posts';
 import { allDocs } from '@/lib/content/docs';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://taxformatter.com';
+  const baseUrl = 'https://www.taxformatter.com';
 
   // Main pages
   const routes: MetadataRoute.Sitemap = [

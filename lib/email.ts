@@ -331,7 +331,7 @@ export async function sendWelcomeEmail(
     const transporter = getTransporter();
     const fromEmail = process.env['EMAIL_FROM'] || 'noreply@taxformatter.com';
     const siteName = process.env['NEXT_PUBLIC_SITE_NAME'] || 'TaxFormatter';
-    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] || 'https://taxformatter.com';
+    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] || 'https://www.taxformatter.com';
 
     const htmlContent = `
 <!DOCTYPE html>

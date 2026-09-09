@@ -28,34 +28,34 @@ export function ArticleSchema({
     '@type': 'Article',
     headline: title,
     description: description,
-    url: `https://taxformatter.com${url}`,
+    url: `https://www.taxformatter.com${url}`,
     datePublished: datePublished,
     dateModified: dateModified || datePublished,
     author: {
       '@type': 'Organization',
       name: author,
-      url: 'https://taxformatter.com',
+      url: 'https://www.taxformatter.com',
     },
     publisher: {
       '@type': 'Organization',
       name: 'TaxFormatter',
-      url: 'https://taxformatter.com',
+      url: 'https://www.taxformatter.com',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://taxformatter.com/logo-icon.svg',
+        url: 'https://www.taxformatter.com/logo-icon.svg',
       },
     },
     ...(image && {
       image: {
         '@type': 'ImageObject',
-        url: `https://taxformatter.com${image}`,
+        url: `https://www.taxformatter.com${image}`,
       },
     }),
     articleSection: category,
     keywords: tags.join(', '),
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://taxformatter.com${url}`,
+      '@id': `https://www.taxformatter.com${url}`,
     },
   };
 
