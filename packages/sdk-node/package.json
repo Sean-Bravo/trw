@@ -20,7 +20,7 @@
   "keywords": ["taxformatter", "crypto-tax", "csv-parser", "bank-statement", "pdf-parser"],
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^26.4.1",
     "@types/jest": "^29.0.0",
     "jest": "^29.0.0",
     "ts-jest": "^29.0.0",
