@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Site is dark-only. Tailwind v4 defaults `dark:` to prefers-color-scheme;
+   bind it to the `dark` class that <html> always carries so the dark styles
+   render regardless of the visitor's OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Syntax highlighting theme for MDX code blocks — tokens are tagged by
    rehype-highlight (blog + docs pipelines), and this theme paints them. */
 @import "highlight.js/styles/github-dark.css";
@@ -84,6 +89,13 @@
   --color-gray-900: #0f172a;
 
   /* Dark Mode Colors */
+  /* Marketing page surfaces. The homepage previously used four unrelated
+     blacks (#0b1121, #0d1425, #020617, #0a0a0a) on a single scroll; these are
+     the two page levels it alternates between, plus the card surface. */
+  --color-surface-base: #0b1121;
+  --color-surface-alt: #0d1425;
+  --color-surface-card: #111b2e;
+
   --color-dark-bg: #020617;
   --color-dark-bg-secondary: #0f172a;
   --color-dark-text: #f1f5f9;

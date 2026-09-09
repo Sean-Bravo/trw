@@ -50,7 +50,7 @@ export function APIHero() {
   }, [showResponse, responseVisible]);
 
   return (
-    <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-[#0b1121] pt-16 pb-20">
+    <section className="relative min-h-[95vh] flex items-center overflow-hidden bg-surface-base pt-16 pb-20">
       {/* Background effects */}
       <div className="absolute inset-0">
         {/* Gradient orbs */}
@@ -92,10 +92,8 @@ export function APIHero() {
             </div>
 
             {/* Headline */}
-            <h1 className="font-poppins text-[2.75rem] sm:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.08] tracking-[-0.02em] mb-6 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-              Parse any crypto CSV
-              <br />
-              or bank PDF.
+            <h1 className="font-poppins text-[2.75rem] sm:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.08] tracking-[-0.02em] text-balance mb-6 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+              Parse any crypto CSV or bank PDF.
               <span className="block mt-3 bg-gradient-to-r from-[#635bff] via-[#818cf8] to-[#00d4aa] bg-clip-text text-transparent">
                 One API call.
               </span>
@@ -103,7 +101,7 @@ export function APIHero() {
 
             {/* Sub */}
             <p className="text-lg text-slate-400 leading-relaxed mb-10 max-w-md animate-fade-in-up" style={{ animationDelay: '160ms' }}>
-              14 crypto exchanges. 7+ bank formats. Auto-detection, structured JSON output, and tax-ready formatting — built for developers and AI agents.
+              Auto-detection, structured JSON output, and tax-ready formatting — built for developers and AI agents.
             </p>
 
             {/* CTAs */}
@@ -113,7 +111,7 @@ export function APIHero() {
                 href="/signup"
                 showArrow
                 onClick={() => trackSignUp()}
-                className="text-[15px] px-7 py-3 h-12 !bg-emerald-500 hover:!bg-emerald-400 !border-emerald-500"
+                className="text-[15px] px-7 py-3 h-12"
               >
                 Get API Key
               </Button>
@@ -130,7 +128,7 @@ export function APIHero() {
             <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-white/3 border border-white/6 backdrop-blur-sm animate-fade-in-up" style={{ animationDelay: '320ms' }}>
               {[
                 '14 exchanges',
-                '7+ banks',
+                '7 banks',
                 '4 output formats',
                 '<2s response',
               ].map((stat, i) => (
@@ -148,7 +146,7 @@ export function APIHero() {
               {/* Glow behind */}
               <div className="absolute -inset-3 bg-gradient-to-br from-[#635bff]/15 via-transparent to-[#00d4aa]/10 rounded-2xl blur-xl" />
 
-              <div className="relative bg-[#111b2e] rounded-xl border border-white/6 overflow-hidden shadow-2xl">
+              <div className="relative bg-surface-card rounded-xl border border-white/6 overflow-hidden shadow-2xl">
                 {/* Terminal chrome */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/4 bg-white/2">
                   <div className="flex gap-2">
@@ -156,7 +154,7 @@ export function APIHero() {
                     <div className="w-3 h-3 rounded-full bg-[#febc2e]/80" />
                     <div className="w-3 h-3 rounded-full bg-[#28c840]/80" />
                   </div>
-                  <span className="text-[11px] font-mono text-slate-600">api.taxformatter.com</span>
+                  <span className="text-[11px] font-mono text-slate-400">api.taxformatter.com</span>
                   <div className="w-16" />
                 </div>
 
@@ -164,7 +162,7 @@ export function APIHero() {
                 <div className="p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">POST</span>
-                    <span className="text-[11px] font-mono text-slate-500">/v1/parse</span>
+                    <span className="text-[11px] font-mono text-slate-400">/v1/parse</span>
                   </div>
                   <div className="font-mono text-[13px] leading-[1.7] space-y-0">
                     {codeLines.map((line, i) => (
@@ -184,7 +182,7 @@ export function APIHero() {
                   <div className="border-t border-white/4 p-5 bg-white/1">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">200</span>
-                      <span className="text-[11px] font-mono text-slate-500">842ms</span>
+                      <span className="text-[11px] font-mono text-slate-400">842ms</span>
                     </div>
                     <div className="font-mono text-[13px] leading-[1.7]">
                       {responseLines.map((line, i) => (

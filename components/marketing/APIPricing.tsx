@@ -21,13 +21,13 @@ const tiers = [
       '25 files / month',
       '10 requests / minute',
       'All 14 exchanges',
-      'Gemini AI insights',
+      'Standard categorization',
       'JSON response',
     ],
     cta: 'Start Free',
     tier: 'free',
     style: 'bg-white/2 border-white/6',
-    checkColor: 'text-slate-500',
+    checkColor: 'text-slate-400',
   },
   {
     name: 'Starter',
@@ -38,13 +38,13 @@ const tiers = [
       '100 files / month',
       '30 requests / minute',
       'All 14 exchanges',
-      'Gemini AI insights',
+      'Standard categorization',
       'JSON response',
     ],
     cta: 'Get Started',
     tier: 'starter',
     style: 'bg-white/2 border-white/6',
-    checkColor: 'text-slate-500',
+    checkColor: 'text-slate-400',
   },
   {
     name: 'Growth',
@@ -56,14 +56,14 @@ const tiers = [
       '500 files / month',
       '60 requests / minute',
       'Bank PDF parsing',
-      'Claude Sonnet AI insights',
+      'Detailed categorization',
       'All output formats',
       'Priority support',
     ],
     cta: 'Start Building',
     tier: 'growth',
     highlight: true,
-    style: 'bg-[#111b2e] border-[#635bff]/30',
+    style: 'bg-surface-card border-[#635bff]/30',
     checkColor: 'text-[#635bff]',
   },
   {
@@ -75,14 +75,14 @@ const tiers = [
       '2,000 files / month',
       '120 requests / minute',
       'Everything in Growth',
-      'Claude Opus AI insights',
+      'Highest-accuracy categorization',
       'Custom integrations',
       'SLA guarantee',
     ],
     cta: 'Get Started',
     tier: 'business',
     style: 'bg-white/2 border-white/6',
-    checkColor: 'text-slate-500',
+    checkColor: 'text-slate-400',
   },
 ];
 
@@ -102,7 +102,7 @@ export function APIPricing() {
   };
 
   return (
-    <section className="py-28 bg-[#0b1121] relative overflow-hidden" id="pricing">
+    <section className="py-20 bg-surface-base relative overflow-hidden" id="pricing">
       {/* Background */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-225 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
 
@@ -110,12 +110,12 @@ export function APIPricing() {
         <div className="relative z-10">
           {/* Header */}
           <div className="text-center mb-16">
-            <p className="text-[13px] font-semibold text-[#635bff] uppercase tracking-[0.15em] mb-4">Pricing</p>
+            <p className="text-[13px] font-semibold text-primary-400 uppercase tracking-[0.15em] mb-4">Pricing</p>
             <h2 className="font-poppins text-3xl md:text-[2.75rem] font-bold text-white mb-5 tracking-tight">
               One plan, two ways to use it.
             </h2>
             <p className="text-slate-400 max-w-xl mx-auto text-lg">
-              Drop a file in the dashboard or call our API. Same quota, same AI insights, same plan.
+              Drop a file in the dashboard or call our API. Same quota, same categorization, same plan.
             </p>
           </div>
 
@@ -138,9 +138,9 @@ export function APIPricing() {
                   <h3 className="text-lg font-semibold text-slate-300 mb-3">{tier.name}</h3>
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-4xl font-bold text-white">{tier.price}</span>
-                    <span className="text-slate-500 text-sm">{tier.period}</span>
+                    <span className="text-slate-400 text-sm">{tier.period}</span>
                   </div>
-                  <p className="text-sm text-slate-500 mt-3">{tier.description}</p>
+                  <p className="text-sm text-slate-400 mt-3">{tier.description}</p>
                 </div>
 
                 <ul className="space-y-3.5 mb-8 flex-1">
@@ -164,11 +164,15 @@ export function APIPricing() {
                   {tier.cta}
                 </button>
 
-                {tier.tier === 'free' && (
-                  <p className="text-xs text-slate-500 mt-2 text-center">
-                    No credit card required
-                  </p>
-                )}
+                {/* Reserved on every card: without it the Free tier's note eats
+                    column height and lifts its CTA 24px above the other three. */}
+                <div className="min-h-4 mt-2">
+                  {tier.tier === 'free' && (
+                    <p className="text-xs text-slate-400 text-center">
+                      No credit card required
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>

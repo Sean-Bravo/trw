@@ -153,7 +153,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
       {/* Key mode */}
       <section className="rounded-xl border border-white/10 bg-slate-800 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <KeyRound className="w-4 h-4 text-slate-500" />
+          <KeyRound className="w-4 h-4 text-slate-400" />
           <h3 className="text-sm font-medium text-slate-300">Authentication</h3>
         </div>
         <div className="flex gap-2 mb-3">
@@ -172,7 +172,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
           ))}
         </div>
         {keyMode === 'demo' ? (
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+          <p className="text-[11px] text-slate-400 leading-relaxed">
             A shared rate-limited demo key is attached server-side — you don&apos;t see it.
             Quota is daily and global; paste your own key for unrestricted use.
           </p>
@@ -184,7 +184,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
             placeholder="tf_live_..."
             autoComplete="off"
             spellCheck={false}
-            className="w-full rounded-lg bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm font-mono text-slate-200 placeholder:text-slate-600 focus:border-primary-500 focus:outline-none"
+            className="w-full rounded-lg bg-slate-950/60 border border-slate-700 px-3 py-2 text-sm font-mono text-slate-200 placeholder:text-slate-400 focus:border-primary-500 focus:outline-none"
           />
         )}
       </section>
@@ -192,7 +192,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
       {/* File source */}
       <section className="rounded-xl border border-white/10 bg-slate-800 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <FileText className="w-4 h-4 text-slate-500" />
+          <FileText className="w-4 h-4 text-slate-400" />
           <h3 className="text-sm font-medium text-slate-300">Input file</h3>
         </div>
         <div className="flex gap-2 mb-3">
@@ -231,7 +231,7 @@ export function PlaygroundRequestBuilder({ onSend, disabled = false }: Playgroun
           </select>
         ) : (
           <label className="flex items-center gap-3 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-3 py-3 cursor-pointer hover:border-primary-500/50 transition-colors">
-            <Upload className="w-4 h-4 text-slate-500" />
+            <Upload className="w-4 h-4 text-slate-400" />
             <span className="text-xs text-slate-400 truncate">
               {uploadedFile ? uploadedFile.name : 'Choose a CSV, XLSX, or PDF (≤1 MB)'}
             </span>

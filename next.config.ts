@@ -21,6 +21,19 @@ const nextConfig: NextConfig = {
   // Turbopack disabled due to cache corruption issues
   // turbopack: {},
 
+  // /exchanges is advertised as a nav destination ("Exchanges") but has never
+  // been a route — it anchors into the homepage. Redirect typed/linked hits
+  // there instead of serving a 404.
+  async redirects() {
+    return [
+      {
+        source: "/exchanges",
+        destination: "/#capabilities",
+        permanent: true,
+      },
+    ];
+  },
+
   // Security headers
   async headers() {
     // Next.js dev mode (esp. with Turbopack) uses eval() for HMR and React

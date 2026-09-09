@@ -12,7 +12,8 @@ import {
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'About | TaxFormatter',
+  alternates: { canonical: '/about' },
+  title: 'About',
   description: 'Learn about TaxFormatter - the CSV repair tool that fixes messy exchange exports in seconds. Founded by Sean at Quantum Transfer Group.',
 };
 

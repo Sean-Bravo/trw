@@ -80,7 +80,7 @@ export function APIDemo() {
   };
 
   return (
-    <section className="py-24 bg-[#0b1121] relative overflow-hidden">
+    <section id="features" className="py-20 bg-surface-base relative overflow-hidden">
       {/* Subtle radial accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
 
@@ -88,11 +88,11 @@ export function APIDemo() {
         <div className="relative z-10 max-w-4xl mx-auto">
           {/* Section header */}
           <div className="text-center mb-12">
-            <p className="text-[13px] font-semibold text-[#635bff] uppercase tracking-[0.15em] mb-4">Integration</p>
+            <p className="text-[13px] font-semibold text-primary-400 uppercase tracking-[0.15em] mb-4">Integration</p>
             <h2 className="font-poppins text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
               Three lines to parse.
               <br />
-              <span className="text-slate-500">Any language.</span>
+              <span className="text-slate-400">Any language.</span>
             </h2>
             <p className="text-slate-400 max-w-lg mx-auto">
               Send a base64-encoded file. Get structured JSON back. Auto-detects exchanges, normalizes dates, converts formats.
@@ -102,7 +102,7 @@ export function APIDemo() {
           {/* Code block */}
           <div className="relative">
             <div className="absolute -inset-px bg-gradient-to-b from-white/8 to-transparent rounded-xl" />
-            <div className="relative bg-[#111b2e] rounded-xl border border-white/5 overflow-hidden">
+            <div className="relative bg-surface-card rounded-xl border border-white/5 overflow-hidden">
               {/* Tab bar */}
               <div className="flex items-center justify-between border-b border-white/5 px-1">
                 <div className="flex">
@@ -113,7 +113,7 @@ export function APIDemo() {
                       className={`px-5 py-3.5 text-[13px] font-medium transition-all relative ${
                         activeTab === i
                           ? 'text-white'
-                          : 'text-slate-500 hover:text-slate-300'
+                          : 'text-slate-400 hover:text-slate-300'
                       }`}
                     >
                       <span className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export function APIDemo() {
 
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-1.5 px-3 py-1.5 mr-2 rounded-md text-[12px] text-slate-500 hover:text-slate-300 hover:bg-white/4 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 mr-2 rounded-md text-[12px] text-slate-400 hover:text-slate-300 hover:bg-white/4 transition-all"
                 >
                   {copied ? (
                     <>

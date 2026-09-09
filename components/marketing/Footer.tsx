@@ -56,7 +56,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-slate-900 dark:bg-slate-950 text-white">
+    <footer className="bg-surface-alt text-white">
       {/* CTA Section */}
       <div className="py-20 border-b border-slate-800">
         <Container>
@@ -68,7 +68,7 @@ export function Footer() {
               Get your API key and start parsing files in minutes. Plans start at $29/mo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="primary" href="/signup" className="!bg-emerald-500 hover:!bg-emerald-400 !border-emerald-500">
+              <Button variant="primary" href="/signup">
                 Get API Key
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
@@ -93,6 +93,19 @@ export function Footer() {
               <p className="text-sm text-slate-400 leading-relaxed">
                 AI-Powered software with API and MCP server that validates, cleans, and formats crypto transaction CSVs and bank statement PDFs for compatibility with tax and accounting software.
               </p>
+              <a
+                href="https://www.npmjs.com/package/@taxformatter/mcp-server"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-4"
+              >
+                <img
+                  src="https://img.shields.io/npm/dm/@taxformatter/mcp-server?style=flat-square&color=635bff&label=npm%20downloads"
+                  alt="Monthly downloads of the @taxformatter/mcp-server npm package"
+                  width={168}
+                  height={20}
+                />
+              </a>
             </div>
 
             {/* Product */}
@@ -126,6 +139,16 @@ export function Footer() {
                 <li>
                   <a href="https://twitter.com/taxformatter" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">
                     Twitter
+                  </a>
+                </li>
+                <li>
+                  <a href="https://github.com/Sean-Bravo/trw" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">
+                    GitHub
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.npmjs.com/package/@taxformatter/mcp-server" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">
+                    npm
                   </a>
                 </li>
               </ul>

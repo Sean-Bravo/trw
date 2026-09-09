@@ -29,12 +29,12 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
 
   if (!doc) {
     return {
-      title: 'Page Not Found - TaxFormatter Docs',
+      title: 'Page Not Found - Docs',
       description: 'The requested documentation page could not be found.',
     }
   }
 
-  const title = `${doc.title} - TaxFormatter Docs`
+  const title = `${doc.title} - Docs`
 
   // Generate better meta description - use doc description or create contextual fallback
   const description = doc.description || `Learn about ${doc.title} in TaxFormatter documentation - comprehensive guide for crypto tax CSV repair and formatting.`

@@ -86,14 +86,11 @@ const vibeIcons: Record<VibeType, LucideIcon> = {
   curious: HelpCircle,
 };
 
-const vibeAccents: Record<VibeType, string> = {
-  frustrated: 'border-orange-500/50 text-orange-400 shadow-orange-500/20',
-  paranoid: 'border-purple-500/50 text-purple-400 shadow-purple-500/20',
-  skeptic: 'border-yellow-500/50 text-yellow-400 shadow-yellow-500/20',
-  hopeful: 'border-emerald-500/50 text-emerald-400 shadow-emerald-500/20',
-  worried: 'border-blue-500/50 text-blue-400 shadow-blue-500/20',
-  curious: 'border-pink-500/50 text-pink-400 shadow-pink-500/20',
-};
+// One accent for every vibe. Six competing colours (orange, purple, yellow,
+// emerald, blue, pink) carried no meaning the vibe icon doesn't already carry,
+// and made the FAQ read as a different site. The icons still differentiate.
+const ANSWER_ACCENT = 'border-[#635bff]/50 text-primary-400 shadow-[#635bff]/20';
+const ANSWER_ACCENT_TEXT = 'text-primary-400';
 
 export function FAQ() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -107,7 +104,7 @@ export function FAQ() {
   return (
     <>
       <FAQSchema items={schemaItems} />
-      <section className="bg-[#0a0a0a] py-24 sm:py-32 relative overflow-hidden">
+      <section className="bg-surface-base py-20 relative overflow-hidden">
         <div 
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
@@ -125,7 +122,7 @@ export function FAQ() {
               <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1]">
                 Things devs actually ask.
               </h2>
-              <p className="text-zinc-500 text-lg mt-6 tracking-tight">
+              <p className="text-slate-400 text-lg mt-6 tracking-tight">
                  No fluff. Real answers about the API, MCP server, and how it all works.
               </p>
             </div>
@@ -144,8 +141,8 @@ export function FAQ() {
                       className={clsx(
                         'group text-left px-6 py-5 rounded-xl transition-all duration-300 border flex items-center justify-between',
                         isActive 
-                          ? `bg-zinc-900/50 border-zinc-700 ${vibeAccents[item.vibe].split(' ')[1]}` 
-                          : 'bg-transparent border-transparent hover:bg-zinc-900/30 text-zinc-400 hover:text-white'
+                          ? `bg-white/4 border-white/10 ${ANSWER_ACCENT_TEXT}` 
+                          : 'bg-transparent border-transparent hover:bg-white/2 text-slate-400 hover:text-white'
                       )}
                     >
                       <span className={clsx("font-medium text-lg pr-4", isActive ? "text-white" : "")}>
@@ -163,18 +160,18 @@ export function FAQ() {
 
               <div className="col-span-7 sticky top-8">
                 <div className={clsx(
-                  "bg-zinc-900/80 p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500 shadow-xl relative overflow-hidden",
-                  vibeAccents[activeItem.vibe]
+                  "bg-white/4 p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500 shadow-xl relative overflow-hidden",
+                  ANSWER_ACCENT
                 )}>
                   <div className={clsx(
                     "absolute -top-20 -right-20 w-64 h-64 bg-current opacity-[0.08] blur-3xl rounded-full pointer-events-none transition-colors duration-500",
-                    vibeAccents[activeItem.vibe].split(' ')[1]
+                    ANSWER_ACCENT_TEXT
                   )} />
 
                   <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                     The straight answer.
                   </h3>
-                  <div className="text-zinc-300 text-lg leading-relaxed space-y-4 relative z-10 font-light">
+                  <div className="text-slate-300 text-lg leading-relaxed space-y-4 relative z-10 font-light">
                    <p>{activeItem.answer}</p>
                   </div>
                 </div>
@@ -192,7 +189,7 @@ export function FAQ() {
                     key={index}
                     className={clsx(
                       "rounded-2xl border transition-all duration-300 overflow-hidden",
-                      isExpanded ? `bg-zinc-900/80 ${vibeAccents[item.vibe]}` : "bg-zinc-900/30 border-white/5"
+                      isExpanded ? `bg-white/4 ${ANSWER_ACCENT}` : "bg-white/2 border-white/5"
                     )}
                   >
                     <button
@@ -201,7 +198,7 @@ export function FAQ() {
                     >
                        <h3 className={clsx(
                           "font-semibold transition-colors duration-300 text-lg",
-                          isExpanded ? "text-white" : "text-zinc-300"
+                          isExpanded ? "text-white" : "text-slate-300"
                        )}>
                         {item.question}
                       </h3>
@@ -215,7 +212,7 @@ export function FAQ() {
                       "px-6 transition-all duration-300 grid",
                       isExpanded ? "pb-6 grid-rows-[1fr] opacity-100" : "pb-0 grid-rows-[0fr] opacity-0"
                     )}>
-                      <div className="overflow-hidden text-zinc-300 leading-relaxed">
+                      <div className="overflow-hidden text-slate-300 leading-relaxed">
                        {item.answer}
                       </div>
                     </div>
