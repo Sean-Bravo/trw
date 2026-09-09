@@ -1,0 +1,39 @@
+name: Bug report
+description: Something else is broken — API, docs, dashboard, or site
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a file that parsed wrong, use the **Parsing bug** template instead.
+        For a security problem, report it privately — see SECURITY.md.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. POST /v1/parse with output_format=koinly
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+  - type: input
+    id: request_id
+    attributes:
+      label: Request ID, if you have one
+      description: Returned in the response metadata. Helps us find the exact call.
+  - type: input
+    id: env
+    attributes:
+      label: Browser / SDK version, if relevant

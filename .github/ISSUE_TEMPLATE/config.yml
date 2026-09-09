@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Sean-Bravo/trw/security/advisories/new
+    about: Report privately. Please do not open a public issue for a security problem.
+  - name: Billing, account, or support question
+    url: https://www.taxformatter.com/contact
+    about: Anything about your account, quota, or invoice.
+  - name: API documentation
+    url: https://www.taxformatter.com/docs/api
+    about: Endpoint reference, authentication, and output formats.

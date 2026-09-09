@@ -1,0 +1,52 @@
+name: Parsing bug
+description: A file from a supported exchange or bank parsed incorrectly
+labels: ["bug", "parser"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not attach real financial data.** Issues are public. Redact
+        amounts, addresses, and account numbers — we need the file's shape,
+        not your transactions.
+  - type: input
+    id: source
+    attributes:
+      label: Exchange or bank
+      placeholder: Coinbase, Kraken, Chase, ...
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: File format and how you exported it
+      placeholder: CSV via Reports > Transaction history, 2026 tax year
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+      placeholder: |
+        Expected: 147 transactions, negative amounts preserved
+        Got: 146 transactions, the 2026-03-14 sell row was dropped
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Redacted sample rows
+      description: Header row plus a few rows that reproduce it. Dummy values only.
+      render: csv
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did you hit this?
+      options:
+        - REST API (api.taxformatter.com)
+        - MCP server
+        - Node SDK
+        - Python SDK
+        - Dashboard upload
+        - Playground
+    validations:
+      required: true

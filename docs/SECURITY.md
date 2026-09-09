@@ -4,7 +4,8 @@ This document describes how security work is done on TaxFormatter.
 It's the contract between the codebase and any future contributor.
 
 If you find what looks like a security issue, **do not open a public
-issue**. Email the owner directly (see `package.json` author field).
+issue**. See [`SECURITY.md`](../SECURITY.md) in the repo root for how to
+report it privately and what to expect.
 
 ---
 
@@ -13,9 +14,8 @@ issue**. Email the owner directly (see `package.json` author field).
 TaxFormatter went through a six-agent parallel security audit on
 2026-04-09 that found 51 issues. All actionable findings (Critical,
 High, Medium, Low) have code fixes in `git log` — search for commits
-prefixed `fix(security):`. The full report is in `SECURITY_AUDIT.md`
-at the repo root and the remediation tracking is in
-`SECURITY_REMEDIATION_PLAN.md`.
+prefixed `fix(security):`. The full report is in `docs/SECURITY_AUDIT.md`
+and the remediation tracking is in `docs/SECURITY_REMEDIATION_PLAN.md`.
 
 The audit findings are organized by category:
 
