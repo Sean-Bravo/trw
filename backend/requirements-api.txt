@@ -11,5 +11,5 @@ psycopg2-binary==2.9.10
 # Bank statement processing
 # pdfplumber hard-pins its pdfminer.six version — bump both together.
 pdfplumber==0.11.9
-pdfminer.six==20251230
+pdfminer.six==20260107
 PyYAML==6.0.2
