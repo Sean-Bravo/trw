@@ -1,0 +1,60 @@
+# Dependency updates. Two rounds of critical advisories (next-auth/vitest,
+# then a Next.js batch including two unauthenticated RCEs) were caught only
+# by CI going red, days after publication. This watches instead.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]
+    groups:
+      # Patch/minor noise arrives as one PR; majors stay separate so a
+      # breaking framework bump is never bundled with routine updates.
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "fix(deps)"
+      prefix-development: "chore(deps)"
+
+  - package-ecosystem: npm
+    directory: /packages/sdk-node
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "sdk"]
+    commit-message:
+      prefix: "fix(deps)"
+
+  - package-ecosystem: npm
+    directory: /packages/mcp-server
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "mcp"]
+    commit-message:
+      prefix: "fix(deps)"
+
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "backend"]
+    commit-message:
+      prefix: "fix(deps)"
+
+  - package-ecosystem: pip
+    directory: /packages/sdk-python
+    schedule:
+      interval: weekly
+    labels: ["dependencies", "sdk"]
+    commit-message:
+      prefix: "fix(deps)"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: ["dependencies", "ci"]
+    commit-message:
+      prefix: "chore(ci)"

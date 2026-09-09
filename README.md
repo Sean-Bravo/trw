@@ -9,7 +9,7 @@
 [![API](https://img.shields.io/badge/API-api.taxformatter.com-059669?style=flat-square)](https://api.taxformatter.com)
 [![MCP](https://img.shields.io/badge/MCP-@taxformatter%2Fmcp--server-8B5CF6?style=flat-square)](https://www.npmjs.com/package/@taxformatter/mcp-server)
 [![Node SDK](https://img.shields.io/badge/npm-@taxformatter%2Fsdk-CB3837?style=flat-square)](https://www.npmjs.com/package/@taxformatter/sdk)
-[![License](https://img.shields.io/badge/License-Private-1a365d?style=flat-square)](#license)
+[![License](https://img.shields.io/badge/License-Source--available-1a365d?style=flat-square)](LICENSE)
 
 </div>
 
@@ -233,4 +233,18 @@ Full disclosure at [taxformatter.com/security](https://taxformatter.com/security
 
 ## License
 
-Private — Quantum Transfer Group. All rights reserved.
+Source-available, not open source. Copyright (c) 2026 Quantum Transfer Group,
+all rights reserved — you may read and audit this code, but not run, copy, or
+build on it. Full terms in [LICENSE](LICENSE); the published npm and PyPI
+client packages are licensed separately.
+
+## Security
+
+Found a vulnerability? Report it privately — see [SECURITY.md](SECURITY.md).
+Please don't open a public issue.
+
+## Contributing
+
+Bug reports are welcome, especially parsing failures against real exchange or
+bank exports. We don't accept outside pull requests — see
+[CONTRIBUTING.md](CONTRIBUTING.md).

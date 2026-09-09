@@ -2,6 +2,17 @@
   "name": "trw",
   "version": "0.1.0",
   "private": true,
+  "description": "Parse crypto exchange CSVs and bank statement PDFs into tax-ready data. REST API, MCP server, and SDKs.",
+  "license": "UNLICENSED",
+  "author": "Quantum Transfer Group <support@taxformatter.com>",
+  "homepage": "https://www.taxformatter.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sean-Bravo/trw.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sean-Bravo/trw/issues"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -16,7 +27,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:all": "npm run test && npm run test:e2e",
-    "hooks:install": "ln -sf ../../scripts/git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo '✓ pre-commit hook installed (see scripts/git-hooks/pre-commit)'"
+    "hooks:install": "ln -sf ../../scripts/git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo '\u2713 pre-commit hook installed (see scripts/git-hooks/pre-commit)'"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",

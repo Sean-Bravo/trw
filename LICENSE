@@ -1,0 +1,30 @@
+Copyright (c) 2026 Quantum Transfer Group. All rights reserved.
+
+This source code is made available for inspection, security review, and
+evaluation only.
+
+You MAY:
+  - Read, audit, and review this source code.
+  - Reference it when reporting a defect or vulnerability.
+
+You MAY NOT, without prior written permission from Quantum Transfer Group:
+  - Use this software or any part of it in a commercial or production setting.
+  - Copy, modify, merge, publish, distribute, sublicense, or sell copies of
+    this software or any substantial portion of it.
+  - Create derivative works, including running a competing or equivalent
+    service built on this code.
+
+Published client packages are licensed separately. The npm packages
+@taxformatter/sdk and @taxformatter/mcp-server, and the PyPI package
+taxformatter, carry their own license terms in their respective package
+directories; those terms govern use of those packages.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+For licensing enquiries: legal@taxformatter.com
