@@ -63,7 +63,10 @@
     "zod": "^4.2.1"
   },
   "overrides": {
-    "protobufjs": "^7.5.5"
+    "protobufjs": "^7.5.5",
+    "next-auth": {
+      "nodemailer": "$nodemailer"
+    }
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
