@@ -30,9 +30,9 @@
     "hooks:install": "ln -sf ../../scripts/git-hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit && echo '\u2713 pre-commit hook installed (see scripts/git-hooks/pre-commit)'"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1138.0",
-    "@aws-sdk/client-sqs": "^3.1138.0",
-    "@aws-sdk/s3-presigned-post": "^3.1138.0",
+    "@aws-sdk/client-s3": "^3.1140.0",
+    "@aws-sdk/client-sqs": "^3.1140.0",
+    "@aws-sdk/s3-presigned-post": "^3.1140.0",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@neondatabase/serverless": "^1.1.0",
     "@otplib/plugin-base32-enc-dec": "^12.0.1",
