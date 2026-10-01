@@ -80,7 +80,7 @@ export function ApiKeyManager() {
     fetchKeys();
   }, [fetchKeys]);
 
-  // Auto-subscribe flow: if pending_api_tier cookie exists, create key + redirect to Stripe
+  // Auto-subscribe flow: if pending_api_tier cookie exists, redirect to Stripe
   useEffect(() => {
     const match = document.cookie.match(/(?:^|; )pending_api_tier=([^;]+)/);
     if (!match) return;
@@ -90,20 +90,14 @@ export function ApiKeyManager() {
 
     const autoSubscribe = async () => {
       try {
-        // Create an API key first
-        const createRes = await fetch('/api/developer/keys', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: 'My API Key' }),
-        });
-        const createData = await createRes.json();
-        if (!createRes.ok) throw new Error(createData.error);
-
-        // Start Stripe checkout for the selected tier
+        // Start Stripe checkout for the selected tier. The server resolves
+        // which key to upgrade (the auto-provisioned free key, or a new one).
+        // Creating a key here first collided with the one-free-key cap and
+        // 409'd before checkout could start.
         const subRes = await fetch('/api/developer/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tier, apiKeyId: createData.id }),
+          body: JSON.stringify({ tier }),
         });
         const subData = await subRes.json();
         if (!subRes.ok) throw new Error(subData.error);
@@ -113,7 +107,7 @@ export function ApiKeyManager() {
         }
       } catch (err: any) {
         setError(err.message || 'Failed to start checkout');
-        fetchKeys(); // Refresh to show the created key
+        fetchKeys(); // Refresh in case the server created a key before failing
       }
     };
 

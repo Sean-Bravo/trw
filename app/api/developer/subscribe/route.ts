@@ -3,11 +3,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { stripe, STRIPE_API_PRICES, type StripeApiPlan } from '@/lib/stripe';
 import { queryOne } from '@/lib/db';
+import { createApiKey } from '@/lib/api-keys';
 
 /**
  * POST /api/developer/subscribe
  * Create a Stripe Checkout session for an API tier upgrade.
- * Body: { tier: "starter" | "growth" | "business", apiKeyId: string }
+ * Body: { tier: "starter" | "growth" | "business", apiKeyId?: string }
+ * When apiKeyId is omitted, the user's existing active free key is upgraded
+ * (or one is created if they have none).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const tier = body.tier?.toUpperCase() as StripeApiPlan | undefined;
-    const apiKeyId = body.apiKeyId as string | undefined;
+    let apiKeyId = body.apiKeyId as string | undefined;
 
     if (!tier || !STRIPE_API_PRICES[tier]) {
       return NextResponse.json(
@@ -27,11 +30,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // The pricing-page auto-subscribe flow omits apiKeyId. Every verified
+    // user already holds an auto-provisioned free key (D3) and the one-free-
+    // key cap (D2) rejects creating another, so resolve the key server-side:
+    // upgrade the existing free key, and only create one if none exists.
     if (!apiKeyId) {
-      return NextResponse.json(
-        { error: 'apiKeyId is required' },
-        { status: 400 },
+      const freeKey = await queryOne<{ id: string }>(
+        `SELECT id FROM api_keys
+         WHERE user_id = $1 AND tier = 'free' AND is_active = true
+         ORDER BY created_at ASC
+         LIMIT 1`,
+        [session.user.id],
       );
+      if (freeKey) {
+        apiKeyId = freeKey.id;
+      } else {
+        const created = await createApiKey(session.user.id, 'My API Key', 'free');
+        apiKeyId = created.id;
+      }
     }
 
     // H-1: verify the API key belongs to the authenticated user before
