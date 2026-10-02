@@ -3,7 +3,7 @@
 
 # Core dependencies
 pandas>=2.0.0
-chardet>=5.0.0
+chardet>=7.6.0
 
 # Database (Neon PostgreSQL)
 psycopg2-binary>=2.9.0
