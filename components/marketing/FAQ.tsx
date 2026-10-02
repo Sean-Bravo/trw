@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Container } from '../layout/Container';
 import { FAQSchema } from '../seo/FAQSchema';
 import clsx from 'clsx';
+import { VERIFIED_BANKS, BETA_BANKS, formatBankList } from '@/lib/bank-registry';
 import { 
   TriangleAlert, 
   Shield, 
@@ -46,7 +47,7 @@ const faqItems: FAQItem[] = [
   },
   {
     question: "Can the API parse bank statement PDFs too?",
-    answer: "Yes. Send a PDF with filename ending in .pdf and we'll route it to the bank statement processor automatically. We support Chase, Mercury, Navy Federal, Bank of America, Wells Fargo, Citi, and Capital One. The API auto-detects the bank from the PDF content — no configuration needed.",
+    answer: `Yes. Send a PDF with filename ending in .pdf and we'll route it to the bank statement processor automatically. ${formatBankList(VERIFIED_BANKS)} are verified against real statements; ${formatBankList(BETA_BANKS)} are in beta (configured, not yet verified). The API auto-detects the bank from the PDF content — no configuration needed. The live list is always at GET /v1/sources.`,
     vibe: 'hopeful',
   },
   {

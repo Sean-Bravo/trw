@@ -3,6 +3,7 @@ bank:
   name: "Chase"
   aliases: ["JPMorgan Chase", "JPMC", "Chase Bank"]
   version: "1.0.0"
+  status: "verified"  # verified = tested against real statements; beta = configured, untested
   updated_at: "2026-01-17"
 
 fingerprint:

@@ -42,6 +42,9 @@ const customJestConfig = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/.next/',
+    // Stale worktree checkouts under .claude/ carry their own __tests__ copies
+    // that import main-repo source via the @/ alias and assert old behavior.
+    '/.claude/',
     '/e2e/',
     '/__tests__/factories/',
     '/__tests__/utils/',

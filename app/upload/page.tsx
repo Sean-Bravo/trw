@@ -19,11 +19,11 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import type { BankOutputFormat } from '@/lib/bank-upload-client';
+import { BANK_SOURCES, VERIFIED_BANKS, BETA_BANKS } from '@/lib/bank-registry';
 
-const BANKS = [
-  'Chase', 'Bank of America', 'Wells Fargo', 'Citi', 'Capital One',
-  'US Bank', 'PNC', 'TD Bank', 'Mercury', 'Navy Federal', 'Regions', 'HSBC', 'BMO',
-];
+// Single source: lib/bank-registry.ts (mirrors backend/configs/banks/*.yaml).
+// Only banks with a parser config are listed; "support means tested support".
+const BANKS = BANK_SOURCES;
 
 const OUTPUT_FORMATS = ['CSV', 'QuickBooks (QBO)', 'Xero', 'Excel'];
 
@@ -263,7 +263,7 @@ export default function UploadLandingPage() {
                   or <span className="text-primary-400 underline underline-offset-2 decoration-primary-400/30">browse files</span> — .pdf up to 50MB
                 </p>
                 <p className="mt-4 text-xs text-slate-600 font-mono">
-                  Chase · Bank of America · Wells Fargo · Navy Federal · 9 more
+                  {VERIFIED_BANKS.map((b) => b.name).join(' · ')} · {BETA_BANKS.length} more in beta
                 </p>
               </>
             )}
@@ -447,12 +447,16 @@ export default function UploadLandingPage() {
             Supported banks
           </h2>
           <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {BANKS.map((name) => (
+            {BANKS.map((bank) => (
               <span
-                key={name}
+                key={bank.id}
                 className="rounded-lg border border-slate-800 bg-slate-900/60 px-3.5 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:border-slate-700 hover:text-slate-200"
+                title={bank.status === 'verified' ? 'Verified against real statements' : 'Beta: configured, not yet verified'}
               >
-                {name}
+                {bank.name}
+                {bank.status === 'beta' && (
+                  <span className="ml-1.5 text-[9px] uppercase tracking-wider text-slate-600">beta</span>
+                )}
               </span>
             ))}
           </div>
