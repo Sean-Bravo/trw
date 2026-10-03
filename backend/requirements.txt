@@ -6,7 +6,7 @@ pandas>=3.0.6
 chardet>=7.6.0
 
 # Database (Neon PostgreSQL)
-psycopg2-binary>=2.9.0
+psycopg2-binary>=2.9.13
 
 # AWS SDK (Lambda uses bundled boto3, but useful for local dev)
 boto3>=1.26.0

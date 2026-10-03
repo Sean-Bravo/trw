@@ -2,7 +2,7 @@
 # Only needs boto3 (included in Lambda runtime) and psycopg2 for DB
 #
 # M-11: same pinning policy as requirements-api.txt
-psycopg2-binary==2.9.10
+psycopg2-binary==2.9.13
 
 # Bank statement processing
 # pdfplumber hard-pins its pdfminer.six version — bump both together.
