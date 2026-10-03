@@ -2,17 +2,17 @@
 # Python CSV processing engine for crypto tax formatting
 
 # Core dependencies
-pandas>=2.0.0
+pandas>=3.0.6
 chardet>=7.6.0
 
 # Database (Neon PostgreSQL)
-psycopg2-binary>=2.9.0
+psycopg2-binary>=2.9.13
 
 # AWS SDK (Lambda uses bundled boto3, but useful for local dev)
 boto3>=1.26.0
 
 # AI Providers
-anthropic>=0.40.0
+anthropic>=1.9.0
 google-generativeai>=0.8.6
 
 # Optional: For testing
