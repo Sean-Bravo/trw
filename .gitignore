@@ -78,3 +78,6 @@ __pycache__/
 rotation-replacements.txt
 .next/
 outbound_prospects.*
+
+# Local agent/tooling state
+.claude/
