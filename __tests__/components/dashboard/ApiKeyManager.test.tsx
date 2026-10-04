@@ -224,6 +224,73 @@ describe('ApiKeyManager', () => {
     });
   });
 
+  describe('Auto-subscribe (pending_api_tier cookie)', () => {
+    afterEach(() => {
+      document.cookie = 'pending_api_tier=;path=/;max-age=0';
+    });
+
+    function mockFetchWithSubscribe(subscribeResponse: { ok: boolean; body: object }) {
+      (global.fetch as jest.Mock) = jest.fn((url: string, opts?: RequestInit) => {
+        if (url.includes('/api/developer/subscribe')) {
+          return Promise.resolve({
+            ok: subscribeResponse.ok,
+            json: () => Promise.resolve(subscribeResponse.body),
+          });
+        }
+        if (url.includes('/api/developer/keys') && opts?.method === 'POST') {
+          // Regression guard: the old flow created a key here first and hit
+          // the one-free-key cap (409) before checkout could start.
+          return Promise.resolve({
+            ok: false,
+            json: () =>
+              Promise.resolve({ error: 'Only one active free API key per user.' }),
+          });
+        }
+        if (url.includes('/api/developer/keys')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ keys: mockKeys }) });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ usage: mockUsage }) });
+      });
+    }
+
+    it('starts checkout with the tier only and never POSTs a new key first', async () => {
+      document.cookie = 'pending_api_tier=growth;path=/';
+      // No url in the response so jsdom is not asked to navigate.
+      mockFetchWithSubscribe({ ok: true, body: {} });
+
+      render(<ApiKeyManager />);
+
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/developer/subscribe',
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ tier: 'growth' }),
+          })
+        );
+      });
+
+      const keyCreatePosts = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url, opts]) => String(url).includes('/api/developer/keys') && opts?.method === 'POST'
+      );
+      expect(keyCreatePosts).toHaveLength(0);
+      expect(screen.queryByText(/Only one active free/i)).not.toBeInTheDocument();
+      // Cookie is cleared so a re-render cannot re-trigger checkout.
+      expect(document.cookie).not.toContain('pending_api_tier=growth');
+    });
+
+    it('surfaces the server error when checkout cannot start', async () => {
+      document.cookie = 'pending_api_tier=business;path=/';
+      mockFetchWithSubscribe({ ok: false, body: { error: 'Failed to create checkout session' } });
+
+      render(<ApiKeyManager />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Failed to create checkout session/i)).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('Revoke', () => {
     it('calls DELETE endpoint on revoke button click', async () => {
       mockFetchResponses();

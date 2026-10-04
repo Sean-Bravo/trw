@@ -3,6 +3,7 @@ bank:
   name: "Navy Federal"
   aliases: ["Navy Federal Credit Union", "NFCU"]
   version: "1.0.0"
+  status: "verified"  # verified = tested against real statements; beta = configured, untested
   updated_at: "2026-02-15"
 
 fingerprint:

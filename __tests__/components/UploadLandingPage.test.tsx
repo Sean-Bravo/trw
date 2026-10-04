@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import UploadLandingPage from '@/app/upload/page';
 import * as bankUploadClient from '@/lib/bank-upload-client';
 import * as analytics from '@/lib/analytics';
+import { BANK_SOURCES, BETA_BANKS } from '@/lib/bank-registry';
 
 // Mock bank-upload-client
 jest.mock('@/lib/bank-upload-client', () => ({
@@ -184,12 +185,16 @@ describe('UploadLandingPage', () => {
       expect(screen.getByText('Supported banks')).toBeInTheDocument();
     });
 
-    it('renders all 13 bank tags', () => {
+    it('renders exactly the registry banks (verified + beta), nothing unsupported', () => {
       render(<UploadLandingPage />);
-      const banks = ['Chase', 'Bank of America', 'Wells Fargo', 'Citi', 'Capital One', 'US Bank', 'PNC', 'TD Bank', 'Mercury', 'Navy Federal', 'Regions', 'HSBC', 'BMO'];
-      banks.forEach((name) => {
-        expect(screen.getAllByText(name).length).toBeGreaterThanOrEqual(1);
+      BANK_SOURCES.forEach((bank) => {
+        expect(screen.getAllByText(bank.name).length).toBeGreaterThanOrEqual(1);
       });
+      // Previously listed without a parser config; must not reappear.
+      ['Capital One', 'US Bank', 'PNC', 'TD Bank', 'Regions', 'HSBC', 'BMO'].forEach((name) => {
+        expect(screen.queryByText(name)).not.toBeInTheDocument();
+      });
+      expect(screen.getAllByText('beta').length).toBe(BETA_BANKS.length);
     });
 
     it('renders all 4 output format badges', () => {

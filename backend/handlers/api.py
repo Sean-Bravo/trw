@@ -542,10 +542,20 @@ def handle_v1_sources(event: Dict) -> Dict:
                 from bank_statement.fingerprinter import BankFingerprinter
 
             fingerprinter = BankFingerprinter()
-            for bank_config in fingerprinter.configs:
+            # configs is {bank_id: yaml_dict}; the bank's fields live under the
+            # top-level "bank" key. Iterating the dict directly yielded string
+            # keys and silently produced an empty list in production.
+            for bank_id, bank_config in sorted(fingerprinter.configs.items()):
+                bank = bank_config.get("bank", {})
+                if bank.get("is_generic"):
+                    continue
                 banks.append({
-                    "id": bank_config.get("id", ""),
-                    "name": bank_config.get("name", ""),
+                    "id": bank_id,
+                    "name": bank.get("name", bank_id),
+                    # The YAML is the source registry. Missing status is
+                    # reported as "beta", never promoted to "verified".
+                    "status": bank.get("status", "beta"),
+                    "version": bank.get("version"),
                 })
         except Exception as e:
             logger.warning(f"Could not load bank configs: {e}")
