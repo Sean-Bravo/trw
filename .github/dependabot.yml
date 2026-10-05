@@ -42,6 +42,14 @@ updates:
     labels: ["dependencies", "backend"]
     commit-message:
       prefix: "fix(deps)"
+    ignore:
+      # deploy.sh packages Lambdas with --platform manylinux2014_x86_64;
+      # pandas 3.x ships manylinux_2_24+ wheels only, so the bump to 3.0.6
+      # (#76) broke packaging. 3.0 also changes the default string dtype
+      # and copy-on-write — not a launch-week change. Revisit after the
+      # Oct 28 review.
+      - dependency-name: "pandas"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: pip
     directory: /packages/sdk-python
