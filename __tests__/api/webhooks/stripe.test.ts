@@ -383,7 +383,7 @@ describe('POST /api/webhooks/stripe', () => {
     });
   });
 
-  it('returns 500 when handler throws', async () => {
+  it('returns 500 when handler throws and releases the idempotency claim so Stripe can retry', async () => {
     mockConstructEvent.mockReturnValue({
       id: 'evt_throw_1',
       type: 'checkout.session.completed',
@@ -396,10 +396,126 @@ describe('POST /api/webhooks/stripe', () => {
         },
       },
     });
-    mockExecute.mockRejectedValue(new Error('DB error'));
+    // Claim succeeds, then the first real write (UPDATE users) blows up.
+    // (Previously this test rejected *every* execute, so it only ever hit the
+    // idempotency-insert 500 and never exercised the handler path.)
+    mockExecute
+      .mockResolvedValueOnce({ rowCount: 1 }) // idempotency claim
+      .mockRejectedValueOnce(new Error('DB error')) // UPDATE users
+      .mockResolvedValueOnce({ rowCount: 1 }); // release claim
 
     const req = createRequest('{}', 'sig');
     const res = await POST(req);
     expect(res.status).toBe(500);
+
+    // The claim must be released, otherwise Stripe's retry short-circuits as
+    // duplicate=true and the paid upgrade is lost for good.
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM processed_webhook_events'),
+      ['evt_throw_1']
+    );
+  });
+
+  describe('payment → entitlement hardening (Oct 5)', () => {
+    it('checkout.session.completed: Stripe verification error returns 500 + releases claim instead of silently leaving the key on free', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_verify_err_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            customer: 'cus_1',
+            customer_email: 'u@x.com',
+            subscription: 'sub_1',
+            metadata: { api_tier: 'growth', api_key_id: 'key-1', userId: 'user-1' },
+            amount_total: 9900,
+          },
+        },
+      });
+      mockExecute.mockResolvedValue({ rowCount: 1 });
+      // Transport failure, not a verified mismatch.
+      mockSubsRetrieve.mockRejectedValue(new Error('ETIMEDOUT'));
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(500);
+
+      const updateCalls = mockExecute.mock.calls.filter((c) =>
+        typeof c[0] === 'string' && c[0].includes('UPDATE api_keys'),
+      );
+      expect(updateCalls.length).toBe(0);
+      expect(mockExecute).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM processed_webhook_events'),
+        ['evt_verify_err_1']
+      );
+    });
+
+    it('a verified price mismatch is still a 200 refusal, not a retry loop', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_mismatch_no_retry',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            customer: 'cus_1',
+            customer_email: 'u@x.com',
+            subscription: 'sub_1',
+            metadata: { api_tier: 'business', api_key_id: 'key-1', userId: 'user-1' },
+            amount_total: 24900,
+          },
+        },
+      });
+      mockExecute.mockResolvedValue({ rowCount: 1 });
+      mockSubsRetrieve.mockResolvedValue({
+        items: { data: [{ price: { id: 'price_api_starter_monthly' } }] },
+      });
+      mockQueryOne.mockResolvedValue({ user_id: 'user-1' });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+      const release = mockExecute.mock.calls.find((c) =>
+        typeof c[0] === 'string' && c[0].includes('DELETE FROM processed_webhook_events'),
+      );
+      expect(release).toBeUndefined();
+    });
+
+    it('invoice.payment_failed stamps deactivated_reason=payment_failed and only touches active keys', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_inv_fail_reason',
+        type: 'invoice.payment_failed',
+        data: { object: { subscription: 'sub_1' } },
+      });
+      mockQueryOne.mockResolvedValue({ id: 'key-1' });
+      mockExecute.mockResolvedValue({ rowCount: 1 });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+
+      const disable = mockExecute.mock.calls.find((c) =>
+        typeof c[0] === 'string' && c[0].includes('is_active = false'),
+      );
+      expect(disable).toBeDefined();
+      expect(disable![0]).toContain("deactivated_reason = 'payment_failed'");
+      expect(disable![0]).toContain('AND is_active = true');
+      expect(disable![1]).toEqual(['key-1']);
+    });
+
+    it('invoice.payment_succeeded only re-enables keys disabled for payment failure — a user-revoked key stays revoked', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_inv_ok_guard',
+        type: 'invoice.payment_succeeded',
+        data: { object: { subscription: 'sub_1' } },
+      });
+      mockQueryOne.mockResolvedValue({ id: 'key-1' });
+      mockExecute.mockResolvedValue({ rowCount: 1 });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+
+      const enable = mockExecute.mock.calls.find((c) =>
+        typeof c[0] === 'string' && c[0].includes('is_active = true'),
+      );
+      expect(enable).toBeDefined();
+      expect(enable![0]).toContain("deactivated_reason = 'payment_failed'");
+      expect(enable![0]).toContain('deactivated_reason = NULL');
+      expect(enable![1]).toEqual(['key-1']);
+    });
   });
 });
