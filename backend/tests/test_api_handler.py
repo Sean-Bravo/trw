@@ -466,10 +466,15 @@ class TestV1Parse:
         assert resp["headers"].get("X-Api-Overage") == "true"
         assert resp["headers"].get("X-Api-Usage") == "100"
 
+    # Bank PDF parsing is a Growth+ feature (pricing page, docs tier table,
+    # and the feature_not_available message all agree). This test used the
+    # starter fixture before Oct 5 2026, which quietly codified starter
+    # getting PDFs for free.
+    @pytest.mark.parametrize("tier,rpm,quota", [("growth", 60, 500), ("business", 120, 2000)])
     @patch("services.api_auth.check_monthly_quota", return_value=(True, 0, False))
     @patch("services.api_auth.record_request")
     @patch("services.api_auth.increment_usage")
-    def test_pdf_success(self, mock_incr, mock_record, mock_quota, valid_key_record):
+    def test_pdf_success_for_growth_and_above(self, mock_incr, mock_record, mock_quota, tier, rpm, quota):
         # Mock the bank_statement module that gets imported inside _parse_bank
         mock_processor_cls = MagicMock()
         mock_instance = MagicMock()
@@ -486,7 +491,14 @@ class TestV1Parse:
             "file_content": pdf,
             "filename": "statement.pdf",
         })
-        resp = handle_v1_parse(event, valid_key_record)
+        key_record = {
+            "id": f"key-{tier}",
+            "user_id": "user-1",
+            "tier": tier,
+            "rate_limit_rpm": rpm,
+            "monthly_quota": quota,
+        }
+        resp = handle_v1_parse(event, key_record)
         body = json.loads(resp["body"])
         assert resp["statusCode"] == 200
         assert body["detected_source"] == "chase"
@@ -555,6 +567,29 @@ class TestV1Parse:
         assert resp["statusCode"] == 403
         assert body["code"] == "feature_not_available"
         assert body["upgrade_url"] == "http://localhost:3000/pricing"
+        mock_incr.assert_not_called()
+
+    @patch.dict(os.environ, {"APP_URL": "https://taxformatter.com"})
+    @patch("services.api_auth.check_monthly_quota", return_value=(True, 0, False))
+    @patch("services.api_auth.record_request")
+    @patch("services.api_auth.increment_usage")
+    def test_starter_pdf_returns_403_feature_not_available(
+        self, mock_incr, mock_record, mock_quota, valid_key_record
+    ):
+        # Starter ($29) is sold without bank PDFs; the gate must match the
+        # pricing page, not just exclude free.
+        assert valid_key_record["tier"] == "starter"
+        pdf = base64.b64encode(b"%PDF-1.4 fake").decode()
+        event = make_event("POST /v1/parse", body={
+            "file_content": pdf,
+            "filename": "statement.pdf",
+        })
+        resp = handle_v1_parse(event, valid_key_record)
+        body = json.loads(resp["body"])
+        assert resp["statusCode"] == 403
+        assert body["code"] == "feature_not_available"
+        assert "Growth" in body["message"]
+        assert body["upgrade_url"] == "https://taxformatter.com/pricing"
         mock_incr.assert_not_called()
 
     @patch.dict(os.environ, {"APP_URL": "https://taxformatter.com"})
