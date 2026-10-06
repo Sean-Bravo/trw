@@ -90,7 +90,7 @@ export function WorksWithSection() {
             Works With Everything
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Import from 12+ exchanges, export to any tax platform
+            Import from {EXCHANGE_SOURCES.length} exchanges, export to any tax platform
           </p>
         </div>
 
