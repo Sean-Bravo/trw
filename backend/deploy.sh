@@ -129,6 +129,7 @@ package_lambdas() {
     if [ -f "$SCRIPT_DIR/requirements-webhook.txt" ]; then
         # Install with Linux platform for Lambda compatibility
         pip install --quiet -r "$SCRIPT_DIR/requirements-webhook.txt" -t "$BUILD_DIR/webhook" \
+            --platform manylinux_2_28_x86_64 \
             --platform manylinux2014_x86_64 \
             --implementation cp \
             --python-version 312 \
@@ -157,6 +158,7 @@ package_lambdas() {
     # Install processor dependencies (must use Linux platform for Lambda)
     if [ -f "$SCRIPT_DIR/requirements-processor.txt" ]; then
         pip install --quiet -r "$SCRIPT_DIR/requirements-processor.txt" -t "$BUILD_DIR/processor" \
+            --platform manylinux_2_28_x86_64 \
             --platform manylinux2014_x86_64 \
             --implementation cp \
             --python-version 312 \
@@ -184,6 +186,7 @@ package_lambdas() {
     # Install API dependencies
     if [ -f "$SCRIPT_DIR/requirements-api.txt" ]; then
         pip install --quiet -r "$SCRIPT_DIR/requirements-api.txt" -t "$BUILD_DIR/api" \
+            --platform manylinux_2_28_x86_64 \
             --platform manylinux2014_x86_64 \
             --implementation cp \
             --python-version 312 \
