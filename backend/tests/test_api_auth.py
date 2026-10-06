@@ -232,6 +232,52 @@ class TestCheckMonthlyQuota:
 
 
 # ---------------------------------------------------------------------------
+# Paid-tier limits, enforced from the key row
+# ---------------------------------------------------------------------------
+
+# The Stripe webhook writes lib/api-keys.ts API_TIERS onto the api_keys row
+# and this module enforces from that row. These are the published numbers;
+# the TS side of the same contract is PUBLISHED in
+# __tests__/integration/paid-tier-entitlement.test.ts. Keep both in sync.
+PAID_TIER_LIMITS = [
+    # (tier, rate_limit_rpm, monthly_quota)
+    ("starter", 30, 100),     # $29/mo
+    ("growth", 60, 500),      # $99/mo
+    ("business", 120, 2000),  # $249/mo
+]
+
+
+class TestPaidTierLimitsFromKeyRow:
+    @pytest.mark.parametrize("tier,rpm,quota", PAID_TIER_LIMITS)
+    def test_rpm_allows_up_to_limit_then_blocks(self, tier, rpm, quota):
+        key_id = f"key-{tier}"
+        for i in range(rpm):
+            allowed, count = check_rate_limit(key_id, rpm)
+            assert allowed is True, f"{tier}: request {i + 1} of {rpm} should be allowed"
+            assert count == i + 1
+        allowed, count = check_rate_limit(key_id, rpm)
+        assert allowed is False
+        assert count == rpm
+
+    @pytest.mark.parametrize("tier,rpm,quota", PAID_TIER_LIMITS)
+    def test_quota_soft_flags_at_limit_never_hard_blocks(self, mock_db, tier, rpm, quota):
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": quota}
+        allowed, usage, is_overage = check_monthly_quota(f"key-{tier}", quota, tier=tier)
+        assert allowed is True
+        assert usage == quota
+        assert is_overage is True
+
+    @pytest.mark.parametrize("tier,rpm,quota", PAID_TIER_LIMITS)
+    def test_quota_under_limit_clean(self, mock_db, tier, rpm, quota):
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": quota - 1}
+        allowed, usage, is_overage = check_monthly_quota(f"key-{tier}", quota, tier=tier)
+        assert allowed is True
+        assert is_overage is False
+
+
+# ---------------------------------------------------------------------------
 # increment_usage
 # ---------------------------------------------------------------------------
 

@@ -302,8 +302,10 @@ def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict
             },
         )
 
-    # Bank-PDF feature gate (Phase 2): free tier excluded from PDF parsing.
-    if is_pdf and tier == "free":
+    # Bank-PDF feature gate (Phase 2): bank PDF parsing starts at Growth.
+    # Pricing page, docs tier table and the error below all say Growth+, so
+    # starter is excluded alongside free.
+    if is_pdf and tier in ("free", "starter"):
         return error_response(
             403,
             "feature_not_available",
