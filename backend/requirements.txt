@@ -2,7 +2,7 @@
 # Python CSV processing engine for crypto tax formatting
 
 # Core dependencies
-pandas>=2.1.4,<3
+pandas>=2.3.3,<3
 chardet>=7.6.0
 
 # Database (Neon PostgreSQL)

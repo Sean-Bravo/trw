@@ -4,7 +4,7 @@
 # M-11: All deps pinned. Loose pins on pdfplumber permitted very old
 # pdfminer.six versions with known XXE / ReDoS CVEs. See SECURITY_AUDIT.md §M-11.
 numpy==1.26.4
-pandas==2.1.4
+pandas==2.3.3
 chardet==7.6.0
 psycopg2-binary==2.9.13
 
