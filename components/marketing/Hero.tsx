@@ -5,6 +5,7 @@ import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
 import { trackSignUp } from '@/lib/analytics';
 import { Sparkles, Check } from 'lucide-react';
+import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
 
 export function Hero() {
   return (
@@ -102,7 +103,7 @@ export function Hero() {
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-[var(--color-accent-500)]" />
-              <span>Works with 14 exchanges</span>
+              <span>Works with {EXCHANGE_COUNT} exchanges</span>
             </div>
           </div>
 

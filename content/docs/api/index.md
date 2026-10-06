@@ -34,6 +34,31 @@ Get your API key at [taxformatter.com/dashboard/developer](/dashboard/developer)
 | GET | `/v1/usage` | Yes | Get usage stats for your key |
 | GET | `/v1/health` | No | Health check |
 
+## List Supported Sources
+
+**GET `/v1/sources`** — no API key required.
+
+Every exchange and bank carries a `status`. `verified` means the parser is exercised against a sample file in our test suite on every change; `beta` means the parser exists but has no fixture-backed test yet. Nothing is listed here that doesn't have a parser, and this endpoint is what the website's supported-source lists are generated from.
+
+```json
+{
+  "crypto_exchanges": [
+    { "id": "coinbase", "name": "Coinbase", "status": "verified" },
+    { "id": "venmo", "name": "Venmo", "status": "beta" }
+  ],
+  "banks": [
+    { "id": "chase", "name": "Chase", "status": "verified", "version": "1.0.0" },
+    { "id": "citi", "name": "Citi", "status": "beta", "version": "1.0.0" }
+  ],
+  "output_formats": {
+    "crypto": ["koinly", "turbotax", "coinledger", "zenledger"],
+    "bank": ["csv"]
+  }
+}
+```
+
+Use an exchange's `id` as the `exchange` parameter on `/v1/parse` to skip auto-detection.
+
 ## Parse a File
 
 **POST `/v1/parse`**

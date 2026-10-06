@@ -269,12 +269,15 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | `backend/services/format_converter.py` | Lightweight tax format conversion (Koinly→TurboTax/CoinLedger/ZenLedger) |
 | `backend/services/fingerprinting.py` | Exchange format detection |
 | `backend/services/ai_insights.py` | Tiered AI insights (Gemini/Sonnet/Opus) |
-| `app/upload/page.tsx` | Bank statement upload landing page (13 banks, anonymous access) |
+| `app/upload/page.tsx` | Bank statement upload landing page (banks from `lib/bank-registry.ts`, anonymous access) |
 | `lib/bank-upload-client.ts` | Bank upload client (presigned URL → S3 PUT → process) |
 | `backend/services/bank_statement/extractor.py` | PDF transaction extraction (tables + text fallback) |
 | `backend/services/bank_statement/normalizer.py` | Date/amount normalization + deduplication |
 | `backend/services/bank_statement/fingerprinter.py` | Bank detection via YAML config scoring |
-| `backend/configs/banks/*.yaml` | Bank-specific configs (fingerprint, date format, columns) |
+| `backend/configs/banks/*.yaml` | Bank-specific configs (fingerprint, date format, columns) — also the bank source registry (`status: verified|beta`) |
+| `backend/configs/exchanges.yaml` | Exchange source registry: id, name, status (verified/beta/experimental/unsupported), fixture. Source of truth for every public support claim |
+| `backend/services/exchange_registry.py` | Loads `exchanges.yaml`; joins it with `ParserRegistry` for `/v1/sources` (parser without a row → beta, never verified; `generic` never listed) |
+| `lib/exchange-registry.ts`, `lib/bank-registry.ts` | Frontend mirrors of the two registries. Every surface that names or counts a source reads these; `__tests__/lib/*-registry.test.ts` fail on drift |
 | `backend/handlers/api.py` | Developer API Lambda handler (/v1/parse, /v1/sources, /v1/usage) |
 | `backend/services/api_auth.py` | API key validation, rate limiting, usage tracking |
 | `lib/api-keys.ts` | API key generation, CRUD, tier management |
@@ -409,7 +412,7 @@ PDF-to-CSV converter at `/upload`. Users drop a bank statement PDF and get a cle
 | Mercury | `mercury.yaml` | Mon DD | Unicode minus signs, text fallback |
 | Navy Federal | `navy_federal.yaml` | MM-DD | Trailing minus debits, text fallback |
 
-**Additional configs (untested):** Bank of America, Wells Fargo, Citi, Capital One
+**Additional configs (beta — configured, not verified against real statements):** Bank of America, Wells Fargo, Citi. Capital One has no config and is not listed anywhere.
 
 **Key backend files:**
 - `backend/configs/banks/*.yaml` — YAML-driven bank configs (fingerprint, date format, column mapping)

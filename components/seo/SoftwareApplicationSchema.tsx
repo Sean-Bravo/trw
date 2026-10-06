@@ -1,4 +1,6 @@
 import { SoftwareApplication, WithContext } from 'schema-dts';
+import { BANK_SOURCES } from '@/lib/bank-registry';
+import { EXCHANGE_COUNT, EXCHANGE_SOURCES } from '@/lib/exchange-registry';
 
 export function SoftwareApplicationSchema() {
   const schema: WithContext<SoftwareApplication> = {
@@ -8,7 +10,7 @@ export function SoftwareApplicationSchema() {
     applicationCategory: 'DeveloperApplication',
     applicationSubCategory: 'FinanceApplication',
     operatingSystem: 'Web Browser',
-    description: 'Developer API for parsing crypto exchange CSVs and bank statement PDFs into structured JSON. Supports 14 exchanges, 13 banks, and 4 tax output formats. Includes MCP server for AI agents and SDKs for Node.js and Python.',
+    description: `Developer API for parsing crypto exchange CSVs and bank statement PDFs into structured JSON. Supports ${EXCHANGE_COUNT} exchanges, ${BANK_SOURCES.length} banks, and 4 tax output formats. Includes MCP server for AI agents and SDKs for Node.js and Python.`,
     url: 'https://www.taxformatter.com',
     screenshot: 'https://www.taxformatter.com/og-image.png',
     offers: [
@@ -60,8 +62,8 @@ export function SoftwareApplicationSchema() {
       },
     ] as any,
     featureList: [
-      '14 crypto exchange parsers (Coinbase, Binance, Kraken, Gemini, Robinhood, and more)',
-      '13 bank statement PDF parsers (Chase, BofA, Wells Fargo, Citi, and more)',
+      `${EXCHANGE_COUNT} crypto exchange parsers (${EXCHANGE_SOURCES.slice(0, 5).map((e) => e.name).join(', ')}, and more)`,
+      `${BANK_SOURCES.length} bank statement PDF parsers (${BANK_SOURCES.map((b) => b.name).join(', ')})`,
       '4 tax output formats (Koinly, TurboTax, CoinLedger, ZenLedger)',
       'REST API with synchronous response (<2 seconds)',
       'MCP server for AI agents (Claude, Cursor, Windsurf)',

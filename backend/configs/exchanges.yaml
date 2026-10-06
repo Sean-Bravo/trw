@@ -1,0 +1,89 @@
+# configs/exchanges.yaml — the crypto exchange source registry.
+#
+# This file is the source of truth for every public claim about which
+# exchange CSVs TaxFormatter supports. GET /v1/sources serves it,
+# lib/exchange-registry.ts mirrors it for the website, and tests on both
+# sides fail if either drifts. A parser in services/engine.py with no row
+# here is served as "beta" and never promoted to "verified" at runtime.
+#
+# status:
+#   verified     — parser + a fixture under tests/fixtures/valid + an
+#                  automated parse test in tests/test_parsing.py
+#   beta         — parser exists; no fixture-backed test yet
+#   experimental — detection only / best effort; may need the `exchange`
+#                  parameter passed explicitly
+#   unsupported  — no parser; must never be named as supported anywhere
+#
+# `fixture` is required for verified rows and is checked by
+# tests/test_sources_registry.py. Rule: a new status is earned by a test,
+# never by editing this file alone.
+
+exchanges:
+  - id: binance
+    name: Binance
+    status: verified
+    fixture: binance_valid.csv
+
+  - id: coinbase
+    name: Coinbase
+    status: verified
+    fixture: coinbase_2025_valid.csv
+
+  - id: kraken
+    name: Kraken
+    status: verified
+    fixture: kraken_valid.csv
+
+  - id: kucoin
+    name: KuCoin
+    status: verified
+    fixture: kucoin_valid.csv
+
+  - id: bybit
+    name: Bybit
+    status: verified
+    fixture: bybit_valid.csv
+
+  - id: cashapp
+    name: Cash App
+    status: verified
+    fixture: cashapp_valid.csv
+
+  - id: robinhood
+    name: Robinhood
+    status: verified
+    fixture: robinhood_valid.csv
+
+  - id: paypal
+    name: PayPal
+    status: verified
+    fixture: paypal_valid.csv
+
+  - id: venmo
+    name: Venmo
+    status: beta  # shares the PayPal parser; no Venmo fixture yet
+
+  - id: crypto.com
+    name: Crypto.com
+    status: verified
+    fixture: crypto_com_valid.csv
+
+  - id: gemini
+    name: Gemini
+    status: verified
+    fixture: gemini_valid.csv
+
+  - id: ftx
+    name: FTX
+    status: verified
+    fixture: ftx_valid.csv
+
+  - id: bitfinex
+    name: Bitfinex
+    status: verified
+    fixture: bitfinex_valid.csv
+
+  - id: okx
+    name: OKX
+    status: verified
+    fixture: okx_valid.csv

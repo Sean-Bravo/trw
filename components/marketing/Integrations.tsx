@@ -3,13 +3,14 @@
 import React from 'react';
 import { Container } from '../layout/Container';
 import { Database, FileCheck, Zap, Activity } from 'lucide-react';
+import { EXCHANGE_SOURCES } from '@/lib/exchange-registry';
 
-const exchanges = [
-  'Coinbase_raw.csv', 'Binance_export.xlsx', 'Kraken_2025.csv',
-  'KuCoin_trade_history.csv', 'Crypto.com_fiat.csv', 'Gemini_active.csv',
-  'Bitstamp_ledger.csv', 'Robinhood_1099.pdf', 'eToro_statement.xls',
-  'OKX_spot.csv', 'Bybit_derivatives.csv', 'Gate.io_margin.csv'
-];
+// Decorative "raw export" filenames — generated from the registry so the
+// ticker can only ever show exchanges we actually parse.
+const suffixes = ['export', 'trade_history', 'ledger', 'raw', 'activity', 'spot'];
+const exchanges = EXCHANGE_SOURCES.map(
+  (ex, i) => `${ex.name.replace(/\s+/g, '')}_${suffixes[i % suffixes.length]}.csv`,
+);
 
 const platforms = [
   'TurboTax_Ready.csv', 'Koinly_Universal.csv',

@@ -1,6 +1,6 @@
 ---
 title: "TaxFormatter API: Parse Crypto CSVs and Bank Statements in One API Call"
-description: "Learn how to integrate TaxFormatter's REST API to parse broken crypto exchange CSVs and bank statement PDFs into structured JSON. Supports 14 exchanges, 50+ banks, and returns clean transaction data in seconds."
+description: "Learn how to integrate TaxFormatter's REST API to parse broken crypto exchange CSVs and bank statement PDFs into structured JSON. Supports 14 exchanges and 6 banks, and returns clean transaction data in seconds."
 date: 2026-03-18
 author: "TaxFormatter Team"
 category: "guides"
@@ -69,10 +69,10 @@ The API detects file type from the extension and routes PDFs through the `BankSt
 ## Supported Sources
 
 ### Crypto Exchanges (14)
-Coinbase, Coinbase Pro, Binance, Binance US, Kraken, KuCoin, Gemini, Crypto.com, Bitfinex, Bitstamp, Gate.io, OKX, Bybit, and Uphold.
+Binance, Coinbase, Kraken, KuCoin, Bybit, Cash App, Robinhood, PayPal, Venmo, Crypto.com, Gemini, FTX, Bitfinex, and OKX. All but Venmo are verified by a fixture-backed parse test in CI; Venmo is beta.
 
-### Banks (50+)
-Chase, Bank of America, Wells Fargo, Citibank, Capital One, Mercury, Relay, Brex, HSBC, Barclays, and dozens more. The engine adapts to new bank formats automatically — if your users upload a statement we haven't seen before, the AI parser handles it.
+### Banks (6)
+Chase, Mercury and Navy Federal are verified against real statements. Bank of America, Wells Fargo and Citi are beta — configured, not yet verified. Anything else falls through to a generic best-effort parser and the response says so; we don't claim support for banks we haven't tested.
 
 Check the full list anytime:
 

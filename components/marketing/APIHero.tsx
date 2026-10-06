@@ -5,6 +5,8 @@ import { Container } from '../layout/Container';
 import { Button } from '../ui/Button';
 import { trackSignUp } from '@/lib/analytics';
 import { Terminal, Zap, Bot, ArrowRight } from 'lucide-react';
+import { BANK_SOURCES } from '@/lib/bank-registry';
+import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
 
 const codeLines = [
   { text: 'curl -X POST https://api.taxformatter.com/v1/parse \\', color: 'text-slate-300' },
@@ -127,8 +129,8 @@ export function APIHero() {
             {/* Stats bar */}
             <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-white/3 border border-white/6 backdrop-blur-sm animate-fade-in-up" style={{ animationDelay: '320ms' }}>
               {[
-                '14 exchanges',
-                '7 banks',
+                `${EXCHANGE_COUNT} exchanges`,
+                `${BANK_SOURCES.length} banks`,
                 '4 output formats',
                 '<2s response',
               ].map((stat, i) => (

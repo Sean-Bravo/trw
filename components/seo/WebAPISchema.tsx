@@ -1,4 +1,6 @@
 import { WithContext } from 'schema-dts';
+import { BANK_SOURCES } from '@/lib/bank-registry';
+import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
 
 // schema-dts doesn't have WebAPI type, so we use a plain object
 // WebAPI is a valid schema.org type: https://schema.org/WebAPI
@@ -29,7 +31,7 @@ export function WebAPISchemaComponent() {
     '@context': 'https://schema.org',
     '@type': 'WebAPI',
     name: 'TaxFormatter API',
-    description: 'REST API for parsing crypto exchange CSVs and bank statement PDFs into structured JSON. Auto-detects source format, normalizes dates and amounts, supports 14 exchanges and 13 banks.',
+    description: `REST API for parsing crypto exchange CSVs and bank statement PDFs into structured JSON. Auto-detects source format, normalizes dates and amounts, supports ${EXCHANGE_COUNT} exchanges and ${BANK_SOURCES.length} banks.`,
     url: 'https://api.taxformatter.com',
     documentation: 'https://www.taxformatter.com/docs/api',
     provider: {

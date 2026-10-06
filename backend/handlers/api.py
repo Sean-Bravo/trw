@@ -532,8 +532,15 @@ def handle_v1_sources(event: Dict) -> Dict:
         except ImportError:
             from engine import ParserRegistry
 
-        registry = ParserRegistry()
-        exchanges = registry.list_supported_exchanges()
+        try:
+            from services.exchange_registry import public_exchange_sources
+        except ImportError:
+            from exchange_registry import public_exchange_sources
+
+        # configs/exchanges.yaml is the source registry: it supplies name and
+        # status for every parser in ParserRegistry. `generic` is a fallback,
+        # not a source, and is not listed.
+        exchanges = public_exchange_sources(ParserRegistry().list_supported_exchanges())
 
         # Get banks from config files
         banks = []
@@ -563,7 +570,7 @@ def handle_v1_sources(event: Dict) -> Dict:
             logger.warning(f"Could not load bank configs: {e}")
 
         return response(200, {
-            "crypto_exchanges": [{"id": ex, "name": ex} for ex in exchanges],
+            "crypto_exchanges": exchanges,
             "banks": banks,
             "output_formats": {
                 "crypto": ["koinly", "turbotax", "coinledger", "zenledger"],
