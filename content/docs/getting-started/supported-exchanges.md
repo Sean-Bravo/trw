@@ -1,37 +1,40 @@
 ---
 title: Supported Exchanges
-description: Complete list of supported exchanges and roadmap
+description: Every exchange CSV format TaxFormatter parses, with its verification status
 order: 2
 ---
 
 # Supported Exchanges
 
-TaxFormatter currently supports these cryptocurrency exchanges:
+This page mirrors the source registry that the API serves from `GET /v1/sources`. If an exchange isn't on this list, we don't claim to support it — the generic parser may still extract date and amount columns on a best-effort basis, but that is not support.
 
-## ✅ Full Support
+**What the status means**
 
-| Exchange | Status | Notes |
-|----------|--------|-------|
-| **Binance** | ✅ Full Support | Spot, Margin, Futures |
-| **Coinbase** | ✅ Full Support | All account types |
-| **Kraken** | ✅ Full Support | Spot & Futures |
-| **KuCoin** | ✅ Full Support | Spot Trading |
-| **Bybit** | ✅ Full Support | Spot & Perpetual |
-| **Cash App** | ✅ Full Support | BTC only |
-| **Robinhood** | ✅ Full Support | Crypto transactions |
-| **PayPal** | ✅ Full Support | Crypto transactions |
-| **Venmo** | ✅ Full Support | Crypto transactions |
-| **Crypto.com** | ✅ Full Support | Spot & Futures |
-| **Gemini** | ✅ Full Support | All features |
-| **FTX** | ✅ Full Support | Historical/post-recovery data |
-| **Bitfinex** | ✅ Full Support | All features |
-| **OKX** | ✅ Full Support | All features |
+- **Verified** — the parser is exercised against a sample export in our test suite on every change. A regression fails CI before it ships.
+- **Beta** — the parser exists and works on the exports we've seen, but there is no fixture-backed test yet. Treat results with more care and check the row counts.
 
-## 🔄 Coming Soon
+| Exchange | `exchange` parameter | Status |
+|----------|----------------------|--------|
+| **Binance** | `binance` | Verified |
+| **Coinbase** | `coinbase` | Verified |
+| **Kraken** | `kraken` | Verified |
+| **KuCoin** | `kucoin` | Verified |
+| **Bybit** | `bybit` | Verified |
+| **Cash App** | `cashapp` | Verified |
+| **Robinhood** | `robinhood` | Verified |
+| **PayPal** | `paypal` | Verified |
+| **Venmo** | `venmo` | Beta |
+| **Crypto.com** | `crypto.com` | Verified |
+| **Gemini** | `gemini` | Verified |
+| **FTX** | `ftx` | Verified |
+| **Bitfinex** | `bitfinex` | Verified |
+| **OKX** | `okx` | Verified |
 
-| Exchange | ETA | Notes |
-|----------|-----|-------|
-| Huobi | Q2 2026 | Spot Trading |
+Pass the `exchange` parameter to skip auto-detection, or omit it and the API will fingerprint the headers. The live list, including status, is always available without an API key:
+
+```bash
+curl https://api.taxformatter.com/v1/sources
+```
 
 ## Don't See Your Exchange?
 
@@ -40,16 +43,8 @@ If your exchange isn't listed:
 1. **Email us** at support@taxformatter.com
 2. **Tell us the exchange name** and export format
 3. **Share a sample CSV** (anonymized)
-4. **We'll add it** to our roadmap
 
-Most exchanges follow similar CSV formats, so we can often add support quickly.
-
-## Why These Exchanges?
-
-We prioritize exchanges by:
-- **User demand** - Most requests get added first
-- **CSV quality** - Exchanges with clean, structured exports
-- **Regulatory clarity** - Compliance and tax reporting support
+A new exchange is added to this list only once its parser has a sample export in the test suite — we don't announce support ahead of that.
 
 ## Export Format Compatibility
 
