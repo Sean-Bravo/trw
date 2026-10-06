@@ -155,7 +155,13 @@ export async function POST(request: NextRequest) {
                 }
               }
             } catch (verifyErr) {
+              // A Stripe/DB failure here is not a verified mismatch. Rethrow so
+              // the outer handler returns 500 and releases the idempotency
+              // claim — Stripe then retries and the customer gets the tier
+              // they paid for. Swallowing it left the key on free with no
+              // automatic recovery.
               console.error('[webhook] subscription verification failed:', verifyErr)
+              throw verifyErr
             }
 
             if (priceMatches) {
@@ -244,8 +250,14 @@ export async function POST(request: NextRequest) {
             [subscriptionId]
           )
           if (apiKey) {
+            // Stamp the reason so invoice.payment_succeeded only re-enables
+            // keys *we* disabled. A key the user revoked (is_active=false,
+            // no reason) must stay revoked. `AND is_active = true` keeps a
+            // prior user revocation from being relabeled as payment_failed.
             await execute(
-              `UPDATE api_keys SET is_active = false WHERE id = $1`,
+              `UPDATE api_keys
+               SET is_active = false, deactivated_reason = 'payment_failed', deactivated_at = NOW()
+               WHERE id = $1 AND is_active = true`,
               [apiKey.id]
             )
             console.log(`[Stripe] API key ${apiKey.id} disabled — payment failed`)
@@ -263,8 +275,13 @@ export async function POST(request: NextRequest) {
             [subscriptionId]
           )
           if (apiKey) {
+            // Only resurrect a key that payment failure disabled. Without the
+            // reason guard, a paid key the user revoked came back to life on
+            // the next successful monthly invoice.
             await execute(
-              `UPDATE api_keys SET is_active = true WHERE id = $1`,
+              `UPDATE api_keys
+               SET is_active = true, deactivated_reason = NULL, deactivated_at = NULL
+               WHERE id = $1 AND deactivated_reason = 'payment_failed'`,
               [apiKey.id]
             )
             console.log(`[Stripe] API key ${apiKey.id} re-enabled — payment succeeded`)
@@ -292,6 +309,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true })
   } catch (error: unknown) {
     console.error('Error handling webhook:', error)
+    // Release the M-1 claim so Stripe's retry of this event is processed
+    // instead of short-circuited as duplicate=true. Without this, any throw
+    // after the claim (DB blip, Stripe API timeout) dropped the event for
+    // good — for checkout.session.completed that meant a paid customer whose
+    // key never left free.
+    try {
+      await execute('DELETE FROM processed_webhook_events WHERE id = $1', [event.id])
+    } catch (releaseErr) {
+      console.error('[webhook] failed to release idempotency claim:', releaseErr)
+    }
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }
