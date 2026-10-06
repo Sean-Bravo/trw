@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { EXCHANGE_SOURCES } from '@/lib/exchange-registry';
 
 interface Logo {
   name: string;
@@ -13,21 +14,28 @@ interface LogoGridProps {
   className?: string;
 }
 
-// Exchanges - sources for CSV imports
-export const exchangeLogos: Logo[] = [
-  { name: 'Coinbase', src: '/logos/exchanges/coinbase-icon.svg', alt: 'Coinbase' },
-  { name: 'Kraken', src: '/logos/exchanges/kraken.svg', alt: 'Kraken' },
-  { name: 'KuCoin', src: '/logos/exchanges/kucoin.svg', alt: 'KuCoin' },
-  { name: 'Crypto.com', src: '/logos/exchanges/crypto.com.svg', alt: 'Crypto.com' },
-  { name: 'Gemini', src: '/logos/exchanges/gemini.svg', alt: 'Gemini' },
-  { name: 'Bitstamp', src: '/logos/exchanges/bitstamp.svg', alt: 'Bitstamp' },
-  { name: 'Robinhood', src: '/logos/exchanges/robinhood.svg', alt: 'Robinhood' },
-  { name: 'eToro', src: '/logos/exchanges/etoro.svg', alt: 'eToro' },
-  { name: 'OKX', src: '/logos/exchanges/okx.svg', alt: 'OKX' },
-  { name: 'Bybit', src: '/logos/exchanges/bybit.svg', alt: 'Bybit' },
-  { name: 'Binance', src: '/logos/exchanges/binance.svg', alt: 'Binance' },
-  { name: 'PayPal', src: '/logos/exchanges/paypal.svg', alt: 'PayPal' },
-];
+// Exchanges - sources for CSV imports. Generated from the registry: an
+// exchange gets a logo card only if it has a parser AND a logo file.
+const exchangeLogoFiles: Record<string, string> = {
+  coinbase: 'coinbase-icon.svg',
+  kraken: 'kraken.svg',
+  kucoin: 'kucoin.svg',
+  'crypto.com': 'crypto.com.svg',
+  gemini: 'gemini.svg',
+  robinhood: 'robinhood.svg',
+  okx: 'okx.svg',
+  bybit: 'bybit.svg',
+  binance: 'binance.svg',
+  paypal: 'paypal.svg',
+  cashapp: 'cashapp.svg',
+  venmo: 'venmo.svg',
+};
+
+export const exchangeLogos: Logo[] = EXCHANGE_SOURCES.filter((ex) => ex.id in exchangeLogoFiles).map((ex) => ({
+  name: ex.name,
+  src: `/logos/exchanges/${exchangeLogoFiles[ex.id]}`,
+  alt: ex.name,
+}));
 
 // Tax platforms - export destinations
 export const taxPlatformLogos: Logo[] = [

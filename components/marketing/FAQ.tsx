@@ -5,6 +5,7 @@ import { Container } from '../layout/Container';
 import { FAQSchema } from '../seo/FAQSchema';
 import clsx from 'clsx';
 import { VERIFIED_BANKS, BETA_BANKS, formatBankList } from '@/lib/bank-registry';
+import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
 import { 
   TriangleAlert, 
   Shield, 
@@ -27,7 +28,7 @@ interface FAQItem {
 const faqItems: FAQItem[] = [
   {
     question: "How does the API detect which exchange a CSV came from?",
-    answer: "Header fingerprinting. Every exchange exports slightly different column names and ordering. We hash the headers against our registry of 14 known formats and match instantly. If we can't match, we fall back to a generic parser that looks for date + amount columns. You can also pass the exchange name explicitly to skip detection.",
+    answer: `Header fingerprinting. Every exchange exports slightly different column names and ordering. We hash the headers against our registry of ${EXCHANGE_COUNT} known formats and match instantly. If we can't match, we fall back to a generic parser that looks for date + amount columns. You can also pass the exchange name explicitly to skip detection.`,
     vibe: 'curious',
   },
   {
@@ -67,7 +68,7 @@ const faqItems: FAQItem[] = [
   },
   {
     question: "What's the cheapest plan?",
-    answer: "Starter is $29/month — 100 files, 30 requests per minute, all 14 exchanges, all output formats. Enough to build and ship a real integration. When you need more volume, upgrade to Growth ($99/mo for 500 files) or Business ($249/mo for 2,000 files).",
+    answer: `Starter is $29/month — 100 files, 30 requests per minute, all ${EXCHANGE_COUNT} exchanges, all output formats. Enough to build and ship a real integration. When you need more volume, upgrade to Growth ($99/mo for 500 files) or Business ($249/mo for 2,000 files).`,
     vibe: 'hopeful',
   },
 ];

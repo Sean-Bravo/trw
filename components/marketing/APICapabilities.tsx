@@ -7,25 +7,11 @@ import {
   ArrowRight, Zap,
 } from 'lucide-react';
 import { BANK_SOURCES } from '@/lib/bank-registry';
+import { EXCHANGE_SOURCES } from '@/lib/exchange-registry';
 
-const exchanges = [
-  { name: 'Coinbase', format: 'CSV', note: 'Incl. Pro' },
-  { name: 'Binance', format: '.tar.gz', note: '10K rows' },
-  { name: 'Kraken', format: 'ZIP', note: 'Ledgers' },
-  { name: 'Gemini', format: 'XLSX', note: 'Auto-convert' },
-  { name: 'Robinhood', format: 'CSV', note: 'US dates' },
-  { name: 'Crypto.com', format: 'CSV', note: 'Multi-file' },
-  { name: 'PayPal', format: 'CSV', note: '4 cryptos' },
-  { name: 'Cash App', format: 'CSV', note: 'BTC only' },
-  { name: 'Venmo', format: 'CSV', note: 'Skip meta' },
-  { name: 'KuCoin', format: 'CSV', note: 'Unix ts' },
-  { name: 'Bybit', format: 'ZIP', note: 'Varies' },
-  { name: 'FTX', format: 'CSV', note: 'Historical' },
-  { name: 'Bitfinex', format: 'CSV', note: 'Standard' },
-  { name: 'OKX', format: 'CSV', note: 'Spot + Deriv' },
-];
-
-// Single source: lib/bank-registry.ts (mirrors backend/configs/banks/*.yaml).
+// Single sources: lib/exchange-registry.ts and lib/bank-registry.ts (mirror
+// backend/configs/exchanges.yaml and backend/configs/banks/*.yaml).
+const exchanges = EXCHANGE_SOURCES;
 const banks = BANK_SOURCES;
 
 const features = [
@@ -107,14 +93,22 @@ export function APICapabilities() {
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Crypto Exchanges</h3>
                     <span className="text-[11px] text-slate-400 font-mono">{exchanges.length}</span>
                   </div>
+                  <p className="text-[11px] text-slate-400 mb-3 flex items-center gap-1.5">
+                    <span className="text-[#635bff] font-bold">✓</span>
+                    verified by a fixture-backed parse test in CI &mdash; <span className="font-semibold uppercase text-[9px] tracking-wider">beta</span> exchanges parse but have no fixture yet
+                  </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     {exchanges.map((ex) => (
                       <div
-                        key={ex.name}
+                        key={ex.id}
                         className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-[#635bff]/20 hover:bg-[#635bff]/4 transition-all group min-w-0"
                       >
                         <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors truncate">{ex.name}</span>
-                        <span className="text-[10px] text-slate-400 font-mono shrink-0">{ex.format}</span>
+                        {ex.status === 'verified' ? (
+                          <span className="text-[9px] text-[#635bff] font-bold uppercase tracking-wider shrink-0" title="Verified by a fixture-backed parse test">✓</span>
+                        ) : (
+                          <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider shrink-0" title="Parser exists but has no fixture-backed test yet">beta</span>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -4,6 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Container } from '../layout/Container';
 import { Check } from 'lucide-react';
+import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
 
 // L-1: pricing tier passed via sessionStorage instead of URL query
 // param. Query params end up in browser history, Referer headers, and
@@ -20,7 +21,7 @@ const tiers = [
     features: [
       '25 files / month',
       '10 requests / minute',
-      'All 14 exchanges',
+      `All ${EXCHANGE_COUNT} exchanges`,
       'Standard categorization',
       'JSON response',
     ],
@@ -37,7 +38,7 @@ const tiers = [
     features: [
       '100 files / month',
       '30 requests / minute',
-      'All 14 exchanges',
+      `All ${EXCHANGE_COUNT} exchanges`,
       'Standard categorization',
       'JSON response',
     ],

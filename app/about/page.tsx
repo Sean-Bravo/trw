@@ -10,6 +10,7 @@ import {
   Mail,
 } from 'lucide-react';
 import Link from 'next/link';
+import { EXCHANGE_COUNT, EXCHANGE_SOURCES } from '@/lib/exchange-registry';
 
 export const metadata: Metadata = {
   alternates: { canonical: '/about' },
@@ -74,7 +75,7 @@ export default function AboutPage() {
                   <ul className="space-y-3 text-slate-300">
                     <li className="flex items-start gap-2">
                       <ArrowRight className="w-4 h-4 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span><strong className="text-white">14 exchanges</strong> (Coinbase, Binance, Kraken, and more)</span>
+                      <span><strong className="text-white">{EXCHANGE_COUNT} exchanges</strong> ({EXCHANGE_SOURCES.slice(0, 3).map((e) => e.name).join(', ')}, and more)</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <ArrowRight className="w-4 h-4 text-emerald-400 mt-1 flex-shrink-0" />
