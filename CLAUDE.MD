@@ -65,6 +65,7 @@ Update this file whenever the architecture meaningfully changes.
 - Do NOT change file structure or naming conventions without discussion
 - Do NOT make "improvements" that weren't requested
 - Do NOT assume what a file contains - read it
+- Do NOT start anything listed in `docs/PARKED_UNTIL_REVIEW.md` before the review date it names — stop and point at that file instead
 
 ---
 
