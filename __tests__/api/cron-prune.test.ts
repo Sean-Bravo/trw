@@ -7,7 +7,8 @@
 jest.mock('@/lib/db', () => ({ queryOne: jest.fn() }));
 
 import { queryOne } from '@/lib/db';
-import { GET, RETENTION_DAYS } from '@/app/api/cron/prune/route';
+import { GET } from '@/app/api/cron/prune/route';
+import { RETENTION_DAYS } from '@/lib/retention';
 import { createMockRequest } from '../utils/mock-request';
 
 const mockedQueryOne = queryOne as jest.MockedFunction<typeof queryOne>;

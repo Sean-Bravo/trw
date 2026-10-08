@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
+import { RETENTION_DAYS } from '@/lib/retention';
 
 /**
  * Retention policy: everything a user sends us is deleted within 30 days.
@@ -9,8 +10,6 @@ import { queryOne } from '@/lib/db';
  */
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-
-export const RETENTION_DAYS = 30;
 
 // [table, timestamp column] — names are constants, never user input.
 const RETAINED_TABLES: Array<[string, string]> = [
