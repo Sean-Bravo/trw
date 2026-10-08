@@ -27,8 +27,7 @@ CoinLedger accepts CSV uploads for manual transaction import.
 #### Step 1: Download TaxFormatter CSV
 
 1. Upload your exchange CSV to TaxFormatter
-2. Select Free or Pro tier
-3. Download formatted file
+2. Download the formatted file
 
 #### Step 2: Go to CoinLedger Import
 
@@ -88,13 +87,11 @@ CoinLedger recognizes:
 - **Type** → BUY, SELL, DEPOSIT, WITHDRAWAL, etc.
 - **Amount** → Quantity
 - **Price** → Per-unit cost/sale price
-- **Cost Basis** → Your cost per unit (Pro tier adjusted)
+- **Cost Basis** → Your cost per unit, as carried from your export
 
 ## Cost Basis Handling
 
-### Free Tier
-
-Your CSV shows flagged items:
+Your CSV carries the cost basis from your export; the AI Insights panel lists items to review:
 ```
 Cost Basis: 42525.50 [FLAG: Wash Sale]
 ```
@@ -105,18 +102,7 @@ In CoinLedger:
 3. You manually adjust basis if needed
 4. Or contact CPA for guidance
 
-### Pro Tier
-
-Your CSV shows adjusted cost basis:
-```
-Cost Basis: 47275.00 (WASH SALE - cost basis adjusted)
-```
-
-In CoinLedger:
-1. Import with adjusted basis
-2. CoinLedger uses adjusted basis automatically
-3. Gains/losses calculated correctly
-4. No manual adjustments needed
+TaxFormatter does not adjust cost basis. If an adjustment applies, make it in CoinLedger or with your CPA.
 
 ## Handling Special Transactions in CoinLedger
 
@@ -203,18 +189,6 @@ In CoinLedger:
 4. CoinLedger adjusts basis
 5. Or you manually update
 
-### Pro Tier (Adjusted automatically)
-
-TaxFormatter notes: `Cost basis adjusted from 38000 to 47275`
-
-In CoinLedger:
-1. Import with adjusted basis (47275)
-2. CoinLedger uses your imported basis
-3. Calculates gains/losses correctly
-4. No manual adjustment needed
-
-**Pro tip:** Pro tier saves back-and-forth with CoinLedger support.
-
 ## Tax Report Generation
 
 After importing and verifying:
@@ -244,23 +218,12 @@ Use for:
 | Best for | Preparing data | Filing taxes |
 | Output | Clean CSV | Tax forms |
 | Flagging | Explains each issue | Generates report |
-| Cost | Free or $49/year | $199-599/year |
+| Cost | Free plan; paid plans add volume | $199-599/year |
 
 **Common workflow:**
-1. Use TaxFormatter to clean & verify data ($0-49)
+1. Use TaxFormatter to clean & verify data
 2. Use CoinLedger to generate tax forms ($199+)
 3. File taxes with confidence
-
-## Pro Tier Benefits for CoinLedger Users
-
-TaxFormatter Pro ($49) pays for itself when:
-
-✅ You have wash sales (pre-adjusted basis)  
-✅ You want to avoid CoinLedger support questions  
-✅ Clean data = accurate tax forms  
-✅ Less audit risk  
-
-CoinLedger Pro is more expensive, but TaxFormatter Pro data makes it work better.
 
 ## Common CoinLedger + TaxFormatter Issues
 
@@ -290,9 +253,8 @@ CoinLedger Pro is more expensive, but TaxFormatter Pro data makes it work better
 
 **Solution:**
 1. Check TaxFormatter included Cost Basis column
-2. If using Free tier: manually enter basis
-3. If using Pro tier: basis should be there
-4. Re-import if needed
+2. Enter the basis manually if your export lacked it
+3. Re-import if needed
 
 ### Issue 4: Report Shows Wrong Amounts
 
@@ -314,7 +276,7 @@ CoinLedger Pro is more expensive, but TaxFormatter Pro data makes it work better
 2. **Review TaxFormatter output**
    - Read any flags
    - Understand impact
-   - Pro tier annotations help
+   - The AI Insights panel explains each flag
 
 3. **Import clean data to CoinLedger**
    - CoinLedger works better with clean data
@@ -335,7 +297,6 @@ CoinLedger Pro is more expensive, but TaxFormatter Pro data makes it work better
 
 ✅ Want clean CSV before CoinLedger import  
 ✅ Have flagged items needing explanation  
-✅ Pro tier for pre-adjusted cost basis  
 ✅ Want to minimize CoinLedger troubleshooting  
 ✅ Have complex tax situation  
 ✅ Multiple years or multiple exchanges  
@@ -344,10 +305,9 @@ CoinLedger Pro is more expensive, but TaxFormatter Pro data makes it work better
 
 CoinLedger costs $199-599/year (depending on tier).
 
-TaxFormatter ($49/year) is much cheaper and provides:
+TaxFormatter has a free plan (paid plans add volume — see [pricing](/#pricing)) and provides:
 - Clean data for CoinLedger
 - Flagging and explanations
-- Pre-adjusted basis (Pro)
 - Cross-verification
 
 **Tip:** Use both for robust tax preparation.

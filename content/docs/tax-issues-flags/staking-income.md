@@ -104,24 +104,9 @@ When you sell staked tokens:
 
 Report all capital gains/losses from selling staked tokens.
 
-## Pro Tier Features
+## What TaxFormatter Does Here
 
-TaxFormatter Pro automatically:
-
-1. **Identifies all staking transactions**
-2. **Calculates FMV at receipt** using historical price data
-3. **Assigns cost basis** to each staking reward
-4. **Tracks through sale** to calculate gain/loss
-5. **Annotates your CSV** with income details
-
-Example Pro annotation:
-```
-Date: March 15, 2025
-Type: STAKING
-Amount: 1 ETH
-FMV at Receipt: $2,500
-Note: "Staking income - $2,500 ordinary income. Cost basis $2,500. Sold 7/10/25 at $3,000 for $500 capital gain."
-```
+TaxFormatter formats your export and surfaces items to review in the dashboard's AI Insights panel. It does not recompute cost basis, look up historical prices, or annotate individual rows — those calculations happen in your tax software or with your tax professional, working from the formatted CSV.
 
 ## Common Staking Issues
 
@@ -177,14 +162,6 @@ Example: Receive $5,000 staking income, sell at $4,200 loss = net $800 income
 ### 3. Donate Staking Rewards (If Qualified)
 Donating cryptocurrency to qualified charities can be deductible at FMV without capital gains tax.
 
-## Pro Tier Benefits for Stakers
-
-✅ Automatic staking income detection  
-✅ Historical price lookup for cost basis  
-✅ Integrated tracking through sale  
-✅ Exported directly to Schedule 1  
-✅ Multi-year reconciliation  
-
 ## Key Takeaways
 
 ✓ Staking rewards = ordinary income (taxed higher than gains)  
@@ -192,4 +169,4 @@ Donating cryptocurrency to qualified charities can be deductible at FMV without 
 ✓ Use FMV at receipt as cost basis  
 ✓ Track through sale for capital gains calculation  
 ✓ Report on Schedule 1 and Schedule D  
-✓ TaxFormatter Pro handles all calculations automatically
+✓ Keep the formatted CSV with your return as the source record

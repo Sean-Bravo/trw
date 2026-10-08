@@ -19,14 +19,6 @@ Your formatted CSV includes:
 
 Ready to import into any tax software.
 
-## Pro Tier Export
-
-Everything in Free, plus:
-- Flagged issues annotated in the CSV
-- Cost basis adjustments
-- Direct integration with tax platforms
-- Multi-year reconciliation
-
 ## Supported Tax Platforms
 
 - **TurboTax** - Direct import
@@ -40,12 +32,6 @@ Choose your platform and download the optimized format.
 
 Learn about each export type and integration guide to find the best fit for your workflow.
 
-### Free Tier
-- [Free Tier Export Format](/docs/exporting-your-data/free-tier-export-format) - Standard CSV export format
-
-### Pro Tier
-- [Pro Tier Flagged CSV](/docs/exporting-your-data/pro-tier-flagged-csv) - Enhanced CSV with tax issue annotations
-
 ### Tax Software Integrations
 - [TurboTax Integration](/docs/exporting-your-data/turbotax-integration) - Import directly to TurboTax
 - [Koinly Integration](/docs/exporting-your-data/koinly-integration) - Export for Koinly tax platform
@@ -55,4 +41,3 @@ Learn about each export type and integration guide to find the best fit for your
 ## Related Guides
 
 - [Understanding Your Results](/docs/understanding-your-results) - Learn about AI insights and flagged issues
-- [Free vs Pro Differences](/docs/understanding-your-results/free-vs-pro-differences) - Compare tier features

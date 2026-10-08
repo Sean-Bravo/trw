@@ -36,7 +36,7 @@ Connect your exchange directly to Koinly:
 
 If you use this: You don't need TaxFormatter CSV for Koinly import.
 
-But Pro tip: Still use TaxFormatter to:
+But still use TaxFormatter to:
 - Verify Koinly data is correct
 - Get plain English explanations of flagged issues
 - Cross-check before filing taxes
@@ -57,8 +57,7 @@ This is where TaxFormatter + Koinly combo excels.
 ### Step 1: Download TaxFormatter CSV
 
 1. Upload your exchange CSV to TaxFormatter
-2. Choose Free or Pro tier
-3. Download formatted file
+2. Download the formatted file
 
 ### Step 2: Go to Koinly Import
 
@@ -162,12 +161,6 @@ Step 5: Export tax report from Koinly
 4. Check the box and enter related transaction
 5. Koinly auto-adjusts basis
 
-**If Pro tier (adjusted):**
-1. Your CSV already has adjusted cost basis
-2. Import with adjusted numbers
-3. Koinly uses the adjusted basis
-4. Calculations flow through correctly
-
 ### Staking & Airdrop Income
 
 **In Koinly:**
@@ -219,25 +212,6 @@ If Koinly flags something different from TaxFormatter:
 3. Import TaxFormatter CSV to Koinly
 4. Best of both: automation + verification
 
-## Pro Tier Benefits for Koinly Users
-
-With TaxFormatter Pro:
-
-✅ Pre-adjusted cost basis  
-✅ Wash sales explained inline  
-✅ Plain English annotations  
-✅ Form references (where to report)  
-✅ Ready to import with confidence  
-
-Example Pro annotation:
-```
-"WASH SALE - Loss disallowed per IRS rule.
-Cost basis adjusted from 38000 to 47275.
-Report adjusted basis in Koinly."
-```
-
-Koinly will use the adjusted basis you imported.
-
 ## Koinly Export for Taxes
 
 After importing and verifying:
@@ -275,7 +249,6 @@ Use this for your CPA or TurboTax.
 1. TaxFormatter includes fees in basis (correct)
 2. Check Koinly settings: "Include fees in basis?"
 3. May need to adjust Koinly settings
-4. Or use TaxFormatter Pro (pre-adjusted)
 
 ### Issue 3: Wash Sale Not Recognized
 
@@ -284,8 +257,7 @@ Use this for your CPA or TurboTax.
 **Solution:**
 1. Koinly has own wash sale rules
 2. May not work exactly like IRS
-3. Use TaxFormatter Pro (pre-adjusted)
-4. Import adjusted cost basis directly
+3. Confirm the treatment with your CPA
 
 ### Issue 4: Income vs Gain Mixed Up
 
@@ -304,7 +276,7 @@ Use this for your CPA or TurboTax.
    - Explanations help you understand
 
 2. **Review TaxFormatter notes**
-   - Read annotations (Pro tier)
+   - Read the AI Insights panel
    - Understand any flags
    - Prepares you for Koinly
 
@@ -322,17 +294,6 @@ Use this for your CPA or TurboTax.
    - Archive with your return
    - Good for audits
    - Proves your source of truth
-
-## TaxFormatter Pro for Koinly Users
-
-Cost: $49  
-Value:
-- Koinly integration smoother with adjusted basis
-- No manual cost basis corrections needed
-- Clear explanations for every flag
-- Ready-to-import format
-
-Worth it if you want error-free data flowing from TaxFormatter → Koinly → Tax filing.
 
 ## When to Use TaxFormatter + Koinly
 

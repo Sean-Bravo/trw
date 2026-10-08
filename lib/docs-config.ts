@@ -44,7 +44,6 @@ export const DOCS_SECTIONS: DocSection[] = [
     pages: [
       { title: 'What the Insight Panels Mean', slug: 'what-the-insight-panels-mean' },
       { title: 'Reading Your Formatted CSV', slug: 'reading-your-formatted-csv' },
-      { title: 'Free vs Pro Differences', slug: 'free-vs-pro-differences' },
     ],
   },
   {
@@ -66,8 +65,6 @@ export const DOCS_SECTIONS: DocSection[] = [
     description: 'Export your formatted CSV and integrate with TurboTax, Koinly, and more',
     icon: Upload,
     pages: [
-      { title: 'Free Tier Export Format', slug: 'free-tier-export-format' },
-      { title: 'Pro Tier Flagged CSV', slug: 'pro-tier-flagged-csv' },
       { title: 'TurboTax Integration', slug: 'turbotax-integration' },
       { title: 'Koinly Integration', slug: 'koinly-integration' },
       { title: 'CoinLedger Integration', slug: 'coinledger-integration' },

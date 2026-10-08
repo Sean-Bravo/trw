@@ -72,7 +72,7 @@ For sells: original cost per unit (used for gains calculation)
 **Format:** Free text  
 **Example:** WASH SALE, Flagged: Timestamp issue
 
-Annotations for transactions requiring special handling. Pro tier includes detailed notes.
+Annotations for transactions requiring special handling, as carried through from your export.
 
 ## Reading Your Data
 
@@ -102,26 +102,6 @@ Your gain: ($45,000 - $42,525.50) × 0.5 = $1,237.25 (minus fee).
 ```
 
 This transaction has a flag in the Notes column. Read the note carefully to understand the issue.
-
-## Pro Tier Enhancements
-
-In Pro tier, you also get:
-
-### Adjusted Cost Basis
-Automatically adjusted for wash sales:
-
-```
-2025-01-20,BTC/USD,BUY,0.5,38000,10.00,19010.00,43275.00,WASH SALE - cost basis adjusted +$5,255
-```
-
-The cost basis includes the disallowed loss from the wash sale.
-
-### Detailed Annotations
-More context on flagged items:
-
-```
-Notes: WASH SALE - Paired with 2025-01-15 SELL. Disallowed loss: $2,237.50. Cost basis increased to $43,275.00.
-```
 
 ## Importing to Tax Software
 

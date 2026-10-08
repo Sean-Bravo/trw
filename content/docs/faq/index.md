@@ -40,7 +40,7 @@ We support Binance, Coinbase, Kraken, KuCoin, and Bybit. Email us for others.
 
 ## Can you integrate with my tax software directly?
 
-Pro tier supports direct integrations with TurboTax, Koinly, CoinLedger, and ZenLedger.
+Every plan exports in TurboTax, Koinly, CoinLedger, and ZenLedger formats — pick the format when you download.
 
 ## Is the AI-generated text watermarked?
 
