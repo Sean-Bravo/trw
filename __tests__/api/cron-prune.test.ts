@@ -49,7 +49,7 @@ describe('GET /api/cron/prune', () => {
   });
 
   it('refuses to run when CRON_SECRET is not configured', async () => {
-    delete process.env.CRON_SECRET;
+    delete process.env['CRON_SECRET'];
     const res = await GET(cronRequest('Bearer anything'));
     expect(res.status).toBe(401);
     expect(mockedQueryOne).not.toHaveBeenCalled();
