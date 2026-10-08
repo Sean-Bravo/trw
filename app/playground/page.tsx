@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, BookOpen } from 'lucide-react';
+import { FREE_TIER, PAID_TIERS, formatPrice } from '@/lib/tier-registry';
 import {
   PlaygroundRequestBuilder,
   type PlaygroundRequestPayload,
@@ -117,7 +118,7 @@ export default function PlaygroundPage() {
           <div>
             <h3 className="text-sm font-semibold text-slate-200 mb-1">Ready to integrate?</h3>
             <p className="text-sm text-slate-400">
-              Free tier includes 10 files/mo. Upgrade tiers at $29/$99/$249 per month.
+              Free tier includes {FREE_TIER.filesPerMonth} files/mo. Upgrade tiers at {PAID_TIERS.map(formatPrice).join('/')} per month.
             </p>
           </div>
           <div className="flex items-center gap-3">

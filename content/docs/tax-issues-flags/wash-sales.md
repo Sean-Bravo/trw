@@ -63,15 +63,7 @@ Day 20: Buy ETH instead ← No wash sale (different asset)
 
 ## What TaxFormatter Shows You
 
-In your **Pro CSV**, we annotate:
-
-```
-Date,Asset,Type,Amount,Notes
-2025-01-16,BTC,SELL,1,"Loss: $5,000 — WASH SALE"
-2025-01-20,BTC,BUY,1,"Wash sale partner (Jan 16 sale)"
-```
-
-And provide the **adjusted cost basis** for proper reporting.
+TaxFormatter formats your export and, in the dashboard's AI Insights panel, lists sell-then-rebuy patterns worth a second look. It does not adjust cost basis or annotate rows — report the adjustment in your tax software or with your tax professional.
 
 ## Reporting Wash Sales to the IRS
 

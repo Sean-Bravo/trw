@@ -31,6 +31,24 @@ const nextConfig: NextConfig = {
         destination: "/#capabilities",
         permanent: true,
       },
+      // Consumer-era "Pro ($49/year)" docs pages, retired Oct 2026. There is
+      // one price list now (lib/tier-registry.ts) and every plan gets every
+      // dashboard feature, so these pages had nothing true left to say.
+      {
+        source: "/docs/understanding-your-results/free-vs-pro-differences",
+        destination: "/#pricing",
+        permanent: true,
+      },
+      {
+        source: "/docs/exporting-your-data/pro-tier-flagged-csv",
+        destination: "/docs/exporting-your-data",
+        permanent: true,
+      },
+      {
+        source: "/docs/exporting-your-data/free-tier-export-format",
+        destination: "/docs/exporting-your-data",
+        permanent: true,
+      },
     ];
   },
 

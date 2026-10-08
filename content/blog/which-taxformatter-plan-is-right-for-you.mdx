@@ -26,7 +26,7 @@ You get:
 - 25 files per month
 - 10 requests per minute
 - All 14 supported exchanges
-- Gemini AI insights
+- Standard AI insights
 - JSON response format
 
 **Who it's for:** Developers who want to test the API before committing. Solo crypto traders with a small handful of accounts. Anyone who wants to see what TaxFormatter actually does before paying for it.
@@ -44,7 +44,7 @@ You get:
 - 100 files per month (4× Free)
 - 30 requests per minute (3× Free)
 - All 14 exchanges
-- Gemini AI insights
+- Standard AI insights
 - JSON response format
 
 **Who it's for:** Solo developers building a small product. Indie hackers with a side project that has a handful of users. Crypto-native accountants handling a few clients per month. Anyone whose volume sits between "occasional" and "real business."
@@ -62,7 +62,7 @@ You get:
 - 500 files per month (5× Starter)
 - 60 requests per minute (2× Starter)
 - **Bank PDF parsing** — this is the big unlock
-- **Claude Sonnet AI insights** instead of Gemini
+- **Advanced AI insights**
 - All output formats (Koinly, TurboTax, CoinLedger, ZenLedger)
 - Priority support
 
@@ -70,7 +70,7 @@ Two upgrades matter here.
 
 **Bank PDF parsing.** Growth is the first tier that lets you drop in a PDF bank statement and get back structured transaction data. Under the hood this is AWS Textract plus our normalization layer, and it's the feature that unlocks the AP automation, accounting, and bookkeeping use cases. If you're building a product that touches small business finance, you almost certainly need this.
 
-**Claude Sonnet for AI insights.** Free and Starter use Gemini, which is fast and cheap and good enough for straightforward parsing. Growth swaps in Claude Sonnet for the AI-driven analysis layer — which means better handling of edge cases, ambiguous transactions, and weird formatting that the deterministic parsers can't always resolve cleanly.
+**Advanced AI insights.** Free and Starter get Standard insights — fast, and good enough for straightforward parsing. Growth moves the AI analysis layer to a stronger model, which means better handling of edge cases, ambiguous transactions, and weird formatting that the deterministic parsers can't always resolve cleanly. (Which model serves each level is published in the [API docs](/docs/api) and announced in Updates posts when it changes.)
 
 **Who it's for:** Teams. Funded SaaS products. Bookkeeping firms. Fintech apps with real users. Anyone who needs the bank PDF capability or whose volume has crossed into "this is a real line item in the budget" territory.
 
@@ -78,24 +78,23 @@ Two upgrades matter here.
 
 ## Business — $249/month
 
-Business is the high-volume tier with the best models.
+Business is the high-volume tier with the deepest insights.
 
 You get:
 
 - 2,000 files per month (4× Growth)
 - 120 requests per minute (2× Growth)
 - Everything in Growth
-- **Claude Opus AI insights** — our most capable model
+- **Premium AI insights** — our most capable analysis layer
 - Custom integrations
-- SLA guarantee
 
 The two things that distinguish Business from Growth:
 
-**Claude Opus instead of Sonnet.** Opus is the strongest model in the Claude family. For most parsing tasks, Sonnet is genuinely fine — but if you're processing a high volume of complex financial documents and the cost of a misread transaction is high, Opus is worth the upgrade. Think: investment statements with non-standard formats, multi-currency reconciliation, or unusual accounting setups.
+**Premium instead of Advanced.** For most parsing tasks, Advanced is genuinely fine — but if you're processing a high volume of complex financial documents and the cost of a misread transaction is high, Premium is worth the upgrade. Think: investment statements with non-standard formats, multi-currency reconciliation, or unusual accounting setups.
 
-**SLA guarantee and custom integrations.** Once you're at this tier, you're typically embedded enough in TaxFormatter that uptime commitments and bespoke integration work become part of the conversation.
+**Custom integrations.** Once you're at this tier, you're typically embedded enough in TaxFormatter that bespoke integration work becomes part of the conversation.
 
-**Who it's for:** High-volume SaaS products. Fintech companies processing thousands of statements a month. Accounting firms with large client books. Anyone who wants the most accurate AI layer available and the operational guarantees that come with it.
+**Who it's for:** High-volume SaaS products. Fintech companies processing thousands of statements a month. Accounting firms with large client books. Anyone who wants the deepest AI analysis layer available.
 
 ## How to Pick
 

@@ -22,20 +22,9 @@ Flags important tax concerns like wash sales, staking income, airdrops, and othe
 ### 4. Tax-Software Ready ✓
 Final status showing your data is formatted and ready for export to TurboTax, Koinly, or other platforms.
 
-## Free vs Pro Tiers
+## What Every Plan Includes
 
-**Free Tier:**
-- See all AI insights
-- Understand flagged issues via AI explanation
-- Download basic formatted CSV
-- No annotations or cost-basis adjustments
-
-**Pro Tier ($49):**
-- Everything in Free
-- Plus: Flagged issues annotated in CSV
-- Cost-basis adjustments options
-- Direct export to tax software
-- Multi-year reconciliation
+Every plan gets the same dashboard: all four insight panels, AI explanations of flagged issues, and the formatted CSV download. Paid plans add monthly volume and deeper AI insights — see [pricing](/#pricing).
 
 ## What Gets Flagged?
 
@@ -73,7 +62,6 @@ Ready to import directly into your tax software.
 
 - [What the Insight Panels Mean](/docs/understanding-your-results/what-the-insight-panels-mean) - Detailed breakdown of each panel
 - [Reading Your Formatted CSV](/docs/understanding-your-results/reading-your-formatted-csv) - Understanding the output format
-- [Free vs Pro Differences](/docs/understanding-your-results/free-vs-pro-differences) - Compare tier features
 
 ## Related Topics
 

@@ -10,7 +10,6 @@ export function OrganizationSchema() {
     url: 'https://www.taxformatter.com',
     logo: 'https://www.taxformatter.com/logo-icon.svg',
     description: 'Developer API platform for parsing crypto exchange CSVs and bank statement PDFs into structured, tax-ready data. REST API, MCP server, and SDKs for Node.js and Python.',
-    foundingDate: '2024',
     sameAs: [
       'https://www.npmjs.com/package/@taxformatter/mcp-server',
       'https://www.npmjs.com/package/@taxformatter/sdk',

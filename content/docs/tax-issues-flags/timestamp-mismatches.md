@@ -197,26 +197,9 @@ For 1-2 transactions:
 
 If < 5 minutes and price stable, it's usually fine. TaxFormatter accepts ±5 minute tolerance.
 
-## Pro Tier Timestamp Handling
+## What TaxFormatter Does Here
 
-TaxFormatter Pro:
-
-1. **Flags all mismatches** - Shows discrepancies
-2. **Looks up prices** at both times
-3. **Calculates impact** on gain/loss
-4. **Suggests corrections** based on blockchain
-5. **Notes in CSV** for tax pro review
-
-Example Pro flag:
-```
-Date: 2025-03-15
-CSV Time: 14:30:00 (ETH $3,000)
-Exchange: 14:32:15 (ETH $3,010)
-Blockchain: 14:32:15 (ETH $3,010)
-Impact: $10 per ETH difference
-Recommendation: Use 14:32:15, price $3,010
-Note: "Timestamp corrected to match exchange/blockchain. Price adjusted +$10/ETH"
-```
+TaxFormatter normalizes every timestamp in your export to UTC and flags rows whose timestamps it cannot interpret. It does not look up prices or correct a timestamp against the blockchain — if you need that, use the exchange confirmation or block explorer as the authoritative record.
 
 ## Timestamp and Volatile Markets
 
@@ -229,7 +212,7 @@ Volatile day: $2,000 bitcoin move = 6% swing
 Same 5-minute difference has 20x more impact
 ```
 
-**Pro strategy:** If volatile day, get timestamp accuracy from blockchain (immutable record).
+**Strategy:** If volatile day, get timestamp accuracy from blockchain (immutable record).
 
 ## IRS Position on Timestamps
 
@@ -286,4 +269,4 @@ Fix: Change to 14:30 (correct)
 ✓ Document discrepancies for tax pro  
 ✓ Use blockchain as authoritative source  
 ✓ Keep exchange confirmations  
-✓ TaxFormatter Pro flags and suggests corrections
+✓ TaxFormatter flags timestamps it cannot interpret; you choose the authoritative source

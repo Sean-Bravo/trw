@@ -122,7 +122,7 @@ response = requests.post(
 
 data = response.json()
 print(f"{data['metadata']['transaction_count']} transactions parsed")
-print(f"Processing time: {response.headers['X-TF-Processing-Time']}ms")
+print(f"Processing time: {data['metadata']['processing_time_ms']}ms")
 ```
 
 **Node.js**
@@ -182,10 +182,12 @@ console.log(`${data.metadata.transaction_count} transactions parsed`);
 
 | Tier | Files/month | Requests/minute | Bank PDF | AI Insights | Price |
 |------|-------------|-----------------|----------|-------------|-------|
-| Free | 25 | 10 | — | Gemini 2.5 Flash | $0 |
-| Starter | 100 | 30 | — | Gemini 2.5 Flash | $29/mo |
-| Growth | 500 | 60 | ✓ | Claude Sonnet 4.6 | $99/mo |
-| Business | 2,000 | 120 | ✓ | Claude Opus 4.7 | $249/mo |
+| Free | 25 | 10 | — | Standard | $0 |
+| Starter | 100 | 30 | — | Standard | $29/mo |
+| Growth | 500 | 60 | ✓ | Advanced | $99/mo |
+| Business | 2,000 | 120 | ✓ | Premium | $249/mo |
+
+**Insights engine (v1):** every tier returns the same insights structure; the level sets how deeply the model reasons about your data. Standard runs on `gemini-2.5-flash`, Advanced on `claude-sonnet-4-6`, Premium on `claude-opus-4-7`. This table and the [blog's Updates posts](/blog) are the only places model names are published — a model change bumps the engine version and is announced there, never silently.
 
 **Quota enforcement:**
 

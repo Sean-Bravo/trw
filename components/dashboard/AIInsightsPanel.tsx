@@ -8,6 +8,8 @@ import { getJobInsights, AIInsights, retryJobWithExchange, getDownloadUrl, TaxSo
 import { ExchangeSelector } from './ExchangeSelector';
 import { TaxSoftwareSelector } from './TaxSoftwareSelector';
 import { ProcessingTerminal } from './ProcessingTerminal';
+import { insightsLabel, tierName } from '@/lib/tier-registry';
+import { engineLabel } from '@/lib/insights-engine';
 
 export type InsightStatus = 'idle' | 'detecting' | 'analyzing' | 'complete' | 'error';
 
@@ -701,11 +703,12 @@ export function AIInsightsPanel() {
                   </div>
                 )}
 
-                {/* Model Info */}
+                {/* Engine info — insights level + engine version only. Vendor and
+                    model names are published in the API docs and changelog, not here. */}
                 {aiInsights.model && (
                   <div className="text-xs text-slate-400 pt-2 border-t border-indigo-100 flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
-                    Powered by {aiInsights.provider === 'anthropic' ? 'Claude' : 'Gemini'} ({aiInsights.model})
+                    {insightsLabel(aiInsights.tier)} · {engineLabel()}
                   </div>
                 )}
               </div>
@@ -794,7 +797,7 @@ export function AIInsightsPanel() {
                 : status === 'analyzing'
                   ? `Analyzing transactions${transactionsFound > 0 ? ` (${transactionsFound} found)` : ''}...`
                   : isComplete
-                    ? `Analysis complete${transactionsAnalyzed > 0 ? ` - ${transactionsAnalyzed} transactions processed` : ''}${aiInsights?.tier ? ` (${aiInsights.tier} tier)` : ''}`
+                    ? `Analysis complete${transactionsAnalyzed > 0 ? ` - ${transactionsAnalyzed} transactions processed` : ''}${aiInsights?.tier ? ` (${tierName(aiInsights.tier)} plan)` : ''}`
                     : 'Upload a file to begin processing'}
           </span>
         </div>

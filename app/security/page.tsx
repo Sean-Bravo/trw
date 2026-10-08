@@ -110,12 +110,12 @@ export default function SecurityPage() {
                   <Lock className="w-6 h-6 text-purple-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
-                  Bank-Grade Encryption
+                  Encrypted at Rest and in Transit
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
                   Files are encrypted with <strong className="text-slate-200">AES-256</strong> at rest and
-                  <strong className="text-slate-200"> TLS 1.3</strong> in transit. Even if a bucket was exfiltrated,
-                  the bytes would be unreadable static.
+                  <strong className="text-slate-200"> TLS 1.3</strong> in transit. Objects are never stored
+                  unencrypted, and the keys are managed by AWS, not kept alongside the data.
                 </p>
               </div>
 

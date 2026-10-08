@@ -23,7 +23,7 @@ Compatibility is backward-compatible 2+ versions.
 ### Step 1: Get Your CSV
 
 1. Upload your CSV to TaxFormatter
-2. Download the formatted file (Free or Pro)
+2. Download the formatted file
 3. Save to your computer
 
 ### Step 2: Open TurboTax
@@ -133,17 +133,6 @@ Or manually:
 3. Re-enter the adjusted amount
 4. Verify the gain/loss changes correctly
 
-### Wash Sales (Pro Tier)
-
-**You see:** `Cost Basis: 47275 (adjusted)`
-
-**What to do:**
-
-1. Import normally
-2. TurboTax sees the adjusted cost basis
-3. Calculates gains/losses correctly
-4. No manual adjustment needed
-
 ### Staking Income
 
 In TurboTax:
@@ -204,8 +193,7 @@ If mismatch:
 1. Check decimal places (rounding difference?)
 2. Check you're looking at correct transaction
 3. Verify the CSV matches exchange records
-4. If Pro tier, cost basis should be adjusted already
-5. If discrepancy: contact support
+4. If discrepancy: contact support
 
 ### Issue 3: Gain/Loss Calculation Off
 
@@ -223,7 +211,7 @@ If mismatch:
 
 ### Issue 4: Wash Sale Appears Twice
 
-**Problem:** Flagged transactions appear in both Pro and manual entry
+**Problem:** Flagged transactions appear in both the import and manual entry
 
 **Solution:**
 - Import once from CSV
@@ -242,7 +230,7 @@ If mismatch:
   - You convert in a spreadsheet: YYYY-MM-DD → MM/DD/YYYY
   - Save and re-upload
 
-## Pro Tips for TurboTax
+## Tips for TurboTax
 
 1. **Import in batches if many transactions**
    - Import 100 at a time
@@ -259,8 +247,8 @@ If mismatch:
    - Different rules apply
    - TurboTax has self-employed section
 
-4. **Screenshot TaxFormatter annotations**
-   - Pro tier explains each flag
+4. **Screenshot the AI Insights panel**
+   - It explains each flag
    - Save screenshots for your records
    - Good documentation for audits
 
@@ -268,16 +256,6 @@ If mismatch:
    - For questions about cryptocurrency
    - They can help interpret TaxFormatter data
    - Premium feature
-
-## TurboTax vs Free Tier vs Pro Tier
-
-| | TurboTax Only | Free + TurboTax | Pro + TurboTax |
-|---|---|---|---|
-| Manual entry | Hours | 30 mins | 10 mins |
-| Cost basis adjustments | Manual | Manual | Auto |
-| Wash sale handling | You figure out | You research | Explained |
-| Error risk | High | Medium | Low |
-| Audit confidence | Low | Medium | High |
 
 ## After Import: Final Review
 
@@ -289,18 +267,6 @@ Before submitting your return:
 4. ✓ Confirm long-term vs short-term split is correct
 5. ✓ Review any flagged items one more time
 6. ✓ Keep TaxFormatter CSV in files with return copy
-
-## TaxFormatter Pro Makes TurboTax Easier
-
-With Pro tier:
-- Pre-adjusted cost basis flows through
-- Form references tell you exactly where to report
-- Explanations save research time
-- Less chance of TurboTax entry errors
-
-Cost: $49  
-Time saved: 2-3 hours  
-Error reduction: Significant  
 
 ## Troubleshooting with Support
 
