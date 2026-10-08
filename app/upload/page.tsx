@@ -200,7 +200,7 @@ export default function UploadLandingPage() {
         <div className="hidden sm:flex items-center gap-5 text-xs text-slate-400">
           <span className="flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5 text-accent-500" />
-            Files deleted after 24hrs
+            Files deleted within 30 days
           </span>
           <span className="flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-accent-500" />
@@ -484,7 +484,7 @@ export default function UploadLandingPage() {
             <ArrowRight className="w-4.5 h-4.5" />
           </button>
           <div className="mt-5 flex items-center justify-center gap-5 text-xs text-slate-500 flex-wrap">
-            {['Free during beta', 'No signup required', 'Files auto-deleted in 24hrs'].map((text) => (
+            {['Free during beta', 'No signup required', 'Files auto-deleted within 30 days'].map((text) => (
               <span key={text} className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-accent-500" />
                 {text}

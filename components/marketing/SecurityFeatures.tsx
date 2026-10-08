@@ -9,15 +9,15 @@ const features = [
   {
     icon: FileKey,
     title: 'No Private Keys',
-    description: 'We never ask for wallet access, seed phrases, or API keys with withdrawal permissions. You simply upload a static CSV.',
+    description: 'We never ask for exchange API keys, wallet access, or seed phrases — not even read-only. You upload the export your exchange already gives you.',
     color: 'text-emerald-400',
     bgColor: 'bg-emerald-500/10',
     borderColor: 'border-emerald-500/20',
   },
   {
     icon: Trash2,
-    title: 'Your Data, Your Rules',
-    description: 'Files retained for 1 year by default so you can re-download anytime. Want it gone? Toggle "Delete after download" for instant purge.',
+    title: 'Nothing Kept Past 30 Days',
+    description: 'Everything you send us — files, outputs, parsed data — is deleted within 30 days. Want it gone sooner? Delete it from your dashboard anytime.',
     color: 'text-cyan-400',
     bgColor: 'bg-cyan-500/10',
     borderColor: 'border-cyan-500/20',
@@ -48,7 +48,7 @@ export function SecurityFeatures() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 mb-6">
                 <ShieldCheck className="w-3 h-3 text-[var(--color-primary-400)]" />
                 <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                  Zero-Retention Architecture
+                  30-Day Retention Limit
                 </span>
               </div>
               <h2 className="font-poppins text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">

@@ -23,7 +23,7 @@ import { Container } from '@/components/layout/Container';
 export const metadata: Metadata = {
   alternates: { canonical: '/security' },
   title: 'Security Center',
-  description: 'Stateless processing, SHA-256 hashed API keys, zero payload logging, and user-controlled retention — across our dashboard, REST API, and MCP server.',
+  description: 'Stateless API processing, SHA-256 hashed developer keys, zero payload logging, and a 30-day retention limit on everything you send us — across our dashboard, REST API, and MCP server.',
 };
 
 export default function SecurityPage() {
@@ -45,7 +45,7 @@ export default function SecurityPage() {
               <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full bg-emerald-500/5 border border-emerald-500/20 shadow-[0_0_15px_-3px_rgba(16,185,129,0.1)] backdrop-blur-sm animate-fade-in-up">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm font-mono font-medium text-emerald-400 tracking-wide">
-                  STATUS: USER-CONTROLLED RETENTION
+                  STATUS: 30-DAY RETENTION LIMIT
                 </span>
               </div>
               
@@ -58,9 +58,11 @@ export default function SecurityPage() {
               </h1>
               
               <p className="text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto mb-10">
-                TaxFormatter is built on a <span className="text-white font-medium">Zero-Knowledge</span> philosophy —
-                across our dashboard, REST API, and MCP server. Files are processed in a volatile memory sandbox,
-                never cached, and we give you <span className="text-emerald-400/80">full control</span> over retention.
+                TaxFormatter never asks for exchange API keys, wallet access, or seed phrases — you upload the export
+                your exchange or bank already gives you. Files are processed in memory, stored encrypted, and
+                <span className="text-white font-medium">everything you send us is deleted within 30 days</span>.
+                The only credential involved is the developer key we issue to you, shown once and stored as a
+                <span className="text-emerald-400/80">SHA-256 hash</span>.
               </p>
 
               {/* Stats/Trust Signals */}
@@ -87,18 +89,18 @@ export default function SecurityPage() {
           <Container>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
 
-              {/* Feature 1: User-Controlled Retention */}
+              {/* Feature 1: 30-Day Retention */}
               <div className="group bg-slate-900/40 p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/40 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(16,185,129,0.1)] backdrop-blur-sm">
                 <div className="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-emerald-500/20">
                   <Trash2 className="w-6 h-6 text-emerald-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors">
-                  Your Data, Your Rules
+                  Nothing Kept Past 30 Days
                 </h3>
                 <p className="text-slate-400 text-sm leading-relaxed">
-                  Dashboard uploads are retained for <strong className="text-slate-200">1 year by default</strong> so you can
-                  re-download outputs. Toggle &quot;Delete after download&quot; and we&apos;ll purge the file the moment your
-                  export completes. API calls go further — they&apos;re fully stateless.
+                  Everything you send us — uploaded files, outputs, and parsed data — is deleted within
+                  <strong className="text-slate-200">30 days</strong>. Delete it sooner anytime from your dashboard. API calls go
+                  further — they&apos;re processed in memory and never stored at all.
                 </p>
               </div>
 
@@ -216,8 +218,8 @@ export default function SecurityPage() {
                         You Decide
                     </h4>
                     <p className="text-sm text-slate-400 mt-2">
-                      Dashboard files are kept for 1 year by default, or purged instantly if you toggle &quot;Delete after download.&quot;
-                      Anonymized metadata is retained to improve our service.
+                      Dashboard files, outputs, and parsed data are deleted within 30 days — sooner when you delete them.
+                      Only anonymized processing metadata (source detected, row count, timing, error type) is kept.
                     </p>
                   </div>
                 </div>
@@ -320,7 +322,7 @@ export default function SecurityPage() {
                 },
                 {
                   q: "What if the government requests my data?",
-                  a: "Dashboard files are retained for up to 1 year (or less if you opt in to immediate deletion). API payloads are never stored. If served with a valid legal request, we can only provide what exists — which for API traffic is only anonymized metadata."
+                  a: "Everything you send us is deleted within 30 days — sooner if you delete it from your dashboard. API payloads are never stored. If served with a valid legal request, we can only provide what exists at that moment: at most 30 days of dashboard files, and for API traffic only anonymized metadata."
                 },
                 {
                   q: "Is the code open source?",

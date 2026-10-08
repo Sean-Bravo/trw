@@ -126,7 +126,7 @@ export default function AboutPage() {
                       <span>You control your data</span>
                     </div>
                     <p className="text-sm text-slate-500 mt-3">
-                      Delete your files anytime from your dashboard. Files are retained for up to 1 year for your convenience, then automatically removed.
+                      Delete your files anytime from your dashboard. Everything else is automatically deleted within 30 days.
                     </p>
                   </div>
                 </div>
