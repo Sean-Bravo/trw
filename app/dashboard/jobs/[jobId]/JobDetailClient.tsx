@@ -302,7 +302,7 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
         </div>
       )}
 
-      {/* AI Insights — tier-routed (Free → Gemini, Pro → Sonnet, Premium → Opus) */}
+      {/* AI Insights — level follows the plan (Standard / Advanced / Premium); see lib/insights-engine.ts */}
       {job.status === 'succeeded' && (
         <div className="mt-6">
           <JobProvider userId={userId}>

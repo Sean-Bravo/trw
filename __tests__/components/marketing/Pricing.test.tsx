@@ -116,9 +116,10 @@ describe('Pricing Component (API Tiers)', () => {
       expect(screen.getByText('2,000 files / month')).toBeInTheDocument();
     });
 
-    it('shows SLA guarantee', () => {
+    it('promises no SLA (there is no SLA document to back one)', () => {
       render(<Pricing />);
-      expect(screen.getByText('SLA guarantee')).toBeInTheDocument();
+      expect(screen.queryByText(/SLA/)).not.toBeInTheDocument();
+      expect(screen.getByText('Custom integrations')).toBeInTheDocument();
     });
   });
 
@@ -166,12 +167,13 @@ describe('Pricing Component (API Tiers)', () => {
       expect(screen.queryByText(/Not a developer/)).not.toBeInTheDocument();
     });
 
-    it('differentiates categorization quality on each tier card', () => {
+    it('differentiates insights level on each tier card (Standard / Advanced / Premium)', () => {
       render(<Pricing />);
-      // Free + Starter share the standard tier — exact match would collide.
-      expect(screen.getAllByText('Standard categorization').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Detailed categorization')).toBeInTheDocument();
-      expect(screen.getByText('Highest-accuracy categorization')).toBeInTheDocument();
+      // Free + Starter share the Standard level — exact match would collide.
+      expect(screen.getAllByText('Standard insights')).toHaveLength(2);
+      expect(screen.getByText('Advanced insights')).toBeInTheDocument();
+      expect(screen.getByText('Premium insights')).toBeInTheDocument();
+      expect(screen.queryByText(/(Standard|Detailed|Highest-accuracy) categorization/)).not.toBeInTheDocument();
     });
 
     it('does not name AI vendors in public pricing copy', () => {

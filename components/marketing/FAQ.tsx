@@ -6,7 +6,8 @@ import { FAQSchema } from '../seo/FAQSchema';
 import clsx from 'clsx';
 import { VERIFIED_BANKS, BETA_BANKS, formatBankList } from '@/lib/bank-registry';
 import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
-import { 
+import { TIER_BY_ID, formatFiles, formatMonthlyPrice } from '@/lib/tier-registry';
+import {
   TriangleAlert, 
   Shield, 
   Search, 
@@ -68,7 +69,7 @@ const faqItems: FAQItem[] = [
   },
   {
     question: "What's the cheapest plan?",
-    answer: `Starter is $29/month — 100 files, 30 requests per minute, all ${EXCHANGE_COUNT} exchanges, all output formats. Enough to build and ship a real integration. When you need more volume, upgrade to Growth ($99/mo for 500 files) or Business ($249/mo for 2,000 files).`,
+    answer: `${TIER_BY_ID.starter.name} is ${formatMonthlyPrice(TIER_BY_ID.starter)} — ${formatFiles(TIER_BY_ID.starter)} files, ${TIER_BY_ID.starter.requestsPerMinute} requests per minute, all ${EXCHANGE_COUNT} exchanges, all output formats. Enough to build and ship a real integration. When you need more volume, upgrade to ${TIER_BY_ID.growth.name} (${formatMonthlyPrice(TIER_BY_ID.growth)} for ${formatFiles(TIER_BY_ID.growth)} files) or ${TIER_BY_ID.business.name} (${formatMonthlyPrice(TIER_BY_ID.business)} for ${formatFiles(TIER_BY_ID.business)} files).`,
     vibe: 'hopeful',
   },
 ];

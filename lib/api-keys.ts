@@ -1,9 +1,10 @@
 import { randomBytes, createHash } from 'crypto';
 import { query, queryOne, execute } from './db';
+import { TIERS, type TierId } from './tier-registry';
 
 // --- Types ---
 
-export type ApiTier = 'free' | 'starter' | 'growth' | 'business';
+export type ApiTier = TierId;
 
 export interface DbApiKey {
   id: string;
@@ -33,12 +34,12 @@ export interface DbApiUsage {
   created_at: Date;
 }
 
-export const API_TIERS = {
-  free:     { monthly_quota: 25,   rate_limit_rpm: 10,  price: 0 },
-  starter:  { monthly_quota: 100,  rate_limit_rpm: 30,  price: 29 },
-  growth:   { monthly_quota: 500,  rate_limit_rpm: 60,  price: 99 },
-  business: { monthly_quota: 2000, rate_limit_rpm: 120, price: 249 },
-} as const;
+// Derived from the public plan registry so checkout writes the same numbers
+// the pricing page shows. Edit lib/tier-registry.ts, not this table.
+export const API_TIERS: Record<ApiTier, { monthly_quota: number; rate_limit_rpm: number; price: number }> =
+  Object.fromEntries(
+    TIERS.map((t) => [t.id, { monthly_quota: t.filesPerMonth, rate_limit_rpm: t.requestsPerMinute, price: t.priceUsd }])
+  ) as Record<ApiTier, { monthly_quota: number; rate_limit_rpm: number; price: number }>;
 
 const MAX_KEYS_PER_USER = 5;
 const MAX_FREE_KEYS_PER_USER = 1;

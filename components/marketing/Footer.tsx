@@ -6,6 +6,7 @@ import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import Link from 'next/link';
 import { Mail, CheckCircle2, ArrowRight } from 'lucide-react';
+import { CHEAPEST_PAID_TIER, formatMonthlyPrice } from '@/lib/tier-registry';
 
 export function Footer() {
   const [email, setEmail] = useState('');
@@ -65,7 +66,7 @@ export function Footer() {
               Start parsing in minutes.
             </h2>
             <p className="text-lg text-slate-400 mb-8">
-              Get your API key and start parsing files in minutes. Plans start at $29/mo.
+              Get your API key and start parsing files in minutes. Plans start at {formatMonthlyPrice(CHEAPEST_PAID_TIER)}.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="primary" href="/signup">

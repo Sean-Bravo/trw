@@ -200,10 +200,12 @@ One plan, two ways to use it — drop a file in the dashboard or call our API. S
 
 | Tier | Price | Quota | RPM | AI Insights | Highlights |
 |------|-------|-------|-----|-------------|------------|
-| Free | $0 | 25 files | 10 | Gemini 2.5 Flash | All 14 exchanges · No credit card |
-| Starter | $29/mo | 100 files | 30 | Gemini 2.5 Flash | All 14 exchanges |
-| Growth | $99/mo | 500 files | 60 | Claude Sonnet 4.6 | + Bank PDF parsing |
-| Business | $249/mo | 2,000 files | 120 | Claude Opus 4.7 | + Custom integrations · SLA |
+| Free | $0 | 25 files | 10 | Standard | All exchanges · No credit card |
+| Starter | $29/mo | 100 files | 30 | Standard | All exchanges |
+| Growth | $99/mo | 500 files | 60 | Advanced | + Bank PDF parsing |
+| Business | $249/mo | 2,000 files | 120 | Premium | + Custom integrations |
+
+Source of truth: `lib/tier-registry.ts` (prices, quotas, limits) and `lib/insights-engine.ts` (which model serves each insights level). Model names are published in the [API docs](https://www.taxformatter.com/docs/api) and blog Updates posts only.
 
 ---
 
