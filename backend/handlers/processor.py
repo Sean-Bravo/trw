@@ -13,6 +13,7 @@ import os
 import sys
 import json
 import logging
+import traceback
 import tempfile
 import boto3
 from typing import Any, Dict, List
@@ -46,6 +47,21 @@ ses_client = boto3.client("ses")
 
 # Secrets cache
 _secrets_cache: Dict[str, str] = {}
+
+
+def _failure_reason(result):
+    """Classify an engine failure for CloudWatch without copying file content.
+
+    Retention policy: logs carry source / parser version / reason only. The
+    full engine message still goes to error.json (S3, 30 days) for the user.
+    """
+    errors = result.get("errors") or []
+    message = str((errors[0] or {}).get("message", "")) if errors else ""
+    if message.startswith("Could not auto-detect") or not result.get("exchange"):
+        return "detection_failed"
+    if message.startswith("No parser available"):
+        return "no_parser"
+    return "parse_failed"
 
 
 def get_secrets() -> Dict[str, str]:
@@ -453,7 +469,13 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 "meta": result.get("meta", {}),
             })
 
-            logger.error(f"Job {job_id} failed: {result.get('error')}")
+            logger.error(
+                "parse_failed job_id=%s source=%s parser_version=%s reason=%s",
+                job_id,
+                result.get("exchange"),
+                (result.get("meta") or {}).get("parser_version"),
+                _failure_reason(result),
+            )
 
             return {
                 "success": False,
@@ -462,7 +484,12 @@ def process_message(message: Dict) -> Dict[str, Any]:
             }
 
     except Exception as e:
-        logger.exception(f"Job {job_id} failed")
+        logger.error(
+            "parse_failed job_id=%s reason=exception error_class=%s\n%s",
+            job_id,
+            type(e).__name__,
+            "".join(traceback.format_tb(e.__traceback__)),
+        )
         safe_msg = safe_error_message(e)
 
         # Upload error (sanitized — flows back to frontend job.error)
