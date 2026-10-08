@@ -305,7 +305,7 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 1. **Sentry tunnel** - Client errors route through `/monitoring` to bypass ad blockers. The `tunnelRoute` in `next.config.ts` creates rewrites, and `tunnel: "/monitoring"` in `instrumentation-client.ts` tells the SDK to use it. The `diagnoseSdkConnectivity()` check doesn't respect the tunnel and may show false warnings.
 2. **Lambda concurrency** - SQS trigger limited to 10 concurrent executions
 3. **No VPC** - Lambdas connect directly to Neon (public internet) for faster cold starts
-4. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
+4. **Presigned URLs** - Upload and download URLs both expire in 15 min (`UPLOAD_EXPIRATION` / `DOWNLOAD_EXPIRATION` in webhook.py)
 5. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
 6. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
 7. **Exchange detection fallback** - When classification fails, engine.py auto-tries GenericCSVParser if file has date+amount columns. Only shows manual selector if generic also fails.
@@ -435,12 +435,17 @@ NPM package at `packages/mcp-server/` exposing 3 tools for AI agents:
 **Install:** `npx @taxformatter/mcp-server`
 **Compatible with:** Claude Code, Cursor, Windsurf, any MCP client
 
-### API Data Handling
+### Data Retention
 
-- **Stateless processing** — file content lives in Lambda RAM only, never written to disk or cached
-- **No payload logging** — `api_requests` table logs metadata only (key hash, status, byte size, timing)
-- **API keys** — SHA-256 hashed at rest, prefixed `tf_live_` for identification
+Policy (`lib/retention.ts`, `RETENTION_DAYS = 30`): everything a user sends us is deleted within 30 days.
+
+- **API path** — file content lives in Lambda RAM only, never written to S3 or disk; `api_requests` logs metadata only (key hash, status, byte size, timing, detected source, error code)
+- **Dashboard path** — uploads and results buckets expire objects at 29 days (`backend/terraform/s3.tf`; versioning suspended so deletes are real deletes); Neon rows in `transactions`, `api_requests`, `processed_webhook_events` are pruned daily by the Vercel Cron at `app/api/cron/prune` (03:00 UTC, authenticated by `CRON_SECRET`)
+- **Logs** — CloudWatch retention 30 days; failed parses log `source / parser_version / reason` only, never file content
+- **AI providers** — Anthropic retains inputs up to 30 days, Gemini up to 55 days (abuse monitoring only, paid tier); neither trains on customer data
+- **API keys** — SHA-256 hashed at rest, prefixed `tf_live_`; TaxFormatter never asks for exchange or bank credentials
 - **TLS 1.3** — all API traffic encrypted in transit
+- **Regression guard** — `__tests__/retention-copy.test.ts` fails if any public surface reverts to a superseded retention claim
 
 ## Related Docs
 

@@ -224,3 +224,11 @@ Then ask your agent:
 - "Parse my Coinbase export and format it for Koinly"
 - "I have a Kraken CSV from 2024, normalize it for TurboTax"
 - "List all supported exchanges and output formats"
+
+## Data handling
+
+Everything you send us is deleted within 30 days — uploaded files, outputs, and parsed data. Delete it sooner anytime from your dashboard. We keep your account, usage counts, and anonymized processing metadata (source detected, row count, timing, error type). We never train on your data, and neither do our AI providers.
+
+API requests go further: the file is processed in memory and never stored. We log only request metadata — key hash, status, byte size, timing, detected source, error code.
+
+TaxFormatter never asks for exchange or bank credentials; you upload the export your exchange or bank already gives you. The only credential involved is the developer key we issue to you, shown once at creation and stored only as a SHA-256 hash.

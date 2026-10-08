@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
                   When you upload CSV files for processing:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 mb-4">
-                  <li>CSV files are stored encrypted for up to 1 year (or deleted immediately at your request)</li>
+                  <li>Uploaded files, processed outputs, and parsed data are stored encrypted and deleted within 30 days (sooner if you delete them from your dashboard)</li>
                   <li>We do not analyze, sell, or share the contents of your files</li>
                   <li>We never request or store exchange API keys, private keys, or wallet seed phrases</li>
                   <li>Anonymized processing metadata (exchange detected, row count, error types) is retained to improve our service</li>
@@ -86,12 +86,14 @@ export default function PrivacyPolicyPage() {
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">4. Data Retention</h2>
                 <p className="mb-4">
-                  We follow a user-controlled data retention policy:
+                  Everything you send us is deleted within 30 days:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li><strong className="text-white">Uploaded files:</strong> Retained for 1 year by default, or deleted immediately upon your request via the &quot;Delete after download&quot; option</li>
-                  <li><strong className="text-white">Processed output files:</strong> Available for re-download for 1 year, or deleted immediately if you choose</li>
-                  <li><strong className="text-white">Anonymized metadata:</strong> Exchange detected, row count, column headers, and processing duration are retained permanently to improve our service (no transaction amounts, wallet addresses, or PII)</li>
+                  <li><strong className="text-white">Uploaded files:</strong> Deleted within 30 days of upload, or immediately when you delete them from your dashboard</li>
+                  <li><strong className="text-white">Processed output files and parsed data:</strong> Deleted on the same 30-day schedule as the upload they came from</li>
+                  <li><strong className="text-white">API requests:</strong> Processed in memory and never stored; only request metadata is logged</li>
+                  <li><strong className="text-white">Anonymized metadata:</strong> Source detected, row count, column headers, processing duration, and error type are retained to improve our service (no transaction amounts, wallet addresses, or PII)</li>
+                  <li><strong className="text-white">AI providers:</strong> We never train on your data, and neither do our AI providers; they retain inputs only for abuse monitoring (Anthropic up to 30 days, Google up to 55 days)</li>
                   <li><strong className="text-white">Account data:</strong> Retained until you delete your account</li>
                   <li><strong className="text-white">Payment records:</strong> Retained as required by law for tax and accounting purposes</li>
                 </ul>
