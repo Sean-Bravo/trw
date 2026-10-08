@@ -122,7 +122,7 @@ response = requests.post(
 
 data = response.json()
 print(f"{data['metadata']['transaction_count']} transactions parsed")
-print(f"Processing time: {response.headers['X-TF-Processing-Time']}ms")
+print(f"Processing time: {data['metadata']['processing_time_ms']}ms")
 ```
 
 **Node.js**

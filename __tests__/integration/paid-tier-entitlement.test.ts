@@ -182,7 +182,7 @@ describe('published pricing surfaces match API_TIERS', () => {
   it('lib/tier-registry.ts (what APIPricing.tsx and the SEO offers render from)', () => {
     // The pricing cards build from the registry, so pin the registry to the
     // published numbers and check the cards contain no literals of their own.
-    // __tests__/components/marketing/Pricing.test.tsx asserts the rendered text.
+    // __tests__/components/marketing/APIPricing.test.tsx asserts the rendered text.
     const { TIER_BY_ID } = jest.requireActual('@/lib/tier-registry');
     for (const [tier, t] of Object.entries(allTiers)) {
       expect(TIER_BY_ID[tier]).toMatchObject({

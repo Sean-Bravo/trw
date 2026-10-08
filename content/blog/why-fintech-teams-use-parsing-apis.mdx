@@ -54,9 +54,9 @@ The math gets more lopsided as you add sources. Every new exchange or bank you n
 
 ### Accuracy You Can't Match In-House
 
-The TaxFormatter engine has processed millions of financial files across every major exchange and bank format. It handles edge cases that a custom parser built from a handful of test files will miss — transaction ID deduplication across overlapping exports, timezone-aware date normalization, and intelligent merging of multi-line bank descriptions.
+The TaxFormatter engine is built from a fixture-backed parser per supported exchange and bank format, so edge cases are encoded as tests instead of rediscovered by you. It handles edge cases that a custom parser built from a handful of test files will miss — transaction ID deduplication across overlapping exports, timezone-aware date normalization, and intelligent merging of multi-line bank descriptions.
 
-Getting to 95% accuracy with a custom parser is straightforward. Getting to 99.9% takes years of production data and bug fixes. The API gives you that accuracy on day one.
+Getting a custom parser to handle the happy path is straightforward. Getting it to handle every variant an exchange has shipped takes years of production data and bug fixes. The API gives you that coverage on day one.
 
 ### AI Agent Compatibility
 

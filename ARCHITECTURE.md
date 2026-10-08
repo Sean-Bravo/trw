@@ -105,7 +105,7 @@ trw/
 │
 ├── components/
 │   ├── dashboard/          # FileUploader, JobHistoryTable, etc.
-│   ├── marketing/          # Hero, Pricing, FAQ, etc.
+│   ├── marketing/          # APIHero, APIPricing, TrustEngine, FAQ, Footer — every file here is rendered by a page (__tests__/claims-copy.test.ts)
 │   └── ui/                 # Base components
 │
 ├── lib/                    # Business logic
@@ -116,6 +116,8 @@ trw/
 │   ├── validation.ts       # Input validation (Zod)
 │   ├── stripe.ts           # Stripe helpers
 │   ├── api-keys.ts         # API key generation, SHA-256 hashing, CRUD
+│   ├── tier-registry.ts    # The one price list: plan, price, quota, rpm, insights level
+│   ├── insights-engine.ts  # The one model list: insights level → model (mirrors ai_insights.py)
 │   └── email.ts            # Email sending
 │
 ├── backend/                # Python backend
@@ -280,7 +282,9 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | `lib/exchange-registry.ts`, `lib/bank-registry.ts` | Frontend mirrors of the two registries. Every surface that names or counts a source reads these; `__tests__/lib/*-registry.test.ts` fail on drift |
 | `backend/handlers/api.py` | Developer API Lambda handler (/v1/parse, /v1/sources, /v1/usage) |
 | `backend/services/api_auth.py` | API key validation, rate limiting, usage tracking |
-| `lib/api-keys.ts` | API key generation, CRUD, tier management |
+| `lib/api-keys.ts` | API key generation, CRUD, tier management; `API_TIERS` derives from `lib/tier-registry.ts` |
+| `lib/tier-registry.ts` | Plan registry (price, files/month, rpm, bank-PDF gate, insights level). Pricing cards, FAQ, footer, playground, SEO offers, dashboard header/settings, API docs table and README all read from it; `__tests__/lib/tier-registry.test.ts` fails on drift |
+| `lib/insights-engine.ts` | Insights level → model map plus `INSIGHTS_ENGINE_VERSION`. Mirrors `TIER_CONFIG` in `backend/services/ai_insights.py`. Model names are published only in `content/docs/api/index.md` and blog Updates posts; marketing and the dashboard show the level + "engine vN" |
 | `app/api/developer/keys/route.ts` | API key create/list endpoints |
 | `app/dashboard/developer/page.tsx` | Developer dashboard (key management, usage) |
 | `packages/mcp-server/` | @taxformatter/mcp-server npm package for AI agents |

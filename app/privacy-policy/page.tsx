@@ -107,8 +107,8 @@ export default function PrivacyPolicyPage() {
                 <ul className="list-disc pl-6 space-y-2">
                   <li>AES-256 encryption for stored files</li>
                   <li>TLS 1.3 encryption for all data in transit</li>
-                  <li>AWS infrastructure with SOC 2 compliance</li>
-                  <li>Regular security audits and penetration testing</li>
+                  <li>Hosted on AWS, whose infrastructure is SOC 2 audited (TaxFormatter itself has not been independently audited)</li>
+                  <li>Automated dependency and code security audit in CI on every change</li>
                   <li>Access controls and audit logging</li>
                 </ul>
               </section>

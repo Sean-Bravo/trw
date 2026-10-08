@@ -82,7 +82,7 @@ Three reasons.
 
 **Speed.** Parsing a 5,000-row CSV with an LLM is slow and expensive in tokens. The API processes it in under 2 seconds and returns structured JSON that the agent consumes instantly.
 
-**Reliability.** Edge cases kill naive parsing — duplicate transactions, missing dates, split columns, OCR artifacts in scanned PDFs. The TaxFormatter engine has handled millions of these edge cases. Your agent doesn't need to.
+**Reliability.** Edge cases kill naive parsing — duplicate transactions, missing dates, split columns, OCR artifacts in scanned PDFs. The TaxFormatter engine encodes these edge cases as fixture-backed tests per source. Your agent doesn't need to.
 
 ## Real-World Use Cases
 

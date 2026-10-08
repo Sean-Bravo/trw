@@ -17,12 +17,14 @@ const SURFACES = [
   'app/terms/page.tsx',
   'app/about/page.tsx',
   'app/upload/page.tsx',
-  'components/marketing/SecurityFeatures.tsx',
+  'components/marketing/TrustEngine.tsx',
+  'components/seo/SoftwareApplicationSchema.tsx',
   'content/docs/faq/index.md',
   'content/docs/api/index.md',
   'content/blog/taxformatter-launch-announcement.mdx',
   'content/blog/bank-statement-pdf-to-excel-converter.mdx',
   'ARCHITECTURE.md',
+  'README.md',
 ];
 
 const BANNED: Array<[RegExp, string]> = [

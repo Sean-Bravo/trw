@@ -227,17 +227,17 @@ If you're integrating through the API, bank PDF parsing is included on the Growt
 
 Your bank statements contain sensitive data. Here's how we protect it:
 
-- **End-to-end encryption** - Files encrypted in transit and at rest
+- **Encrypted in transit and at rest** - TLS on the way in, AES-256 in storage
 - **Auto-deletion** - Uploaded files, outputs, and parsed data deleted within 30 days
 - **No data sharing** - We never sell or share your financial data
-- **SOC 2 compliant infrastructure** - AWS with enterprise security
-- **GDPR ready** - Request deletion anytime
+- **Hosted on AWS** - SOC 2-audited infrastructure (TaxFormatter itself is not independently audited)
+- **Delete anytime** - Remove a file from your dashboard and it's gone
 
 ## Frequently Asked Questions
 
 ### Does this work with scanned PDF statements?
 
-Yes. We use AWS Textract for OCR extraction. Accuracy is 98%+ for clean scans. Blurry or low-resolution scans may require manual corrections in the review step.
+Yes. We use AWS Textract for OCR extraction. Clean scans extract well; blurry or low-resolution scans may require manual corrections in the review step.
 
 ### Can I convert multiple statements at once?
 
@@ -245,7 +245,7 @@ One statement per upload today. Each one takes a few seconds, so a year of state
 
 ### What if my bank isn't supported?
 
-Upload anyway. Our AI adapts to new formats automatically. If extraction fails, contact support—we'll add your bank format within 48 hours.
+Upload anyway — unrecognized layouts fall back to generic extraction, and the result is marked for review rather than guessed. If extraction fails, contact support with the bank name and we'll look at adding the format.
 
 ### Do you store my bank data?
 

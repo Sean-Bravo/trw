@@ -49,13 +49,12 @@ export function SoftwareApplicationSchema() {
       'MCP server for AI agents (Claude, Cursor, Windsurf)',
       'Node.js and Python SDKs',
       'Auto-detection of exchange and bank formats',
-      'Stateless processing — files never written to disk',
+      'API payloads never stored; dashboard uploads deleted within 30 days',
     ],
     creator: {
       '@type': 'Organization',
       name: 'TaxFormatter',
     },
-    datePublished: '2024-01-01',
     dateModified: '2026-03-18',
     softwareVersion: '1.0',
   };

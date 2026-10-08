@@ -211,13 +211,13 @@ Source of truth: `lib/tier-registry.ts` (prices, quotas, limits) and `lib/insigh
 
 ## 🔒 Security Highlights
 
-- **Stateless API processing** — file content lives in Lambda RAM only, never written to disk
-- **Zero payload logging** — `api_requests` stores metadata only (hash, status, bytes, timing)
+- **API payloads never stored** — request bodies are parsed in memory and never written to S3 or the database
+- **Metadata-only request log** — `api_requests` stores key id, endpoint, status, bytes, timing, detected source, error code, and caller IP; never file contents
 - **API keys SHA-256 hashed** at rest, prefixed `tf_live_` for easy identification
 - **TLS 1.3** enforced everywhere
 - **AES-256** encryption on all stored uploads
-- **AWS WAF** — DDoS shield, SQL injection, XSS mitigation
-- **User-controlled retention** — 1 year default, or delete-after-download
+- **AWS WAF** in front of the API
+- **30-day retention** — uploads, outputs, and parsed rows are deleted within 30 days (sooner from the dashboard); enforced by an S3 lifecycle rule and a daily prune cron
 
 Full disclosure at [taxformatter.com/security](https://taxformatter.com/security).
 
