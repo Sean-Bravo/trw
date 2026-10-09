@@ -8,6 +8,7 @@ provider builds can be inspected without a network call or an API key.
 """
 
 import io
+import logging
 import json
 import re
 import sys
@@ -295,3 +296,72 @@ class TestRefusalBranch:
 
         assert result["success"] is True
         assert result["insights"]["summary"] == SAMPLE_INSIGHTS["summary"]
+
+
+# ---------------------------------------------------------------------------
+# Refusals are instrumented apart from errors
+# ---------------------------------------------------------------------------
+
+class TestRefusalInstrumentation:
+    """A refusal is HTTP 200. It must never look like an error to the
+    processor-errors alarm (AWS/Lambda Errors) or the lambda-errors Logs
+    Insights query (filter @message like /ERROR/), and it must be countable
+    on its own marker."""
+
+    def test_refusal_logs_warning_with_marker_and_category(self, caplog):
+        provider = AnthropicProvider("sk-ant-test", "claude-opus-4-7", 4096, tier="business")
+        details = SimpleNamespace(type="refusal", category="general_harms", explanation="n/a")
+
+        with caplog.at_level(logging.WARNING, logger="ai_insights"):
+            _analyze(provider, _message("partial", stop_reason="refusal", stop_details=details))
+
+        refusals = [r for r in caplog.records if r.getMessage().startswith("insights_refusal")]
+        assert len(refusals) == 1
+        record = refusals[0]
+        assert record.levelno == logging.WARNING
+        msg = record.getMessage()
+        assert "provider=anthropic" in msg
+        assert "model=claude-opus-4-7" in msg
+        assert "tier=business" in msg
+        assert "category=general_harms" in msg
+        # The explanation text is not logged — it is unstable and not ours to keep.
+        assert "n/a" not in msg
+
+    def test_refusal_never_logs_at_error_level_or_matches_error_filter(self, caplog):
+        with caplog.at_level(logging.DEBUG, logger="ai_insights"):
+            _analyze(_opus(), _message("partial", stop_reason="refusal"))
+
+        assert all(r.levelno < logging.ERROR for r in caplog.records)
+        assert not any("ERROR" in r.getMessage() for r in caplog.records)
+
+    def test_refusal_without_stop_details_logs_category_none(self, caplog):
+        with caplog.at_level(logging.WARNING, logger="ai_insights"):
+            _analyze(_opus(), _message("partial", stop_reason="refusal", stop_details=None))
+
+        msgs = [r.getMessage() for r in caplog.records if "insights_refusal" in r.getMessage()]
+        assert msgs and "category=None" in msgs[0]
+
+    def test_api_exception_still_logs_error_without_refusal_marker(self, caplog):
+        with caplog.at_level(logging.DEBUG, logger="ai_insights"):
+            result, _ = _analyze(_opus(), side_effect=RuntimeError("boom"))
+
+        assert result["success"] is False
+        assert "refusal" not in result
+        errors = [r for r in caplog.records if r.levelno == logging.ERROR]
+        assert len(errors) == 1
+        assert not any("insights_refusal" in r.getMessage() for r in caplog.records)
+
+    def test_truncation_and_invalid_output_use_their_own_markers(self, caplog):
+        with caplog.at_level(logging.WARNING, logger="ai_insights"):
+            _analyze(_opus(), _message("{", stop_reason="max_tokens"))
+            _analyze(_opus(), _message("prose"))
+
+        msgs = [r.getMessage() for r in caplog.records]
+        assert any(m.startswith("insights_truncated") for m in msgs)
+        assert any(m.startswith("insights_invalid") for m in msgs)
+        assert not any(m.startswith("insights_refusal") for m in msgs)
+
+    def test_get_ai_provider_passes_tier_to_the_provider(self):
+        secrets = {"ANTHROPIC_API_KEY": "sk-ant-test", "GOOGLE_GEMINI_API_KEY": "AIzaTest"}
+        assert ai_insights.get_ai_provider("business", secrets).tier == "business"
+        assert ai_insights.get_ai_provider("starter", secrets).tier == "starter"

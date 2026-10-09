@@ -155,10 +155,11 @@ class AIProvider(ABC):
 class AnthropicProvider(AIProvider):
     """Claude AI provider for Growth (Sonnet) and Business (Opus) tiers."""
 
-    def __init__(self, api_key: str, model: str, max_tokens: int):
+    def __init__(self, api_key: str, model: str, max_tokens: int, tier: Optional[str] = None):
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
+        self.tier = tier
 
     def analyze(self, prompt: str, data: str) -> Dict[str, Any]:
         try:
@@ -188,7 +189,18 @@ class AnthropicProvider(AIProvider):
                 # HTTP 200, but the model declined. Whatever sits in content is
                 # partial at best — drop it. The processor falls back to the
                 # deterministic quick stats with ai_error = INSIGHTS_UNAVAILABLE.
-                logger.warning(f"Anthropic insights refused (model={self.model})")
+                #
+                # Logged at WARNING with its own marker, on purpose: a refusal
+                # is not an invocation error, so it must not feed the
+                # processor-errors alarm (AWS/Lambda Errors) or the
+                # lambda-errors Logs Insights query (filter /ERROR/). Count
+                # refusals with `filter @message like /insights_refusal/`.
+                stop_details = getattr(message, "stop_details", None)
+                category = getattr(stop_details, "category", None)
+                logger.warning(
+                    "insights_refusal provider=anthropic model=%s tier=%s category=%s",
+                    self.model, self.tier, category,
+                )
                 return {
                     "success": False,
                     "refusal": True,
@@ -200,7 +212,8 @@ class AnthropicProvider(AIProvider):
             if stop_reason == "max_tokens":
                 # Truncated JSON is partial output too; it is not a flag set.
                 logger.warning(
-                    f"Anthropic insights truncated at max_tokens={self.max_tokens} (model={self.model})"
+                    "insights_truncated provider=anthropic model=%s tier=%s max_tokens=%s",
+                    self.model, self.tier, self.max_tokens,
                 )
                 return {
                     "success": False,
@@ -216,7 +229,10 @@ class AnthropicProvider(AIProvider):
             try:
                 insights = json.loads(response_text)
             except json.JSONDecodeError:
-                logger.warning(f"Anthropic insights response was not valid JSON (model={self.model})")
+                logger.warning(
+                    "insights_invalid provider=anthropic model=%s tier=%s",
+                    self.model, self.tier,
+                )
                 return {
                     "success": False,
                     "error": INSIGHTS_INVALID,
@@ -325,10 +341,11 @@ class OpenAIProvider(AIProvider):
 class GoogleProvider(AIProvider):
     """Google Gemini provider - uses REST API directly."""
 
-    def __init__(self, api_key: str, model: str, max_tokens: int):
+    def __init__(self, api_key: str, model: str, max_tokens: int, tier: Optional[str] = None):
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
+        self.tier = tier
         self.base_url = "https://generativelanguage.googleapis.com/v1beta"
 
     def analyze(self, prompt: str, data: str) -> Dict[str, Any]:
@@ -431,7 +448,7 @@ def get_ai_provider(tier: str, secrets: Dict[str, str]) -> Optional[AIProvider]:
         if not api_key:
             logger.warning("Anthropic API key not found, falling back to free tier")
             return get_ai_provider("free", secrets)
-        return AnthropicProvider(api_key, model, max_tokens)
+        return AnthropicProvider(api_key, model, max_tokens, tier=tier)
 
     elif provider_type == "openai":
         api_key = secrets.get("OPENAI_API_KEY")
@@ -445,7 +462,7 @@ def get_ai_provider(tier: str, secrets: Dict[str, str]) -> Optional[AIProvider]:
         if not api_key:
             logger.warning("Google Gemini API key not found")
             return None
-        return GoogleProvider(api_key, model, max_tokens)
+        return GoogleProvider(api_key, model, max_tokens, tier=tier)
 
     return None
 
