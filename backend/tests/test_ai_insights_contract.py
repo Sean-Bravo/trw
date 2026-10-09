@@ -473,3 +473,115 @@ class TestMetadataStamp:
         assert found == {
             tier: (cfg["provider"], cfg["model"]) for tier, cfg in ai_insights.TIER_CONFIG.items()
         }
+
+
+# ---------------------------------------------------------------------------
+# Per-call usage: tokens, cache-hit rate, latency, cost
+# ---------------------------------------------------------------------------
+
+class TestUsageLogging:
+
+    def test_cost_arithmetic_matches_the_pricing_table(self):
+        # Opus 4.7: $5 in / $25 out / $6.25 cache write / $0.50 cache read per MTok.
+        cost = ai_insights.estimate_cost_usd(
+            "claude-opus-4-7",
+            input_tokens=1_000, output_tokens=200,
+            cache_read_tokens=500, cache_creation_tokens=100,
+        )
+        expected = (1_000 * 5.00 + 100 * 6.25 + 500 * 0.50 + 200 * 25.00) / 1_000_000
+        assert cost == round(expected, 6) == 0.010875
+
+    def test_unknown_model_costs_none_not_a_crash(self):
+        assert ai_insights.estimate_cost_usd("gemini-2.5-flash", 10, 5) is None
+        assert ai_insights.estimate_cost_usd("claude-something-new", 10, 5) is None
+
+    def test_pricing_table_covers_every_anthropic_tier_model(self):
+        anthropic_models = {
+            cfg["model"] for cfg in ai_insights.TIER_CONFIG.values() if cfg["provider"] == "anthropic"
+        }
+        assert anthropic_models <= set(ai_insights.MODEL_PRICING)
+        for price in ai_insights.MODEL_PRICING.values():
+            assert set(price) == {"input", "output", "cache_write", "cache_read"}
+            # Cache writes cost more than base input; reads cost less.
+            assert price["cache_write"] > price["input"] > price["cache_read"] > 0
+
+    def test_cache_hit_rate(self):
+        assert ai_insights.cache_hit_rate(1_000, 500, 0) == round(500 / 1_500, 4)
+        assert ai_insights.cache_hit_rate(1_000, 0, 0) == 0.0
+        assert ai_insights.cache_hit_rate(0, 0, 0) is None
+
+    def test_call_logs_one_insights_call_line_with_every_field(self, caplog):
+        provider = AnthropicProvider("k", "claude-opus-4-7", 4096, tier="business", effort="high")
+        usage = _usage(input_tokens=1_000, output_tokens=200,
+                       cache_read_input_tokens=500, cache_creation_input_tokens=100)
+
+        with caplog.at_level(logging.INFO, logger="ai_insights"):
+            result, _ = _analyze(provider, _message(json.dumps(SAMPLE_INSIGHTS), usage=usage))
+
+        lines = [r for r in caplog.records if r.getMessage().startswith("insights_call")]
+        assert len(lines) == 1
+        assert lines[0].levelno == logging.INFO
+        msg = lines[0].getMessage()
+        for field in (
+            "provider=anthropic", "model=claude-opus-4-7", "tier=business",
+            f"prompt_version={ai_insights.INSIGHTS_PROMPT_VERSION}", "effort=high",
+            "stop_reason=end_turn", "input_tokens=1000", "output_tokens=200",
+            "cache_read_tokens=500", "cache_creation_tokens=100",
+            f"cache_hit_rate={round(500 / 1600, 4)}", "cost_usd=0.010875",
+        ):
+            assert field in msg, field
+        assert re.search(r"latency_ms=\d+", msg)
+
+        # The same numbers ride back on the result for the caller.
+        assert result["usage"]["input_tokens"] == 1_000
+        assert result["usage"]["cache_hit_rate"] == round(500 / 1600, 4)
+        assert result["usage"]["cost_usd"] == 0.010875
+        assert isinstance(result["usage"]["latency_ms"], int)
+
+    def test_refusal_is_still_logged_as_a_call(self, caplog):
+        # Refusals are billed; the call line records them with stop_reason=refusal.
+        with caplog.at_level(logging.INFO, logger="ai_insights"):
+            result, _ = _analyze(_opus(), _message("partial", stop_reason="refusal"))
+
+        calls = [r.getMessage() for r in caplog.records if r.getMessage().startswith("insights_call")]
+        assert len(calls) == 1 and "stop_reason=refusal" in calls[0]
+        assert result["usage"]["cost_usd"] is not None
+
+    def test_missing_usage_counters_count_as_zero(self, caplog):
+        usage = SimpleNamespace(input_tokens=None, output_tokens=7)  # no cache fields at all
+        with caplog.at_level(logging.INFO, logger="ai_insights"):
+            result, _ = _analyze(_opus(), _message(json.dumps(SAMPLE_INSIGHTS), usage=usage))
+
+        assert result["success"] is True
+        assert result["usage"]["input_tokens"] == 0
+        assert result["usage"]["cache_read_tokens"] == 0
+        # No prompt tokens counted at all -> no rate to report, not a divide-by-zero.
+        assert result["usage"]["cache_hit_rate"] is None
+
+    def test_gemini_call_logs_tokens_and_latency_with_null_cost(self, caplog):
+        gemini_body = json.dumps({
+            "candidates": [{"content": {"parts": [{"text": json.dumps(SAMPLE_INSIGHTS)}]},
+                            "finishReason": "STOP"}],
+            "usageMetadata": {"promptTokenCount": 1200, "candidatesTokenCount": 300,
+                              "cachedContentTokenCount": 200},
+        }).encode("utf-8")
+
+        class _Resp(io.BytesIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        with caplog.at_level(logging.INFO, logger="ai_insights"), \
+             patch("urllib.request.urlopen", return_value=_Resp(gemini_body)):
+            result = GoogleProvider("AIzaTest", "gemini-2.5-flash", 1024, tier="free").analyze("p", "d")
+
+        calls = [r.getMessage() for r in caplog.records if r.getMessage().startswith("insights_call")]
+        assert len(calls) == 1
+        msg = calls[0]
+        for field in ("provider=google", "model=gemini-2.5-flash", "tier=free", "stop_reason=STOP",
+                      "input_tokens=1000", "output_tokens=300", "cache_read_tokens=200",
+                      f"cache_hit_rate={round(200 / 1200, 4)}", "cost_usd=None"):
+            assert field in msg, field
+        assert result["usage"]["cost_usd"] is None

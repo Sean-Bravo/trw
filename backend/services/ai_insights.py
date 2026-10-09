@@ -10,6 +10,7 @@ Tiers:
 import os
 import json
 import logging
+import time
 from typing import Any, Dict, List, Optional
 from abc import ABC, abstractmethod
 
@@ -152,6 +153,93 @@ INSIGHTS_TRUNCATED = "insights truncated"
 INSIGHTS_INVALID = "insights invalid"
 
 
+# USD per million tokens, read from platform.claude.com/docs/en/about-claude/pricing
+# on 2026-10-09. Internal cost accounting only — the public pricing page and
+# the dashboard never name a model. An unknown model logs cost_usd=None rather
+# than guessing. 5-minute cache writes are 1.25x input; reads are 0.1x
+# (0.025x on Fable 5.1).
+MODEL_PRICING: Dict[str, Dict[str, float]] = {
+    "claude-sonnet-4-6": {"input": 3.00, "output": 15.00, "cache_write": 3.75, "cache_read": 0.30},
+    "claude-opus-4-7": {"input": 5.00, "output": 25.00, "cache_write": 6.25, "cache_read": 0.50},
+    # Shadow candidate for the Oct 12 wiring; priced now so its first call is costed.
+    "claude-fable-5-1": {"input": 10.00, "output": 50.00, "cache_write": 12.50, "cache_read": 0.25},
+}
+
+
+def estimate_cost_usd(
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+    cache_read_tokens: int = 0,
+    cache_creation_tokens: int = 0,
+) -> Optional[float]:
+    """Cost of one call from the pricing table; None when the model is unpriced.
+
+    `input_tokens` is the uncached share of the prompt, as the Anthropic usage
+    block reports it — cached reads and cache writes are billed separately."""
+    price = MODEL_PRICING.get(model)
+    if price is None:
+        return None
+    total = (
+        input_tokens * price["input"]
+        + cache_creation_tokens * price["cache_write"]
+        + cache_read_tokens * price["cache_read"]
+        + output_tokens * price["output"]
+    )
+    return round(total / 1_000_000, 6)
+
+
+def cache_hit_rate(input_tokens: int, cache_read_tokens: int, cache_creation_tokens: int = 0) -> Optional[float]:
+    """Share of prompt tokens served from the cache; None when nothing was sent."""
+    prompt_total = input_tokens + cache_read_tokens + cache_creation_tokens
+    if prompt_total <= 0:
+        return None
+    return round(cache_read_tokens / prompt_total, 4)
+
+
+def _int_or_zero(value: Any) -> int:
+    """Usage counters may be missing or None on some responses; count them as 0."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+def _call_stats(
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+    cache_read_tokens: int,
+    cache_creation_tokens: int,
+    latency_ms: int,
+) -> Dict[str, Any]:
+    return {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "cache_read_tokens": cache_read_tokens,
+        "cache_creation_tokens": cache_creation_tokens,
+        "cache_hit_rate": cache_hit_rate(input_tokens, cache_read_tokens, cache_creation_tokens),
+        "latency_ms": latency_ms,
+        "cost_usd": estimate_cost_usd(
+            model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens
+        ),
+    }
+
+
+def _log_insights_call(
+    provider: str, model: str, tier: Optional[str], effort: Optional[str],
+    stop_reason: Optional[str], stats: Dict[str, Any],
+) -> None:
+    """One INFO line per model call, refusals included (they are billed too).
+    Grep: `filter @message like /insights_call/`."""
+    logger.info(
+        "insights_call provider=%s model=%s tier=%s prompt_version=%s effort=%s stop_reason=%s "
+        "input_tokens=%s output_tokens=%s cache_read_tokens=%s cache_creation_tokens=%s "
+        "cache_hit_rate=%s latency_ms=%s cost_usd=%s",
+        provider, model, tier, INSIGHTS_PROMPT_VERSION, effort, stop_reason,
+        stats["input_tokens"], stats["output_tokens"], stats["cache_read_tokens"],
+        stats["cache_creation_tokens"], stats["cache_hit_rate"], stats["latency_ms"],
+        stats["cost_usd"],
+    )
+
+
 class AIProvider(ABC):
     """Base class for AI providers."""
 
@@ -192,6 +280,7 @@ class AnthropicProvider(AIProvider):
             if self.effort is not None:
                 output_config["effort"] = self.effort
 
+            started = time.perf_counter()
             message = client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
@@ -203,70 +292,25 @@ class AnthropicProvider(AIProvider):
                 ],
                 output_config=output_config,
             )
+            latency_ms = int((time.perf_counter() - started) * 1000)
 
+            # Tokens, cache hits, latency and cost — logged for every call,
+            # whatever stop_reason comes back, and returned under "usage".
+            usage = getattr(message, "usage", None)
+            stats = _call_stats(
+                self.model,
+                _int_or_zero(getattr(usage, "input_tokens", 0)),
+                _int_or_zero(getattr(usage, "output_tokens", 0)),
+                _int_or_zero(getattr(usage, "cache_read_input_tokens", 0)),
+                _int_or_zero(getattr(usage, "cache_creation_input_tokens", 0)),
+                latency_ms,
+            )
             stop_reason = getattr(message, "stop_reason", None)
+            _log_insights_call("anthropic", self.model, self.tier, self.effort, stop_reason, stats)
 
-            if stop_reason == "refusal":
-                # HTTP 200, but the model declined. Whatever sits in content is
-                # partial at best — drop it. The processor falls back to the
-                # deterministic quick stats with ai_error = INSIGHTS_UNAVAILABLE.
-                #
-                # Logged at WARNING with its own marker, on purpose: a refusal
-                # is not an invocation error, so it must not feed the
-                # processor-errors alarm (AWS/Lambda Errors) or the
-                # lambda-errors Logs Insights query (filter /ERROR/). Count
-                # refusals with `filter @message like /insights_refusal/`.
-                stop_details = getattr(message, "stop_details", None)
-                category = getattr(stop_details, "category", None)
-                logger.warning(
-                    "insights_refusal provider=anthropic model=%s tier=%s category=%s",
-                    self.model, self.tier, category,
-                )
-                return {
-                    "success": False,
-                    "refusal": True,
-                    "error": INSIGHTS_UNAVAILABLE,
-                    "model": self.model,
-                    "provider": "anthropic",
-                }
-
-            if stop_reason == "max_tokens":
-                # Truncated JSON is partial output too; it is not a flag set.
-                logger.warning(
-                    "insights_truncated provider=anthropic model=%s tier=%s max_tokens=%s",
-                    self.model, self.tier, self.max_tokens,
-                )
-                return {
-                    "success": False,
-                    "error": INSIGHTS_TRUNCATED,
-                    "model": self.model,
-                    "provider": "anthropic",
-                }
-
-            response_text = _message_text(message)
-
-            # Structured outputs guarantee schema-valid JSON on end_turn. Text
-            # that still fails to parse is not something to wrap as a summary.
-            try:
-                insights = json.loads(response_text)
-            except json.JSONDecodeError:
-                logger.warning(
-                    "insights_invalid provider=anthropic model=%s tier=%s",
-                    self.model, self.tier,
-                )
-                return {
-                    "success": False,
-                    "error": INSIGHTS_INVALID,
-                    "model": self.model,
-                    "provider": "anthropic",
-                }
-
-            return {
-                "success": True,
-                "insights": _normalize_insights(insights),
-                "model": self.model,
-                "provider": "anthropic",
-            }
+            result = self._interpret(message, stop_reason)
+            result["usage"] = stats
+            return result
 
         except Exception as e:
             logger.error(f"Anthropic API error: {e}")
@@ -276,6 +320,70 @@ class AnthropicProvider(AIProvider):
                 "model": self.model,
                 "provider": "anthropic",
             }
+
+    def _interpret(self, message: Any, stop_reason: Optional[str]) -> Dict[str, Any]:
+        """Turn a Messages API response into the insights result dict."""
+        if stop_reason == "refusal":
+            # HTTP 200, but the model declined. Whatever sits in content is
+            # partial at best — drop it. The processor falls back to the
+            # deterministic quick stats with ai_error = INSIGHTS_UNAVAILABLE.
+            #
+            # Logged at WARNING with its own marker, on purpose: a refusal
+            # is not an invocation error, so it must not feed the
+            # processor-errors alarm (AWS/Lambda Errors) or the
+            # lambda-errors Logs Insights query (filter /ERROR/). Count
+            # refusals with `filter @message like /insights_refusal/`.
+            stop_details = getattr(message, "stop_details", None)
+            category = getattr(stop_details, "category", None)
+            logger.warning(
+                "insights_refusal provider=anthropic model=%s tier=%s category=%s",
+                self.model, self.tier, category,
+            )
+            return {
+                "success": False,
+                "refusal": True,
+                "error": INSIGHTS_UNAVAILABLE,
+                "model": self.model,
+                "provider": "anthropic",
+            }
+
+        if stop_reason == "max_tokens":
+            # Truncated JSON is partial output too; it is not a flag set.
+            logger.warning(
+                "insights_truncated provider=anthropic model=%s tier=%s max_tokens=%s",
+                self.model, self.tier, self.max_tokens,
+            )
+            return {
+                "success": False,
+                "error": INSIGHTS_TRUNCATED,
+                "model": self.model,
+                "provider": "anthropic",
+            }
+
+        response_text = _message_text(message)
+
+        # Structured outputs guarantee schema-valid JSON on end_turn. Text
+        # that still fails to parse is not something to wrap as a summary.
+        try:
+            insights = json.loads(response_text)
+        except json.JSONDecodeError:
+            logger.warning(
+                "insights_invalid provider=anthropic model=%s tier=%s",
+                self.model, self.tier,
+            )
+            return {
+                "success": False,
+                "error": INSIGHTS_INVALID,
+                "model": self.model,
+                "provider": "anthropic",
+            }
+
+        return {
+            "success": True,
+            "insights": _normalize_insights(insights),
+            "model": self.model,
+            "provider": "anthropic",
+        }
 
 
 class OpenAIProvider(AIProvider):
@@ -407,8 +515,30 @@ class GoogleProvider(AIProvider):
                 method="POST"
             )
 
+            started = time.perf_counter()
             with urllib.request.urlopen(req, timeout=60) as response:
                 result = json.loads(response.read().decode("utf-8"))
+            latency_ms = int((time.perf_counter() - started) * 1000)
+
+            # Same insights_call line as the Anthropic path. Gemini reports the
+            # whole prompt in promptTokenCount (cached tokens included), so the
+            # uncached share is prompt minus cached. Gemini is not in
+            # MODEL_PRICING, so cost_usd logs as None.
+            usage_meta = result.get("usageMetadata") or {}
+            prompt_tokens = _int_or_zero(usage_meta.get("promptTokenCount"))
+            cached_tokens = _int_or_zero(usage_meta.get("cachedContentTokenCount"))
+            finish_reason = None
+            if result.get("candidates"):
+                finish_reason = result["candidates"][0].get("finishReason")
+            stats = _call_stats(
+                self.model,
+                max(prompt_tokens - cached_tokens, 0),
+                _int_or_zero(usage_meta.get("candidatesTokenCount")),
+                cached_tokens,
+                0,
+                latency_ms,
+            )
+            _log_insights_call("google", self.model, self.tier, None, finish_reason, stats)
 
             if not result.get("candidates") or not result["candidates"][0].get("content"):
                 safety_feedback = result.get("promptFeedback", {})
@@ -418,6 +548,7 @@ class GoogleProvider(AIProvider):
                     "error": "Response blocked by safety filters or empty response",
                     "model": self.model,
                     "provider": "google",
+                    "usage": stats,
                 }
 
             response_text = result["candidates"][0]["content"]["parts"][0]["text"]
@@ -429,6 +560,7 @@ class GoogleProvider(AIProvider):
                     "insights": _normalize_insights(json.loads(clean_json)),
                     "model": self.model,
                     "provider": "google",
+                    "usage": stats,
                 }
             except json.JSONDecodeError:
                 return {
@@ -436,6 +568,7 @@ class GoogleProvider(AIProvider):
                     "insights": {"summary": response_text},
                     "model": self.model,
                     "provider": "google",
+                    "usage": stats,
                 }
 
         except urllib.error.HTTPError as e:
