@@ -204,3 +204,38 @@ class TestGenerateAiInsights:
         assert result["ai_insights"] is None
         assert result["ai_error"] == "insights unavailable"
         assert result["tier"] == "business"
+
+    @patch("handlers.processor.get_secrets", return_value={})
+    def test_metadata_passes_through_on_success_and_failure(self, mock_secrets):
+        # The reproducibility stamp (model id, prompt version, effort) travels
+        # with the result into insights.json whether the call succeeded or not.
+        records = [{"x": 1}]
+        metadata = {
+            "model": "claude-opus-4-7",
+            "provider": "anthropic",
+            "prompt_version": "2026-10-09",
+            "effort": None,
+        }
+
+        with patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 1}), \
+             patch("ai_insights.generate_insights", return_value={
+                 "success": True,
+                 "insights": {"summary": "good"},
+                 "model": "claude-opus-4-7",
+                 "provider": "anthropic",
+                 "metadata": metadata,
+             }):
+            ok = generate_ai_insights(records, "business")
+
+        with patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 1}), \
+             patch("ai_insights.generate_insights", return_value={
+                 "success": False,
+                 "refusal": True,
+                 "error": "insights unavailable",
+                 "metadata": metadata,
+             }):
+            refused = generate_ai_insights(records, "business")
+
+        assert ok["metadata"] == metadata
+        assert refused["metadata"] == metadata
+        assert refused["ai_insights"] is None

@@ -22,26 +22,35 @@ logger = logging.getLogger(__name__)
 # Free + Starter share Gemini (cheap-fast tier; Starter's upgrade is quota,
 # not AI). Growth and Business unlock the higher-quality models, paired with
 # their respective other capability upgrades (Bank PDFs at Growth, SLA at Business).
+#
+# effort: the Anthropic output_config.effort setting (low|medium|high|xhigh|max).
+# None means the API default and nothing is sent. Whatever it is, it is stamped
+# into the result's metadata next to the model id and prompt version so stored
+# flags can be reproduced. Per-request-type tuning is the Oct 12 item.
 TIER_CONFIG = {
     "free": {
         "provider": "google",
         "model": "gemini-2.5-flash",
         "max_tokens": 1024,
+        "effort": None,
     },
     "starter": {
         "provider": "google",
         "model": "gemini-2.5-flash",
         "max_tokens": 1024,
+        "effort": None,
     },
     "growth": {
         "provider": "anthropic",
         "model": "claude-sonnet-4-6",
         "max_tokens": 2048,
+        "effort": None,
     },
     "business": {
         "provider": "anthropic",
         "model": "claude-opus-4-7",
         "max_tokens": 4096,
+        "effort": None,
     },
 }
 
@@ -155,11 +164,19 @@ class AIProvider(ABC):
 class AnthropicProvider(AIProvider):
     """Claude AI provider for Growth (Sonnet) and Business (Opus) tiers."""
 
-    def __init__(self, api_key: str, model: str, max_tokens: int, tier: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        max_tokens: int,
+        tier: Optional[str] = None,
+        effort: Optional[str] = None,
+    ):
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
         self.tier = tier
+        self.effort = effort
 
     def analyze(self, prompt: str, data: str) -> Dict[str, Any]:
         try:
@@ -169,6 +186,12 @@ class AnthropicProvider(AIProvider):
 
             # Structured outputs: the text block is guaranteed to satisfy
             # INSIGHTS_SCHEMA. No tools are offered, so nothing is forced.
+            output_config: Dict[str, Any] = {
+                "format": {"type": "json_schema", "schema": INSIGHTS_SCHEMA},
+            }
+            if self.effort is not None:
+                output_config["effort"] = self.effort
+
             message = client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
@@ -178,9 +201,7 @@ class AnthropicProvider(AIProvider):
                         "content": f"{prompt}\n\nTransaction Data:\n{data}",
                     }
                 ],
-                output_config={
-                    "format": {"type": "json_schema", "schema": INSIGHTS_SCHEMA},
-                },
+                output_config=output_config,
             )
 
             stop_reason = getattr(message, "stop_reason", None)
@@ -448,7 +469,7 @@ def get_ai_provider(tier: str, secrets: Dict[str, str]) -> Optional[AIProvider]:
         if not api_key:
             logger.warning("Anthropic API key not found, falling back to free tier")
             return get_ai_provider("free", secrets)
-        return AnthropicProvider(api_key, model, max_tokens, tier=tier)
+        return AnthropicProvider(api_key, model, max_tokens, tier=tier, effort=config.get("effort"))
 
     elif provider_type == "openai":
         api_key = secrets.get("OPENAI_API_KEY")
@@ -468,6 +489,14 @@ def get_ai_provider(tier: str, secrets: Dict[str, str]) -> Optional[AIProvider]:
 
 
 # Prompt templates
+#
+# Bump INSIGHTS_PROMPT_VERSION whenever INSIGHTS_PROMPT or INSIGHTS_SCHEMA
+# changes. It is stamped into every result's metadata with the model id and
+# effort, so a flag stored in insights.json can be traced to the exact prompt
+# that produced it. (The user-facing "engine vN" label is a separate,
+# coarser version in lib/insights-engine.ts.)
+INSIGHTS_PROMPT_VERSION = "2026-10-09"
+
 INSIGHTS_PROMPT = """You are a crypto tax data assistant for TaxFormatter. TaxFormatter is a CSV repair tool that fixes broken exchange exports so they can be imported into tax software like Koinly, TurboTax, CoinLedger, and ZenLedger.
 
 IMPORTANT: TaxFormatter does NOT calculate taxes, cost basis, or gains/losses. It only cleans and reformats CSV data. The actual tax calculations are done by the tax software the user imports into.
@@ -575,6 +604,15 @@ def generate_insights(
 
     # Add tier info to result
     result["tier"] = tier
+
+    # Reproducibility stamp — on every outcome, refusals included, so a stored
+    # result always says which model, prompt and effort produced (or declined) it.
+    result["metadata"] = {
+        "model": provider.model,
+        "provider": result.get("provider"),
+        "prompt_version": INSIGHTS_PROMPT_VERSION,
+        "effort": getattr(provider, "effort", None),
+    }
 
     return result
 

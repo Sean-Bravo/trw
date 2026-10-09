@@ -365,3 +365,111 @@ class TestRefusalInstrumentation:
         secrets = {"ANTHROPIC_API_KEY": "sk-ant-test", "GOOGLE_GEMINI_API_KEY": "AIzaTest"}
         assert ai_insights.get_ai_provider("business", secrets).tier == "business"
         assert ai_insights.get_ai_provider("starter", secrets).tier == "starter"
+
+
+# ---------------------------------------------------------------------------
+# Metadata stamp: model id, prompt version, effort (roadmap #20, narrow slice)
+# ---------------------------------------------------------------------------
+
+class TestMetadataStamp:
+
+    RECORDS = [{"date": "2024-01-01", "type": "buy", "asset": "BTC", "amount": "1"}]
+    SECRETS = {"ANTHROPIC_API_KEY": "sk-ant-test", "GOOGLE_GEMINI_API_KEY": "AIzaTest"}
+
+    def test_prompt_version_is_a_dated_string(self):
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}(\.\d+)?", ai_insights.INSIGHTS_PROMPT_VERSION)
+
+    def test_every_tier_declares_an_effort_setting(self):
+        allowed = {None, "low", "medium", "high", "xhigh", "max"}
+        for tier, config in ai_insights.TIER_CONFIG.items():
+            assert "effort" in config, tier
+            assert config["effort"] in allowed, (tier, config["effort"])
+
+    def test_success_result_carries_metadata(self):
+        module, _ = _fake_anthropic(_message(json.dumps(SAMPLE_INSIGHTS)))
+        with patch.dict(sys.modules, {"anthropic": module}):
+            result = ai_insights.generate_insights(self.RECORDS, "business", self.SECRETS)
+
+        assert result["success"] is True
+        assert result["metadata"] == {
+            "model": "claude-opus-4-7",
+            "provider": "anthropic",
+            "prompt_version": ai_insights.INSIGHTS_PROMPT_VERSION,
+            "effort": ai_insights.TIER_CONFIG["business"]["effort"],
+        }
+
+    def test_refusal_result_carries_the_same_metadata(self):
+        # A declined call is still a recorded outcome; it must say which
+        # model/prompt/effort declined.
+        module, _ = _fake_anthropic(_message("partial", stop_reason="refusal"))
+        with patch.dict(sys.modules, {"anthropic": module}):
+            result = ai_insights.generate_insights(self.RECORDS, "growth", self.SECRETS)
+
+        assert result["success"] is False
+        assert result["refusal"] is True
+        assert result["metadata"]["model"] == "claude-sonnet-4-6"
+        assert result["metadata"]["prompt_version"] == ai_insights.INSIGHTS_PROMPT_VERSION
+        assert "effort" in result["metadata"]
+
+    def test_effort_is_sent_only_when_configured(self):
+        _, create_default = _analyze(
+            AnthropicProvider("k", "claude-opus-4-7", 4096, effort=None),
+            _message(json.dumps(SAMPLE_INSIGHTS)),
+        )
+        assert "effort" not in create_default.call_args.kwargs["output_config"]
+
+        _, create_high = _analyze(
+            AnthropicProvider("k", "claude-opus-4-7", 4096, effort="high"),
+            _message(json.dumps(SAMPLE_INSIGHTS)),
+        )
+        assert create_high.call_args.kwargs["output_config"]["effort"] == "high"
+        # The schema format rides along unchanged.
+        assert create_high.call_args.kwargs["output_config"]["format"]["type"] == "json_schema"
+
+    def test_configured_effort_reaches_provider_and_metadata(self):
+        with patch.dict(ai_insights.TIER_CONFIG["business"], {"effort": "high"}):
+            provider = ai_insights.get_ai_provider("business", self.SECRETS)
+            assert provider.effort == "high"
+
+            module, _ = _fake_anthropic(_message(json.dumps(SAMPLE_INSIGHTS)))
+            with patch.dict(sys.modules, {"anthropic": module}):
+                result = ai_insights.generate_insights(self.RECORDS, "business", self.SECRETS)
+
+        assert result["metadata"]["effort"] == "high"
+
+    def test_gemini_result_carries_metadata_with_no_effort(self):
+        gemini_body = json.dumps({
+            "candidates": [{"content": {"parts": [{"text": json.dumps(SAMPLE_INSIGHTS)}]}}],
+        }).encode("utf-8")
+
+        class _Resp(io.BytesIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        with patch("urllib.request.urlopen", return_value=_Resp(gemini_body)):
+            result = ai_insights.generate_insights(self.RECORDS, "free", self.SECRETS)
+
+        assert result["metadata"] == {
+            "model": "gemini-2.5-flash",
+            "provider": "google",
+            "prompt_version": ai_insights.INSIGHTS_PROMPT_VERSION,
+            "effort": None,
+        }
+
+    def test_jest_drift_guard_can_still_read_tier_config(self):
+        # __tests__/lib/tier-registry.test.ts parses TIER_CONFIG with a regex
+        # that expects "provider" then "model" first in each block and the
+        # closing brace at column 0. Mirror it here so a Python-side edit
+        # cannot silently blind the frontend guard.
+        src = open(ai_insights.__file__, encoding="utf-8").read()
+        block = re.search(r"TIER_CONFIG\s*=\s*\{([\s\S]*?)\n\}", src).group(1)
+        found = dict(
+            (m.group(1), (m.group(2), m.group(3)))
+            for m in re.finditer(r'"(\w+)":\s*\{\s*"provider":\s*"([^"]+)",\s*"model":\s*"([^"]+)"', block)
+        )
+        assert found == {
+            tier: (cfg["provider"], cfg["model"]) for tier, cfg in ai_insights.TIER_CONFIG.items()
+        }

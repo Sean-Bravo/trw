@@ -333,6 +333,8 @@ def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
                 "model": ai_result.get("model"),
                 "provider": ai_result.get("provider"),
                 "tier": user_tier,
+                # model id, prompt version, effort — keeps stored flags reproducible
+                "metadata": ai_result.get("metadata"),
             }
         else:
             # AI failed, return quick stats only
@@ -343,6 +345,7 @@ def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
                 "ai_insights": None,
                 "ai_error": ai_result.get("error"),
                 "tier": user_tier,
+                "metadata": ai_result.get("metadata"),
             }
 
     except ImportError as e:
