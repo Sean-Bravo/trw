@@ -23,7 +23,7 @@ const TrustEngine = () => {
             Engineered for paranoia.
           </h2>
           <p className="text-slate-400 leading-relaxed max-w-2xl mx-auto text-lg">
-            We assume your data is toxic. Our system is designed to touch it, fix it, and <span className="text-slate-200 font-medium relative inline-block">forget it completely<span className="absolute bottom-0 left-0 w-full h-px bg-slate-400/50"></span></span>.
+            We assume your data is toxic. Our system is designed to touch it, fix it, and <span className="text-slate-200 font-medium relative inline-block">let go of it within 30 days<span className="absolute bottom-0 left-0 w-full h-px bg-slate-400/50"></span></span>.
           </p>
         </div>
 
@@ -69,9 +69,9 @@ const TrustEngine = () => {
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20 mix-blend-overlay pointer-events-none"></div>
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-300 transition-colors">Ephemeral Processing</h3>
+            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-300 transition-colors">Deleted Within 30 Days</h3>
             <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-              Your financial data is a liability. Files are <span className="text-slate-200">cryptographically wiped</span> from hot storage instantly after processing. We don't hold what we don't need.
+              Your financial data is a liability. Uploads, outputs, and parsed rows are <span className="text-slate-200">deleted within 30 days</span> — sooner the moment you delete them from your dashboard. API payloads are never stored at all.
             </p>
 
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/4 border border-white/8 backdrop-blur-sm text-[13px] font-medium text-slate-400 tracking-wide">
@@ -79,7 +79,7 @@ const TrustEngine = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
               </span>
-              Auto-wipe engaged
+              30-day auto-delete
             </div>
           </div>
 
@@ -130,34 +130,34 @@ const TrustEngine = () => {
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/50">
                 <div className="flex items-center space-x-2">
                   <Key className="w-4 h-4 text-blue-400" />
-                  <span className="text-slate-200 font-medium text-sm">API Scope Check</span>
+                  <span className="text-slate-200 font-medium text-sm">What we accept</span>
                 </div>
-                <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">ReadOnly Mode</div>
+                <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Uploads only</div>
               </div>
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between pl-2 border-l-2 border-emerald-500/30 bg-emerald-500/5 py-0.5 rounded-r">
-                  <span className="text-slate-300 text-xs font-mono">read:data</span>
+                  <span className="text-slate-300 text-xs font-mono">exchange-export.csv</span>
                   <Check className="w-4 h-4 text-emerald-400 mr-2" />
                 </div>
                 <div className="flex items-center justify-between pl-2 border-l-2 border-red-500/30 bg-red-500/5 py-0.5 rounded-r opacity-70">
-                  <span className="text-slate-400 text-xs font-mono line-through decoration-slate-600">write:trade</span>
+                  <span className="text-slate-400 text-xs font-mono line-through decoration-slate-600">exchange API key</span>
                   <Ban className="w-4 h-4 text-red-400 mr-2" />
                 </div>
                 <div className="flex items-center justify-between pl-2 border-l-2 border-red-900/50 bg-red-950/30 py-0.5 rounded-r">
-                  <span className="text-red-300 text-xs font-mono font-bold">withdraw:funds</span>
+                  <span className="text-red-300 text-xs font-mono font-bold">bank login</span>
                   <Ban className="w-4 h-4 text-red-500 mr-2 animate-pulse" strokeWidth={2.5} />
                 </div>
               </div>
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors">Zero-Access Policy</h3>
+            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors">No Credentials, Ever</h3>
             <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-              We never ask for private keys or withdrawal rights. Our parsers are <span className="text-slate-200">strictly read-only</span> and will instantly reject any key with elevated permissions.
+              We never ask for exchange API keys, bank logins, or wallet keys. You upload the <span className="text-slate-200">export files</span> your exchange or bank already gives you — there is nothing to connect and nothing we could withdraw.
             </p>
 
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/4 border border-white/8 backdrop-blur-sm text-[13px] font-medium text-slate-400 tracking-wide">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              Permissions locked
+              Nothing to connect
             </div>
           </div>
         </div>
@@ -171,15 +171,15 @@ const TrustEngine = () => {
             </h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <div className="text-[13px] font-semibold text-slate-200">Zero-persistence Lambda</div>
+                <div className="text-[13px] font-semibold text-slate-200">Payloads never stored</div>
                 <p className="text-[12px] text-slate-400 leading-relaxed">
-                  File payloads are processed in volatile RAM (1024MB). No /tmp writes, no disk, no cache. Lambda execution context is flushed after every response.
+                  API request bodies are parsed in memory and never written to S3 or the database. Nothing from the payload outlives the invocation.
                 </p>
               </div>
               <div className="space-y-2">
                 <div className="text-[13px] font-semibold text-slate-200">Metadata-only logging</div>
                 <p className="text-[12px] text-slate-400 leading-relaxed">
-                  We log: key hash, status code, byte size, latency. We never log: file content, transaction data, PII. Every response includes <code className="text-emerald-400/80 text-[11px]">X-TF-Processing-Time</code> so you can monitor overhead.
+                  Per request we keep the key id, endpoint, status code, byte size, latency, detected source, error code, and caller IP for rate limiting — never file contents or transaction rows. Every response carries <code className="text-emerald-400/80 text-[11px]">processing_time_ms</code> in its metadata.
                 </p>
               </div>
               <div className="space-y-2">
@@ -189,9 +189,9 @@ const TrustEngine = () => {
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="text-[13px] font-semibold text-slate-200">TLS 1.3 in transit</div>
+                <div className="text-[13px] font-semibold text-slate-200">TLS in transit</div>
                 <p className="text-[12px] text-slate-400 leading-relaxed">
-                  All POST payloads encrypted end-to-end. No plaintext financial data touches the wire between your app and our API Gateway.
+                  Every request to api.taxformatter.com is TLS-encrypted between your app and our API Gateway. No plaintext financial data touches the wire.
                 </p>
               </div>
             </div>
@@ -206,7 +206,7 @@ const TrustEngine = () => {
           <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-sm text-slate-400 font-medium">
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
               <Server className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
-              <span>AWS Secure Enclaves</span>
+              <span>Hosted on AWS (us-east-1)</span>
             </div>
             <div className="hidden md:block w-1.5 h-1.5 bg-slate-800 rounded-full"></div>
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
@@ -216,12 +216,12 @@ const TrustEngine = () => {
             <div className="hidden md:block w-1.5 h-1.5 bg-slate-800 rounded-full"></div>
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
               <Shield className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
-              <span>SOC2 Compliant Infrastructure</span>
+              <span>AWS &amp; Stripe: SOC 2–audited providers</span>
             </div>
             <div className="hidden md:block w-1.5 h-1.5 bg-slate-800 rounded-full"></div>
             <div className="flex items-center space-x-2 group hover:text-slate-300 transition-colors cursor-help">
               <Globe className="w-4 h-4 text-slate-400 group-hover:text-slate-300 transition-colors" />
-              <span>Stripe Secure Payments</span>
+              <span>Card data handled by Stripe, never us</span>
             </div>
           </div>
 

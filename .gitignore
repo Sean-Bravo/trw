@@ -81,3 +81,6 @@ outbound_prospects.*
 
 # Local agent/tooling state
 .claude/
+
+# Python virtualenvs
+.venv/

@@ -105,7 +105,7 @@ trw/
 │
 ├── components/
 │   ├── dashboard/          # FileUploader, JobHistoryTable, etc.
-│   ├── marketing/          # Hero, Pricing, FAQ, etc.
+│   ├── marketing/          # APIHero, APIPricing, TrustEngine, FAQ, Footer — every file here is rendered by a page (__tests__/claims-copy.test.ts)
 │   └── ui/                 # Base components
 │
 ├── lib/                    # Business logic
@@ -116,6 +116,8 @@ trw/
 │   ├── validation.ts       # Input validation (Zod)
 │   ├── stripe.ts           # Stripe helpers
 │   ├── api-keys.ts         # API key generation, SHA-256 hashing, CRUD
+│   ├── tier-registry.ts    # The one price list: plan, price, quota, rpm, insights level
+│   ├── insights-engine.ts  # The one model list: insights level → model (mirrors ai_insights.py)
 │   └── email.ts            # Email sending
 │
 ├── backend/                # Python backend
@@ -269,15 +271,20 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | `backend/services/format_converter.py` | Lightweight tax format conversion (Koinly→TurboTax/CoinLedger/ZenLedger) |
 | `backend/services/fingerprinting.py` | Exchange format detection |
 | `backend/services/ai_insights.py` | Tiered AI insights (Gemini/Sonnet/Opus) |
-| `app/upload/page.tsx` | Bank statement upload landing page (13 banks, anonymous access) |
+| `app/upload/page.tsx` | Bank statement upload landing page (banks from `lib/bank-registry.ts`, anonymous access) |
 | `lib/bank-upload-client.ts` | Bank upload client (presigned URL → S3 PUT → process) |
 | `backend/services/bank_statement/extractor.py` | PDF transaction extraction (tables + text fallback) |
 | `backend/services/bank_statement/normalizer.py` | Date/amount normalization + deduplication |
 | `backend/services/bank_statement/fingerprinter.py` | Bank detection via YAML config scoring |
-| `backend/configs/banks/*.yaml` | Bank-specific configs (fingerprint, date format, columns) |
+| `backend/configs/banks/*.yaml` | Bank-specific configs (fingerprint, date format, columns) — also the bank source registry (`status: verified|beta`) |
+| `backend/configs/exchanges.yaml` | Exchange source registry: id, name, status (verified/beta/experimental/unsupported), fixture. Source of truth for every public support claim |
+| `backend/services/exchange_registry.py` | Loads `exchanges.yaml`; joins it with `ParserRegistry` for `/v1/sources` (parser without a row → beta, never verified; `generic` never listed) |
+| `lib/exchange-registry.ts`, `lib/bank-registry.ts` | Frontend mirrors of the two registries. Every surface that names or counts a source reads these; `__tests__/lib/*-registry.test.ts` fail on drift |
 | `backend/handlers/api.py` | Developer API Lambda handler (/v1/parse, /v1/sources, /v1/usage) |
 | `backend/services/api_auth.py` | API key validation, rate limiting, usage tracking |
-| `lib/api-keys.ts` | API key generation, CRUD, tier management |
+| `lib/api-keys.ts` | API key generation, CRUD, tier management; `API_TIERS` derives from `lib/tier-registry.ts` |
+| `lib/tier-registry.ts` | Plan registry (price, files/month, rpm, bank-PDF gate, insights level). Pricing cards, FAQ, footer, playground, SEO offers, dashboard header/settings, API docs table and README all read from it; `__tests__/lib/tier-registry.test.ts` fails on drift |
+| `lib/insights-engine.ts` | Insights level → model map plus `INSIGHTS_ENGINE_VERSION`. Mirrors `TIER_CONFIG` in `backend/services/ai_insights.py`. Model names are published only in `content/docs/api/index.md` and blog Updates posts; marketing and the dashboard show the level + "engine vN" |
 | `app/api/developer/keys/route.ts` | API key create/list endpoints |
 | `app/dashboard/developer/page.tsx` | Developer dashboard (key management, usage) |
 | `packages/mcp-server/` | @taxformatter/mcp-server npm package for AI agents |
@@ -302,7 +309,7 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 1. **Sentry tunnel** - Client errors route through `/monitoring` to bypass ad blockers. The `tunnelRoute` in `next.config.ts` creates rewrites, and `tunnel: "/monitoring"` in `instrumentation-client.ts` tells the SDK to use it. The `diagnoseSdkConnectivity()` check doesn't respect the tunnel and may show false warnings.
 2. **Lambda concurrency** - SQS trigger limited to 10 concurrent executions
 3. **No VPC** - Lambdas connect directly to Neon (public internet) for faster cold starts
-4. **Presigned URLs** - Upload URLs expire in 15 min, download URLs in 1 hour
+4. **Presigned URLs** - Upload and download URLs both expire in 15 min (`UPLOAD_EXPIRATION` / `DOWNLOAD_EXPIRATION` in webhook.py)
 5. **Job status polling** - Frontend polls every 2.5s; for non-terminal DB status (queued/running), API checks Lambda for latest status and syncs back
 6. **Coinbase CSV format** - Has metadata rows before headers (line 1: "Transactions", line 2: user info) - engine.py skips these automatically via keyword-based header detection
 7. **Exchange detection fallback** - When classification fails, engine.py auto-tries GenericCSVParser if file has date+amount columns. Only shows manual selector if generic also fails.
@@ -311,6 +318,7 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 10. **API Lambda is synchronous** - Unlike the consumer flow (async via SQS), the API Lambda processes files inline. The 120s timeout handles most files but large PDFs (50+ pages) may need an async endpoint in the future. Both `presigned-url` and `confirm` routes fall back to `anon-{ip}` as userId when no session exists. Rate limiting still applies per IP. Anonymous jobs are persisted to Neon DB and processed by Lambda normally — users just can't access results without creating an account.
 11. **The site is dark-only** - There is no theme toggle and no light theme. Tailwind v4 resolves `dark:` from `prefers-color-scheme` by default, which meant the ~124 `dark:` utilities ignored the class next-themes set and only rendered for visitors whose OS was already dark. `app/globals.css` now binds the variant to a class (`@custom-variant dark (&:where(.dark, .dark *))`) and `app/layout.tsx` pins `dark` on `<html>`, so those styles always apply. Light utilities still sitting next to a `dark:` counterpart are dead fallbacks. `components/ui/Logo.tsx` defaults to the light (white) wordmark for the same reason.
 12. **Nested layout titles drop the root template** - A layout that sets `title` as a plain string stops forwarding the root `title.template` to its own child segments. `app/docs/layout.tsx` therefore re-declares `title: { default, template }`; without it `/docs/*` renders with no brand suffix. Pages must also set their own `alternates.canonical` — the root layout declares `canonical: "/"` and App Router inherits metadata per-field, so anything that omits it advertises the homepage as canonical.
+13. **Insights refusals are HTTP 200** - `backend/services/ai_insights.py` sends `INSIGHTS_SCHEMA` as a structured-output format (no tools, no `tool_choice` — Fable 5.1 rejects a forced one). A `stop_reason` of `refusal` or `max_tokens` returns no insights at all; the processor falls back to quick stats with `ai_error` "insights unavailable" / "insights truncated". Those paths never increment Lambda `Errors`, so the processor-errors alarm and the `lambda-errors` Logs Insights query (`filter /ERROR/`) do not see them — count them with `filter @message like /insights_refusal/`. Every model call also logs one `insights_call` line (tokens, cache-hit rate, latency, `cost_usd` from `MODEL_PRICING`) and stamps `metadata: {model, provider, prompt_version, effort}` into `insights.json`. Bump `INSIGHTS_PROMPT_VERSION` whenever the prompt or schema changes.
 
 ## Exchange Detection Flow
 
@@ -409,7 +417,7 @@ PDF-to-CSV converter at `/upload`. Users drop a bank statement PDF and get a cle
 | Mercury | `mercury.yaml` | Mon DD | Unicode minus signs, text fallback |
 | Navy Federal | `navy_federal.yaml` | MM-DD | Trailing minus debits, text fallback |
 
-**Additional configs (untested):** Bank of America, Wells Fargo, Citi, Capital One
+**Additional configs (beta — configured, not verified against real statements):** Bank of America, Wells Fargo, Citi. Capital One has no config and is not listed anywhere.
 
 **Key backend files:**
 - `backend/configs/banks/*.yaml` — YAML-driven bank configs (fingerprint, date format, column mapping)
@@ -432,12 +440,17 @@ NPM package at `packages/mcp-server/` exposing 3 tools for AI agents:
 **Install:** `npx @taxformatter/mcp-server`
 **Compatible with:** Claude Code, Cursor, Windsurf, any MCP client
 
-### API Data Handling
+### Data Retention
 
-- **Stateless processing** — file content lives in Lambda RAM only, never written to disk or cached
-- **No payload logging** — `api_requests` table logs metadata only (key hash, status, byte size, timing)
-- **API keys** — SHA-256 hashed at rest, prefixed `tf_live_` for identification
+Policy (`lib/retention.ts`, `RETENTION_DAYS = 30`): everything a user sends us is deleted within 30 days.
+
+- **API path** — file content lives in Lambda RAM only, never written to S3 or disk; `api_requests` logs metadata only (key hash, status, byte size, timing, detected source, error code)
+- **Dashboard path** — uploads and results buckets expire objects at 29 days (`backend/terraform/s3.tf`; versioning suspended so deletes are real deletes); Neon rows in `transactions`, `api_requests`, `processed_webhook_events` are pruned daily by the Vercel Cron at `app/api/cron/prune` (03:00 UTC, authenticated by `CRON_SECRET`)
+- **Logs** — CloudWatch retention 30 days; failed parses log `source / parser_version / reason` only, never file content
+- **AI providers** — Anthropic retains inputs up to 30 days, Gemini up to 55 days (abuse monitoring only, paid tier); neither trains on customer data
+- **API keys** — SHA-256 hashed at rest, prefixed `tf_live_`; TaxFormatter never asks for exchange or bank credentials
 - **TLS 1.3** — all API traffic encrypted in transit
+- **Regression guard** — `__tests__/retention-copy.test.ts` fails if any public surface reverts to a superseded retention claim
 
 ## Related Docs
 

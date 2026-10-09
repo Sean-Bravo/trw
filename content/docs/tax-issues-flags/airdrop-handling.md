@@ -151,24 +151,9 @@ The IRS has stated:
 
 **Important:** There's no exemption for small airdrops. Even $1 worth must be reported.
 
-## Pro Tier Features
+## What TaxFormatter Does Here
 
-TaxFormatter Pro automatically:
-
-1. **Identifies airdrop transactions**
-2. **Looks up FMV at receipt** from historical data
-3. **Assigns cost basis** to each airdrop token
-4. **Tracks through sale** for gain/loss
-5. **Exports for Schedule 1** reporting
-
-Example Pro annotation:
-```
-Date: Aug 10, 2025
-Type: AIRDROP
-Amount: 1,000 UNI
-FMV at Receipt: $5,500
-Note: "Airdrop income - $5,500 ordinary income. Cost basis $5.50/token."
-```
+TaxFormatter formats your export and surfaces items to review in the dashboard's AI Insights panel. It does not recompute cost basis, look up historical prices, or annotate individual rows — those calculations happen in your tax software or with your tax professional, working from the formatted CSV.
 
 ## Common Airdrop Issues
 
@@ -238,7 +223,6 @@ Pay ordinary income tax ONLY
 ✓ Report on Schedule 1  
 ✓ All airdrops must be reported (no minimum threshold)  
 ✓ No airdrop exception exists for small amounts  
-✓ TaxFormatter Pro handles detection and valuation  
 
 ## What About Unclaimed Airdrops?
 

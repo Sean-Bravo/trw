@@ -4,6 +4,8 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Container } from '../layout/Container';
 import { Check } from 'lucide-react';
+import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
+import { TIER_BY_ID, INSIGHTS_LABELS, formatPrice, formatFiles, type Tier, type TierId } from '@/lib/tier-registry';
 
 // L-1: pricing tier passed via sessionStorage instead of URL query
 // param. Query params end up in browser history, Referer headers, and
@@ -11,80 +13,63 @@ import { Check } from 'lucide-react';
 // is. SECURITY_AUDIT.md §L-1
 const PENDING_TIER_KEY = 'pending_api_tier';
 
-const tiers = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/ month',
+// Numbers (price, quota, rate limit, insights level) come from the plan
+// registry; only the card chrome and the non-numeric selling points live here.
+const quotaLines = (t: Tier) => [`${formatFiles(t)} files / month`, `${t.requestsPerMinute} requests / minute`];
+
+const CARD_COPY: Record<
+  TierId,
+  { description: string; extras: string[]; cta: string; badge?: string; highlight?: boolean; style: string; checkColor: string }
+> = {
+  free: {
     description: 'Try it. No credit card.',
-    features: [
-      '25 files / month',
-      '10 requests / minute',
-      'All 14 exchanges',
-      'Standard categorization',
-      'JSON response',
-    ],
+    extras: [`All ${EXCHANGE_COUNT} exchanges`, INSIGHTS_LABELS[TIER_BY_ID.free.insights], 'JSON response'],
     cta: 'Start Free',
-    tier: 'free',
     style: 'bg-white/2 border-white/6',
     checkColor: 'text-slate-400',
   },
-  {
-    name: 'Starter',
-    price: '$29',
-    period: '/ month',
+  starter: {
     description: 'Solo work and side projects.',
-    features: [
-      '100 files / month',
-      '30 requests / minute',
-      'All 14 exchanges',
-      'Standard categorization',
-      'JSON response',
-    ],
+    extras: [`All ${EXCHANGE_COUNT} exchanges`, INSIGHTS_LABELS[TIER_BY_ID.starter.insights], 'JSON response'],
     cta: 'Get Started',
-    tier: 'starter',
     style: 'bg-white/2 border-white/6',
     checkColor: 'text-slate-400',
   },
-  {
-    name: 'Growth',
-    price: '$99',
-    period: '/ month',
+  growth: {
     description: 'Teams and SaaS apps. Bank PDFs unlocked.',
     badge: 'POPULAR',
-    features: [
-      '500 files / month',
-      '60 requests / minute',
-      'Bank PDF parsing',
-      'Detailed categorization',
-      'All output formats',
-      'Priority support',
-    ],
+    extras: ['Bank PDF parsing', INSIGHTS_LABELS[TIER_BY_ID.growth.insights], 'All output formats', 'Priority support'],
     cta: 'Start Building',
-    tier: 'growth',
     highlight: true,
     style: 'bg-surface-card border-[#635bff]/30',
     checkColor: 'text-[#635bff]',
   },
-  {
-    name: 'Business',
-    price: '$249',
-    period: '/ month',
-    description: 'High-volume processing with the best AI.',
-    features: [
-      '2,000 files / month',
-      '120 requests / minute',
-      'Everything in Growth',
-      'Highest-accuracy categorization',
-      'Custom integrations',
-      'SLA guarantee',
-    ],
+  business: {
+    description: 'High-volume processing, deepest insights.',
+    extras: ['Everything in Growth', INSIGHTS_LABELS[TIER_BY_ID.business.insights], 'Custom integrations'],
     cta: 'Get Started',
-    tier: 'business',
     style: 'bg-white/2 border-white/6',
     checkColor: 'text-slate-400',
   },
-];
+};
+
+const tiers = (Object.keys(CARD_COPY) as TierId[]).map((id) => {
+  const t = TIER_BY_ID[id];
+  const copy = CARD_COPY[id];
+  return {
+    name: t.name,
+    price: formatPrice(t),
+    period: '/ month',
+    description: copy.description,
+    badge: copy.badge,
+    features: [...quotaLines(t), ...copy.extras],
+    cta: copy.cta,
+    tier: id,
+    highlight: copy.highlight,
+    style: copy.style,
+    checkColor: copy.checkColor,
+  };
+});
 
 export function APIPricing() {
   const router = useRouter();

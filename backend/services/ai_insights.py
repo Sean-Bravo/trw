@@ -10,6 +10,7 @@ Tiers:
 import os
 import json
 import logging
+import time
 from typing import Any, Dict, List, Optional
 from abc import ABC, abstractmethod
 
@@ -22,28 +23,221 @@ logger = logging.getLogger(__name__)
 # Free + Starter share Gemini (cheap-fast tier; Starter's upgrade is quota,
 # not AI). Growth and Business unlock the higher-quality models, paired with
 # their respective other capability upgrades (Bank PDFs at Growth, SLA at Business).
+#
+# effort: the Anthropic output_config.effort setting (low|medium|high|xhigh|max).
+# None means the API default and nothing is sent. Whatever it is, it is stamped
+# into the result's metadata next to the model id and prompt version so stored
+# flags can be reproduced. Per-request-type tuning is the Oct 12 item.
 TIER_CONFIG = {
     "free": {
         "provider": "google",
         "model": "gemini-2.5-flash",
         "max_tokens": 1024,
+        "effort": None,
     },
     "starter": {
         "provider": "google",
         "model": "gemini-2.5-flash",
         "max_tokens": 1024,
+        "effort": None,
     },
     "growth": {
         "provider": "anthropic",
         "model": "claude-sonnet-4-6",
         "max_tokens": 2048,
+        "effort": None,
     },
     "business": {
         "provider": "anthropic",
         "model": "claude-opus-4-7",
         "max_tokens": 4096,
+        "effort": None,
     },
 }
+
+# The flag schema — the JSON contract every insights response must satisfy.
+# Sent to Claude as a structured-output format (output_config.format), so the
+# response is schema-valid or the call fails; there is no tool call to force.
+# Structured outputs reject map-shaped objects (additionalProperties must be
+# false), so transaction_types travels as [{type, count}] and is folded back
+# into the {type: count} dict the frontend type expects (lib/upload-client.ts)
+# by _normalize_insights.
+INSIGHTS_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "total_transactions": {"type": "integer"},
+        "date_range": {
+            "type": "object",
+            "properties": {
+                "start": {"type": "string"},
+                "end": {"type": "string"},
+            },
+            "required": ["start", "end"],
+            "additionalProperties": False,
+        },
+        "transaction_types": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {"type": "string"},
+                    "count": {"type": "integer"},
+                },
+                "required": ["type", "count"],
+                "additionalProperties": False,
+            },
+        },
+        "top_assets": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "asset": {"type": "string"},
+                    "count": {"type": "integer"},
+                },
+                "required": ["asset", "count"],
+                "additionalProperties": False,
+            },
+        },
+        "what_to_do_next": {"type": "array", "items": {"type": "string"}},
+        "data_notes": {"type": "array", "items": {"type": "string"}},
+        "estimated_taxable_events": {"type": "integer"},
+    },
+    "required": [
+        "summary",
+        "total_transactions",
+        "date_range",
+        "transaction_types",
+        "top_assets",
+        "what_to_do_next",
+        "data_notes",
+        "estimated_taxable_events",
+    ],
+    "additionalProperties": False,
+}
+
+
+def _normalize_insights(parsed: Any) -> Any:
+    """Fold the schema's [{type, count}] transaction_types back into the
+    {type: count} dict the frontend expects. A dict passes through untouched,
+    so the Gemini path (which follows the prompt example) and any cached
+    legacy output stay valid."""
+    if not isinstance(parsed, dict):
+        return parsed
+    tx_types = parsed.get("transaction_types")
+    if isinstance(tx_types, list):
+        folded: Dict[str, int] = {}
+        for item in tx_types:
+            if not isinstance(item, dict) or "type" not in item:
+                continue
+            count = item.get("count", 0)
+            if not isinstance(count, int):
+                continue
+            key = str(item["type"])
+            folded[key] = folded.get(key, 0) + count
+        parsed["transaction_types"] = folded
+    return parsed
+
+
+def _message_text(message: Any) -> str:
+    """Concatenate the text blocks of a Messages API response."""
+    return "".join(getattr(block, "text", "") or "" for block in (message.content or []))
+
+
+# What the processor stores in ai_error (and the dashboard shows) when the
+# model declined or could not finish: the user still gets the deterministic
+# quick stats, never a partial flag set.
+INSIGHTS_UNAVAILABLE = "insights unavailable"
+INSIGHTS_TRUNCATED = "insights truncated"
+INSIGHTS_INVALID = "insights invalid"
+
+
+# USD per million tokens, read from platform.claude.com/docs/en/about-claude/pricing
+# on 2026-10-09. Internal cost accounting only — the public pricing page and
+# the dashboard never name a model. An unknown model logs cost_usd=None rather
+# than guessing. 5-minute cache writes are 1.25x input; reads are 0.1x
+# (0.025x on Fable 5.1).
+MODEL_PRICING: Dict[str, Dict[str, float]] = {
+    "claude-sonnet-4-6": {"input": 3.00, "output": 15.00, "cache_write": 3.75, "cache_read": 0.30},
+    "claude-opus-4-7": {"input": 5.00, "output": 25.00, "cache_write": 6.25, "cache_read": 0.50},
+    # Shadow candidate for the Oct 12 wiring; priced now so its first call is costed.
+    "claude-fable-5-1": {"input": 10.00, "output": 50.00, "cache_write": 12.50, "cache_read": 0.25},
+}
+
+
+def estimate_cost_usd(
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+    cache_read_tokens: int = 0,
+    cache_creation_tokens: int = 0,
+) -> Optional[float]:
+    """Cost of one call from the pricing table; None when the model is unpriced.
+
+    `input_tokens` is the uncached share of the prompt, as the Anthropic usage
+    block reports it — cached reads and cache writes are billed separately."""
+    price = MODEL_PRICING.get(model)
+    if price is None:
+        return None
+    total = (
+        input_tokens * price["input"]
+        + cache_creation_tokens * price["cache_write"]
+        + cache_read_tokens * price["cache_read"]
+        + output_tokens * price["output"]
+    )
+    return round(total / 1_000_000, 6)
+
+
+def cache_hit_rate(input_tokens: int, cache_read_tokens: int, cache_creation_tokens: int = 0) -> Optional[float]:
+    """Share of prompt tokens served from the cache; None when nothing was sent."""
+    prompt_total = input_tokens + cache_read_tokens + cache_creation_tokens
+    if prompt_total <= 0:
+        return None
+    return round(cache_read_tokens / prompt_total, 4)
+
+
+def _int_or_zero(value: Any) -> int:
+    """Usage counters may be missing or None on some responses; count them as 0."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
+def _call_stats(
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+    cache_read_tokens: int,
+    cache_creation_tokens: int,
+    latency_ms: int,
+) -> Dict[str, Any]:
+    return {
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "cache_read_tokens": cache_read_tokens,
+        "cache_creation_tokens": cache_creation_tokens,
+        "cache_hit_rate": cache_hit_rate(input_tokens, cache_read_tokens, cache_creation_tokens),
+        "latency_ms": latency_ms,
+        "cost_usd": estimate_cost_usd(
+            model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens
+        ),
+    }
+
+
+def _log_insights_call(
+    provider: str, model: str, tier: Optional[str], effort: Optional[str],
+    stop_reason: Optional[str], stats: Dict[str, Any],
+) -> None:
+    """One INFO line per model call, refusals included (they are billed too).
+    Grep: `filter @message like /insights_call/`."""
+    logger.info(
+        "insights_call provider=%s model=%s tier=%s prompt_version=%s effort=%s stop_reason=%s "
+        "input_tokens=%s output_tokens=%s cache_read_tokens=%s cache_creation_tokens=%s "
+        "cache_hit_rate=%s latency_ms=%s cost_usd=%s",
+        provider, model, tier, INSIGHTS_PROMPT_VERSION, effort, stop_reason,
+        stats["input_tokens"], stats["output_tokens"], stats["cache_read_tokens"],
+        stats["cache_creation_tokens"], stats["cache_hit_rate"], stats["latency_ms"],
+        stats["cost_usd"],
+    )
 
 
 class AIProvider(ABC):
@@ -58,10 +252,19 @@ class AIProvider(ABC):
 class AnthropicProvider(AIProvider):
     """Claude AI provider for Growth (Sonnet) and Business (Opus) tiers."""
 
-    def __init__(self, api_key: str, model: str, max_tokens: int):
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        max_tokens: int,
+        tier: Optional[str] = None,
+        effort: Optional[str] = None,
+    ):
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
+        self.tier = tier
+        self.effort = effort
 
     def analyze(self, prompt: str, data: str) -> Dict[str, Any]:
         try:
@@ -69,6 +272,15 @@ class AnthropicProvider(AIProvider):
 
             client = anthropic.Anthropic(api_key=self.api_key)
 
+            # Structured outputs: the text block is guaranteed to satisfy
+            # INSIGHTS_SCHEMA. No tools are offered, so nothing is forced.
+            output_config: Dict[str, Any] = {
+                "format": {"type": "json_schema", "schema": INSIGHTS_SCHEMA},
+            }
+            if self.effort is not None:
+                output_config["effort"] = self.effort
+
+            started = time.perf_counter()
             message = client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
@@ -78,25 +290,27 @@ class AnthropicProvider(AIProvider):
                         "content": f"{prompt}\n\nTransaction Data:\n{data}",
                     }
                 ],
+                output_config=output_config,
             )
+            latency_ms = int((time.perf_counter() - started) * 1000)
 
-            response_text = message.content[0].text
+            # Tokens, cache hits, latency and cost — logged for every call,
+            # whatever stop_reason comes back, and returned under "usage".
+            usage = getattr(message, "usage", None)
+            stats = _call_stats(
+                self.model,
+                _int_or_zero(getattr(usage, "input_tokens", 0)),
+                _int_or_zero(getattr(usage, "output_tokens", 0)),
+                _int_or_zero(getattr(usage, "cache_read_input_tokens", 0)),
+                _int_or_zero(getattr(usage, "cache_creation_input_tokens", 0)),
+                latency_ms,
+            )
+            stop_reason = getattr(message, "stop_reason", None)
+            _log_insights_call("anthropic", self.model, self.tier, self.effort, stop_reason, stats)
 
-            # Try to parse as JSON, fall back to text
-            try:
-                return {
-                    "success": True,
-                    "insights": json.loads(response_text),
-                    "model": self.model,
-                    "provider": "anthropic",
-                }
-            except json.JSONDecodeError:
-                return {
-                    "success": True,
-                    "insights": {"summary": response_text},
-                    "model": self.model,
-                    "provider": "anthropic",
-                }
+            result = self._interpret(message, stop_reason)
+            result["usage"] = stats
+            return result
 
         except Exception as e:
             logger.error(f"Anthropic API error: {e}")
@@ -106,6 +320,70 @@ class AnthropicProvider(AIProvider):
                 "model": self.model,
                 "provider": "anthropic",
             }
+
+    def _interpret(self, message: Any, stop_reason: Optional[str]) -> Dict[str, Any]:
+        """Turn a Messages API response into the insights result dict."""
+        if stop_reason == "refusal":
+            # HTTP 200, but the model declined. Whatever sits in content is
+            # partial at best — drop it. The processor falls back to the
+            # deterministic quick stats with ai_error = INSIGHTS_UNAVAILABLE.
+            #
+            # Logged at WARNING with its own marker, on purpose: a refusal
+            # is not an invocation error, so it must not feed the
+            # processor-errors alarm (AWS/Lambda Errors) or the
+            # lambda-errors Logs Insights query (filter /ERROR/). Count
+            # refusals with `filter @message like /insights_refusal/`.
+            stop_details = getattr(message, "stop_details", None)
+            category = getattr(stop_details, "category", None)
+            logger.warning(
+                "insights_refusal provider=anthropic model=%s tier=%s category=%s",
+                self.model, self.tier, category,
+            )
+            return {
+                "success": False,
+                "refusal": True,
+                "error": INSIGHTS_UNAVAILABLE,
+                "model": self.model,
+                "provider": "anthropic",
+            }
+
+        if stop_reason == "max_tokens":
+            # Truncated JSON is partial output too; it is not a flag set.
+            logger.warning(
+                "insights_truncated provider=anthropic model=%s tier=%s max_tokens=%s",
+                self.model, self.tier, self.max_tokens,
+            )
+            return {
+                "success": False,
+                "error": INSIGHTS_TRUNCATED,
+                "model": self.model,
+                "provider": "anthropic",
+            }
+
+        response_text = _message_text(message)
+
+        # Structured outputs guarantee schema-valid JSON on end_turn. Text
+        # that still fails to parse is not something to wrap as a summary.
+        try:
+            insights = json.loads(response_text)
+        except json.JSONDecodeError:
+            logger.warning(
+                "insights_invalid provider=anthropic model=%s tier=%s",
+                self.model, self.tier,
+            )
+            return {
+                "success": False,
+                "error": INSIGHTS_INVALID,
+                "model": self.model,
+                "provider": "anthropic",
+            }
+
+        return {
+            "success": True,
+            "insights": _normalize_insights(insights),
+            "model": self.model,
+            "provider": "anthropic",
+        }
 
 
 class OpenAIProvider(AIProvider):
@@ -192,10 +470,11 @@ class OpenAIProvider(AIProvider):
 class GoogleProvider(AIProvider):
     """Google Gemini provider - uses REST API directly."""
 
-    def __init__(self, api_key: str, model: str, max_tokens: int):
+    def __init__(self, api_key: str, model: str, max_tokens: int, tier: Optional[str] = None):
         self.api_key = api_key
         self.model = model
         self.max_tokens = max_tokens
+        self.tier = tier
         self.base_url = "https://generativelanguage.googleapis.com/v1beta"
 
     def analyze(self, prompt: str, data: str) -> Dict[str, Any]:
@@ -236,8 +515,30 @@ class GoogleProvider(AIProvider):
                 method="POST"
             )
 
+            started = time.perf_counter()
             with urllib.request.urlopen(req, timeout=60) as response:
                 result = json.loads(response.read().decode("utf-8"))
+            latency_ms = int((time.perf_counter() - started) * 1000)
+
+            # Same insights_call line as the Anthropic path. Gemini reports the
+            # whole prompt in promptTokenCount (cached tokens included), so the
+            # uncached share is prompt minus cached. Gemini is not in
+            # MODEL_PRICING, so cost_usd logs as None.
+            usage_meta = result.get("usageMetadata") or {}
+            prompt_tokens = _int_or_zero(usage_meta.get("promptTokenCount"))
+            cached_tokens = _int_or_zero(usage_meta.get("cachedContentTokenCount"))
+            finish_reason = None
+            if result.get("candidates"):
+                finish_reason = result["candidates"][0].get("finishReason")
+            stats = _call_stats(
+                self.model,
+                max(prompt_tokens - cached_tokens, 0),
+                _int_or_zero(usage_meta.get("candidatesTokenCount")),
+                cached_tokens,
+                0,
+                latency_ms,
+            )
+            _log_insights_call("google", self.model, self.tier, None, finish_reason, stats)
 
             if not result.get("candidates") or not result["candidates"][0].get("content"):
                 safety_feedback = result.get("promptFeedback", {})
@@ -247,6 +548,7 @@ class GoogleProvider(AIProvider):
                     "error": "Response blocked by safety filters or empty response",
                     "model": self.model,
                     "provider": "google",
+                    "usage": stats,
                 }
 
             response_text = result["candidates"][0]["content"]["parts"][0]["text"]
@@ -255,9 +557,10 @@ class GoogleProvider(AIProvider):
             try:
                 return {
                     "success": True,
-                    "insights": json.loads(clean_json),
+                    "insights": _normalize_insights(json.loads(clean_json)),
                     "model": self.model,
                     "provider": "google",
+                    "usage": stats,
                 }
             except json.JSONDecodeError:
                 return {
@@ -265,6 +568,7 @@ class GoogleProvider(AIProvider):
                     "insights": {"summary": response_text},
                     "model": self.model,
                     "provider": "google",
+                    "usage": stats,
                 }
 
         except urllib.error.HTTPError as e:
@@ -298,7 +602,7 @@ def get_ai_provider(tier: str, secrets: Dict[str, str]) -> Optional[AIProvider]:
         if not api_key:
             logger.warning("Anthropic API key not found, falling back to free tier")
             return get_ai_provider("free", secrets)
-        return AnthropicProvider(api_key, model, max_tokens)
+        return AnthropicProvider(api_key, model, max_tokens, tier=tier, effort=config.get("effort"))
 
     elif provider_type == "openai":
         api_key = secrets.get("OPENAI_API_KEY")
@@ -312,12 +616,20 @@ def get_ai_provider(tier: str, secrets: Dict[str, str]) -> Optional[AIProvider]:
         if not api_key:
             logger.warning("Google Gemini API key not found")
             return None
-        return GoogleProvider(api_key, model, max_tokens)
+        return GoogleProvider(api_key, model, max_tokens, tier=tier)
 
     return None
 
 
 # Prompt templates
+#
+# Bump INSIGHTS_PROMPT_VERSION whenever INSIGHTS_PROMPT or INSIGHTS_SCHEMA
+# changes. It is stamped into every result's metadata with the model id and
+# effort, so a flag stored in insights.json can be traced to the exact prompt
+# that produced it. (The user-facing "engine vN" label is a separate,
+# coarser version in lib/insights-engine.ts.)
+INSIGHTS_PROMPT_VERSION = "2026-10-09"
+
 INSIGHTS_PROMPT = """You are a crypto tax data assistant for TaxFormatter. TaxFormatter is a CSV repair tool that fixes broken exchange exports so they can be imported into tax software like Koinly, TurboTax, CoinLedger, and ZenLedger.
 
 IMPORTANT: TaxFormatter does NOT calculate taxes, cost basis, or gains/losses. It only cleans and reformats CSV data. The actual tax calculations are done by the tax software the user imports into.
@@ -354,7 +666,7 @@ Return ONLY valid JSON in this format:
     "summary": "Your Coinbase export contains 156 transactions...",
     "total_transactions": 156,
     "date_range": {"start": "2024-01-15", "end": "2024-12-28"},
-    "transaction_types": {"buy": 50, "sell": 30, "transfer": 20, "staking": 10},
+    "transaction_types": [{"type": "buy", "count": 50}, {"type": "sell", "count": 30}, {"type": "transfer", "count": 20}, {"type": "staking", "count": 10}],
     "top_assets": [{"asset": "BTC", "count": 45}, {"asset": "ETH", "count": 38}],
     "what_to_do_next": ["Download and import into your tax software", "Review any flagged transactions"],
     "data_notes": ["Found 10 staking rewards (taxable as income)", "3 transfers missing destination addresses"],
@@ -425,6 +737,15 @@ def generate_insights(
 
     # Add tier info to result
     result["tier"] = tier
+
+    # Reproducibility stamp — on every outcome, refusals included, so a stored
+    # result always says which model, prompt and effort produced (or declined) it.
+    result["metadata"] = {
+        "model": provider.model,
+        "provider": result.get("provider"),
+        "prompt_version": INSIGHTS_PROMPT_VERSION,
+        "effort": getattr(provider, "effort", None),
+    }
 
     return result
 

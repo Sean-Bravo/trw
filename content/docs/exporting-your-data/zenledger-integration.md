@@ -57,7 +57,7 @@ This is where TaxFormatter excels.
 ### Step 1: Get TaxFormatter CSV
 
 1. Upload your exchange CSV to TaxFormatter
-2. Download formatted file (Free or Pro)
+2. Download the formatted file
 3. Save to your computer
 
 ### Step 2: Go to ZenLedger Import
@@ -189,21 +189,6 @@ In ZenLedger:
 3. ZenLedger flags the wash sale
 4. You tell ZenLedger to apply wash sale rule
 5. ZenLedger recalculates with adjusted basis
-
-### With Pro Tier TaxFormatter
-
-CSV shows:
-```
-Cost Basis: 47275.00 (WASH SALE - cost basis adjusted)
-```
-
-In ZenLedger:
-1. You import with adjusted basis
-2. ZenLedger uses adjusted basis directly
-3. Gains/losses calculated correctly
-4. No manual recalculation needed
-
-**Pro tier saves back-and-forth with ZenLedger.**
 
 ## Special Transaction Handling
 
@@ -346,9 +331,8 @@ After importing to ZenLedger:
 
 **Solution:**
 1. ZenLedger may use different rules
-2. Use TaxFormatter Pro (pre-adjusted, use those numbers)
-3. Or consult your CPA on discrepancy
-4. IRS rules are clear (TaxFormatter follows them exactly)
+2. Consult your CPA on the discrepancy
+3. Document which treatment you used
 
 ### Issue 4: Import Won't Complete
 
@@ -360,22 +344,6 @@ After importing to ZenLedger:
 3. Check file isn't corrupted
 4. Re-download from TaxFormatter if needed
 
-## Pro Tier Benefits for ZenLedger
-
-TaxFormatter Pro ($49) provides:
-
-✅ Pre-adjusted cost basis (ready to import)  
-✅ Detailed explanations (understand each flag)  
-✅ Plain English annotations (no guessing)  
-✅ Form references (know where to report)  
-✅ Cross-verification (check ZenLedger's work)  
-
-Especially valuable if:
-- You have wash sales
-- Multiple exchanges
-- Complex DeFi activity
-- Want to verify ZenLedger results
-
 ## Best Practices
 
 1. **Use TaxFormatter first**
@@ -385,7 +353,7 @@ Especially valuable if:
 
 2. **Review TaxFormatter output**
    - Read any flags
-   - Use Pro tier for annotations
+   - Read the AI Insights panel
    - Understand implications
 
 3. **Import clean data to ZenLedger**
@@ -407,7 +375,7 @@ Especially valuable if:
 
 ✅ Want to verify API imports  
 ✅ Have wallets without API (MetaMask, hardware, etc.)  
-✅ Pro tier for explanation + clean data  
+✅ Explanations + clean data  
 ✅ Cross-check before filing  
 ✅ Complex portfolios  
 ✅ Multiple years  
@@ -416,22 +384,20 @@ Especially valuable if:
 
 | | Cost | Purpose |
 |---|---|---|
-| TaxFormatter Free | $0 | Clean CSV + basic flagging |
-| TaxFormatter Pro | $49 | Annotations + adjusted basis |
+| TaxFormatter | Free plan; paid plans add volume | Clean CSV + AI insights |
 | ZenLedger Free | $0 | API + basic reports |
 | ZenLedger Pro | $199-599 | Full tax reports + support |
 
 **Value stack:**
-- Free tier both: CSV clean, basic report ✓
-- Pro TaxFormatter + Free ZenLedger: Clean + explained ✓
-- Either tier TaxFormatter + Pro ZenLedger: Full tax solution ✓
+- TaxFormatter + Free ZenLedger: clean, explained data + basic report ✓
+- TaxFormatter + Pro ZenLedger: full tax solution ✓
 
 Choose based on your portfolio complexity and budget.
 
 ## Final Workflow: TaxFormatter → ZenLedger → IRS
 
 ```
-1. TaxFormatter: Clean data + explain issues ($0-49)
+1. TaxFormatter: Clean data + explain issues
    ↓
 2. ZenLedger: Generate tax report ($0-599)
    ↓

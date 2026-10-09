@@ -1,6 +1,6 @@
 ---
 title: "Convert Bank Statement PDF to Excel for QuickBooks & Xero"
-description: "Stop manually copying bank transactions. Our PDF to Excel converter extracts Chase, Wells Fargo, Bank of America, and 50+ other bank statements into QBO/Xero-ready Excel files in seconds."
+description: "Stop manually copying bank transactions. Our PDF to Excel converter extracts Chase, Mercury, Navy Federal and other supported bank statements into QBO/Xero-ready Excel files in seconds."
 date: 2025-01-10
 author: "TaxFormatter Team"
 category: "guides"
@@ -43,41 +43,19 @@ Our converter handles everything that makes bank statement PDFs difficult:
 
 ### Supported Banks
 
-We've trained our parser on statements from 50+ financial institutions:
+Support means tested support. Every bank we list has a parser config, and the live list — with a verified or beta status for each — is what the product, docs and API all generate from.
 
-**Major Banks:**
+**Verified against real statements:**
 - Chase
+- Mercury
+- Navy Federal
+
+**Beta (configured, not yet verified against real statements):**
 - Bank of America
 - Wells Fargo
-- Citibank
-- US Bank
-- PNC Bank
-- Capital One
-- TD Bank
+- Citi
 
-**Credit Cards:**
-- American Express
-- Discover
-- Chase Sapphire
-- Capital One Venture
-- Citi Double Cash
-
-**Online Banks:**
-- Mercury
-- Relay
-- Bluevine
-- Novo
-- Found
-- Brex
-
-**International:**
-- HSBC
-- Barclays
-- RBC
-- TD Canada Trust
-- Scotiabank
-
-Don't see your bank? Upload anyway—our AI adapts to new formats automatically.
+Don't see your bank? Upload anyway — the generic parser will attempt a best-effort extraction and you can review every row before exporting. If it comes out wrong, [email us a redacted sample](mailto:support@taxformatter.com) and we'll add a config.
 
 ## How to Convert Bank Statement PDF to Excel
 
@@ -241,47 +219,41 @@ Headers extracted once. Page markers stripped. Clean continuous data.
 
 ## Pricing
 
-**Bank Statement Converter is a Pro/Premium feature.**
+The bank statement converter at [taxformatter.com/upload](/upload) is free during beta — no signup required.
 
-| Feature | Free | Pro ($89/yr) | Premium ($189/yr) |
-|---------|------|--------------|-------------------|
-| Crypto CSV Repair | 1 file/mo | Unlimited | Unlimited |
-| Bank PDF → Excel | ❌ | ✅ | ✅ |
-| OCR for Scanned PDFs | ❌ | ✅ | ✅ |
-| AI Categorization | Preview | Haiku | Opus |
-| Priority Support | ❌ | ❌ | ✅ |
+If you're integrating through the API, bank PDF parsing is included on the Growth plan ($99/mo, 500 files) and Business ($249/mo, 2,000 files). Same quota whether you upload in the dashboard or call the API — see [pricing](/#pricing).
 
 ## Security & Privacy
 
 Your bank statements contain sensitive data. Here's how we protect it:
 
-- **End-to-end encryption** - Files encrypted in transit and at rest
-- **Auto-deletion** - Uploaded files deleted within 24 hours
+- **Encrypted in transit and at rest** - TLS on the way in, AES-256 in storage
+- **Auto-deletion** - Uploaded files, outputs, and parsed data deleted within 30 days
 - **No data sharing** - We never sell or share your financial data
-- **SOC 2 compliant infrastructure** - AWS with enterprise security
-- **GDPR ready** - Request deletion anytime
+- **Hosted on AWS** - SOC 2-audited infrastructure (TaxFormatter itself is not independently audited)
+- **Delete anytime** - Remove a file from your dashboard and it's gone
 
 ## Frequently Asked Questions
 
 ### Does this work with scanned PDF statements?
 
-Yes. We use AWS Textract for OCR extraction. Accuracy is 98%+ for clean scans. Blurry or low-resolution scans may require manual corrections in the review step.
+Yes. We use AWS Textract for OCR extraction. Clean scans extract well; blurry or low-resolution scans may require manual corrections in the review step.
 
 ### Can I convert multiple statements at once?
 
-Pro and Premium users can batch upload. Process an entire year of statements in one session.
+One statement per upload today. Each one takes a few seconds, so a year of statements is a few minutes of work.
 
 ### What if my bank isn't supported?
 
-Upload anyway. Our AI adapts to new formats automatically. If extraction fails, contact support—we'll add your bank format within 48 hours.
+Upload anyway — unrecognized layouts fall back to generic extraction, and the result is marked for review rather than guessed. If extraction fails, contact support with the bank name and we'll look at adding the format.
 
 ### Do you store my bank data?
 
-No. Files are processed and deleted within 24 hours. We don't maintain a database of your transactions.
+No. Files are deleted within 30 days (sooner if you delete them), we don't keep your transaction data beyond that, and we never train on it.
 
 ### Can I customize the output format?
 
-Yes. Choose from QBO, Xero, or Generic Excel formats. Custom column mapping available for Premium users.
+Yes. Choose from QBO, Xero, Excel, or CSV output.
 
 ### What about credit card statements?
 
@@ -291,17 +263,17 @@ Fully supported. Same process—upload PDF, download Excel with transactions for
 
 | Feature | TaxFormatter | DocuClipper | Bank2CSV | Manual Entry |
 |---------|--------------|-------------|----------|--------------|
-| Price | $89/yr | $15/file | $49/yr | Free (your time) |
+| Price | Free during beta | $15/file | $49/yr | Free (your time) |
 | OCR Support | ✅ | ✅ | ❌ | N/A |
 | QBO Format | ✅ | ✅ | ✅ | Manual |
 | Xero Format | ✅ | ❌ | ✅ | Manual |
-| Bank Coverage | 50+ | 20+ | 30+ | Any |
+| Bank Coverage | 6 configured, 3 verified | 20+ | 30+ | Any |
 | Crypto + Bank | ✅ | ❌ | ❌ | ❌ |
 | Review/Edit | ✅ | ❌ | ❌ | N/A |
 
 ## Get Started
 
-1. **Sign up** for a Pro or Premium account
+1. **Open** [taxformatter.com/upload](/upload) — no signup required
 2. **Upload** your bank statement PDF
 3. **Review** extracted transactions
 4. **Download** your QBO/Xero-ready Excel file

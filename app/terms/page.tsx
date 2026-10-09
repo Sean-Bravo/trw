@@ -120,7 +120,7 @@ export default function TermsOfServicePage() {
                   details on how we handle your data. Key points:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Uploaded files are automatically deleted within 24 hours</li>
+                  <li>Uploaded files, outputs, and parsed data are automatically deleted within 30 days</li>
                   <li>We use AES-256 encryption for stored data</li>
                   <li>We never access your exchange accounts or wallets</li>
                   <li>We do not sell or share your data with third parties</li>

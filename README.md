@@ -200,22 +200,24 @@ One plan, two ways to use it — drop a file in the dashboard or call our API. S
 
 | Tier | Price | Quota | RPM | AI Insights | Highlights |
 |------|-------|-------|-----|-------------|------------|
-| Free | $0 | 25 files | 10 | Gemini 2.5 Flash | All 14 exchanges · No credit card |
-| Starter | $29/mo | 100 files | 30 | Gemini 2.5 Flash | All 14 exchanges |
-| Growth | $99/mo | 500 files | 60 | Claude Sonnet 4.6 | + Bank PDF parsing |
-| Business | $249/mo | 2,000 files | 120 | Claude Opus 4.7 | + Custom integrations · SLA |
+| Free | $0 | 25 files | 10 | Standard | All exchanges · No credit card |
+| Starter | $29/mo | 100 files | 30 | Standard | All exchanges |
+| Growth | $99/mo | 500 files | 60 | Advanced | + Bank PDF parsing |
+| Business | $249/mo | 2,000 files | 120 | Premium | + Custom integrations |
+
+Source of truth: `lib/tier-registry.ts` (prices, quotas, limits) and `lib/insights-engine.ts` (which model serves each insights level). Model names are published in the [API docs](https://www.taxformatter.com/docs/api) and blog Updates posts only.
 
 ---
 
 ## 🔒 Security Highlights
 
-- **Stateless API processing** — file content lives in Lambda RAM only, never written to disk
-- **Zero payload logging** — `api_requests` stores metadata only (hash, status, bytes, timing)
+- **API payloads never stored** — request bodies are parsed in memory and never written to S3 or the database
+- **Metadata-only request log** — `api_requests` stores key id, endpoint, status, bytes, timing, detected source, error code, and caller IP; never file contents
 - **API keys SHA-256 hashed** at rest, prefixed `tf_live_` for easy identification
 - **TLS 1.3** enforced everywhere
 - **AES-256** encryption on all stored uploads
-- **AWS WAF** — DDoS shield, SQL injection, XSS mitigation
-- **User-controlled retention** — 1 year default, or delete-after-download
+- **AWS WAF** in front of the API
+- **30-day retention** — uploads, outputs, and parsed rows are deleted within 30 days (sooner from the dashboard); enforced by an S3 lifecycle rule and a daily prune cron
 
 Full disclosure at [taxformatter.com/security](https://taxformatter.com/security).
 

@@ -77,24 +77,21 @@ Download your clean CSV formatted for:
 ### What Makes Us Different
 
 #### 🔒 Privacy First
-Your data never leaves your browser. We process everything client-side and delete it after 24 hours.
+Your files are processed on our servers in memory, stored encrypted, and deleted within 30 days — sooner if you delete them from your dashboard. We never train on your data.
 
 #### ⚡ Lightning Fast
-30 seconds average processing time, even for 10,000+ transactions.
+Most files parse in a few seconds; the API caps a single file at 10MB.
 
-#### 🎯 99.9% Accuracy
-Our AI has been trained on millions of crypto transactions and knows every exchange format.
+#### 🎯 Deterministic Parsing
+Exchange detection, parsing, dates, amounts, and schema mapping are deterministic code with a fixture-backed test per verified exchange — not a model guessing. When a row can't be parsed with confidence, you get a flag, not a confident wrong number.
 
 #### 💰 Transparent Pricing
-Free audit to see what errors we found. Only pay if you want the fixed file.
+A free plan with no credit card, and paid plans that add volume. No per-file surprises.
 
 ### Launch Pricing
 
-**Early Access Special** (Valid through Q1 2026):
-
-- **Free Audit**: See exactly what errors we found
-- **$9/file**: One-time fix for a single CSV
-- **$49/year**: Unlimited files + priority support
+- **Free plan**: 25 files a month, no credit card
+- **Paid plans from $29/mo**: more monthly volume, bank PDF parsing, deeper AI insights — see [pricing](/#pricing)
 
 ### Who It's For
 
@@ -135,7 +132,7 @@ A: We support 18+ exchanges including Coinbase, Binance, Kraken, KuCoin, Gemini,
 A: Yes. All processing happens client-side. Your CSV is never uploaded to our servers.
 
 **Q: What if TaxFormatter can't fix my file?**
-A: Full refund, no questions asked. We have a 99.9% success rate.
+A: Tell us which exchange and send the headers (never the rows) — failed parses are logged by source and reason so recurring failures become test fixtures, not anecdotes.
 
 **Q: Can I try it before paying?**
 A: Absolutely. Get a free audit showing exactly what errors we found.

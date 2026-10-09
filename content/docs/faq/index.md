@@ -32,7 +32,7 @@ Currently CSV only. Convert Excel files to CSV before uploading.
 
 ## How secure is my data?
 
-Your files are processed and deleted after download. We don't store your transaction data permanently.
+Everything you send us is deleted within 30 days — uploaded files, outputs, and parsed data. Delete it sooner anytime from your dashboard. We keep your account, usage counts, and anonymized processing metadata (source detected, row count, timing, error type). We never train on your data, and neither do our AI providers.
 
 ## Do you support international exchanges?
 
@@ -40,4 +40,12 @@ We support Binance, Coinbase, Kraken, KuCoin, and Bybit. Email us for others.
 
 ## Can you integrate with my tax software directly?
 
-Pro tier supports direct integrations with TurboTax, Koinly, CoinLedger, and ZenLedger.
+Every plan exports in TurboTax, Koinly, CoinLedger, and ZenLedger formats — pick the format when you download.
+
+## Is the AI-generated text watermarked?
+
+The explanations and flags produced by the AI insights layer come from third-party models and may carry a provider's statistical watermark in the generated text. This applies only to the explanation text. It has no effect on your transaction data, amounts, dates, or the structure of the CSV we return — all of which come from the deterministic parser, not the model.
+
+## Do you ever need my exchange or bank login or API keys?
+
+No. TaxFormatter never asks for exchange API keys, bank credentials, wallet access, or seed phrases — not even read-only. You upload the export your exchange or bank already gives you. The only credential involved is the TaxFormatter developer key we issue to you, which is shown once at creation and stored only as a SHA-256 hash.

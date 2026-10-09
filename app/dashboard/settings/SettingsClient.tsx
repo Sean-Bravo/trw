@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Shield, ShieldCheck, Smartphone, Key, Copy, Check, Loader2, X, AlertTriangle } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import type { UserTier } from '@/lib/auth-db';
+import { tierName } from '@/lib/tier-registry';
 
 interface SettingsClientProps {
   user: User;
@@ -480,7 +481,7 @@ export function SettingsClient({ user, tier }: SettingsClientProps) {
             </div>
             <div>
               <label className="text-zinc-500 text-sm">Plan</label>
-              <p className="text-white">Starter</p>
+              <p className="text-white">{tierName(tier)}</p>
             </div>
           </div>
         </div>

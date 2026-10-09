@@ -28,7 +28,7 @@ Here's how it usually goes. Your team writes a Coinbase parser. It works. Then a
 
 Each exchange is a special case. And they don't hold still — Coinbase changed their export format twice in 2025 alone. Every format change breaks your parser, generates support tickets, and pulls an engineer off feature work to fix it.
 
-For bank statements, multiply that problem by 50+ banks, add OCR complexity for scanned documents, and factor in the joy of multi-page tables with wrapped text.
+For bank statements, multiply that problem by every bank your users have, add OCR complexity for scanned documents, and factor in the joy of multi-page tables with wrapped text.
 
 Teams building this in-house typically report spending 200-400 engineering hours on initial parser development across exchanges and banks, plus 5-10 hours per month on maintenance when formats change.
 
@@ -36,7 +36,7 @@ Teams building this in-house typically report spending 200-400 engineering hours
 
 Instead of maintaining a library of format-specific parsers, you send the file to an API and get structured JSON back. One integration point. One response format. Every exchange and bank handled the same way.
 
-The TaxFormatter API currently supports 14 crypto exchanges and 50+ bank formats. When Coinbase changes their export format — and they will — the API handles it. When a user uploads a statement from a bank you've never heard of, the AI-powered parser adapts automatically.
+The TaxFormatter API currently supports 14 crypto exchanges and 6 bank formats, each listed with a verified or beta status at `GET /v1/sources`. When Coinbase changes their export format — and they will — the API handles it. When a user uploads a statement from a bank we haven't configured, the generic parser makes a best-effort extraction and the response says so — it never silently guesses.
 
 Your engineering team writes one integration and moves on to building your actual product.
 
@@ -46,7 +46,7 @@ Consider the economics for a typical fintech startup:
 
 **Building in-house:** An engineer costs roughly $150-200/hour fully loaded. At 300 hours for initial development plus 80 hours per year for maintenance, you're looking at $45,000-$60,000 in the first year and $12,000-$16,000 annually after that. That doesn't count the opportunity cost of what that engineer could have built instead.
 
-**Using an API:** The Growth tier at $99/month covers 500 files — $1,188/year. Even the Scale tier at $249/month for 2,000 files is $2,988/year. That's roughly 5-10% of the cost of doing it yourself, with none of the maintenance burden.
+**Using an API:** The Growth tier at $99/month covers 500 files — $1,188/year. Even the Business tier at $249/month for 2,000 files is $2,988/year. That's roughly 5-10% of the cost of doing it yourself, with none of the maintenance burden.
 
 The math gets more lopsided as you add sources. Every new exchange or bank you need to support is free with the API and potentially weeks of work in-house.
 
@@ -54,9 +54,9 @@ The math gets more lopsided as you add sources. Every new exchange or bank you n
 
 ### Accuracy You Can't Match In-House
 
-The TaxFormatter engine has processed millions of financial files across every major exchange and bank format. It handles edge cases that a custom parser built from a handful of test files will miss — transaction ID deduplication across overlapping exports, timezone-aware date normalization, and intelligent merging of multi-line bank descriptions.
+The TaxFormatter engine is built from a fixture-backed parser per supported exchange and bank format, so edge cases are encoded as tests instead of rediscovered by you. It handles edge cases that a custom parser built from a handful of test files will miss — transaction ID deduplication across overlapping exports, timezone-aware date normalization, and intelligent merging of multi-line bank descriptions.
 
-Getting to 95% accuracy with a custom parser is straightforward. Getting to 99.9% takes years of production data and bug fixes. The API gives you that accuracy on day one.
+Getting a custom parser to handle the happy path is straightforward. Getting it to handle every variant an exchange has shipped takes years of production data and bug fixes. The API gives you that coverage on day one.
 
 ### AI Agent Compatibility
 

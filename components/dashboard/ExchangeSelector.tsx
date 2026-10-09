@@ -2,42 +2,19 @@
 
 import { useState } from 'react';
 import { ChevronDown, RefreshCw, HelpCircle } from 'lucide-react';
+import { EXCHANGE_SOURCES } from '@/lib/exchange-registry';
 
-// Supported exchanges organized by tier
+// Options are generated from the source registry (lib/exchange-registry.ts,
+// mirroring backend/configs/exchanges.yaml) so this list can never offer an
+// exchange the API doesn't parse. The generic fallback stays available
+// explicitly — it's a best-effort path, not a supported source.
 const EXCHANGE_OPTIONS = [
   {
-    tier: 'Tier 1 - Major Exchanges',
-    exchanges: [
-      { value: 'binance', label: 'Binance' },
-      { value: 'coinbase', label: 'Coinbase' },
-      { value: 'kraken', label: 'Kraken' },
-      { value: 'kucoin', label: 'KuCoin' },
-      { value: 'bybit', label: 'Bybit' },
-    ],
-  },
-  {
-    tier: 'Tier 2 - Beginner Friendly',
-    exchanges: [
-      { value: 'cashapp', label: 'Cash App' },
-      { value: 'robinhood', label: 'Robinhood' },
-      { value: 'paypal', label: 'PayPal' },
-      { value: 'venmo', label: 'Venmo' },
-    ],
-  },
-  {
-    tier: 'Tier 3 - Power Users',
-    exchanges: [
-      { value: 'crypto.com', label: 'Crypto.com' },
-      { value: 'gemini', label: 'Gemini' },
-    ],
-  },
-  {
-    tier: 'Tier 4 - Advanced',
-    exchanges: [
-      { value: 'ftx', label: 'FTX' },
-      { value: 'bitfinex', label: 'Bitfinex' },
-      { value: 'okx', label: 'OKX' },
-    ],
+    tier: 'Supported exchanges',
+    exchanges: EXCHANGE_SOURCES.map((ex) => ({
+      value: ex.id,
+      label: ex.status === 'verified' ? ex.name : `${ex.name} (${ex.status})`,
+    })),
   },
   {
     tier: 'Other',

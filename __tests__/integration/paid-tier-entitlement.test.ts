@@ -179,24 +179,24 @@ describe('published pricing surfaces match API_TIERS', () => {
   const allTiers = { free: PUBLISHED_FREE, ...PUBLISHED };
   const display: Record<string, string> = { free: 'Free', starter: 'Starter', growth: 'Growth', business: 'Business' };
 
-  it('components/marketing/APIPricing.tsx', () => {
-    const src = fs.readFileSync(path.join(root, 'components/marketing/APIPricing.tsx'), 'utf8');
+  it('lib/tier-registry.ts (what APIPricing.tsx and the SEO offers render from)', () => {
+    // The pricing cards build from the registry, so pin the registry to the
+    // published numbers and check the cards contain no literals of their own.
+    // __tests__/components/marketing/APIPricing.test.tsx asserts the rendered text.
+    const { TIER_BY_ID } = jest.requireActual('@/lib/tier-registry');
     for (const [tier, t] of Object.entries(allTiers)) {
-      const start = src.indexOf(`name: '${display[tier]}'`);
-      expect(start).toBeGreaterThan(-1);
-      const next = src.indexOf("name: '", start + 1);
-      const block = src.slice(start, next === -1 ? undefined : next);
-      expect(block).toContain(`price: '$${t.price}'`);
-      expect(block).toContain(`'${t.files.toLocaleString('en-US')} files / month'`);
-      expect(block).toContain(`'${t.rpm} requests / minute'`);
-      expect(block).toContain(`tier: '${tier}'`);
-      if (t.bankPdf) {
-        // Growth lists it; Business inherits via "Everything in Growth".
-        expect(block).toMatch(/Bank PDF parsing|Everything in Growth/);
-      } else {
-        expect(block).not.toContain('Bank PDF');
-      }
+      expect(TIER_BY_ID[tier]).toMatchObject({
+        name: display[tier],
+        priceUsd: t.price,
+        filesPerMonth: t.files,
+        requestsPerMinute: t.rpm,
+        bankPdf: t.bankPdf,
+      });
     }
+    const src = fs.readFileSync(path.join(root, 'components/marketing/APIPricing.tsx'), 'utf8');
+    expect(src).toContain("from '@/lib/tier-registry'");
+    expect(src).not.toMatch(/\$(29|99|249)\b/);
+    expect(src).not.toMatch(/\b\d[\d,]* files \/ month\b/);
   });
 
   it('content/docs/api/index.md tier table (files, rpm, bank PDF, price)', () => {

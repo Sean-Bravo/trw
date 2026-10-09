@@ -34,6 +34,31 @@ Get your API key at [taxformatter.com/dashboard/developer](/dashboard/developer)
 | GET | `/v1/usage` | Yes | Get usage stats for your key |
 | GET | `/v1/health` | No | Health check |
 
+## List Supported Sources
+
+**GET `/v1/sources`** — no API key required.
+
+Every exchange and bank carries a `status`. `verified` means the parser is exercised against a sample file in our test suite on every change; `beta` means the parser exists but has no fixture-backed test yet. Nothing is listed here that doesn't have a parser, and this endpoint is what the website's supported-source lists are generated from.
+
+```json
+{
+  "crypto_exchanges": [
+    { "id": "coinbase", "name": "Coinbase", "status": "verified" },
+    { "id": "venmo", "name": "Venmo", "status": "beta" }
+  ],
+  "banks": [
+    { "id": "chase", "name": "Chase", "status": "verified", "version": "1.0.0" },
+    { "id": "citi", "name": "Citi", "status": "beta", "version": "1.0.0" }
+  ],
+  "output_formats": {
+    "crypto": ["koinly", "turbotax", "coinledger", "zenledger"],
+    "bank": ["csv"]
+  }
+}
+```
+
+Use an exchange's `id` as the `exchange` parameter on `/v1/parse` to skip auto-detection.
+
 ## Parse a File
 
 **POST `/v1/parse`**
@@ -97,7 +122,7 @@ response = requests.post(
 
 data = response.json()
 print(f"{data['metadata']['transaction_count']} transactions parsed")
-print(f"Processing time: {response.headers['X-TF-Processing-Time']}ms")
+print(f"Processing time: {data['metadata']['processing_time_ms']}ms")
 ```
 
 **Node.js**
@@ -157,10 +182,12 @@ console.log(`${data.metadata.transaction_count} transactions parsed`);
 
 | Tier | Files/month | Requests/minute | Bank PDF | AI Insights | Price |
 |------|-------------|-----------------|----------|-------------|-------|
-| Free | 25 | 10 | — | Gemini 2.5 Flash | $0 |
-| Starter | 100 | 30 | — | Gemini 2.5 Flash | $29/mo |
-| Growth | 500 | 60 | ✓ | Claude Sonnet 4.6 | $99/mo |
-| Business | 2,000 | 120 | ✓ | Claude Opus 4.7 | $249/mo |
+| Free | 25 | 10 | — | Standard | $0 |
+| Starter | 100 | 30 | — | Standard | $29/mo |
+| Growth | 500 | 60 | ✓ | Advanced | $99/mo |
+| Business | 2,000 | 120 | ✓ | Premium | $249/mo |
+
+**Insights engine (v1):** every tier returns the same insights structure; the level sets how deeply the model reasons about your data. Standard runs on `gemini-2.5-flash`, Advanced on `claude-sonnet-4-6`, Premium on `claude-opus-4-7`. This table and the [blog's Updates posts](/blog) are the only places model names are published — a model change bumps the engine version and is announced there, never silently.
 
 **Quota enforcement:**
 
@@ -199,3 +226,11 @@ Then ask your agent:
 - "Parse my Coinbase export and format it for Koinly"
 - "I have a Kraken CSV from 2024, normalize it for TurboTax"
 - "List all supported exchanges and output formats"
+
+## Data handling
+
+Everything you send us is deleted within 30 days — uploaded files, outputs, and parsed data. Delete it sooner anytime from your dashboard. We keep your account, usage counts, and anonymized processing metadata (source detected, row count, timing, error type). We never train on your data, and neither do our AI providers.
+
+API requests go further: the file is processed in memory and never stored. We log only request metadata — key hash, status, byte size, timing, detected source, error code.
+
+TaxFormatter never asks for exchange or bank credentials; you upload the export your exchange or bank already gives you. The only credential involved is the developer key we issue to you, shown once at creation and stored only as a SHA-256 hash.

@@ -196,42 +196,9 @@ WBTC → BTC
 - Not a "sale" of one for another
 - TaxFormatter normalizes to single asset
 
-## Pro Tier DeFi Features
+## What TaxFormatter Does Here
 
-TaxFormatter Pro handles:
-
-1. **Transaction classification** - Identifies swap vs LP vs farming
-2. **LP tracking** - Monitors deposits, fees, withdrawals
-3. **Reward aggregation** - Sums all earning events
-4. **Impermanent loss flagging** - Notes for your tax pro
-5. **Chain normalization** - Treats same token across chains as one asset
-6. **Bridge transactions** - Excludes from taxable events
-
-Example Pro annotation:
-```
-Type: DEFI_SWAP
-Pair: ETH/USDC
-Amount: 10 ETH
-Date: 2025-03-15
-Cost Basis: $20,000
-Sale Price: $32,000
-Capital Gain: $12,000
-Note: "Uniswap V3 swap. Cost basis $2,000/ETH, sold at $3,200/ETH"
-
-Type: DEFI_LP_REWARD
-Token: UNI
-Amount: 50
-Date: 2025-03-20
-FMV: $6.00
-Income: $300
-Note: "Yield farm reward from Aave. Ordinary income $300."
-
-Type: DEFI_LP_WITHDRAWAL
-Value Deposited: $30,000 (10 ETH + 200k USDC)
-Value Withdrawn: $29,500
-Impermanent Loss: $500
-Note: "LP withdrawal. $500 impermanent loss. Consult tax pro on deductibility."
-```
+TaxFormatter formats your export and surfaces items to review in the dashboard's AI Insights panel. It does not recompute cost basis, look up historical prices, or annotate individual rows — those calculations happen in your tax software or with your tax professional, working from the formatted CSV. DeFi classification (swap vs. LP vs. farming) is one of the areas the AI Insights panel calls out for review rather than deciding for you.
 
 ## Common DeFi Tax Mistakes
 
@@ -256,4 +223,4 @@ Note: "LP withdrawal. $500 impermanent loss. Consult tax pro on deductibility."
 ✓ Track all income from farming  
 ✓ Impermanent loss needs tax pro guidance  
 ✓ Wrapped tokens = same asset  
-✓ TaxFormatter Pro classifies automatically
+✓ Ask your tax professional to confirm any classification TaxFormatter flags for review

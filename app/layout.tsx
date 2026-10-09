@@ -4,6 +4,8 @@ import "./globals.css";
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { GoogleAds } from "@/components/analytics/GoogleAds";
+import { BANK_SOURCES } from "@/lib/bank-registry";
+import { EXCHANGE_COUNT } from "@/lib/exchange-registry";
 
 // Optimized font loading with next/font
 const inter = Inter({
@@ -19,12 +21,15 @@ const poppins = Poppins({
   display: "swap",
 });
 
+// Counts come from the source registries so the meta description can never overstate support.
+const SITE_DESCRIPTION = `Parse any crypto exchange CSV or bank statement PDF via REST API. ${EXCHANGE_COUNT} exchanges, ${BANK_SOURCES.length} banks, 4 tax formats. One API call. MCP server for AI agents.`;
+
 export const metadata: Metadata = {
   title: {
     default: "TaxFormatter — Crypto CSV Parsing API & MCP Server",
     template: "%s | TaxFormatter",
   },
-  description: "Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 7+ banks, 4 tax formats. One API call. MCP server for AI agents.",
+  description: SITE_DESCRIPTION,
   keywords: ["crypto API", "CSV parsing API", "MCP server", "crypto tax API", "exchange parser", "bank statement API", "TurboTax API", "Koinly API", "fintech API", "AI agent tools"],
   authors: [{ name: "TaxFormatter" }],
   creator: "TaxFormatter",
@@ -38,7 +43,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://www.taxformatter.com",
     title: "TaxFormatter — Crypto CSV Parsing API & MCP Server",
-    description: "Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 7+ banks, 4 tax formats. One API call. MCP server for AI agents.",
+    description: SITE_DESCRIPTION,
     siteName: "TaxFormatter",
     images: [
       {
@@ -53,7 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "TaxFormatter — Crypto CSV Parsing API & MCP Server",
-    description: "Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 7+ banks, 4 tax formats. One API call. MCP server for AI agents.",
+    description: SITE_DESCRIPTION,
     images: ["/og-image.png"],
     creator: "@taxformatter",
   },

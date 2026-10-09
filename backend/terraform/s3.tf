@@ -18,7 +18,7 @@ resource "aws_s3_bucket_versioning" "uploads" {
   bucket = aws_s3_bucket.uploads.id
 
   versioning_configuration {
-    status = "Enabled"
+    status = "Suspended" # retention policy: deletes must be real deletes
   }
 }
 
@@ -44,34 +44,39 @@ resource "aws_s3_bucket_public_access_block" "uploads" {
 resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
   bucket = aws_s3_bucket.uploads.id
 
+  # Retention policy: everything deleted within 30 days. S3 evaluates
+  # expiration once a day at UTC midnight, so 29 keeps "within 30" true.
   rule {
-    id     = "transition-to-glacier"
+    id     = "expire-29d"
     status = "Enabled"
-
     filter {}
 
-    transition {
-      days          = var.s3_lifecycle_days
-      storage_class = "GLACIER_IR"
-    }
-
     expiration {
-      days = var.s3_expiration_days
+      days = 29
     }
 
     noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_days = 1 # flush versions left from when versioning was on
+    }
+  }
+
+  rule {
+    id     = "cleanup-delete-markers"
+    status = "Enabled"
+    filter {}
+
+    expiration {
+      expired_object_delete_marker = true
     }
   }
 
   rule {
     id     = "abort-incomplete-multipart-uploads"
     status = "Enabled"
-
     filter {}
 
     abort_incomplete_multipart_upload {
-      days_after_initiation = 7
+      days_after_initiation = 1
     }
   }
 }
@@ -110,7 +115,7 @@ resource "aws_s3_bucket_versioning" "results" {
   bucket = aws_s3_bucket.results.id
 
   versioning_configuration {
-    status = "Enabled"
+    status = "Suspended" # retention policy: deletes must be real deletes
   }
 }
 
@@ -136,34 +141,39 @@ resource "aws_s3_bucket_public_access_block" "results" {
 resource "aws_s3_bucket_lifecycle_configuration" "results" {
   bucket = aws_s3_bucket.results.id
 
+  # Retention policy: everything deleted within 30 days. S3 evaluates
+  # expiration once a day at UTC midnight, so 29 keeps "within 30" true.
   rule {
-    id     = "transition-to-glacier"
+    id     = "expire-29d"
     status = "Enabled"
-
     filter {}
 
-    transition {
-      days          = var.s3_lifecycle_days
-      storage_class = "GLACIER_IR"
-    }
-
     expiration {
-      days = var.s3_expiration_days
+      days = 29
     }
 
     noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_days = 1 # flush versions left from when versioning was on
+    }
+  }
+
+  rule {
+    id     = "cleanup-delete-markers"
+    status = "Enabled"
+    filter {}
+
+    expiration {
+      expired_object_delete_marker = true
     }
   }
 
   rule {
     id     = "abort-incomplete-multipart-uploads"
     status = "Enabled"
-
     filter {}
 
     abort_incomplete_multipart_upload {
-      days_after_initiation = 7
+      days_after_initiation = 1
     }
   }
 }

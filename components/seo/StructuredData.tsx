@@ -1,4 +1,6 @@
 import { Organization, WebSite, WithContext } from 'schema-dts';
+import { BANK_SOURCES } from '@/lib/bank-registry';
+import { EXCHANGE_COUNT } from '@/lib/exchange-registry';
 
 export function OrganizationSchema() {
   const schema: WithContext<Organization> = {
@@ -8,7 +10,6 @@ export function OrganizationSchema() {
     url: 'https://www.taxformatter.com',
     logo: 'https://www.taxformatter.com/logo-icon.svg',
     description: 'Developer API platform for parsing crypto exchange CSVs and bank statement PDFs into structured, tax-ready data. REST API, MCP server, and SDKs for Node.js and Python.',
-    foundingDate: '2024',
     sameAs: [
       'https://www.npmjs.com/package/@taxformatter/mcp-server',
       'https://www.npmjs.com/package/@taxformatter/sdk',
@@ -35,7 +36,7 @@ export function WebSiteSchema() {
     '@type': 'WebSite',
     name: 'TaxFormatter',
     url: 'https://www.taxformatter.com',
-    description: 'Parse any crypto exchange CSV or bank statement PDF via REST API. 14 exchanges, 13 banks, 4 tax formats. MCP server for AI agents.',
+    description: `Parse any crypto exchange CSV or bank statement PDF via REST API. ${EXCHANGE_COUNT} exchanges, ${BANK_SOURCES.length} banks, 4 tax formats. MCP server for AI agents.`,
     potentialAction: {
       '@type': 'SearchAction',
       target: 'https://www.taxformatter.com/docs?search={search_term_string}',

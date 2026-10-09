@@ -9,6 +9,7 @@ import { Logo } from '@/components/ui/Logo';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Menu, X } from 'lucide-react';
 import type { UserTier } from '@/lib/auth-db';
+import { tierName } from '@/lib/tier-registry';
 
 interface DashboardHeaderProps {
   user: User;
@@ -16,19 +17,12 @@ interface DashboardHeaderProps {
   tier?: UserTier;
 }
 
-const TIER_LABELS: Record<UserTier, string> = {
-  free: 'Free',
-  starter: 'Starter',
-  growth: 'Growth',
-  business: 'Business',
-};
-
 export function DashboardHeader({ user, tier = 'free' }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const pathname = usePathname();
   const initial = ((user.name || user.email || 'U')[0] || 'U').toUpperCase();
-  const tierLabel = TIER_LABELS[tier];
+  const tierLabel = tierName(tier);
 
   return (
     <header className="sticky top-0 z-50 bg-[#030712]/80 backdrop-blur-xl border-b border-zinc-800/50">

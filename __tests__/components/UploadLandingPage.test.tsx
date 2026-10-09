@@ -112,7 +112,7 @@ describe('UploadLandingPage', () => {
 
     it('renders trust signals in header', () => {
       render(<UploadLandingPage />);
-      expect(screen.getByText('Files deleted after 24hrs')).toBeInTheDocument();
+      expect(screen.getByText('Files deleted within 30 days')).toBeInTheDocument();
       expect(screen.getAllByText('No signup required').length).toBeGreaterThanOrEqual(1);
     });
 
@@ -129,7 +129,7 @@ describe('UploadLandingPage', () => {
     it('renders bottom trust signals', () => {
       render(<UploadLandingPage />);
       expect(screen.getByText('Free during beta')).toBeInTheDocument();
-      expect(screen.getByText('Files auto-deleted in 24hrs')).toBeInTheDocument();
+      expect(screen.getByText('Files auto-deleted within 30 days')).toBeInTheDocument();
     });
   });
 
