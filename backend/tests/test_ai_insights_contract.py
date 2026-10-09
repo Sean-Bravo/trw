@@ -26,7 +26,10 @@ import ai_insights  # noqa: E402
 from ai_insights import (  # noqa: E402
     AnthropicProvider,
     GoogleProvider,
+    INSIGHTS_INVALID,
     INSIGHTS_SCHEMA,
+    INSIGHTS_TRUNCATED,
+    INSIGHTS_UNAVAILABLE,
     _normalize_insights,
 )
 
@@ -242,3 +245,53 @@ class TestOutputShape:
 
         assert result["success"] is True
         assert result["insights"]["transaction_types"] == {"buy": 2, "sell": 1, "staking": 1}
+
+
+# ---------------------------------------------------------------------------
+# Refusal branch: never emit partial flags
+# ---------------------------------------------------------------------------
+
+class TestRefusalBranch:
+
+    def test_refusal_discards_partial_output(self):
+        # A refusal is HTTP 200 with stop_reason "refusal"; content may hold a
+        # half-written answer. None of it may reach the user as insights.
+        partial = json.dumps(SAMPLE_INSIGHTS)[:40]
+        result, _ = _analyze(_opus(), _message(partial, stop_reason="refusal"))
+
+        assert result["success"] is False
+        assert result["refusal"] is True
+        assert result["error"] == INSIGHTS_UNAVAILABLE
+        assert "insights" not in result
+        assert result["model"] == "claude-opus-4-7"
+
+    def test_refusal_with_empty_content_does_not_crash(self):
+        result, _ = _analyze(_opus(), _message(content=[], stop_reason="refusal"))
+
+        assert result["success"] is False
+        assert result["refusal"] is True
+        assert "insights" not in result
+
+    def test_max_tokens_truncation_is_not_emitted_as_insights(self):
+        truncated = json.dumps(SAMPLE_INSIGHTS)[:-25]
+        result, _ = _analyze(_opus(), _message(truncated, stop_reason="max_tokens"))
+
+        assert result["success"] is False
+        assert result["error"] == INSIGHTS_TRUNCATED
+        assert "insights" not in result
+        assert "refusal" not in result
+
+    def test_unparseable_text_is_a_failure_not_a_summary(self):
+        # Previously wrapped as {"summary": raw_text}; with a schema-bound
+        # response that text is not a flag set we can stand behind.
+        result, _ = _analyze(_opus(), _message("Sorry, here is prose instead of JSON."))
+
+        assert result["success"] is False
+        assert result["error"] == INSIGHTS_INVALID
+        assert "insights" not in result
+
+    def test_end_turn_with_valid_json_still_succeeds(self):
+        result, _ = _analyze(_opus(), _message(json.dumps(SAMPLE_INSIGHTS), stop_reason="end_turn"))
+
+        assert result["success"] is True
+        assert result["insights"]["summary"] == SAMPLE_INSIGHTS["summary"]

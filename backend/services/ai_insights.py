@@ -135,6 +135,14 @@ def _message_text(message: Any) -> str:
     return "".join(getattr(block, "text", "") or "" for block in (message.content or []))
 
 
+# What the processor stores in ai_error (and the dashboard shows) when the
+# model declined or could not finish: the user still gets the deterministic
+# quick stats, never a partial flag set.
+INSIGHTS_UNAVAILABLE = "insights unavailable"
+INSIGHTS_TRUNCATED = "insights truncated"
+INSIGHTS_INVALID = "insights invalid"
+
+
 class AIProvider(ABC):
     """Base class for AI providers."""
 
@@ -174,23 +182,54 @@ class AnthropicProvider(AIProvider):
                 },
             )
 
+            stop_reason = getattr(message, "stop_reason", None)
+
+            if stop_reason == "refusal":
+                # HTTP 200, but the model declined. Whatever sits in content is
+                # partial at best — drop it. The processor falls back to the
+                # deterministic quick stats with ai_error = INSIGHTS_UNAVAILABLE.
+                logger.warning(f"Anthropic insights refused (model={self.model})")
+                return {
+                    "success": False,
+                    "refusal": True,
+                    "error": INSIGHTS_UNAVAILABLE,
+                    "model": self.model,
+                    "provider": "anthropic",
+                }
+
+            if stop_reason == "max_tokens":
+                # Truncated JSON is partial output too; it is not a flag set.
+                logger.warning(
+                    f"Anthropic insights truncated at max_tokens={self.max_tokens} (model={self.model})"
+                )
+                return {
+                    "success": False,
+                    "error": INSIGHTS_TRUNCATED,
+                    "model": self.model,
+                    "provider": "anthropic",
+                }
+
             response_text = _message_text(message)
 
-            # Try to parse as JSON, fall back to text
+            # Structured outputs guarantee schema-valid JSON on end_turn. Text
+            # that still fails to parse is not something to wrap as a summary.
             try:
-                return {
-                    "success": True,
-                    "insights": _normalize_insights(json.loads(response_text)),
-                    "model": self.model,
-                    "provider": "anthropic",
-                }
+                insights = json.loads(response_text)
             except json.JSONDecodeError:
+                logger.warning(f"Anthropic insights response was not valid JSON (model={self.model})")
                 return {
-                    "success": True,
-                    "insights": {"summary": response_text},
+                    "success": False,
+                    "error": INSIGHTS_INVALID,
                     "model": self.model,
                     "provider": "anthropic",
                 }
+
+            return {
+                "success": True,
+                "insights": _normalize_insights(insights),
+                "model": self.model,
+                "provider": "anthropic",
+            }
 
         except Exception as e:
             logger.error(f"Anthropic API error: {e}")
