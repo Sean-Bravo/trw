@@ -177,3 +177,65 @@ class TestGenerateAiInsights:
         assert result["ai_insights"] is None
         assert result["ai_error"] == "rate_limited"
         assert result["tier"] == "growth"
+
+    @patch("handlers.processor.get_secrets", return_value={})
+    def test_refusal_returns_deterministic_parse_with_unavailable_warning(self, mock_secrets):
+        # stop_reason "refusal" surfaces from ai_insights as a failed result
+        # carrying refusal=True and no insights key. The user gets the
+        # deterministic quick stats and an "insights unavailable" ai_error —
+        # never a partial flag set.
+        from ai_insights import INSIGHTS_UNAVAILABLE
+
+        records = [{"x": 1}]
+        quick = {"total_transactions": 1, "transaction_types": {"buy": 1}}
+
+        with patch("ai_insights.generate_quick_stats", return_value=quick), \
+             patch("ai_insights.generate_insights", return_value={
+                 "success": False,
+                 "refusal": True,
+                 "error": INSIGHTS_UNAVAILABLE,
+                 "model": "claude-opus-4-7",
+                 "provider": "anthropic",
+             }):
+            result = generate_ai_insights(records, "business")
+
+        assert result["success"] is True
+        assert result["quick_stats"] == quick
+        assert result["ai_insights"] is None
+        assert result["ai_error"] == "insights unavailable"
+        assert result["tier"] == "business"
+
+    @patch("handlers.processor.get_secrets", return_value={})
+    def test_metadata_passes_through_on_success_and_failure(self, mock_secrets):
+        # The reproducibility stamp (model id, prompt version, effort) travels
+        # with the result into insights.json whether the call succeeded or not.
+        records = [{"x": 1}]
+        metadata = {
+            "model": "claude-opus-4-7",
+            "provider": "anthropic",
+            "prompt_version": "2026-10-09",
+            "effort": None,
+        }
+
+        with patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 1}), \
+             patch("ai_insights.generate_insights", return_value={
+                 "success": True,
+                 "insights": {"summary": "good"},
+                 "model": "claude-opus-4-7",
+                 "provider": "anthropic",
+                 "metadata": metadata,
+             }):
+            ok = generate_ai_insights(records, "business")
+
+        with patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 1}), \
+             patch("ai_insights.generate_insights", return_value={
+                 "success": False,
+                 "refusal": True,
+                 "error": "insights unavailable",
+                 "metadata": metadata,
+             }):
+            refused = generate_ai_insights(records, "business")
+
+        assert ok["metadata"] == metadata
+        assert refused["metadata"] == metadata
+        assert refused["ai_insights"] is None
