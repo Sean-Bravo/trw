@@ -45,6 +45,95 @@ TIER_CONFIG = {
     },
 }
 
+# The flag schema — the JSON contract every insights response must satisfy.
+# Sent to Claude as a structured-output format (output_config.format), so the
+# response is schema-valid or the call fails; there is no tool call to force.
+# Structured outputs reject map-shaped objects (additionalProperties must be
+# false), so transaction_types travels as [{type, count}] and is folded back
+# into the {type: count} dict the frontend type expects (lib/upload-client.ts)
+# by _normalize_insights.
+INSIGHTS_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "summary": {"type": "string"},
+        "total_transactions": {"type": "integer"},
+        "date_range": {
+            "type": "object",
+            "properties": {
+                "start": {"type": "string"},
+                "end": {"type": "string"},
+            },
+            "required": ["start", "end"],
+            "additionalProperties": False,
+        },
+        "transaction_types": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {"type": "string"},
+                    "count": {"type": "integer"},
+                },
+                "required": ["type", "count"],
+                "additionalProperties": False,
+            },
+        },
+        "top_assets": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "asset": {"type": "string"},
+                    "count": {"type": "integer"},
+                },
+                "required": ["asset", "count"],
+                "additionalProperties": False,
+            },
+        },
+        "what_to_do_next": {"type": "array", "items": {"type": "string"}},
+        "data_notes": {"type": "array", "items": {"type": "string"}},
+        "estimated_taxable_events": {"type": "integer"},
+    },
+    "required": [
+        "summary",
+        "total_transactions",
+        "date_range",
+        "transaction_types",
+        "top_assets",
+        "what_to_do_next",
+        "data_notes",
+        "estimated_taxable_events",
+    ],
+    "additionalProperties": False,
+}
+
+
+def _normalize_insights(parsed: Any) -> Any:
+    """Fold the schema's [{type, count}] transaction_types back into the
+    {type: count} dict the frontend expects. A dict passes through untouched,
+    so the Gemini path (which follows the prompt example) and any cached
+    legacy output stay valid."""
+    if not isinstance(parsed, dict):
+        return parsed
+    tx_types = parsed.get("transaction_types")
+    if isinstance(tx_types, list):
+        folded: Dict[str, int] = {}
+        for item in tx_types:
+            if not isinstance(item, dict) or "type" not in item:
+                continue
+            count = item.get("count", 0)
+            if not isinstance(count, int):
+                continue
+            key = str(item["type"])
+            folded[key] = folded.get(key, 0) + count
+        parsed["transaction_types"] = folded
+    return parsed
+
+
+def _message_text(message: Any) -> str:
+    """Concatenate the text blocks of a Messages API response."""
+    return "".join(getattr(block, "text", "") or "" for block in (message.content or []))
+
 
 class AIProvider(ABC):
     """Base class for AI providers."""
@@ -69,6 +158,8 @@ class AnthropicProvider(AIProvider):
 
             client = anthropic.Anthropic(api_key=self.api_key)
 
+            # Structured outputs: the text block is guaranteed to satisfy
+            # INSIGHTS_SCHEMA. No tools are offered, so nothing is forced.
             message = client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
@@ -78,15 +169,18 @@ class AnthropicProvider(AIProvider):
                         "content": f"{prompt}\n\nTransaction Data:\n{data}",
                     }
                 ],
+                output_config={
+                    "format": {"type": "json_schema", "schema": INSIGHTS_SCHEMA},
+                },
             )
 
-            response_text = message.content[0].text
+            response_text = _message_text(message)
 
             # Try to parse as JSON, fall back to text
             try:
                 return {
                     "success": True,
-                    "insights": json.loads(response_text),
+                    "insights": _normalize_insights(json.loads(response_text)),
                     "model": self.model,
                     "provider": "anthropic",
                 }
@@ -255,7 +349,7 @@ class GoogleProvider(AIProvider):
             try:
                 return {
                     "success": True,
-                    "insights": json.loads(clean_json),
+                    "insights": _normalize_insights(json.loads(clean_json)),
                     "model": self.model,
                     "provider": "google",
                 }
@@ -354,7 +448,7 @@ Return ONLY valid JSON in this format:
     "summary": "Your Coinbase export contains 156 transactions...",
     "total_transactions": 156,
     "date_range": {"start": "2024-01-15", "end": "2024-12-28"},
-    "transaction_types": {"buy": 50, "sell": 30, "transfer": 20, "staking": 10},
+    "transaction_types": [{"type": "buy", "count": 50}, {"type": "sell", "count": 30}, {"type": "transfer", "count": 20}, {"type": "staking", "count": 10}],
     "top_assets": [{"asset": "BTC", "count": 45}, {"asset": "ETH", "count": 38}],
     "what_to_do_next": ["Download and import into your tax software", "Review any flagged transactions"],
     "data_notes": ["Found 10 staking rewards (taxable as income)", "3 transfers missing destination addresses"],
