@@ -5,7 +5,7 @@
 Stable release for the TaxFormatter public launch. No API changes from 0.1.1.
 
 - Development status promoted from Alpha to Production/Stable
-- PyPI publish workflow now triggers only on `sdk-python-v*.*.*` tags, so app release tags no longer attempt a publish
+- PyPI publish workflow triggers only on `sdk-v*.*.*` tags, so app release tags no longer attempt a publish
 
 ## 0.1.1 (2026-04-22)
 
