@@ -35,7 +35,7 @@ Drop a CSV from Coinbase, a ZIP from Kraken, a `.tar.gz` from Binance, or a PDF 
 Ship a crypto-tax or bank-ingestion feature into your product in an afternoon.
 
 - `POST /v1/parse` — upload a CSV or PDF, get structured JSON back
-- `GET  /v1/sources` — list every supported exchange, bank, and output format
+- `GET  /v1/sources` — list every supported exchange, bank, and output format, each with a `verified` / `beta` status
 - `GET  /v1/usage` — monthly quota, RPM limit, current consumption
 - `GET  /v1/health` — liveness probe
 - **Auth:** `X-API-Key` header with `tf_live_*` keys (SHA-256 hashed at rest)
@@ -58,22 +58,37 @@ npx @taxformatter/mcp-server
 - **Node.js** → [`@taxformatter/sdk`](packages/sdk-node) — promise-based, fully typed
 - **Python** → [`taxformatter`](packages/sdk-python) — idiomatic, type-hinted
 
-### 🏦 14 Exchanges · 7+ Banks · 4 Tax Software Formats
+### 🏦 14 Exchanges · 6 Banks · 4 Export Formats
 
-**Exchanges:** Coinbase · Kraken · Gemini · Binance · Robinhood · Crypto.com · PayPal · Cash App · Venmo · KuCoin · Bybit · FTX · Bitfinex · OKX
+Every public supported-source claim is generated from two registries, and drift tests fail CI if any surface disagrees with them:
 
-**Banks:** Chase · Mercury · Navy Federal · Bank of America · Wells Fargo · Citi · Capital One
+- **Exchanges** — [`backend/configs/exchanges.yaml`](backend/configs/exchanges.yaml), mirrored by [`lib/exchange-registry.ts`](lib/exchange-registry.ts)
+- **Banks** — [`backend/configs/banks/*.yaml`](backend/configs/banks), mirrored by [`lib/bank-registry.ts`](lib/bank-registry.ts)
+
+`GET /v1/sources` serves the same lists. Every entry carries a `status`: **verified** means a fixture-backed parse test runs on every change; **beta** means the parser exists but has no fixture yet. A new status is earned by a test, never by editing a registry.
+
+**Exchanges (verified):** Binance · Coinbase · Kraken · KuCoin · Bybit · Cash App · Robinhood · PayPal · Crypto.com · Gemini · FTX · Bitfinex · OKX
+
+**Exchanges (beta):** Venmo
+
+**Banks (verified):** Chase · Mercury · Navy Federal
+
+**Banks (beta):** Bank of America · Wells Fargo · Citi
 
 **Export formats:** Koinly · TurboTax (Form 8949) · CoinLedger · ZenLedger
 
-### 🧠 Tiered AI Insights
-Every parsed file comes back with actionable analysis — scaled to your plan.
+Per-exchange detail: [content/docs/getting-started/supported-exchanges.md](content/docs/getting-started/supported-exchanges.md).
 
-| Tier | Model | Output |
-|------|-------|--------|
-| Free / Starter | Gemini 2.5 Flash | Quick stats + basic flagging |
-| Growth | Claude Sonnet 4.6 | Balanced analysis, breakdowns |
-| Business | Claude Opus 4.7 | Deep analysis + tax suggestions |
+### 🧠 Tiered AI Insights
+Every parsed file comes back with analysis scaled to your plan. Plans expose an insights _level_; the level → model mapping lives in [`lib/insights-engine.ts`](lib/insights-engine.ts) and is published only in the [API docs](https://www.taxformatter.com/docs/api) and blog Updates posts.
+
+| Level | Plans | Output |
+|-------|-------|--------|
+| Standard | Free / Starter | Quick stats + basic flagging |
+| Advanced | Growth | Balanced analysis, breakdowns |
+| Premium | Business | Deep analysis + tax suggestions |
+
+The insights contract is strict. Model output is validated against a fixed schema, and a refusal, truncation, or unparseable response falls back to the deterministic quick stats with an `insights unavailable` warning rather than partial flags. Every result is stamped with the model, prompt version, and effort that produced it, and every model call logs tokens, cache-hit rate, latency, and cost.
 
 ### 🖥️ Consumer Dashboard
 Not a developer? The web app at [taxformatter.com](https://taxformatter.com) is a full drag-and-drop experience with real-time job status, exchange auto-detection, transformation previews, and one-click downloads.
@@ -94,6 +109,7 @@ Not a developer? The web app at [taxformatter.com](https://taxformatter.com) is 
 | **Payments** | Stripe (consumer + developer tiers) |
 | **Email** | AWS SES / Nodemailer |
 | **Monitoring** | Sentry + CloudWatch |
+| **Cron** | Vercel Cron (daily 30-day retention prune) |
 | **IaC** | Terraform |
 
 ---
@@ -102,10 +118,12 @@ Not a developer? The web app at [taxformatter.com](https://taxformatter.com) is 
 
 ```
 trw/
-├── app/                 # Next.js App Router (marketing, dashboard, /v1 admin)
-│   ├── api/             # Internal API routes (NextAuth, uploads, jobs, dev keys)
+├── app/                 # Next.js App Router (marketing, dashboard, docs, blog)
+│   ├── api/             # Internal API routes (NextAuth, uploads, jobs, dev keys, cron/prune)
 │   ├── dashboard/       # Authenticated user area + /dashboard/developer
-│   ├── docs/            # MDX-powered docs site
+│   ├── docs/ · blog/    # MDX-powered docs site and blog (content in content/)
+│   ├── playground/      # API playground
+│   ├── samples/         # Sample outputs
 │   └── upload/          # Anonymous bank statement → CSV landing page
 │
 ├── backend/             # Python processing layer (AWS Lambda)
@@ -114,10 +132,13 @@ trw/
 │   │   ├── engine.py            # CSV parsing (14 exchange parsers)
 │   │   ├── format_converter.py  # Koinly → TurboTax/CoinLedger/ZenLedger
 │   │   ├── fingerprinting.py    # Exchange auto-detection
-│   │   ├── ai_insights.py       # Tiered AI analysis
+│   │   ├── ai_insights.py       # Tiered AI analysis (schema-validated, refusal-safe)
 │   │   ├── api_auth.py          # API key validation + rate limiting
 │   │   └── bank_statement/      # PDF extraction pipeline
-│   ├── configs/banks/*.yaml     # YAML-driven bank configs
+│   ├── configs/
+│   │   ├── exchanges.yaml       # Exchange source registry (serves /v1/sources)
+│   │   └── banks/*.yaml         # Bank source registry + parser configs
+│   ├── tests/                   # pytest suite + parse fixtures
 │   └── terraform/               # Infra as code
 │
 ├── packages/
@@ -126,9 +147,16 @@ trw/
 │   └── sdk-python/      # taxformatter (PyPI)
 │
 ├── components/          # React components (marketing, dashboard, ui)
+├── content/             # Docs (.md) and blog (.mdx) sources
 ├── lib/                 # Business logic (auth, api-keys, stripe, email)
+│   ├── exchange-registry.ts # Mirrors backend/configs/exchanges.yaml
+│   ├── bank-registry.ts     # Mirrors backend/configs/banks/*.yaml
+│   ├── tier-registry.ts     # The one price list (plan, price, quota, RPM, insights level)
+│   ├── insights-engine.ts   # The one model list (insights level → model)
+│   └── retention.ts         # RETENTION_DAYS = 30
 ├── db/                  # PostgreSQL schema + migrations
-└── docs/                # Setup guides
+├── __tests__/           # Jest suite, incl. copy and registry drift guards
+└── docs/                # Setup guides, plans, build reports
 ```
 
 Full architectural reference: **[ARCHITECTURE.md](ARCHITECTURE.md)**
@@ -177,8 +205,24 @@ npm install @taxformatter/sdk
 ```ts
 import { TaxFormatter } from "@taxformatter/sdk";
 
-const tf = new TaxFormatter({ apiKey: process.env.TF_API_KEY! });
-const result = await tf.parse({ file: fs.createReadStream("./coinbase.csv") });
+const tf = new TaxFormatter(process.env.TF_API_KEY!);
+
+// Parse a file by path, or pass a Buffer with a filename
+const result = await tf.parse("./coinbase.csv");
+const turbotax = await tf.parse(buffer, "coinbase.csv", { outputFormat: "turbotax" });
+```
+
+### Install the Python SDK
+
+```bash
+pip install taxformatter
+```
+
+```python
+from taxformatter import TaxFormatter
+
+tf = TaxFormatter("tf_live_...")
+result = tf.parse("./coinbase.csv")
 ```
 
 ---
@@ -186,11 +230,14 @@ const result = await tf.parse({ file: fs.createReadStream("./coinbase.csv") });
 ## 🧪 Testing
 
 ```bash
-npm test              # Jest unit tests (160+ across API, MCP, keys, UI)
+npm test              # Jest (700+ tests: API routes, MCP, keys, registries, UI)
 npm run test:e2e      # Playwright end-to-end tests
 npm run typecheck     # TypeScript strict mode
 npm run lint          # ESLint
+cd backend && pytest  # Python engine, parsers, insights, API Lambda (370+ tests)
 ```
+
+Public copy is tested too. Drift guards under [`__tests__/`](__tests__) fail if any surface hard-codes a price, quota, or model name outside the registries, names an exchange or bank the registries don't list, or carries a superseded retention or marketing claim.
 
 ---
 
@@ -214,6 +261,7 @@ Source of truth: `lib/tier-registry.ts` (prices, quotas, limits) and `lib/insigh
 - **API payloads never stored** — request bodies are parsed in memory and never written to S3 or the database
 - **Metadata-only request log** — `api_requests` stores key id, endpoint, status, bytes, timing, detected source, error code, and caller IP; never file contents
 - **API keys SHA-256 hashed** at rest, prefixed `tf_live_` for easy identification
+- **Uploads only** — TaxFormatter never asks for exchange API keys or bank logins
 - **TLS 1.3** enforced everywhere
 - **AES-256** encryption on all stored uploads
 - **AWS WAF** in front of the API
@@ -227,9 +275,11 @@ Full disclosure at [taxformatter.com/security](https://taxformatter.com/security
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Full system design
 - **[content/docs/api/index.md](content/docs/api/index.md)** — API reference
+- **[content/docs/getting-started/supported-exchanges.md](content/docs/getting-started/supported-exchanges.md)** — per-exchange status, generated from the registry
 - **[packages/mcp-server/README.md](packages/mcp-server/README.md)** — MCP setup guide
 - **[RELIABILITY.md](RELIABILITY.md)** — SLOs, incident playbooks
-- **[docs/](docs/)** — Stripe, Sentry, and deployment guides
+- **[docs/PARKED_UNTIL_REVIEW.md](docs/PARKED_UNTIL_REVIEW.md)** — post-launch initiatives frozen until the Oct 28 review
+- **[docs/](docs/)** — Stripe, Sentry, deployment guides, and build reports
 
 ---
 
