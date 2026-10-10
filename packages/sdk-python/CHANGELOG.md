@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0 (2026-10-10)
+
+Stable release for the TaxFormatter public launch. No API changes from 0.1.1.
+
+- Development status promoted from Alpha to Production/Stable
+- PyPI publish workflow triggers only on `sdk-v*.*.*` tags, so app release tags no longer attempt a publish
+
 ## 0.1.1 (2026-04-22)
 
 - Rename PyPI package from `taxformatter-sdk` to `taxformatter` so the pip install name matches the import name. No code changes.
