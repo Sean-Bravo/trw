@@ -6,6 +6,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ApiKeyManager } from '@/components/dashboard/ApiKeyManager';
+import { useSearchParams } from 'next/navigation';
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
@@ -113,6 +114,38 @@ describe('ApiKeyManager', () => {
       await waitFor(() => {
         expect(screen.getByText('Your API Keys')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Checkout return states', () => {
+    afterEach(() => {
+      (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams());
+    });
+
+    it('shows a dismissible notice when Stripe sends the user back with checkout=cancelled', async () => {
+      mockFetchResponses();
+      (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams('checkout=cancelled'));
+      const replaceState = jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+
+      render(<ApiKeyManager />);
+
+      expect(await screen.findByText(/Checkout cancelled/i)).toBeInTheDocument();
+      expect(replaceState).toHaveBeenCalledWith({}, '', '/dashboard/developer');
+
+      fireEvent.click(screen.getByRole('button', { name: /dismiss/i }));
+      expect(screen.queryByText(/Checkout cancelled/i)).not.toBeInTheDocument();
+
+      replaceState.mockRestore();
+    });
+
+    it('shows no checkout notice on a plain dashboard visit', async () => {
+      mockFetchResponses();
+      render(<ApiKeyManager />);
+      await waitFor(() => {
+        expect(screen.getByText('Create API Key')).toBeInTheDocument();
+      });
+      expect(screen.queryByText(/Checkout cancelled/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Subscription activated/i)).not.toBeInTheDocument();
     });
   });
 

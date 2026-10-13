@@ -109,6 +109,19 @@ describe('POST /api/developer/subscribe', () => {
     );
   });
 
+  it('gives Stripe distinct success and cancel return URLs so the dashboard can tell them apart', async () => {
+    mockGetServerSession.mockResolvedValue({
+      user: { id: 'user-1', email: 'test@example.com' },
+    });
+    const request = createMockRequest({ tier: 'growth', apiKeyId: 'key-abc' });
+
+    await POST(request as any);
+
+    const params = mockCheckoutCreate.mock.calls[0]?.[0];
+    expect(params.success_url).toMatch(/\/dashboard\/developer\?upgraded=true$/);
+    expect(params.cancel_url).toMatch(/\/dashboard\/developer\?checkout=cancelled$/);
+  });
+
   it('uses correct price ID for tier', async () => {
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-1', email: 'test@example.com' },

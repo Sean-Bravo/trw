@@ -143,7 +143,7 @@ export default async function DocPage({ params }: DocPageProps) {
         />
       )}
       <div className="flex gap-8">
-        <article className="flex-1 prose prose-sm max-w-none dark:prose-invert">
+        <article className="flex-1 min-w-0 prose prose-sm max-w-none dark:prose-invert prose-code:before:content-none prose-code:after:content-none">
           <div className="mb-8 pb-8 border-b border-gray-200">
             <Breadcrumbs items={breadcrumbItems} />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">{doc.title}</h1>
