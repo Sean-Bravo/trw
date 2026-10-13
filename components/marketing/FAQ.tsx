@@ -107,7 +107,7 @@ export function FAQ() {
   return (
     <>
       <FAQSchema items={schemaItems} />
-      <section className="bg-surface-base py-20 relative overflow-hidden">
+      <section className="bg-surface-base py-20 relative overflow-x-clip">
         <div 
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
@@ -161,7 +161,7 @@ export function FAQ() {
                 })}
               </div>
 
-              <div className="col-span-7 sticky top-8">
+              <div className="col-span-7 sticky top-24">
                 <div className={clsx(
                   "bg-white/4 p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500 shadow-xl relative overflow-hidden",
                   ANSWER_ACCENT
