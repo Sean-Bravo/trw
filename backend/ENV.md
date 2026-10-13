@@ -38,6 +38,7 @@ These are automatically set by Terraform:
 | `RESULTS_BUCKET` | Terraform | S3 bucket for processed results |
 | `PROCESSING_QUEUE` | Terraform | SQS queue URL (scanner only) |
 | `SECRETS_ARN` | Terraform | AWS Secrets Manager ARN |
+| `INSIGHTS_SHADOW_TIERS` | Terraform (`insights_shadow_tiers`, default `business`) | Processor only. Tiers whose insights also run on the shadow candidate model in `SHADOW_CONFIG` (`backend/services/ai_insights.py`); the result goes to `results/{job}/insights_shadow.json` and is never served. Unset = every `SHADOW_CONFIG` tier; `""` = off. To stop the shadow without a Terraform apply: `aws lambda update-function-configuration --function-name <processor> --environment "Variables={...,INSIGHTS_SHADOW_TIERS=''}"` |
 
 ## Secrets Manager Values
 

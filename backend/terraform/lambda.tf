@@ -442,6 +442,9 @@ resource "aws_lambda_function" "processor" {
       UPLOADS_BUCKET = aws_s3_bucket.uploads.id
       RESULTS_BUCKET = aws_s3_bucket.results.id
       SECRETS_ARN    = aws_secretsmanager_secret.app_secrets.arn
+      # Tiers whose insights get a shadow-model run (ai_insights.SHADOW_CONFIG).
+      # "" turns the shadow off without a code deploy.
+      INSIGHTS_SHADOW_TIERS = var.insights_shadow_tiers
     }
   }
 

@@ -3,6 +3,8 @@ Tests for handlers/processor.py — focused on the AI insights tier routing
 added in the Tiered AI Insights wire-up.
 """
 
+import json
+import logging
 import sys
 import os
 from unittest.mock import MagicMock, patch
@@ -27,7 +29,8 @@ sys.modules["chardet"] = MagicMock()
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services"))
 
-from handlers.processor import generate_ai_insights
+from handlers import processor as processor_module
+from handlers.processor import generate_ai_insights, run_shadow_insights, process_message
 
 # Restore real data libs so later-collected test modules import them
 # instead of the MagicMocks installed above.
@@ -239,3 +242,94 @@ class TestGenerateAiInsights:
         assert ok["metadata"] == metadata
         assert refused["metadata"] == metadata
         assert refused["ai_insights"] is None
+
+
+# ---------------------------------------------------------------------------
+# run_shadow_insights — shadow model run, never in the user's path
+# ---------------------------------------------------------------------------
+
+class TestRunShadowInsights:
+
+    RECORDS = [{"Date": "2024-01-01 00:00:00", "Sent Amount": "1", "Sent Currency": "USD",
+                "Received Amount": "0.1", "Received Currency": "BTC", "Description": "buy"}]
+    PRODUCTION = {"success": True, "ai_insights": {"summary": "ok", "flags": []}}
+
+    def test_uploads_shadow_result_to_its_own_key(self):
+        shadow = {"success": True, "role": "shadow", "insights": {"summary": "shadow"}}
+        with patch("ai_insights.generate_shadow_insights", return_value=shadow) as gen, \
+             patch.object(processor_module, "get_secrets", return_value={"ANTHROPIC_API_KEY": "k"}), \
+             patch.object(processor_module, "s3_client") as s3, \
+             patch.object(processor_module, "RESULTS_BUCKET", "results-bucket"):
+            run_shadow_insights(self.RECORDS, "business", "job-1", self.PRODUCTION)
+
+        gen.assert_called_once_with(
+            self.RECORDS, "business", {"ANTHROPIC_API_KEY": "k"},
+            production_insights=self.PRODUCTION["ai_insights"],
+        )
+        put = s3.put_object.call_args.kwargs
+        assert put["Bucket"] == "results-bucket"
+        assert put["Key"] == "results/job-1/insights_shadow.json"
+        assert put["Key"] != "results/job-1/insights.json"
+        assert json.loads(put["Body"]) == shadow
+
+    def test_nothing_is_written_when_the_tier_is_not_shadowed(self):
+        with patch("ai_insights.generate_shadow_insights", return_value=None), \
+             patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "s3_client") as s3:
+            run_shadow_insights(self.RECORDS, "free", "job-1", self.PRODUCTION)
+        s3.put_object.assert_not_called()
+
+    def test_failures_are_swallowed_with_the_error_class_only(self, caplog):
+        with patch("ai_insights.generate_shadow_insights", side_effect=ValueError("cell value 123.45")), \
+             patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "s3_client"), \
+             caplog.at_level(logging.WARNING, logger=""):
+            run_shadow_insights(self.RECORDS, "business", "job-1", self.PRODUCTION)   # must not raise
+
+        msgs = [r.getMessage() for r in caplog.records if "insights_shadow_error" in r.getMessage()]
+        assert msgs and "error_class=ValueError" in msgs[0] and "job_id=job-1" in msgs[0]
+        assert "123.45" not in msgs[0]           # retention: never the message
+        assert all(r.levelno < logging.ERROR for r in caplog.records)
+
+    def test_s3_failure_is_swallowed_too(self, caplog):
+        with patch("ai_insights.generate_shadow_insights", return_value={"success": True}), \
+             patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "s3_client") as s3, \
+             caplog.at_level(logging.WARNING, logger=""):
+            s3.put_object.side_effect = RuntimeError("s3 down")
+            run_shadow_insights(self.RECORDS, "business", "job-1", self.PRODUCTION)
+        assert any("insights_shadow_error" in r.getMessage() for r in caplog.records)
+
+
+class TestProcessMessageShadowOrder:
+    """The shadow run starts only after the user's insights.json is stored,
+    and a shadow failure cannot fail the job."""
+
+    MESSAGE = {"job_id": "job-9", "s3_bucket": "uploads", "s3_key": "uploads/job-9/f.csv",
+               "filename": "f.csv", "user_id": "u", "user_tier": "business"}
+
+    def _run(self, shadow_side_effect=None):
+        order = []
+        insights_result = {"success": True, "quick_stats": {"total_transactions": 1}, "ai_insights": {"summary": "ok"}}
+        with patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "download_file", return_value=b"csv"), \
+             patch.object(processor_module, "process_csv", return_value={
+                 "success": True, "csv_output": "Date,Description\n2024-01-01,buy\n", "record_count": 1, "exchange": "coinbase",
+             }), \
+             patch.object(processor_module, "upload_result", return_value="results/job-9/output.csv"), \
+             patch.object(processor_module, "upload_result_json"), \
+             patch.object(processor_module, "generate_ai_insights", return_value=insights_result), \
+             patch.object(processor_module, "upload_insights", side_effect=lambda *a: order.append("upload_insights")), \
+             patch.object(processor_module, "run_shadow_insights",
+                          side_effect=lambda *a: (order.append("run_shadow_insights"), shadow_side_effect and (_ for _ in ()).throw(shadow_side_effect))) as shadow:
+            result = process_message(self.MESSAGE)
+        return result, order, shadow
+
+    def test_shadow_runs_after_the_users_insights_are_stored(self):
+        result, order, shadow = self._run()
+        assert result["success"] is True and result["has_insights"] is True
+        assert order == ["upload_insights", "run_shadow_insights"]
+        args = shadow.call_args.args
+        assert args[1] == "business" and args[2] == "job-9"
+        assert args[0] == [{"Date": "2024-01-01", "Description": "buy"}]
+        assert args[3]["ai_insights"] == {"summary": "ok"}

@@ -48,6 +48,7 @@ SAMPLE_INSIGHTS = {
     "what_to_do_next": ["Download and import into your tax software"],
     "data_notes": ["Found 1 staking reward (taxable as income)"],
     "estimated_taxable_events": 2,
+    "flags": [{"category": "staking_income", "count": 1, "detail": "1 BTC staking reward."}],
 }
 
 
@@ -190,8 +191,18 @@ class TestStructuredOutputRequest:
         expected = {
             "summary", "total_transactions", "date_range", "transaction_types",
             "top_assets", "what_to_do_next", "data_notes", "estimated_taxable_events",
+            "flags",
         }
         assert set(INSIGHTS_SCHEMA["properties"]) == expected
+
+    def test_flag_categories_are_a_closed_enum_the_prompt_documents(self):
+        # The enum is the unit of shadow comparison; every category must be
+        # explained in the cached prefix so both models mean the same thing.
+        enum = INSIGHTS_SCHEMA["properties"]["flags"]["items"]["properties"]["category"]["enum"]
+        assert enum == ai_insights.FLAG_CATEGORIES
+        assert len(set(enum)) == len(enum)
+        for category in enum:
+            assert f"- {category} —" in ai_insights.INSIGHTS_SYSTEM_PROMPT, category
 
 
 # ---------------------------------------------------------------------------
@@ -380,10 +391,20 @@ class TestMetadataStamp:
         assert re.fullmatch(r"\d{4}-\d{2}-\d{2}(\.\d+)?", ai_insights.INSIGHTS_PROMPT_VERSION)
 
     def test_every_tier_declares_an_effort_setting(self):
+        # Effort is tuned per request type: a plain summary at low, an
+        # analysis-heavy file at high. Gemini tiers have no effort control.
         allowed = {None, "low", "medium", "high", "xhigh", "max"}
-        for tier, config in ai_insights.TIER_CONFIG.items():
-            assert "effort" in config, tier
-            assert config["effort"] in allowed, (tier, config["effort"])
+        for name, table in (("TIER_CONFIG", ai_insights.TIER_CONFIG), ("SHADOW_CONFIG", ai_insights.SHADOW_CONFIG)):
+            for tier, config in table.items():
+                assert "effort" in config, (name, tier)
+                effort = config["effort"]
+                if config["provider"] == "anthropic":
+                    assert set(effort) == set(ai_insights.REQUEST_TYPES), (name, tier)
+                    assert effort["summary"] == "low" and effort["analysis"] == "high", (name, tier)
+                    for value in effort.values():
+                        assert value in allowed, (name, tier, value)
+                else:
+                    assert effort is None, (name, tier)
 
     def test_success_result_carries_metadata(self):
         module, _ = _fake_anthropic(_message(json.dumps(SAMPLE_INSIGHTS)))
@@ -395,7 +416,9 @@ class TestMetadataStamp:
             "model": "claude-opus-4-7",
             "provider": "anthropic",
             "prompt_version": ai_insights.INSIGHTS_PROMPT_VERSION,
-            "effort": ai_insights.TIER_CONFIG["business"]["effort"],
+            "effort": "low",            # one record → summary → low
+            "request_type": "summary",
+            "input": {"records_total": 1, "records_sent": 1, "chars": 77, "capped": False},
         }
 
     def test_refusal_result_carries_the_same_metadata(self):
@@ -427,6 +450,7 @@ class TestMetadataStamp:
         assert create_high.call_args.kwargs["output_config"]["format"]["type"] == "json_schema"
 
     def test_configured_effort_reaches_provider_and_metadata(self):
+        # A plain string still works as a tier-wide setting (no per-type table).
         with patch.dict(ai_insights.TIER_CONFIG["business"], {"effort": "high"}):
             provider = ai_insights.get_ai_provider("business", self.SECRETS)
             assert provider.effort == "high"
@@ -436,6 +460,13 @@ class TestMetadataStamp:
                 result = ai_insights.generate_insights(self.RECORDS, "business", self.SECRETS)
 
         assert result["metadata"]["effort"] == "high"
+
+    def test_request_type_selects_the_effort(self):
+        provider = ai_insights.get_ai_provider("business", self.SECRETS, "analysis")
+        assert provider.effort == "high"
+        provider = ai_insights.get_ai_provider("business", self.SECRETS, "summary")
+        assert provider.effort == "low"
+        assert ai_insights.get_ai_provider("business", self.SECRETS).effort == "low"
 
     def test_gemini_result_carries_metadata_with_no_effort(self):
         gemini_body = json.dumps({
@@ -457,6 +488,8 @@ class TestMetadataStamp:
             "provider": "google",
             "prompt_version": ai_insights.INSIGHTS_PROMPT_VERSION,
             "effort": None,
+            "request_type": "summary",
+            "input": {"records_total": 1, "records_sent": 1, "chars": 77, "capped": False},
         }
 
     def test_jest_drift_guard_can_still_read_tier_config(self):
@@ -497,7 +530,9 @@ class TestUsageLogging:
 
     def test_pricing_table_covers_every_anthropic_tier_model(self):
         anthropic_models = {
-            cfg["model"] for cfg in ai_insights.TIER_CONFIG.values() if cfg["provider"] == "anthropic"
+            cfg["model"]
+            for table in (ai_insights.TIER_CONFIG, ai_insights.SHADOW_CONFIG)
+            for cfg in table.values() if cfg["provider"] == "anthropic"
         }
         assert anthropic_models <= set(ai_insights.MODEL_PRICING)
         for price in ai_insights.MODEL_PRICING.values():
