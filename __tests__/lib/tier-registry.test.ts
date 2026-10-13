@@ -64,6 +64,9 @@ const NO_VENDOR_SURFACES = [
   'components/dashboard/AIInsightsPanel.tsx',
   'app/dashboard/jobs/[jobId]/JobDetailClient.tsx',
   'app/upload/page.tsx',
+  'app/bank-statement-to-csv/page.tsx',
+  'app/bank-statement-to-csv/layout.tsx',
+  'components/upload/BankUploadBox.tsx',
   'app/security/page.tsx',
   'app/terms/page.tsx',
 ];

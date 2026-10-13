@@ -17,6 +17,8 @@ const SURFACES = [
   'app/terms/page.tsx',
   'app/about/page.tsx',
   'app/upload/page.tsx',
+  'app/bank-statement-to-csv/page.tsx',
+  'app/bank-statement-to-csv/layout.tsx',
   'components/marketing/TrustEngine.tsx',
   'components/seo/SoftwareApplicationSchema.tsx',
   'content/docs/faq/index.md',

@@ -26,6 +26,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      // Bank funnel destination (bank-statement ads and search land here).
+      url: `${baseUrl}/bank-statement-to-csv`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/success`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
