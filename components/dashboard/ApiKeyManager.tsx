@@ -45,12 +45,18 @@ export function ApiKeyManager() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [showUpgradeBanner, setShowUpgradeBanner] = useState(false);
+  const [showCancelledNotice, setShowCancelledNotice] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // Detect ?upgraded=true after Stripe checkout redirect
+  // Detect Stripe checkout redirects: ?upgraded=true (success) or
+  // ?checkout=cancelled (the user backed out). Strip the param either way
+  // so a refresh does not re-show the notice.
   useEffect(() => {
-    if (searchParams.get('upgraded') === 'true') {
-      setShowUpgradeBanner(true);
+    const upgraded = searchParams.get('upgraded') === 'true';
+    const cancelled = searchParams.get('checkout') === 'cancelled';
+    if (upgraded) setShowUpgradeBanner(true);
+    if (cancelled) setShowCancelledNotice(true);
+    if (upgraded || cancelled) {
       window.history.replaceState({}, '', '/dashboard/developer');
     }
   }, [searchParams]);
@@ -196,6 +202,24 @@ export function ApiKeyManager() {
           <button
             onClick={() => setShowUpgradeBanner(false)}
             className="text-emerald-400/60 hover:text-emerald-300 text-sm"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Checkout cancelled notice */}
+      {showCancelledNotice && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+            <p className="text-amber-300 text-sm font-medium">
+              Checkout cancelled. No charge was made and your plan is unchanged.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCancelledNotice(false)}
+            className="text-amber-400/60 hover:text-amber-300 text-sm"
           >
             Dismiss
           </button>

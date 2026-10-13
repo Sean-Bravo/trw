@@ -97,13 +97,13 @@ export default function PlaygroundPage() {
 
         {/* Two-column layout */}
         <div className="grid gap-5 lg:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <PlaygroundRequestBuilder
               onSend={handleSend}
               disabled={response.status === 'loading'}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <PlaygroundResponseViewer
               status={response.status}
               httpStatus={response.httpStatus}

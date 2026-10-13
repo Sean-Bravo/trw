@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       customer_email: session.user.email,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/dashboard/developer?upgraded=true`,
-      cancel_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/dashboard/developer`,
+      cancel_url: `${process.env['NEXT_PUBLIC_APP_URL'] || 'http://localhost:3000'}/dashboard/developer?checkout=cancelled`,
       metadata: {
         api_tier: tier.toLowerCase(),
         api_key_id: apiKeyId,

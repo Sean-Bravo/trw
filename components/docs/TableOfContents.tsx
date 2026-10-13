@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { TocItem } from '@/types/docs'
+import { getDocHeadings } from '@/lib/docs-headings'
 
 
 interface TableOfContentsProps {
@@ -14,22 +15,9 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   const [readProgress, setReadProgress] = useState(0)
 
   useEffect(() => {
-    // Extract headings from markdown content
-    const headingRegex = /^(#{2,3})\s+(.+)$/gm
-    const matches = [...content.matchAll(headingRegex)]
-
-    const tocItems: TocItem[] = matches.map((match) => {
-      const level = match[1]?.length || 2
-      const text = match[2]?.replace(/[`*_]/g, '') || '' // Remove markdown formatting
-      const id = text
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
-
-      return { id, text, level }
-    })
-
-    setHeadings(tocItems)
+    // Same slug rule as the rendered heading ids (lib/docs-headings.ts), so
+    // every link here resolves to a real element.
+    setHeadings(getDocHeadings(content))
   }, [content])
 
   useEffect(() => {
