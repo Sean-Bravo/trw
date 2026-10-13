@@ -365,6 +365,9 @@ export interface AIInsights {
     data_notes?: string[];        // New: observations about the data
     estimated_events?: number;    // Legacy field name
     estimated_taxable_events?: number;  // New field name
+    // Machine-readable counterpart of data_notes (ai_insights.FLAG_CATEGORIES).
+    // Not rendered; read by the shadow comparison and the Oct 28 review.
+    flags?: Array<{ category: string; count: number; detail: string }>;
   };
   tier?: string;
   model?: string;

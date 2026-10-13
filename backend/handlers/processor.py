@@ -362,6 +362,40 @@ def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
         }
 
 
+def run_shadow_insights(records: List[Dict], user_tier: str, job_id: str, insights_result: Dict) -> None:
+    """Shadow-only model run on the tier's candidate model (ai_insights.SHADOW_CONFIG).
+
+    Runs after the user's insights.json is already in S3, on the same
+    normalized input, and writes results/{job_id}/insights_shadow.json — a
+    key nothing serves (the webhook reads insights.json only) and that the
+    job delete route and the 29-day lifecycle rule clean up with the rest.
+    Nothing here can change what the user sees: every failure is a WARNING
+    with the error class only (retention: never the message, which may
+    quote cell values) and the function returns.
+    """
+    try:
+        from ai_insights import generate_shadow_insights
+
+        shadow = generate_shadow_insights(
+            records, user_tier, get_secrets(),
+            production_insights=insights_result.get("ai_insights"),
+        )
+        if shadow is None:
+            return
+        s3_client.put_object(
+            Bucket=RESULTS_BUCKET,
+            Key=f"results/{job_id}/insights_shadow.json",
+            Body=json.dumps(shadow, default=str).encode("utf-8"),
+            ContentType="application/json",
+        )
+        logger.info(f"Uploaded shadow insights for job {job_id}")
+    except Exception as e:
+        logger.warning(
+            "insights_shadow_error job_id=%s tier=%s error_class=%s",
+            job_id, user_tier, type(e).__name__,
+        )
+
+
 def upload_insights(bucket: str, job_id: str, insights: Dict):
     """Upload AI insights to S3."""
     key = f"results/{job_id}/insights.json"
@@ -443,6 +477,9 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 if insights_result.get("success") or insights_result.get("quick_stats"):
                     upload_insights(RESULTS_BUCKET, job_id, insights_result)
                     insights = insights_result
+                # Shadow candidate (Fable 5.1 on Business) — after the user's
+                # result is stored, never before, never in its place.
+                run_shadow_insights(records, user_tier, job_id, insights_result)
 
             # Upload result.json with diff data for frontend
             upload_result_json(RESULTS_BUCKET, job_id, {

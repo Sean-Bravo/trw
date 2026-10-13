@@ -137,3 +137,9 @@ variable "tags" {
     Environment = "Production"
   }
 }
+
+variable "insights_shadow_tiers" {
+  description = "Comma-separated tiers whose AI insights also run on the shadow candidate model (backend/services/ai_insights.py SHADOW_CONFIG). Empty string disables the shadow run; rollback is a config change, not a deploy."
+  type        = string
+  default     = "business"
+}
