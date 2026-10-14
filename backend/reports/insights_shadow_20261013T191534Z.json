@@ -1,0 +1,1998 @@
+{
+  "generated_at": "2026-10-13T19:15:34.965297+00:00",
+  "tier": "business",
+  "prompt_version": "2026-10-13",
+  "production_model": "claude-opus-4-7",
+  "shadow_model": "claude-fable-5-1",
+  "dry_run": false,
+  "files": 15,
+  "rows": [
+    {
+      "file": "binance_valid.csv",
+      "records": 3,
+      "request_type": "analysis",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 345,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 222,
+          "output_tokens": 628,
+          "cache_read_tokens": 0,
+          "cache_creation_tokens": 5781,
+          "cache_hit_rate": 0.0,
+          "latency_ms": 11808,
+          "cost_usd": 0.052941
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 345,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 3,
+          "transaction_types": {
+            "trade": 3
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "10 ETH is sold on 2024-01-02 but the file contains no earlier acquisition of ETH."
+            },
+            {
+              "category": "missing_fields",
+              "count": 3,
+              "detail": "All 3 trades show fees larger than plausible (e.g. 10 BTC fee on a 0.5 BTC buy); fee amounts or currencies may be wrong."
+            }
+          ],
+          "data_notes": [
+            "All 3 rows are crypto-to-crypto or stablecoin trades, which the tax software usually treats as disposals of the sent asset.",
+            "Fees look oversized: 10 BTC fee on a 0.5 BTC buy, 5 ETH fee on a 10 ETH sell, 4 SOL fee on a 100 SOL buy.",
+            "The file starts on 2024-01-01, so there is no earlier acquisition of ETH to match the 2024-01-02 sell."
+          ],
+          "summary": "Your Binance export contains 3 trades on January 1-3, 2024: a USDT to BTC buy, an ETH to USDT sell, and a USDT to SOL buy. The fee amounts look unusually large relative to the received amounts, which is worth a look after import."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 219,
+          "output_tokens": 1269,
+          "cache_read_tokens": 0,
+          "cache_creation_tokens": 5781,
+          "cache_hit_rate": 0.0,
+          "latency_ms": 16574,
+          "cost_usd": 0.137903
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 345,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 0.5,
+          "flags_only_production": [
+            "missing_fields"
+          ],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 3,
+          "transaction_types": {
+            "trade": 3
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 2,
+              "detail": "22500 USDT traded away 2024-01-01 and 10 ETH traded away 2024-01-02 with no acquisition of either asset in the file."
+            }
+          ],
+          "data_notes": [
+            "All 3 rows are crypto-to-crypto trades, where the sent asset is disposed of; USDT is treated as crypto, not fiat.",
+            "The 22500 USDT sent on 2024-01-01 and the 10 ETH sent on 2024-01-02 have no acquisition in this file.",
+            "The 25000 USDT received on 2024-01-02 covers the 9850 USDT sent on 2024-01-03.",
+            "The 2024-01-01 row shows a fee of 10.0 BTC, which is larger than the 0.5 BTC received in that trade.",
+            "Fees on 2024-01-02 (5.0 ETH on a 10 ETH sale) and 2024-01-03 (4.0 SOL on a 100 SOL purchase) are also large relative to the trade amounts."
+          ],
+          "summary": "Your Binance export contains 3 transactions from 2024-01-01 to 2024-01-03, all crypto-to-crypto trades against USDT: a BTC purchase, an ETH sale into USDT and a SOL purchase. Every row has a date, amounts and currencies on both sides, so the file imports as-is, though the file holds no acquisitions for the USDT and ETH traded away in the first two rows."
+        }
+      },
+      "wall_ms": 28995
+    },
+    {
+      "file": "bitfinex_valid.csv",
+      "records": 3,
+      "request_type": "summary",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 349,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 225,
+          "output_tokens": 408,
+          "cache_read_tokens": 0,
+          "cache_creation_tokens": 5781,
+          "cache_hit_rate": 0.0,
+          "latency_ms": 5623,
+          "cost_usd": 0.047456
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 349,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 2,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "0.5 ETH sold on 2024-01-02 but no ETH acquisition appears in the file."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-02 ETH sell has no matching ETH acquisition in the file, so the tax software may lack cost basis for it."
+          ],
+          "summary": "Your Bitfinex export contains 3 trades from January 1 to January 3, 2024: two buys (BTC and XRP) and one sell (ETH). All rows have complete date, amount and currency fields, so the file imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 222,
+          "output_tokens": 551,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.963,
+          "latency_ms": 6565,
+          "cost_usd": 0.031215
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 349,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 2,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "0.5 ETH sold on 2024-01-02 for 1249.998 USD, but the file holds no ETH purchase or deposit."
+            }
+          ],
+          "data_notes": [
+            "0.5 ETH was sold on 2024-01-02 but the file contains no purchase or deposit of ETH, so its acquisition is not in this file.",
+            "All three rows are trades against USD with complete dates, amounts, currencies and fees."
+          ],
+          "summary": "Your Bitfinex export contains 3 transactions from 2024-01-01 to 2024-01-03: a BTC purchase, an ETH sale and an XRP purchase, all against USD. Every row has a date, amounts and currencies, so the file imports as-is. The ETH sold on 2024-01-02 has no purchase in this file, so its acquisition is not shown here."
+        }
+      },
+      "wall_ms": 12194
+    },
+    {
+      "file": "bybit_valid.csv",
+      "records": 3,
+      "request_type": "analysis",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 339,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 225,
+          "output_tokens": 500,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9625,
+          "latency_ms": 7080,
+          "cost_usd": 0.016515
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 339,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 3,
+          "transaction_types": {
+            "trade": 3
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "5 ETH sold on 2024-01-02 for USDT, but no ETH acquisition appears in this file."
+            }
+          ],
+          "data_notes": [
+            "All 3 rows are crypto-to-crypto trades through USDT, each a disposal of the sent asset.",
+            "The 5 ETH sold on 2024-01-02 is not acquired anywhere in this file, so cost basis for that ETH is not present."
+          ],
+          "summary": "Your Bybit export contains 3 trades on consecutive days in early January 2024: two USDT buys (BTC and SOL) and one ETH sell for USDT. Every row has complete date, amount and currency fields, so the file imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 222,
+          "output_tokens": 1201,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.963,
+          "latency_ms": 14879,
+          "cost_usd": 0.063715
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 339,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 3,
+          "transaction_types": {
+            "trade": 3
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 3,
+              "detail": "ETH (2024-01-02) and USDT (2024-01-01, 2024-01-03) were traded away but the file holds no acquisition of either asset."
+            }
+          ],
+          "data_notes": [
+            "All three rows are trades against USDT; USDT is a stablecoin rather than fiat, so the tax software may treat each row as a crypto-to-crypto trade.",
+            "5.0 ETH was traded away on 2024-01-02 but the file contains no acquisition of ETH.",
+            "USDT was spent on 2024-01-01 and 2024-01-03 but the file contains no deposit or acquisition of USDT.",
+            "All fees are paid in USDT and are recorded on each row."
+          ],
+          "summary": "Your Bybit export contains 3 transactions from 2024-01-01 to 2024-01-03: a USDT to BTC trade, an ETH to USDT trade and a USDT to SOL trade, all labelled as trades. Every row has a date, amounts and currencies, so the file imports as-is. The file holds no deposits or earlier purchases, so the ETH and USDT that were traded away arrived before the file starts."
+        }
+      },
+      "wall_ms": 21965
+    },
+    {
+      "file": "cashapp_valid.csv",
+      "records": 2,
+      "request_type": "summary",
+      "input": {
+        "records_total": 2,
+        "records_sent": 2,
+        "chars": 293,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 185,
+          "output_tokens": 293,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.969,
+          "latency_ms": 5941,
+          "cost_usd": 0.01114
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 2,
+            "records_sent": 2,
+            "chars": 293,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 2,
+          "estimated_taxable_events": 0,
+          "transaction_types": {
+            "buy": 2
+          },
+          "flags": [],
+          "data_notes": [
+            "Both rows are BTC buys with USD; no sales or disposals are present in this file.",
+            "No income, transfer or staking rows appear."
+          ],
+          "summary": "Your Cash App export contains 2 Bitcoin purchases from January and March 2024. Both rows have complete date, amount and currency fields, so the file imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 182,
+          "output_tokens": 302,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9695,
+          "latency_ms": 10847,
+          "cost_usd": 0.018365
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 2,
+            "records_sent": 2,
+            "chars": 293,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 2,
+          "estimated_taxable_events": 0,
+          "transaction_types": {
+            "buy": 2
+          },
+          "flags": [],
+          "data_notes": [
+            "Both rows are BTC purchases with USD; the file contains no sales, trades or income rows.",
+            "Fees are recorded in USD on both rows (1.00 and 4.00)."
+          ],
+          "summary": "Your Cash App export contains 2 transactions from January to March 2024, both USD purchases of BTC. Every row has a date, amount and currency, so the file imports as-is."
+        }
+      },
+      "wall_ms": 16793
+    },
+    {
+      "file": "coinbase_2025_valid.csv",
+      "records": 4,
+      "request_type": "summary",
+      "input": {
+        "records_total": 4,
+        "records_sent": 4,
+        "chars": 407,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 266,
+          "output_tokens": 693,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.956,
+          "latency_ms": 9428,
+          "cost_usd": 0.021545
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 4,
+            "records_sent": 4,
+            "chars": 407,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 4,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 1,
+            "sell": 1,
+            "withdrawal": 1,
+            "deposit": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "1.5 ETH sold on 2024-01-05 but no ETH acquisition appears in the file."
+            },
+            {
+              "category": "internal_transfer",
+              "count": 2,
+              "detail": "BTC send on 2024-01-10 and ETH receive on 2024-01-15; the file does not show ownership of the other side."
+            },
+            {
+              "category": "missing_fields",
+              "count": 2,
+              "detail": "The 2024-01-10 and 2024-01-15 transfer rows each have an amount of 0.0 with no currency on one side."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-05 ETH sell has no matching ETH acquisition in this file.",
+            "The 2024-01-10 BTC send and 2024-01-15 ETH receive go to or come from addresses the file does not identify.",
+            "Both transfer rows have an empty currency on the zero-amount side."
+          ],
+          "summary": "Your Coinbase export contains 4 transactions in January 2024: one BTC buy, one ETH sell, and two transfers (one out, one in). All rows have dates, but the two transfer rows are missing a currency on one side."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 263,
+          "output_tokens": 683,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9565,
+          "latency_ms": 6845,
+          "cost_usd": 0.038225
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 4,
+            "records_sent": 4,
+            "chars": 407,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 0.6667,
+          "flags_only_production": [
+            "missing_fields"
+          ],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 4,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 1,
+            "sell": 1,
+            "withdrawal": 1,
+            "deposit": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "1.5 ETH sold on 2024-01-05 with no ETH acquisition in the file before that date."
+            },
+            {
+              "category": "internal_transfer",
+              "count": 2,
+              "detail": "0.05 BTC sent 2024-01-10 and 2.0 ETH received 2024-01-15; the file does not show who owns the other side."
+            }
+          ],
+          "data_notes": [
+            "1.5 ETH was sold on 2024-01-05 but the file holds no purchase of ETH before that date.",
+            "0.05 BTC was sent on 2024-01-10 to a destination the file does not identify.",
+            "2.0 ETH was received on 2024-01-15 from a source the file does not identify."
+          ],
+          "summary": "Your Coinbase export contains 4 transactions from 2024-01-01 to 2024-01-15: one BTC purchase, one ETH sale, one BTC send and one ETH receive. Every row has a date and a complete sent or received side, so the file imports as-is. The ETH sold on 2024-01-05 has no purchase in this file, so its acquisition is not shown here."
+        }
+      },
+      "wall_ms": 16277
+    },
+    {
+      "file": "coinbase_legacy_valid.csv",
+      "records": 3,
+      "request_type": "summary",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 334,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 218,
+          "output_tokens": 604,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9637,
+          "latency_ms": 7673,
+          "cost_usd": 0.019081
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 334,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 1,
+            "sell": 1,
+            "withdrawal": 1
+          },
+          "flags": [
+            {
+              "category": "missing_fields",
+              "count": 2,
+              "detail": "2024-01-05 sell has a 0 received amount; 2024-01-10 transfer has no received currency."
+            },
+            {
+              "category": "internal_transfer",
+              "count": 1,
+              "detail": "0.05 BTC sent on 2024-01-10; the file does not show who owns the destination."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-05 ETH sell shows a received amount of 0 USD, which looks incomplete.",
+            "The 2024-01-10 BTC transfer has no received currency filled in.",
+            "The 2024-01-10 outgoing BTC goes to a destination the file does not identify."
+          ],
+          "summary": "Your Coinbase export contains 3 transactions from early January 2024: one BTC buy, one ETH sell and one BTC transfer out. One row is missing a received currency and one sell shows a received amount of zero, so a couple of rows need a look after import."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 215,
+          "output_tokens": 1389,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9641,
+          "latency_ms": 16072,
+          "cost_usd": 0.073045
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 334,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 0.6667,
+          "flags_only_production": [],
+          "flags_only_shadow": [
+            "missing_cost_basis"
+          ],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 1,
+            "sell": 1,
+            "withdrawal": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "1.5 ETH sold on 2024-01-05 but the file holds no acquisition of ETH."
+            },
+            {
+              "category": "missing_fields",
+              "count": 1,
+              "detail": "The 2024-01-05 ETH sale lists USD as received currency with an amount of 0.0."
+            },
+            {
+              "category": "internal_transfer",
+              "count": 1,
+              "detail": "0.05 BTC sent on 2024-01-10 to a destination the file does not identify."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-05 sale of 1.5 ETH records 0.0 USD received, so the sale proceeds are not visible in the file.",
+            "The file contains no purchase or deposit of ETH before the 2024-01-05 sale, so the tax software will not find a cost basis for it in this file.",
+            "The 2024-01-01 BTC buy shows 0.1 USD sent for 0.1 BTC with a 10.0 USD fee; the fee is larger than the recorded purchase amount.",
+            "1 outgoing BTC send on 2024-01-10; the file does not say whether you own the destination."
+          ],
+          "summary": "Your Coinbase export contains 3 transactions from 2024-01-01 to 2024-01-10: one BTC purchase, one ETH sale and one BTC send to an external destination. Every row has a date and a sent currency, but the ETH sale records 0.0 USD received and the file holds no acquisition of the ETH, so those rows may need a look after import."
+        }
+      },
+      "wall_ms": 23750
+    },
+    {
+      "file": "crypto_com_valid.csv",
+      "records": 1,
+      "request_type": "summary",
+      "input": {
+        "records_total": 1,
+        "records_sent": 1,
+        "chars": 205,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 125,
+          "output_tokens": 454,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9788,
+          "latency_ms": 21008,
+          "cost_usd": 0.014866
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 1,
+            "records_sent": 1,
+            "chars": 205,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 1,
+          "estimated_taxable_events": 0,
+          "transaction_types": {
+            "buy": 1
+          },
+          "flags": [
+            {
+              "category": "missing_fields",
+              "count": 1,
+              "detail": "The 2024-01-01 purchase has a 0.00 USD sent amount, so the buy has no effective cost basis in the file."
+            }
+          ],
+          "data_notes": [
+            "The only row shows 0.1 BTC received for 0.00 USD sent, which is unusual for a purchase and may leave BTC without a cost basis.",
+            "Fee amount is 0 with no fee currency."
+          ],
+          "summary": "Your export contains a single Crypto.com row on 2024-01-01 showing 0.1 BTC received against a 0.00 USD sent amount. The sent amount looks wrong for a purchase, so the row may not import as a usable buy without correction."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 122,
+          "output_tokens": 555,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9793,
+          "latency_ms": 7114,
+          "cost_usd": 0.030415
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 1,
+            "records_sent": 1,
+            "chars": 205,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 0.5,
+          "flags_only_production": [],
+          "flags_only_shadow": [
+            "missing_cost_basis"
+          ],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 1,
+          "estimated_taxable_events": 0,
+          "transaction_types": {
+            "buy": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "The 2024-01-01 purchase of 0.1 BTC records 0.0 USD sent, so the file does not show the amount paid for the BTC."
+            },
+            {
+              "category": "missing_fields",
+              "count": 1,
+              "detail": "The 2024-01-01 row has a fee amount of 0 but no fee currency."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-01 purchase of 0.1 BTC shows a sent amount of 0.0 USD, so the file does not record what was paid.",
+            "The fee field is 0 with no fee currency on the 2024-01-01 row.",
+            "No sales, trades or income rows are present in the file."
+          ],
+          "summary": "Your Crypto.com export contains a single transaction on 2024-01-01: a purchase of 0.1 BTC recorded with a sent amount of 0.0 USD and a fee of 0 with no fee currency. The row has a date and both currencies, but the zero USD sent amount means the file does not show what was paid for the BTC."
+        }
+      },
+      "wall_ms": 28126
+    },
+    {
+      "file": "ftx_valid.csv",
+      "records": 2,
+      "request_type": "summary",
+      "input": {
+        "records_total": 2,
+        "records_sent": 2,
+        "chars": 299,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 193,
+          "output_tokens": 466,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9677,
+          "latency_ms": 6381,
+          "cost_usd": 0.015506
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 2,
+            "records_sent": 2,
+            "chars": 299,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 2,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 1,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "5.0 ETH sold on 2024-01-02 but no prior ETH acquisition appears in the file."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-02 ETH sale has no matching ETH acquisition in this file, so the tax software will not have a cost basis for it.",
+            "Both rows are labeled as pre-bankruptcy FTX trades."
+          ],
+          "summary": "Your export contains 2 FTX trades on 2024-01-01 and 2024-01-02: one BTC purchase for USD and one ETH sale for USD. Both rows have complete dates, amounts and currencies, so the file imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 190,
+          "output_tokens": 547,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9682,
+          "latency_ms": 6828,
+          "cost_usd": 0.030695
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 2,
+            "records_sent": 2,
+            "chars": 299,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 2,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 1,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "5.0 ETH sold for USD on 2024-01-02 with no ETH acquisition anywhere in the file."
+            }
+          ],
+          "data_notes": [
+            "The 5.0 ETH sold on 2024-01-02 has no acquisition in this file, so the tax software cannot determine its cost basis from these rows alone.",
+            "Both rows are described as FTX trades with the note 'pre-bankruptcy'; the dates shown are January 2024.",
+            "The 0.1 BTC bought on 2024-01-01 is not sold or transferred within the file."
+          ],
+          "summary": "This export contains 2 transactions on 2024-01-01 and 2024-01-02, both described as FTX trades: one USD to BTC purchase and one ETH to USD sale. Both rows have a date, amounts and currencies, so the file imports as-is. The ETH that was sold has no purchase recorded in this file."
+        }
+      },
+      "wall_ms": 13214
+    },
+    {
+      "file": "gemini_valid.csv",
+      "records": 1,
+      "request_type": "summary",
+      "input": {
+        "records_total": 1,
+        "records_sent": 1,
+        "chars": 204,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 127,
+          "output_tokens": 273,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9785,
+          "latency_ms": 3704,
+          "cost_usd": 0.010351
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 1,
+            "records_sent": 1,
+            "chars": 204,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 1,
+          "estimated_taxable_events": 0,
+          "transaction_types": {
+            "buy": 1
+          },
+          "flags": [],
+          "data_notes": [
+            "The file holds a single BTC buy on 2024-01-01; no sales or income rows are present."
+          ],
+          "summary": "Your Gemini export contains 1 transaction on 2024-01-01: a single BTC purchase for USD. All required fields are present, so the row imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 124,
+          "output_tokens": 322,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.979,
+          "latency_ms": 3813,
+          "cost_usd": 0.018785
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 1,
+            "records_sent": 1,
+            "chars": 204,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 1,
+          "estimated_taxable_events": 0,
+          "transaction_types": {
+            "buy": 1
+          },
+          "flags": [],
+          "data_notes": [
+            "The file holds one BTC purchase and no sales, transfers or income rows.",
+            "The fee amount on the 2024-01-01 buy is recorded as 0.0 USD."
+          ],
+          "summary": "Your Gemini export contains a single transaction on 2024-01-01: a purchase of 0.1 BTC for 4,500 USD with no fee recorded. The row has a date, amounts and currencies on both sides, so it imports as-is."
+        }
+      },
+      "wall_ms": 7523
+    },
+    {
+      "file": "kraken_valid.csv",
+      "records": 2,
+      "request_type": "summary",
+      "input": {
+        "records_total": 2,
+        "records_sent": 2,
+        "chars": 261,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 162,
+          "output_tokens": 694,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9727,
+          "latency_ms": 9367,
+          "cost_usd": 0.02105
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 2,
+            "records_sent": 2,
+            "chars": 261,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 2,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "staking": 1,
+            "deposit": 1
+          },
+          "flags": [
+            {
+              "category": "staking_income",
+              "count": 1,
+              "detail": "20,000 EUR Kraken staking reward on 2024-01-02."
+            },
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "5.0 ETH deposited on 2024-01-03 with no prior acquisition in the file."
+            },
+            {
+              "category": "internal_transfer",
+              "count": 1,
+              "detail": "5.0 ETH deposit on 2024-01-03; the file does not show the source wallet."
+            },
+            {
+              "category": "large_transfer",
+              "count": 1,
+              "detail": "The 20,000 EUR staking reward on 2024-01-02 is far larger than typical reward amounts."
+            }
+          ],
+          "data_notes": [
+            "1 staking reward on 2024-01-02 for 20,000 EUR, usually treated as income.",
+            "The ETH deposit on 2024-01-03 has no acquisition record in this file, so cost basis is not shown.",
+            "The 20,000 EUR staking reward is unusually large compared to the rest of the file."
+          ],
+          "summary": "Your export contains 2 transactions on 2024-01-02 and 2024-01-03: a 20,000 EUR entry labeled as a Kraken staking reward and a 5.0 ETH deposit. Both rows have dates and amounts, though the staking reward in fiat is unusually large and worth a second look."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 159,
+          "output_tokens": 820,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9732,
+          "latency_ms": 9643,
+          "cost_usd": 0.044035
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 2,
+            "records_sent": 2,
+            "chars": 261,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 2,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "staking": 1,
+            "deposit": 1
+          },
+          "flags": [
+            {
+              "category": "staking_income",
+              "count": 1,
+              "detail": "1 row labeled reward / 'Kraken staking' on 2024-01-02, received 20000.0 EUR with nothing sent; a fiat staking reward is unusual."
+            },
+            {
+              "category": "large_transfer",
+              "count": 1,
+              "detail": "The 2024-01-02 row received 20000.0 EUR, far larger than the only other row (5.0 ETH)."
+            },
+            {
+              "category": "internal_transfer",
+              "count": 1,
+              "detail": "5.0 ETH deposited on 2024-01-03 from a source the file does not identify."
+            },
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "The 5.0 ETH deposited on 2024-01-03 has no acquisition in the file, so its cost is unknown if it is later sold."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-02 row is labeled reward with the description 'Kraken staking' but the received currency is EUR, not a crypto asset.",
+            "The 20000.0 EUR received on 2024-01-02 is far larger than the other row in the file.",
+            "The 2024-01-03 ETH deposit has no sent side and no acquisition cost; the file does not say where the ETH came from.",
+            "No buys, sells or trades appear in the file."
+          ],
+          "summary": "This Kraken export contains 2 transactions on 2024-01-02 and 2024-01-03: one row labeled as a staking reward that received 20000.0 EUR, and one deposit of 5.0 ETH. Both rows have dates, amounts and currencies on the received side, but neither shows where the funds came from, and a staking reward paid in EUR is unusual."
+        }
+      },
+      "wall_ms": 19015
+    },
+    {
+      "file": "kucoin_valid.csv",
+      "records": 3,
+      "request_type": "analysis",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 342,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 228,
+          "output_tokens": 516,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9621,
+          "latency_ms": 7417,
+          "cost_usd": 0.016931
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 342,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 3,
+          "transaction_types": {
+            "trade": 3
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "5 ETH is sold on 2024-01-02 but the file holds no prior acquisition of ETH."
+            }
+          ],
+          "data_notes": [
+            "All 3 rows are crypto-to-crypto trades, which are usually treated as disposals of the sent asset.",
+            "The 2024-01-02 trade disposes of 5 ETH, but the file holds no earlier acquisition of ETH.",
+            "Fees are recorded in USDT on every row."
+          ],
+          "summary": "Your KuCoin export contains 3 trades from January 1 to January 3, 2024: two USDT-funded purchases (BTC and SOL) and one ETH sell for USDT. All rows have dates, amounts and currencies, so the file imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 225,
+          "output_tokens": 985,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9625,
+          "latency_ms": 11114,
+          "cost_usd": 0.052945
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 342,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 3,
+          "transaction_types": {
+            "trade": 3
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 2,
+              "detail": "ETH traded away 2024-01-02 and USDT spent 2024-01-01 have no acquisition in the file."
+            }
+          ],
+          "data_notes": [
+            "All 3 rows are crypto-to-crypto trades with USDT on one side; the file contains no fiat rows.",
+            "5.0 ETH was traded away on 2024-01-02 but the file holds no row showing how that ETH was acquired.",
+            "4504.5 USDT was spent on 2024-01-01 before any USDT arrives in the file; the 2024-01-03 trade is covered by the USDT received on 2024-01-02.",
+            "Fees on all rows are in USDT."
+          ],
+          "summary": "Your KuCoin export contains 3 transactions from 2024-01-01 to 2024-01-03, all crypto-to-crypto trades against USDT: USDT to BTC, ETH to USDT, and USDT to SOL. Every row has a date, amounts, currencies and a fee, so the file imports as-is, but the file holds no acquisition of the ETH sold or of the USDT spent on 2024-01-01."
+        }
+      },
+      "wall_ms": 18536
+    },
+    {
+      "file": "okx_valid.csv",
+      "records": 3,
+      "request_type": "analysis",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 333,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 222,
+          "output_tokens": 493,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.963,
+          "latency_ms": 10171,
+          "cost_usd": 0.016325
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 333,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 2,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "5 ETH sold on 2024-01-02 but no prior ETH acquisition is present in the file."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-02 ETH to USDT sale disposes of 5 ETH, but no ETH acquisition appears in this file.",
+            "All three rows are trades with USDT as one side; fees are recorded in USDT."
+          ],
+          "summary": "Your OKX export contains 3 trades on consecutive days in early January 2024: a USDT to BTC buy, an ETH to USDT sell, and a USDT to SOL buy. All rows have dates, amounts, currencies and fees, so the file imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 219,
+          "output_tokens": 862,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9635,
+          "latency_ms": 9664,
+          "cost_usd": 0.046735
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 333,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 2,
+          "transaction_types_match": false,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 3,
+          "transaction_types": {
+            "trade": 3
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 3,
+              "detail": "ETH (2024-01-02) and USDT (2024-01-01, 2024-01-03) are traded away but the file holds no acquisition of either asset."
+            }
+          ],
+          "data_notes": [
+            "All 3 rows are crypto-to-crypto trades; USDT is treated as a crypto asset, so each trade is a disposal of the sent asset.",
+            "5.0 ETH was traded away on 2024-01-02 but the file holds no acquisition of ETH.",
+            "USDT was traded away on 2024-01-01 and 2024-01-03 but the file holds no deposit or acquisition of USDT.",
+            "Fees on all three rows are paid in USDT."
+          ],
+          "summary": "Your OKX export contains 3 transactions from 2024-01-01 to 2024-01-03, all crypto-to-crypto trades against USDT: a BTC buy, an ETH sell and a SOL buy. Every row has a date, amounts and currencies, so the file imports as-is. The file holds no deposits or purchases of the USDT and ETH that were traded away, so those assets arrived before the file starts or on another account."
+        }
+      },
+      "wall_ms": 19840
+    },
+    {
+      "file": "paypal_valid.csv",
+      "records": 3,
+      "request_type": "summary",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 358,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 225,
+          "output_tokens": 523,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9625,
+          "latency_ms": 7840,
+          "cost_usd": 0.017091
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 358,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 2,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "500 BTC sold on 2024-01-15 but only 100 BTC acquired in this file; prior BTC acquisitions are not included."
+            }
+          ],
+          "data_notes": [
+            "The 2024-01-01 BTC buy shows 100 USD sent and 100 BTC received, which looks unusually large for that price; confirm the amounts before relying on totals.",
+            "500 BTC was sold on 2024-01-15 but only 100 BTC was acquired in this file, so the tax software will be missing cost basis for most of that sale."
+          ],
+          "summary": "Your PayPal export contains 3 transactions from January to February 2024: two crypto buys (BTC and ETH) and one BTC sell. Every row has a date, amounts and currencies, so the file imports as-is."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 222,
+          "output_tokens": 1001,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.963,
+          "latency_ms": 11117,
+          "cost_usd": 0.053715
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 358,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 0.5,
+          "flags_only_production": [],
+          "flags_only_shadow": [
+            "unknown_type"
+          ],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 2,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "500 BTC sold on 2024-01-15 but the file only shows 100 BTC acquired (2024-01-01); the rest has no acquisition in the file."
+            },
+            {
+              "category": "unknown_type",
+              "count": 2,
+              "detail": "On 2024-01-01 and 2024-02-01 the crypto amount equals the USD amount, so the quantities on these buys may be mis-mapped."
+            }
+          ],
+          "data_notes": [
+            "On 2024-01-01 and 2024-02-01 the crypto amount received equals the USD amount sent (100 BTC for 100 USD, 252.5 ETH for 252.5 USD); the quantities may not reflect actual units.",
+            "The 2024-01-15 sale sends 500 BTC, but the file only shows 100 BTC acquired before that date.",
+            "All three rows carry a fee in USD; the 2024-01-01 fee is 0.0."
+          ],
+          "summary": "This PayPal export contains 3 transactions from January to February 2024: a BTC buy, a BTC sell and an ETH buy, all described as PayPal crypto trades. Every row has a date, amounts and currencies, but the crypto amounts mirror the USD amounts (100 BTC for 100 USD, 252.5 ETH for 252.5 USD) and the BTC sold exceeds the BTC bought, so the quantities may need a look after import."
+        }
+      },
+      "wall_ms": 18962
+    },
+    {
+      "file": "robinhood_valid.csv",
+      "records": 3,
+      "request_type": "summary",
+      "input": {
+        "records_total": 3,
+        "records_sent": 3,
+        "chars": 395,
+        "capped": false
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 255,
+          "output_tokens": 468,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9578,
+          "latency_ms": 6059,
+          "cost_usd": 0.015866
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 395,
+            "capped": false
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 2,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "0.5 ETH sold on 2024-01-05 but no ETH acquisition appears in the file."
+            }
+          ],
+          "data_notes": [
+            "Fees are marked as estimated at 0.5%, not actual Robinhood-reported fees.",
+            "The 0.5 ETH sold on 2024-01-05 has no matching acquisition in this file."
+          ],
+          "summary": "Your Robinhood export contains 3 transactions in early January 2024: two crypto purchases (BTC, DOGE) and one ETH sale. All rows have complete dates, amounts, currencies and estimated fees, so the file should import cleanly."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 252,
+          "output_tokens": 599,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.9582,
+          "latency_ms": 7251,
+          "cost_usd": 0.033915
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "low",
+          "request_type": "summary",
+          "input": {
+            "records_total": 3,
+            "records_sent": 3,
+            "chars": 395,
+            "capped": false
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": 0,
+          "transaction_types_match": true,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 3,
+          "estimated_taxable_events": 1,
+          "transaction_types": {
+            "buy": 2,
+            "sell": 1
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 1,
+              "detail": "0.5 ETH sold on 2024-01-05 for 1250 USD, but the file holds no ETH purchase or deposit before it."
+            }
+          ],
+          "data_notes": [
+            "0.5 ETH was sold on 2024-01-05 but the file contains no acquisition of ETH; it was obtained before the file starts or elsewhere.",
+            "Fee amounts on all 3 rows are marked as estimates (0.5%) in the description rather than exchange-reported values.",
+            "All rows carry midnight timestamps (00:00:00), so the time of day was not recovered."
+          ],
+          "summary": "Your Robinhood export contains 3 transactions from 2024-01-01 to 2024-01-10: a BTC purchase, an ETH sale and a DOGE purchase. Every row has a date, amounts and currencies, so the file imports as-is. The 0.5 ETH sold on 2024-01-05 has no purchase in this file, and the fee amounts are described as estimates."
+        }
+      },
+      "wall_ms": 13316
+    },
+    {
+      "file": "coinbase_10k_rows.csv",
+      "records": 10000,
+      "request_type": "analysis",
+      "input": {
+        "records_total": 10000,
+        "records_sent": 100,
+        "chars": 7903,
+        "capped": true
+      },
+      "production": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-opus-4-7",
+        "provider": "anthropic",
+        "role": "production",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 4947,
+          "output_tokens": 1018,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.5389,
+          "latency_ms": 15975,
+          "cost_usd": 0.053075
+        },
+        "metadata": {
+          "model": "claude-opus-4-7",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 10000,
+            "records_sent": 100,
+            "chars": 7903,
+            "capped": true
+          }
+        },
+        "agreement": null,
+        "insights": {
+          "total_transactions": 10000,
+          "estimated_taxable_events": 5300,
+          "transaction_types": {
+            "sell": 3100,
+            "buy": 2200,
+            "transfer": 4700
+          },
+          "flags": [
+            {
+              "category": "internal_transfer",
+              "count": 47,
+              "detail": "In the 100-row sample, 47 Coinbase send/receive transfers have no counterparty wallet identified; the full file likely holds about 4,700."
+            },
+            {
+              "category": "missing_cost_basis",
+              "count": 5,
+              "detail": "In the sample, some assets (e.g. XRP, ADA, DOGE, MATIC) are sold shortly after arriving via Coinbase receive, so acquisition cost may not be in this file."
+            },
+            {
+              "category": "wash_sale_candidate",
+              "count": 3,
+              "detail": "In the sample, MATIC is sold 2024-01-01 11:00 and bought 2024-01-01 14:00, and SOL is sold 2025-02-20 10:00 then transferred in 2025-02-19/20."
+            }
+          ],
+          "data_notes": [
+            "About 47% of sampled rows are transfers (Coinbase send or Coinbase receive) with no counterparty identified in the file.",
+            "Trading activity is roughly 58% sells and 42% buys in the sample, spread evenly across BTC, ETH, SOL, XRP, ADA, DOGE, LINK, MATIC, DOT and AVAX.",
+            "Several sampled rows show the fee denominated in the crypto asset itself (e.g. BTC, ETH, SOL), which some tax tools treat as a small additional disposal of that asset.",
+            "No staking, airdrop, interest, or mining rows were seen in the sample.",
+            "Many assets are both sent out and received back on the same or adjacent days, so some disposals may lack a visible acquisition inside this file."
+          ],
+          "summary": "Your Coinbase export contains 10,000 transactions from January 2024 through February 2025, dominated by hourly trades across BTC, ETH, SOL, XRP, ADA, DOGE, LINK, MATIC, DOT and AVAX together with frequent send/receive transfers. Counts below are estimated from a 100-row sample. Every sampled row has a date and the trading rows look complete, but transfers do not identify the counterparty wallet."
+        }
+      },
+      "shadow": {
+        "success": true,
+        "refusal": null,
+        "model": "claude-fable-5-1",
+        "provider": "anthropic",
+        "role": "shadow",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 4944,
+          "output_tokens": 6371,
+          "cache_read_tokens": 5781,
+          "cache_creation_tokens": 0,
+          "cache_hit_rate": 0.539,
+          "latency_ms": 67543,
+          "cost_usd": 0.369435
+        },
+        "metadata": {
+          "model": "claude-fable-5-1",
+          "provider": "anthropic",
+          "prompt_version": "2026-10-13",
+          "effort": "high",
+          "request_type": "analysis",
+          "input": {
+            "records_total": 10000,
+            "records_sent": 100,
+            "chars": 7903,
+            "capped": true
+          },
+          "production_model": "claude-opus-4-7"
+        },
+        "agreement": {
+          "comparable": true,
+          "flag_jaccard": 1.0,
+          "flags_only_production": [],
+          "flags_only_shadow": [],
+          "taxable_events_delta": -2100,
+          "transaction_types_match": false,
+          "total_transactions_match": true
+        },
+        "insights": {
+          "total_transactions": 10000,
+          "estimated_taxable_events": 3200,
+          "transaction_types": {
+            "sell": 3200,
+            "deposit": 2700,
+            "buy": 2100,
+            "withdrawal": 2000
+          },
+          "flags": [
+            {
+              "category": "missing_cost_basis",
+              "count": 10,
+              "detail": "In the sample, 10 sells of XRP, ADA, ETH, LINK, BTC, DOT and AVAX on 2024-01-01 and 2024-01-02 have no earlier purchase of that asset in the file."
+            },
+            {
+              "category": "wash_sale_candidate",
+              "count": 5,
+              "detail": "In the sample, XRP, ADA, MATIC, BTC and DOT are sold and bought again within a day, e.g. XRP sold 2024-01-01 00:00 and bought 2024-01-01 05:00."
+            },
+            {
+              "category": "internal_transfer",
+              "count": 47,
+              "detail": "In the sample, 20 Coinbase send and 27 Coinbase receive rows move BTC, ETH, SOL and other assets to or from wallets the file does not identify."
+            }
+          ],
+          "data_notes": [
+            "10 sells in the sample (e.g. 7.69935 XRP on 2024-01-01 00:00, 5.127295 BTC on 2024-01-01 08:00) happen before the file shows any purchase of that asset; the earlier acquisitions are not in the file or arrived by transfer.",
+            "Fee amounts on send and receive rows are far larger than the amount moved (e.g. 2.832909 ETH sent on 2024-01-01 02:00 with a fee of 1274.75 ETH).",
+            "Implied USD price per unit varies widely between rows for the same asset on the same day (e.g. XRP sells and buys on 2024-01-01), which tax software may question.",
+            "Several assets are sold and bought again within hours, e.g. XRP sold 2024-01-01 00:00 and bought 2024-01-01 05:00, BTC sold 2024-01-01 08:00 and bought 2024-01-01 21:00.",
+            "47 of the 100 sampled rows are Coinbase send or receive transfers with no counterparty shown; the file does not say whether the other wallet is yours.",
+            "Transfer rows show 0.0 with an empty currency on the inactive side; this is a placeholder rather than a missing value, and no income-labelled rows appear in the sample."
+          ],
+          "summary": "Your Coinbase export contains 10,000 transactions from 2024-01-01 to 2025-02-20, spaced exactly one hour apart, covering BTC, MATIC, XRP, SOL, ETH, LINK, DOGE, ADA, AVAX and DOT; counts below are estimated from a 100-row sample. The rows are USD buys and sells plus Coinbase send and receive transfers, with no staking, airdrop or other income rows in the sample. Every row has a date and currency, but transfer rows carry fee amounts larger than the amount moved and implied USD prices per unit vary widely for the same asset on the same day, so some rows may need a look after import."
+        }
+      },
+      "wall_ms": 83623
+    }
+  ],
+  "production": {
+    "calls": 15,
+    "model": "claude-opus-4-7",
+    "success": 15,
+    "refusals": 0,
+    "errors": 0,
+    "cost_usd_p50": 0.016931,
+    "cost_usd_p90": 0.050747,
+    "cost_usd_total": 0.349739,
+    "latency_ms_p50": 7673.0,
+    "latency_ms_p95": 17484.9,
+    "calls_with_cache_write": 2,
+    "calls_with_cache_read": 13
+  },
+  "shadow": {
+    "calls": 15,
+    "model": "claude-fable-5-1",
+    "success": 15,
+    "refusals": 0,
+    "errors": 0,
+    "cost_usd_p50": 0.044035,
+    "cost_usd_p90": 0.11196,
+    "cost_usd_total": 1.043143,
+    "latency_ms_p50": 9664.0,
+    "latency_ms_p95": 31864.7,
+    "calls_with_cache_write": 1,
+    "calls_with_cache_read": 14
+  },
+  "agreement": {
+    "comparable_files": 15,
+    "flag_jaccard_mean": 0.8556,
+    "flag_jaccard_min": 0.5,
+    "files_in_full_flag_agreement": 10,
+    "transaction_types_match": 13,
+    "taxable_events_delta_mean": -139.87,
+    "taxable_events_delta_max_abs": 2100
+  }
+}
