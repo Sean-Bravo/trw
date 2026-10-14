@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Download, FileSearch, Shield, Upload } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { BankUploadBox, BankUploadBoxHandle } from '@/components/upload/BankUploadBox';
+import { BankBeforeAfter } from '@/components/upload/BankBeforeAfter';
+import { STATEMENTS_PER_HOUR_ACCOUNT, STATEMENTS_PER_HOUR_ANON } from '@/lib/bank-allowance';
 import { trackConversion } from '@/lib/analytics';
 import { BETA_BANKS, VERIFIED_BANKS, formatBankList } from '@/lib/bank-registry';
 
@@ -81,11 +83,13 @@ export default function BankStatementLandingPage() {
         </section>
 
         <section className="max-w-xl mx-auto px-4 pb-12">
-          <BankUploadBox ref={uploadBoxRef} />
+          <BankUploadBox ref={uploadBoxRef} showExample={false} />
           <p className="mt-3 text-center text-xs text-slate-500">
-            Free during beta · No signup · Files deleted within 30 days
+            Free while we&apos;re in beta · No account needed · Files deleted within 30 days
           </p>
         </section>
+
+        <BankBeforeAfter />
 
         {/* How it works */}
         <section className="max-w-4xl mx-auto px-4 pb-16">
@@ -132,6 +136,27 @@ export default function BankStatementLandingPage() {
               In testing: {formatBankList(BETA_BANKS)}. Statements from these banks may need a second look after conversion.
             </p>
           )}
+        </section>
+
+        {/* What it costs and what happens to the file — in the policy's own words */}
+        <section className="max-w-3xl mx-auto px-4 pb-16" aria-labelledby="trust-heading">
+          <h2 id="trust-heading" className="text-center text-xs font-medium text-slate-500 uppercase tracking-widest mb-5">
+            Price and privacy
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+              <h3 className="text-sm font-semibold mb-1.5">Free while we&apos;re in beta</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                No account needed and nothing to pay. Convert up to {STATEMENTS_PER_HOUR_ANON} statements an hour, or {STATEMENTS_PER_HOUR_ACCOUNT} an hour with a free account. If we ever charge for this, the price will be on this page before it applies.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+              <h3 className="text-sm font-semibold mb-1.5">Deleted within 30 days</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Everything you send us is deleted within 30 days: the uploaded statement, the converted file, and the extracted rows. We keep only anonymous processing details such as the bank detected and the row count. We never train on your data, and neither do our providers.
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* One CTA, back to the box */}

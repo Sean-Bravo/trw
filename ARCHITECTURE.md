@@ -274,6 +274,8 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 | `backend/scripts/insights_shadow_eval.py` | Offline half of the shadow run: every verified fixture (plus `--files`) through production and shadow models on identical input; writes an agreement/cost report for the Oct 28 review |
 | `app/upload/page.tsx` | Google Ads bank-statement landing page (noindex; wraps `BankUploadBox` with the pain cards and the post-parse API panel) |
 | `app/bank-statement-to-csv/page.tsx` | The bank funnel's destination: indexable, upload box above the fold, outcome headline, no developer language (guarded by `__tests__/components/BankStatementLandingPage.test.tsx`); bank ads route here, never to the API pages |
+| `components/upload/BankBeforeAfter.tsx` | Static statement → extracted table → spreadsheet example plus the three outcome bullets on the bank page (synthetic rows only) |
+| `lib/bank-allowance.ts` | The stated bank-statement allowance (3/hour anonymous, 10/hour with an account); the bank page test fails if it drifts from `lib/rate-limit.ts` |
 | `components/upload/BankUploadBox.tsx` | The shared bank-statement upload box (dropzone → progress → download, format switch, conversion events); both landing pages render it so the funnels run one flow |
 | `lib/bank-upload-client.ts` | Bank upload client (presigned URL → S3 PUT → process) |
 | `backend/services/bank_statement/extractor.py` | PDF transaction extraction (tables + text fallback) |

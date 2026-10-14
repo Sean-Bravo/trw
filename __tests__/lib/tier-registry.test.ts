@@ -67,6 +67,7 @@ const NO_VENDOR_SURFACES = [
   'app/bank-statement-to-csv/page.tsx',
   'app/bank-statement-to-csv/layout.tsx',
   'components/upload/BankUploadBox.tsx',
+  'components/upload/BankBeforeAfter.tsx',
   'app/security/page.tsx',
   'app/terms/page.tsx',
 ];

@@ -43,6 +43,7 @@ const LIVE_SURFACES = [
   'app/bank-statement-to-csv/page.tsx',
   'app/bank-statement-to-csv/layout.tsx',
   'components/upload/BankUploadBox.tsx',
+  'components/upload/BankBeforeAfter.tsx',
   'app/playground/page.tsx',
   'README.md',
   'ARCHITECTURE.md',
