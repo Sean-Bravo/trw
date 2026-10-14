@@ -3,6 +3,7 @@ import { validateEmail, validatePassword } from '@/lib/validation';
 import { createUser, emailExists } from '@/lib/auth-db';
 import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
+import { ATTRIBUTION_COOKIE, parseAttributionCookie } from '@/lib/attribution';
 
 export async function POST(request: NextRequest) {
   // Rate limit: 5 attempts per 15 minutes
@@ -52,11 +53,16 @@ export async function POST(request: NextRequest) {
     const verificationCode = generateVerificationCode();
 
     // Create user with verification code
+    // First-touch attribution (lib/attribution.ts) — null when the cookie
+    // is absent or malformed; the user row then says "unknown".
+    const attribution = parseAttributionCookie(request.cookies?.get?.(ATTRIBUTION_COOKIE)?.value);
+
     const user = await createUser(
       validatedEmail,
       password,
       name || undefined,
-      verificationCode
+      verificationCode,
+      attribution
     );
 
     // Send verification email

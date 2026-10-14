@@ -47,6 +47,25 @@ describe('POST /api/bank/process', () => {
   });
 
   describe('Successful requests', () => {
+    it('stores the bank config version the Lambda reports (migration 015)', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({
+          success: true, jobId: 'job-123', detectedBank: 'Chase', transactionCount: 12,
+          resultKey: 'bank/job-123/output_csv.csv', configVersion: '1.0.0',
+        }),
+      });
+      const { query } = jest.requireMock('@/lib/db') as { query: jest.Mock };
+
+      await POST(createMockRequest({ jobId: 'job-123', s3Key: 'bank/user-1/abc.pdf' }) as any);
+
+      const update = query.mock.calls.find(([sql]: [string]) => /SET status = 'completed'/.test(sql));
+      expect(update).toBeDefined();
+      expect(update![0]).toMatch(/config_version = \$4/);
+      expect(update![1]).toEqual(['Chase', 12, 'bank/job-123/output_csv.csv', '1.0.0', 'job-123']);
+    });
+
     it('returns Lambda response when processing succeeds', async () => {
       const lambdaData = { success: true, jobId: 'job-123', status: 'completed' };
       (global.fetch as jest.Mock).mockResolvedValue({

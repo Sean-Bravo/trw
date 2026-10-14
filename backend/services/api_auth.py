@@ -187,8 +187,13 @@ def record_request(
     ip_address: Optional[str] = None,
     request_id: Optional[str] = None,
     tier: Optional[str] = None,
+    source_version: Optional[str] = None,
 ) -> None:
-    """Log an API request to the api_requests table."""
+    """Log an API request to the api_requests table.
+
+    source_version is the engine parser version (CSV) or bank config version
+    (PDF) that handled the request — migration 015 — so a failure can be
+    pinned to the version that produced it."""
     conn = get_db()
     try:
         with conn.cursor() as cur:
@@ -196,8 +201,8 @@ def record_request(
                 """INSERT INTO api_requests
                    (api_key_id, endpoint, method, status_code, response_time_ms,
                     error_code, file_size, source_type, detected_source,
-                    transaction_count, ip_address, request_id, tier)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    transaction_count, ip_address, request_id, tier, source_version)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     key_id,
                     endpoint,
@@ -212,6 +217,7 @@ def record_request(
                     ip_address,
                     request_id,
                     tier,
+                    source_version,
                 ),
             )
         conn.commit()

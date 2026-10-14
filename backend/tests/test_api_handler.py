@@ -302,7 +302,7 @@ class TestV1Parse:
             "exchange": "coinbase",
             "records": [{"Date": "2024-01-01"}],
             "warnings": [],
-            "meta": {"rows": 10, "rows_parsed": 10, "rows_skipped": 0},
+            "meta": {"rows": 10, "rows_parsed": 10, "rows_skipped": 0, "parser_version": "2.3.1"},
         }
         csv_content = base64.b64encode(b"Date,Amount\n2024-01-01,100").decode()
         event = make_event("POST /v1/parse", body={
@@ -315,6 +315,9 @@ class TestV1Parse:
         assert body["status"] == "success"
         assert body["detected_source"] == "coinbase"
         assert body["metadata"]["processing_time_ms"] >= 0
+        # The version that handled the request is published and logged (migration 015).
+        assert body["metadata"]["parser_version"] == "2.3.1"
+        assert mock_record.call_args.kwargs["source_version"] == "2.3.1"
 
     def test_invalid_json_body(self, valid_key_record):
         event = make_event("POST /v1/parse")

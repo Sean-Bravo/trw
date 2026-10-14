@@ -1,4 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
+import { cookies } from 'next/headers';
+import { ATTRIBUTION_COOKIE, parseAttributionCookie, type Attribution } from '@/lib/attribution';
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { validateEmail, validatePassword } from "@/lib/validation";
@@ -11,6 +13,20 @@ import {
 import { queryOne } from "@/lib/db";
 import { verifyToken, verifyBackupCode } from "@/lib/2fa";
 import { safeRedirect } from "@/lib/safe-redirect";
+
+/**
+ * First-touch attribution for a Google signup (lib/attribution.ts). Only a
+ * brand-new user row stores it; findOrCreateOAuthUser ignores it otherwise.
+ * cookies() is only readable inside a request — null anywhere else.
+ */
+async function readSignupAttribution(): Promise<Attribution | null> {
+  try {
+    const store = await cookies();
+    return parseAttributionCookie(store.get(ATTRIBUTION_COOKIE)?.value);
+  } catch {
+    return null;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -145,7 +161,8 @@ export const authOptions: NextAuthOptions = {
             user.name || undefined,
             account.access_token || undefined,
             account.refresh_token || undefined,
-            account.expires_at
+            account.expires_at,
+            await readSignupAttribution()
           );
           return true;
         } catch (error) {

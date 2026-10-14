@@ -4,6 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { FileUploader } from '@/components/dashboard/FileUploader';
 import { JobProvider } from '@/contexts/JobContext';
 import * as uploadClient from '@/lib/upload-client';
+import * as analytics from '@/lib/analytics';
+
+jest.mock('@/lib/analytics', () => ({
+  trackEvent: jest.fn(),
+}));
+const mockTrackEvent = analytics.trackEvent as jest.Mock;
 
 // Mock the upload-client module
 jest.mock('@/lib/upload-client', () => ({
@@ -162,6 +168,35 @@ describe('FileUploader', () => {
 
     await waitFor(() => {
       expect(mockUploadCSVFile).toHaveBeenCalledWith(file, expect.any(Function));
+    });
+  });
+
+  it('fires GA4 upload events for the developer funnel', async () => {
+    const user = userEvent.setup();
+    mockUploadCSVFile.mockResolvedValue({ jobId: 'job-123', status: 'queued', jobsRemainingThisHour: 10 });
+
+    await renderWithProvider(<FileUploader />);
+    const file = createMockCSVFile();
+    await dropFile(await getDropzone(), file);
+    await user.click(await screen.findByText(/Upload.*file/i));
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('csv_upload_completed', { file_size_kb: expect.any(Number) });
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith('csv_upload_started', { file_size_kb: expect.any(Number) });
+    expect(mockTrackEvent).not.toHaveBeenCalledWith('csv_upload_failed', expect.anything());
+  });
+
+  it('fires csv_upload_failed with the error code when the upload rejects', async () => {
+    const user = userEvent.setup();
+    mockUploadCSVFile.mockRejectedValue({ code: 'RATE_LIMIT', message: 'Rate limit', retryAfter: 60 });
+
+    await renderWithProvider(<FileUploader />);
+    await dropFile(await getDropzone(), createMockCSVFile());
+    await user.click(await screen.findByText(/Upload.*file/i));
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('csv_upload_failed', { error_code: 'RATE_LIMIT' });
     });
   });
 

@@ -350,6 +350,11 @@ def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict
         ip_address=get_client_ip(event),
         request_id=request_id,
         tier=key_record.get("tier"),
+        # Parser version (CSV) or bank config version (PDF) — migration 015.
+        source_version=(
+            (result.get("metadata") or {}).get("parser_version")
+            or (result.get("metadata") or {}).get("config_version")
+        ),
     )
 
     # Add processing time and overage headers (paid soft-flag — free is hard-blocked above)
@@ -450,6 +455,7 @@ def _parse_crypto(file_bytes: bytes, body: Dict, filename: str) -> Dict:
                 "rows_parsed": meta.get("rows_parsed", count),
                 "rows_skipped": meta.get("rows_skipped", 0),
                 "exchange_detected": exchange_detected,
+                "parser_version": meta.get("parser_version"),
             },
         }
 
@@ -505,6 +511,7 @@ def _parse_bank(file_bytes: bytes, body: Dict, filename: str) -> Dict:
                 "detected_bank": detected_bank,
                 "statement_period": result.get("period", ""),
                 "account_number_last4": result.get("account_last4", ""),
+                "config_version": (result.get("metadata") or {}).get("config_version"),
             },
         }
 

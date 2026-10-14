@@ -13,6 +13,9 @@ export interface MockNextRequest {
   };
   url: string;
   nextUrl: URL;
+  cookies: {
+    get: (name: string) => { name: string; value: string } | undefined;
+  };
 }
 
 export function createMockRequest(
@@ -20,6 +23,7 @@ export function createMockRequest(
   options: {
     url?: string;
     headers?: Record<string, string>;
+    cookies?: Record<string, string>;
   } = {}
 ): MockNextRequest {
   const defaultHeaders: Record<string, string> = {
@@ -37,5 +41,11 @@ export function createMockRequest(
     },
     url,
     nextUrl: new URL(url),
+    cookies: {
+      get: (name: string) => {
+        const value = options.cookies?.[name];
+        return value === undefined ? undefined : { name, value };
+      },
+    },
   } as MockNextRequest;
 }

@@ -3,6 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo/StructuredData";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { AttributionCapture } from "@/components/analytics/AttributionCapture";
 import { GoogleAds } from "@/components/analytics/GoogleAds";
 import { BANK_SOURCES } from "@/lib/bank-registry";
 import { EXCHANGE_COUNT } from "@/lib/exchange-registry";
@@ -102,6 +103,7 @@ export default function RootLayout({
       <body className="antialiased">
         <GoogleAnalytics />
         <GoogleAds />
+        <AttributionCapture />
         {children}
       </body>
     </html>

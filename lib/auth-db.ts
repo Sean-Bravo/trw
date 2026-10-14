@@ -1,4 +1,5 @@
 import { execute, queryOne, query, DbUser, DbAccount, DbSubscription } from './db';
+import type { Attribution } from './attribution';
 import bcrypt from 'bcryptjs';
 import { constantTimeStringEqual } from './validation';
 
@@ -116,7 +117,8 @@ export async function createUser(
   email: string,
   password: string,
   name?: string,
-  verificationCode?: string
+  verificationCode?: string,
+  attribution?: Attribution | null
 ): Promise<UserWithSubscription> {
   const passwordHash = await bcrypt.hash(password, 12);
 
@@ -133,8 +135,9 @@ export async function createUser(
     email_verified: boolean;
     created_at: Date;
   }>(
-    `INSERT INTO users (email, password_hash, name, email_verified, verification_code, verification_code_expires)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO users (email, password_hash, name, email_verified, verification_code, verification_code_expires,
+                        acquisition_source, acquisition_medium, acquisition_campaign, acquisition_landing, funnel)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING id, email, name, email_verified, created_at`,
     [
       email.toLowerCase(),
@@ -143,6 +146,7 @@ export async function createUser(
       false,
       verificationCode || null,
       verificationExpires,
+      ...attributionParams(attribution),
     ]
   );
 
@@ -223,6 +227,17 @@ export async function verifyPassword(
 /**
  * Find or create OAuth user
  */
+/** The five attribution columns, in INSERT order; all NULL when unknown. */
+function attributionParams(attribution?: Attribution | null): Array<string | null> {
+  return [
+    attribution?.source ?? null,
+    attribution?.medium ?? null,
+    attribution?.campaign ?? null,
+    attribution?.landing ?? null,
+    attribution?.funnel ?? null,
+  ];
+}
+
 export async function findOrCreateOAuthUser(
   provider: string,
   providerAccountId: string,
@@ -230,7 +245,8 @@ export async function findOrCreateOAuthUser(
   name?: string,
   accessToken?: string,
   refreshToken?: string,
-  expiresAt?: number
+  expiresAt?: number,
+  attribution?: Attribution | null
 ): Promise<UserWithSubscription> {
   // Check if account already exists
   const existingAccount = await queryOne<{ user_id: string }>(
@@ -270,10 +286,11 @@ export async function findOrCreateOAuthUser(
   if (!user) {
     // Create new user (OAuth users are verified by default)
     const newUser = await queryOne<{ id: string; email: string; name: string | null; created_at: Date }>(
-      `INSERT INTO users (email, name, email_verified)
-       VALUES ($1, $2, TRUE)
+      `INSERT INTO users (email, name, email_verified,
+                          acquisition_source, acquisition_medium, acquisition_campaign, acquisition_landing, funnel)
+       VALUES ($1, $2, TRUE, $3, $4, $5, $6, $7)
        RETURNING id, email, name, created_at`,
-      [email.toLowerCase(), name || null]
+      [email.toLowerCase(), name || null, ...attributionParams(attribution)]
     );
 
     if (!newUser) {

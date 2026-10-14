@@ -4,7 +4,7 @@
  * that reads `api_keys.tier` with highest-active-wins resolution.
  */
 
-import { getUserTier } from '@/lib/auth-db';
+import { getUserTier, createUser, findOrCreateOAuthUser } from '@/lib/auth-db';
 
 jest.mock('@/lib/db', () => ({
   query: jest.fn(),
@@ -12,7 +12,7 @@ jest.mock('@/lib/db', () => ({
   execute: jest.fn(),
 }));
 
-import { queryOne } from '@/lib/db';
+import { queryOne, execute } from '@/lib/db';
 
 const mockQueryOne = queryOne as jest.Mock;
 
@@ -64,5 +64,43 @@ describe('getUserTier', () => {
     expect(sql).toContain("WHEN 'growth'   THEN 3");
     expect(sql).toContain("WHEN 'starter'  THEN 2");
     expect(sql).toContain('LIMIT 1');
+  });
+});
+
+
+describe('acquisition attribution on user creation (migration 014)', () => {
+  const attr = { source: 'google', medium: 'cpc', campaign: 'c1', landing: '/upload', funnel: 'bank' as const, ts: 't' };
+  const mockExecute = execute as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('createUser writes the five attribution columns, NULL when unknown', async () => {
+    mockQueryOne.mockResolvedValue({ id: 'u1', email: 'a@x.com', name: null, email_verified: false, created_at: new Date() });
+    await createUser('a@x.com', 'Password123!', undefined, undefined, attr);
+    let [sql, params] = mockQueryOne.mock.calls[0];
+    expect(sql).toMatch(/acquisition_source, acquisition_medium, acquisition_campaign, acquisition_landing, funnel/);
+    expect(params.slice(-5)).toEqual(['google', 'cpc', 'c1', '/upload', 'bank']);
+
+    mockQueryOne.mockClear();
+    await createUser('b@x.com', 'Password123!');
+    [sql, params] = mockQueryOne.mock.calls[0];
+    expect(params.slice(-5)).toEqual([null, null, null, null, null]);
+    expect(mockExecute).toHaveBeenCalled(); // default subscription still created
+  });
+
+  it('findOrCreateOAuthUser writes attribution only for a brand-new user', async () => {
+    // No existing account, no existing user → INSERT with attribution.
+    mockQueryOne
+      .mockResolvedValueOnce(null)                                   // accounts lookup
+      .mockResolvedValueOnce(null)                                   // findUserByEmail
+      .mockResolvedValueOnce({ id: 'u2', email: 'c@x.com', name: null, created_at: new Date() }) // insert
+      .mockResolvedValue({ id: 'u2', email: 'c@x.com', name: null, email_verified: true, created_at: new Date(), tier: 'free' });
+    await findOrCreateOAuthUser('google', 'gid', 'c@x.com', undefined, undefined, undefined, undefined, attr);
+    const insert = mockQueryOne.mock.calls.find(([q]) => /INSERT INTO users/.test(q));
+    expect(insert).toBeDefined();
+    expect(insert![0]).toMatch(/funnel/);
+    expect(insert![1].slice(-5)).toEqual(['google', 'cpc', 'c1', '/upload', 'bank']);
   });
 });
