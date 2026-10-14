@@ -15,6 +15,8 @@ import { metadata } from '@/app/bank-statement-to-csv/layout';
 import * as bankUploadClient from '@/lib/bank-upload-client';
 import * as analytics from '@/lib/analytics';
 import { BETA_BANKS, VERIFIED_BANKS } from '@/lib/bank-registry';
+import { STATEMENTS_PER_HOUR_ACCOUNT, STATEMENTS_PER_HOUR_ANON } from '@/lib/bank-allowance';
+import { OUTCOMES } from '@/components/upload/BankBeforeAfter';
 
 jest.mock('@/lib/bank-upload-client', () => ({
   uploadBankStatement: jest.fn(),
@@ -117,8 +119,64 @@ describe('BankStatementLandingPage', () => {
 
     it('renders the trust line under the box with the retention policy', () => {
       render(<BankStatementLandingPage />);
-      expect(screen.getByText(/Free during beta · No signup · Files deleted within 30 days/)).toBeInTheDocument();
+      expect(screen.getByText(/Free while we're in beta · No account needed · Files deleted within 30 days/)).toBeInTheDocument();
       expect(screen.getByText('Files deleted within 30 days')).toBeInTheDocument();
+    });
+  });
+
+  describe('before/after example and outcomes', () => {
+    it('shows statement → extracted table → spreadsheet, after the box', () => {
+      render(<BankStatementLandingPage />);
+      expect(screen.getByText('From statement to spreadsheet')).toBeInTheDocument();
+      expect(screen.getByText('Your statement PDF')).toBeInTheDocument();
+      expect(screen.getByText('Every transaction, found')).toBeInTheDocument();
+      expect(screen.getByText('Your spreadsheet')).toBeInTheDocument();
+      expect(screen.getByText('Date,Description,Amount,Balance')).toBeInTheDocument();
+      // The extracted table is a real table with one row per transaction.
+      expect(screen.getAllByRole('row').length).toBeGreaterThanOrEqual(5);
+      const box = screen.getByText('Drop your bank statement PDF here');
+      const example = screen.getByText('From statement to spreadsheet');
+      expect(box.compareDocumentPosition(example) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('states the three outcomes', () => {
+      render(<BankStatementLandingPage />);
+      expect(OUTCOMES.map((o) => o.title)).toEqual(['Automatic extraction', 'A clean spreadsheet', 'No manual data entry']);
+      OUTCOMES.forEach((o) => expect(screen.getByText(o.title)).toBeInTheDocument());
+    });
+
+    it('does not repeat the upload box hint now that the example exists', () => {
+      render(<BankStatementLandingPage />);
+      expect(screen.queryByText(/What's a bank statement PDF\?/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('price and privacy', () => {
+    it('states the allowance with the numbers the limiter enforces', () => {
+      render(<BankStatementLandingPage />);
+      expect(screen.getByText("Free while we're in beta")).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(`up to ${STATEMENTS_PER_HOUR_ANON} statements an hour, or ${STATEMENTS_PER_HOUR_ACCOUNT} an hour with a free account`)),
+      ).toBeInTheDocument();
+    });
+
+    it('allowance constants match lib/rate-limit.ts', () => {
+      // The copy is only true while these agree with the enforced limits.
+      const src = read('lib/rate-limit.ts');
+      const limit = (name: string) => {
+        const m = new RegExp(`${name}:\\s*new RateLimiter\\(\\{[^}]*uniqueTokenPerInterval:\\s*(\\d+)`).exec(src);
+        if (!m) throw new Error(`limiter ${name} not found`);
+        return Number(m[1]);
+      };
+      expect(limit('fileUploadAnon')).toBe(STATEMENTS_PER_HOUR_ANON);
+      expect(limit('fileUpload')).toBe(STATEMENTS_PER_HOUR_ACCOUNT);
+    });
+
+    it('states the retention policy in its own words', () => {
+      render(<BankStatementLandingPage />);
+      expect(screen.getByText('Deleted within 30 days')).toBeInTheDocument();
+      expect(screen.getByText(/Everything you send us is deleted within 30 days/)).toBeInTheDocument();
+      expect(screen.getByText(/We never train on your data/)).toBeInTheDocument();
     });
   });
 
