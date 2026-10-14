@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, FileText, AlertCircle, CheckCircle, RefreshCw, X } from 'lucide-react';
 import { uploadCSVFile, validateFile, formatFileSize, UploadError } from '@/lib/upload-client';
+import { trackEvent } from '@/lib/analytics';
 import { useJobContext } from '@/contexts/JobContext';
 
 interface FileWithProgress {
@@ -92,6 +93,8 @@ export function FileUploader() {
           )
         );
 
+        trackEvent('csv_upload_started', { file_size_kb: Math.round(fileItem.file.size / 1024) });
+
         const result = await uploadCSVFile(fileItem.file, (stage, percent) => {
           setFiles((prev) =>
             prev.map((f) =>
@@ -109,9 +112,11 @@ export function FileUploader() {
 
         completed++;
         setActiveJob(result.jobId);
+        trackEvent('csv_upload_completed', { file_size_kb: Math.round(fileItem.file.size / 1024) });
       } catch (err) {
         const uploadError = err as UploadError;
         let errorMessage = uploadError.message || 'Upload failed';
+        trackEvent('csv_upload_failed', { error_code: uploadError.code || 'unknown' });
 
         if (uploadError.code === 'RATE_LIMIT') {
           const retryMinutes = Math.ceil((uploadError.retryAfter || 3600) / 60);

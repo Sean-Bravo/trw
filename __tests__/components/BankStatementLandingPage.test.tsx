@@ -25,6 +25,7 @@ jest.mock('@/lib/bank-upload-client', () => ({
 
 jest.mock('@/lib/analytics', () => ({
   trackConversion: jest.fn(),
+  trackEvent: jest.fn(),
 }));
 
 jest.mock('next/link', () => {
@@ -38,6 +39,7 @@ jest.mock('next/link', () => {
 const mockUploadBankStatement = bankUploadClient.uploadBankStatement as jest.Mock;
 const mockValidateBankFile = bankUploadClient.validateBankFile as jest.Mock;
 const mockTrackConversion = analytics.trackConversion as jest.Mock;
+const mockTrackEvent = analytics.trackEvent as jest.Mock;
 
 const read = (rel: string) => fs.readFileSync(path.join(process.cwd(), rel), 'utf8');
 const PAGE = 'app/bank-statement-to-csv/page.tsx';
@@ -268,6 +270,31 @@ describe('BankStatementLandingPage', () => {
       await user.click(screen.getByRole('button', { name: /Convert my statement/ }));
       expect(clickSpy).toHaveBeenCalled();
       clickSpy.mockRestore();
+    });
+
+    it('fires GA4 funnel events tagged bank for start, completion and failure', async () => {
+      mockUploadBankStatement.mockResolvedValue({
+        success: true, detectedBank: 'Chase', transactionCount: 42, downloadUrl: 'https://s3.example.com/r.csv', warnings: ['w'],
+      });
+      render(<BankStatementLandingPage />);
+      await selectFile(pdf());
+      await screen.findByText('42 transactions extracted!');
+      expect(mockTrackEvent).toHaveBeenCalledWith('bank_upload_started', { funnel: 'bank', output_format: 'csv' });
+      expect(mockTrackEvent).toHaveBeenCalledWith('bank_upload_completed', {
+        funnel: 'bank', detected_bank: 'Chase', transaction_count: 42, output_format: 'csv', warnings: 1,
+      });
+
+      mockTrackEvent.mockClear();
+      mockUploadBankStatement.mockRejectedValue({ code: 'RATE_LIMIT', message: 'Too many' });
+      await screen.findByText('Upload another file');
+      // A fresh render keeps the test independent of the reset flow.
+      render(<BankStatementLandingPage />);
+      const inputs = document.querySelectorAll('input[type="file"]');
+      await act(async () => {
+        fireEvent.change(inputs[inputs.length - 1], { target: { files: [pdf()] } });
+      });
+      await screen.findByText('Too many');
+      expect(mockTrackEvent).toHaveBeenCalledWith('bank_upload_failed', { funnel: 'bank', error_code: 'RATE_LIMIT' });
     });
 
     it('tracks landing_page_view only when a UTM source is present', () => {

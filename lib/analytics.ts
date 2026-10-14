@@ -1,8 +1,13 @@
 /**
- * Google Ads Conversion Tracking
+ * Google Ads conversion tracking + GA4 funnel events.
  *
- * Use these functions to track conversions in Google Ads
+ * trackPurchase / trackSignUp / trackConversion fire Google Ads conversions
+ * (unchanged). trackEvent fires a GA4 event and attaches the visitor's
+ * acquisition attribution (funnel, source, medium, campaign — see
+ * lib/attribution.ts) so the developer and bank funnels can be told apart
+ * in every report.
  */
+import { inferFunnel, readAttributionFromDocument } from './attribution';
 
 // Declare gtag function for TypeScript
 declare global {
@@ -59,3 +64,22 @@ export const trackConversion = (conversionLabel: string, value?: number) => {
     console.log(`🎯 Google Ads: ${conversionLabel} conversion tracked`, { value })
   }
 }
+
+export type EventParams = Record<string, string | number | boolean | null | undefined>;
+
+/**
+ * GA4 event with the acquisition attribution attached. `params` win over
+ * the attribution fields, so a caller can force a funnel when it knows better.
+ */
+export const trackEvent = (name: string, params: EventParams = {}) => {
+  if (typeof window === 'undefined' || !window.gtag) return;
+  const attr = readAttributionFromDocument();
+  const base: EventParams = {
+    funnel: attr?.funnel ?? inferFunnel(window.location.pathname),
+    acquisition_source: attr?.source ?? 'direct',
+    acquisition_medium: attr?.medium ?? undefined,
+    acquisition_campaign: attr?.campaign ?? undefined,
+    landing_path: attr?.landing ?? undefined,
+  };
+  window.gtag('event', name, { ...base, ...params });
+};

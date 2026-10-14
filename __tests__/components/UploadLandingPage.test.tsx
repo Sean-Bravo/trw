@@ -15,6 +15,7 @@ jest.mock('@/lib/bank-upload-client', () => ({
 // Mock analytics
 jest.mock('@/lib/analytics', () => ({
   trackConversion: jest.fn(),
+  trackEvent: jest.fn(),
 }));
 
 // Mock next/link

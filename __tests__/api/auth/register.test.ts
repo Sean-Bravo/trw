@@ -44,6 +44,28 @@ describe('POST /api/auth/register', () => {
     (mockRateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: true });
   });
 
+  describe('Acquisition attribution', () => {
+    const attr = { source: 'google', medium: 'cpc', campaign: 'bank-oct', landing: '/bank-statement-to-csv', funnel: 'bank', ts: '2026-10-14T00:00:00.000Z' };
+
+    it('passes the first-touch cookie through to createUser', async () => {
+      const request = createMockRequest(
+        { email: 'test@example.com', password: 'Password123!' },
+        { cookies: { tf_attr: encodeURIComponent(JSON.stringify(attr)) } },
+      );
+      const response = await POST(request as any);
+      expect(response.status).toBe(201);
+      expect(mockAuthDb.createUser).toHaveBeenCalledWith('test@example.com', 'Password123!', undefined, '123456', attr);
+    });
+
+    it('passes null when the cookie is absent or malformed', async () => {
+      await POST(createMockRequest({ email: 'a@example.com', password: 'Password123!' }) as any);
+      expect(mockAuthDb.createUser).toHaveBeenLastCalledWith('a@example.com', 'Password123!', undefined, '123456', null);
+
+      await POST(createMockRequest({ email: 'b@example.com', password: 'Password123!' }, { cookies: { tf_attr: '%7Bjunk' } }) as any);
+      expect(mockAuthDb.createUser).toHaveBeenLastCalledWith('b@example.com', 'Password123!', undefined, '123456', null);
+    });
+  });
+
   describe('Successful Registration', () => {
     it('creates a new user with valid data', async () => {
       const request = createMockRequest({
@@ -75,6 +97,8 @@ describe('POST /api/auth/register', () => {
         'Password123!',
         undefined,
         '123456'
+      ,
+        null
       );
     });
 
@@ -145,6 +169,8 @@ describe('POST /api/auth/register', () => {
         expect.any(String),
         undefined,
         expect.any(String)
+      ,
+        null
       );
     });
   });

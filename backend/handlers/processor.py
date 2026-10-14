@@ -16,7 +16,7 @@ import logging
 import traceback
 import tempfile
 import boto3
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from io import BytesIO
 
 # Add services directory to path for imports
@@ -396,6 +396,23 @@ def run_shadow_insights(records: List[Dict], user_tier: str, job_id: str, insigh
         )
 
 
+def _insights_outcome(insights_result: Optional[Dict]) -> Optional[Dict[str, Any]]:
+    """The insights facts the review reads, pulled from generate_ai_insights'
+    result: which model/prompt/effort/request type served the job, or why no
+    insights were produced. None when insights never ran."""
+    if not insights_result:
+        return None
+    meta = insights_result.get("metadata") or {}
+    return {
+        "model": meta.get("model"),
+        "provider": meta.get("provider"),
+        "prompt_version": meta.get("prompt_version"),
+        "effort": meta.get("effort"),
+        "request_type": meta.get("request_type"),
+        "ai_error": insights_result.get("ai_error"),
+    }
+
+
 def upload_insights(bucket: str, job_id: str, insights: Dict):
     """Upload AI insights to S3."""
     key = f"results/{job_id}/insights.json"
@@ -481,10 +498,15 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 # result is stored, never before, never in its place.
                 run_shadow_insights(records, user_tier, job_id, insights_result)
 
-            # Upload result.json with diff data for frontend
+            # Upload result.json with diff data for frontend. The outcome
+            # fields (parser version, insights model/prompt/request type)
+            # ride along so the dashboard's job-status sync stores them in
+            # jobs.result and db/checks/funnel_outcomes.sql can read them.
             upload_result_json(RESULTS_BUCKET, job_id, {
                 "record_count": result["record_count"],
                 "exchange": result.get("exchange"),
+                "parser_version": (result.get("meta") or {}).get("parser_version"),
+                "insights": _insights_outcome(insights),
                 "original": result.get("original", []),
                 "processed": result.get("processed", []),
                 "columns": result.get("columns", []),
@@ -501,12 +523,16 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 "has_insights": insights is not None,
             }
         else:
-            # Upload error
+            # Upload error — with the classified reason and the parser
+            # version, so a failed job's row says why and on which parser.
             upload_error(RESULTS_BUCKET, job_id, {
                 "error": result.get("error"),
                 "errors": result.get("errors", []),
                 "warnings": result.get("warnings", []),
                 "meta": result.get("meta", {}),
+                "reason": _failure_reason(result),
+                "exchange": result.get("exchange"),
+                "parser_version": (result.get("meta") or {}).get("parser_version"),
             })
 
             logger.error(
@@ -536,6 +562,7 @@ def process_message(message: Dict) -> Dict[str, Any]:
         upload_error(RESULTS_BUCKET, job_id, {
             "error": safe_msg,
             "errors": [{"message": safe_msg}],
+            "reason": "exception",
         })
 
         return {

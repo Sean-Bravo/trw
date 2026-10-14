@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
+import { trackEvent } from '@/lib/analytics';
 
 const PENDING_TIER_KEY = 'pending_api_tier';
 
@@ -56,6 +57,8 @@ function SignUpForm() {
         throw new Error(data.error || 'Registration failed');
       }
 
+      trackEvent('sign_up', { method: 'email' });
+
       // Store password temporarily for auto-login after verification
       sessionStorage.setItem('temp_password', formData.password);
 
@@ -98,6 +101,7 @@ function SignUpForm() {
               if (apiTier) {
                 document.cookie = `pending_api_tier=${apiTier};path=/;max-age=3600;samesite=lax`;
               }
+              trackEvent('sign_up_start', { method: 'google' });
               signIn('google', { callbackUrl: apiTier ? '/dashboard/developer' : '/dashboard' });
             }}
             className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
