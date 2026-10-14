@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { AlertCircle, ArrowRight, CheckCircle2, Download, RefreshCw, Upload } from 'lucide-react';
 import { uploadBankStatement, validateBankFile } from '@/lib/bank-upload-client';
 import type { BankOutputFormat } from '@/lib/bank-upload-client';
-import { trackConversion } from '@/lib/analytics';
+import { trackConversion, trackEvent } from '@/lib/analytics';
 import { BETA_BANKS, VERIFIED_BANKS } from '@/lib/bank-registry';
 
 /**
@@ -82,6 +82,7 @@ export const BankUploadBox = forwardRef<BankUploadBoxHandle, BankUploadBoxProps>
     setErrorMsg('');
     setUploadedFilename(file.name);
     trackConversion('bank_upload_started');
+    trackEvent('bank_upload_started', { funnel: 'bank', output_format: selectedFormat });
 
     try {
       const result = await uploadBankStatement(file, selectedFormat, (stage, percent) => {
@@ -109,12 +110,21 @@ export const BankUploadBox = forwardRef<BankUploadBoxHandle, BankUploadBoxProps>
 
       setState('success');
       trackConversion('bank_upload_completed');
+      trackEvent('bank_upload_completed', {
+        funnel: 'bank',
+        detected_bank: result.detectedBank ?? 'unknown',
+        transaction_count: result.transactionCount ?? 0,
+        output_format: selectedFormat,
+        warnings: result.warnings?.length ?? 0,
+      });
     } catch (err: unknown) {
       setState('error');
       const msg = err && typeof err === 'object' && 'message' in err
         ? (err as { message: string }).message
         : 'Upload failed. Please try again.';
       setErrorMsg(msg);
+      const code = err && typeof err === 'object' && 'code' in err ? String((err as { code: unknown }).code) : 'unknown';
+      trackEvent('bank_upload_failed', { funnel: 'bank', error_code: code });
     }
   }, [selectedFormat]);
 

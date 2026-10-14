@@ -333,3 +333,83 @@ class TestProcessMessageShadowOrder:
         assert args[1] == "business" and args[2] == "job-9"
         assert args[0] == [{"Date": "2024-01-01", "Description": "buy"}]
         assert args[3]["ai_insights"] == {"summary": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Parse outcome recording — result.json / error.json carry what the review reads
+# ---------------------------------------------------------------------------
+
+class TestParseOutcomeRecording:
+
+    MESSAGE = {"job_id": "job-7", "s3_bucket": "uploads", "s3_key": "uploads/job-7/f.csv",
+               "filename": "f.csv", "user_id": "u", "user_tier": "business"}
+
+    def test_insights_outcome_shape(self):
+        from handlers.processor import _insights_outcome
+        assert _insights_outcome(None) is None
+        assert _insights_outcome({}) is None
+        out = _insights_outcome({
+            "success": True, "ai_insights": {"summary": "x"}, "ai_error": None,
+            "metadata": {"model": "claude-opus-4-7", "provider": "anthropic", "prompt_version": "2026-10-13",
+                         "effort": "low", "request_type": "summary", "input": {"records_total": 3}},
+        })
+        assert out == {"model": "claude-opus-4-7", "provider": "anthropic", "prompt_version": "2026-10-13",
+                       "effort": "low", "request_type": "summary", "ai_error": None}
+        # A failed insights run still says which model declined and why.
+        out = _insights_outcome({"success": True, "ai_insights": None, "ai_error": "insights unavailable",
+                                 "metadata": {"model": "claude-opus-4-7"}})
+        assert out["ai_error"] == "insights unavailable" and out["model"] == "claude-opus-4-7"
+
+    def test_success_writes_parser_version_and_insights_into_result_json(self):
+        insights_result = {"success": True, "quick_stats": {}, "ai_insights": {"summary": "ok"}, "ai_error": None,
+                           "metadata": {"model": "claude-opus-4-7", "provider": "anthropic",
+                                        "prompt_version": "2026-10-13", "effort": "high", "request_type": "analysis"}}
+        with patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "download_file", return_value=b"csv"), \
+             patch.object(processor_module, "process_csv", return_value={
+                 "success": True, "csv_output": "Date,Description\n2024-01-01,buy\n", "record_count": 1,
+                 "exchange": "coinbase", "meta": {"parser_version": "2.3.1"},
+             }), \
+             patch.object(processor_module, "upload_result"), \
+             patch.object(processor_module, "upload_insights"), \
+             patch.object(processor_module, "run_shadow_insights"), \
+             patch.object(processor_module, "generate_ai_insights", return_value=insights_result), \
+             patch.object(processor_module, "upload_result_json") as result_json:
+            process_message(self.MESSAGE)
+
+        payload = result_json.call_args.args[2]
+        assert payload["exchange"] == "coinbase"
+        assert payload["parser_version"] == "2.3.1"
+        assert payload["insights"] == {"model": "claude-opus-4-7", "provider": "anthropic",
+                                       "prompt_version": "2026-10-13", "effort": "high",
+                                       "request_type": "analysis", "ai_error": None}
+        # Diff data for the job page is untouched.
+        assert set(payload) >= {"record_count", "original", "processed", "columns"}
+
+    def test_failure_writes_reason_exchange_and_parser_version_into_error_json(self):
+        with patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "download_file", return_value=b"csv"), \
+             patch.object(processor_module, "process_csv", return_value={
+                 "success": False, "error": "Could not auto-detect exchange format",
+                 "errors": [{"message": "Could not auto-detect exchange format"}], "warnings": [],
+                 "exchange": None, "meta": {"parser_version": "2.3.1"},
+             }), \
+             patch.object(processor_module, "upload_error") as upload_error:
+            result = process_message(self.MESSAGE)
+
+        assert result["success"] is False
+        payload = upload_error.call_args.args[2]
+        assert payload["reason"] == "detection_failed"
+        assert payload["parser_version"] == "2.3.1"
+        assert payload["exchange"] is None
+        assert payload["error"] == "Could not auto-detect exchange format"
+
+    def test_exception_path_records_reason_exception_without_the_message(self):
+        with patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "download_file", side_effect=RuntimeError("cell value 123.45")), \
+             patch.object(processor_module, "upload_error") as upload_error:
+            result = process_message(self.MESSAGE)
+
+        assert result["success"] is False
+        payload = upload_error.call_args.args[2]
+        assert payload["reason"] == "exception"

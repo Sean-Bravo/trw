@@ -96,12 +96,14 @@ export async function POST(request: NextRequest) {
                detected_bank = $1,
                transaction_count = $2,
                result_key = $3,
+               config_version = $4,
                completed_at = NOW()
-           WHERE id = $4`,
+           WHERE id = $5`,
           [
             data.detectedBank || null,
             data.transactionCount || null,
             data.resultKey || null,
+            data.configVersion || null,
             jobId
           ]
         );

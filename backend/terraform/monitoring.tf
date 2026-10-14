@@ -219,3 +219,36 @@ resource "aws_cloudwatch_query_definition" "slow_queries" {
     | limit 20
   QUERY
 }
+
+# ===== INSIGHTS REFUSALS =====
+# A model refusal is HTTP 200 — it never increments AWS/Lambda Errors, so the
+# processor-errors alarm cannot see it. backend/services/ai_insights.py logs
+# one WARNING line per refusal with its own marker; this counts them.
+resource "aws_cloudwatch_log_metric_filter" "insights_refusals" {
+  name           = "${var.project_name}-${var.environment}-insights-refusals"
+  log_group_name = aws_cloudwatch_log_group.processor.name
+  pattern        = "insights_refusal"
+
+  metric_transformation {
+    name          = "InsightsRefusals"
+    namespace     = "${var.project_name}/${var.environment}"
+    value         = "1"
+    default_value = "0"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "insights_refusals" {
+  alarm_name          = "${var.project_name}-${var.environment}-insights-refusals"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = aws_cloudwatch_log_metric_filter.insights_refusals.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.insights_refusals.metric_transformation[0].namespace
+  period              = 3600
+  statistic           = "Sum"
+  threshold           = 0
+  treat_missing_data  = "notBreaching"
+  alarm_description   = "Alert on any insights refusal (production or shadow) in the last hour — they are HTTP 200 and invisible to the error alarms"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+
+  tags = local.common_tags
+}

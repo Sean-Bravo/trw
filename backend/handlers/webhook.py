@@ -306,12 +306,22 @@ def handle_job_status(event: Dict) -> Dict:
                 error_obj = s3_client.get_object(Bucket=RESULTS_BUCKET, Key=error_key)
                 error_data = json.loads(error_obj["Body"].read().decode("utf-8"))
                 logger.info(f"Job {job_id} failed - found error.json")
-                return response(200, {
+                failed: Dict[str, Any] = {
                     "jobId": job_id,
                     "status": "failed",
                     "error": error_data.get("error", "Unknown error"),
                     "filename": filename,
-                })
+                }
+                # Outcome facts (processor >= Oct 14 writes them): the
+                # dashboard stores this in jobs.result for the review. The
+                # job page ignores a result without diff rows.
+                if error_data.get("reason"):
+                    failed["result"] = {
+                        "failure_reason": error_data.get("reason"),
+                        "exchange": error_data.get("exchange"),
+                        "parser_version": error_data.get("parser_version"),
+                    }
+                return response(200, failed)
             except ClientError as e:
                 logger.info(f"Job {job_id} no error.json: {e.response['Error']['Code']}")
 
@@ -873,6 +883,7 @@ def handle_bank_process(event: Dict) -> Dict:
             "jobId": job_id,
             "transactionCount": result["metadata"].get("transaction_count", 0),
             "detectedBank": result["metadata"].get("detected_bank"),
+            "configVersion": result["metadata"].get("config_version"),
             "warnings": result.get("warnings", []),
             "outputFormat": output_format,
             "resultKey": output_key,

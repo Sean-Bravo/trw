@@ -82,6 +82,12 @@ export interface DbUser {
   // H-7 account lockout — added by db/migrations/009_add_account_lockout.sql
   failed_login_attempts?: number;
   locked_until?: Date | null;
+  // First-touch acquisition — added by db/migrations/014_add_user_attribution.sql
+  acquisition_source?: string | null;
+  acquisition_medium?: string | null;
+  acquisition_campaign?: string | null;
+  acquisition_landing?: string | null;
+  funnel?: 'bank' | 'developer' | null;
   created_at: Date;
 }
 
