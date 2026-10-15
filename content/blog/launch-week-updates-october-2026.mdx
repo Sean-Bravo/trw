@@ -1,0 +1,92 @@
+---
+title: "What Changed on TaxFormatter Since May: A Bank Statement Page, Honest Numbers, and Versioned Results"
+description: "Launch-week update: a dedicated bank-statement-to-spreadsheet page, four parser fixes with the before-and-after amounts, PayPal moved to beta, versioned results in every API response, and the Python SDK at 1.0."
+date: 2026-10-19
+author: "TaxFormatter Team"
+category: "updates"
+tags: ["updates", "bank statements", "parsers", "API", "AI insights", "Python SDK", "changelog"]
+image: "/blog/launch-week-updates.svg"
+published: false
+featured: true
+---
+
+## Why This Post Exists
+
+The last update here was in May. Since then we have been fixing things rather than announcing them, and some of those fixes change numbers you may already have exported. This post is the changelog, with the before-and-after amounts where they matter. If you only use the API, [skip to the versioned results](#every-result-now-says-which-version-produced-it). If you came here with a bank statement, start at the top.
+
+## A Page for Bank Statements
+
+Bank statements have their own page now: [taxformatter.com/bank-statement-to-csv](/bank-statement-to-csv). Upload the PDF your bank gave you and get back a file that opens in Excel or imports into QuickBooks or Xero, with every transaction on its own row. No account, nothing to install, no API key.
+
+Three things about it we want to be explicit on:
+
+- **It is free while we are in beta.** You can convert up to 3 statements an hour without an account, or 10 an hour with a free one. If that ever changes, the price will be on that page before it applies.
+- **Supported means tested.** The page lists the banks we have run real statements through as supported, and the banks that are configured but not yet verified separately as "in testing". The same list drives the API's `/v1/sources` endpoint, so the page and the API cannot disagree.
+- **Everything you upload is deleted within 30 days**: the statement, the converted file, and the extracted rows. We keep anonymous processing details such as the bank detected and the row count. We never train on your data, and neither do our providers.
+
+## Parser Fixes, With the Numbers
+
+We ran our verified sample files through two different AI models and compared what each one noticed. Where the models disagreed, it was not because one of them was wrong. They were describing real defects in our parser output. Four were fixed this week.
+
+One rule now applies to every parser: **the fiat side of a trade excludes the fee, and the fee is reported separately.** That is the convention Koinly, CoinLedger and the others expect, and it is what lets the tax software add fees to cost basis exactly once. The second rule is simpler: **we never guess a number.** If an export does not carry a figure, the field is left blank with a note, or the row is reported as an error. It is never derived from a different column.
+
+| Source | Before | After |
+|--------|--------|-------|
+| Coinbase, older export format | A $4,010 buy was written as 0.1 USD sent (the crypto quantity). A $3,290 sale was written with 0 proceeds. | Buy: 4,000 USD sent, 10 USD fee. Sale: 3,300 USD received, 10 USD fee. |
+| Coinbase, current export format | Fees were counted twice: a $4,000 buy was recorded as 4,020 USD, a $3,300 sale as 3,280 USD. | 4,000 USD and 3,300 USD, with the 10 USD fee reported separately. |
+| Crypto.com | Purchases carried 0.00 USD as the amount paid. Sales were dropped. Staking locks vanished silently. | The fiat amount is read. Sales are kept. Locks are still skipped, because locking your own coins is not a taxable event, but the file now tells you how many were skipped. |
+| Binance | Real trade-history exports write the unit into the cell, like `0.5BTC`. Those cells were read as zero and the rows rejected. On a sale, the fee was recorded in the coin you sold. | Units are parsed. The fee is recorded in the asset you receive: the coin on a buy, the quote currency on a sale, unless the export says otherwise. |
+
+If you exported a Coinbase file before this week, the fiat amounts on your trades will differ by the fee on your next upload. The new numbers are the correct ones.
+
+## PayPal Moves to Beta
+
+PayPal's Activity CSV lists the dollar value of each crypto trade but not the quantity of coin. Our parser used to fill the quantity in from the dollar amount, which produced records like "100 BTC received for a $100 buy". It no longer does. The dollar side is recorded, the coin quantity is left blank with a note on the row, and if your export carries a quantity column it is used.
+
+Because we cannot verify the result against a real export yet, PayPal is listed as **beta** rather than verified, on the site, in the docs, and in `/v1/sources`. It goes back to verified when a real export has been checked, not before.
+
+## AI Insights: Three Levels, One Structure
+
+Every plan now gets the same insights structure on the dashboard, and the plan sets how deeply the model reasons about your file. The levels are called Standard, Advanced and Premium; the pricing page names the level, and the dashboard shows it next to the engine version, currently engine v1. The models behind each level are published in one place, the [API docs](/docs/api), and in posts like this one: Standard runs on `gemini-2.5-flash`, Advanced on `claude-sonnet-4-6`, Premium on `claude-opus-4-7`. A model change bumps the engine version and gets announced here, never silently.
+
+Two changes under the hood:
+
+- **The output is a fixed schema, not free text.** Every insight carries a machine-readable list of flags from a closed set of categories (staking income, a sale re-bought within 30 days, a possible duplicate row, a missing field, and so on) next to the plain-language notes. The model cannot invent a category.
+- **A declined or cut-off answer is never a partial answer.** If the model declines to analyse a file or runs out of room, you get the deterministic summary (counts, types, assets, date range) and a note that insights were unavailable. You never get half a flag list presented as complete.
+
+The effort the model spends is also tuned to the file: a short file of deposits gets a quick pass, a file with many disposals or a sale re-bought within 30 days gets the deeper one. Which setting ran is recorded with the result.
+
+## Every Result Now Says Which Version Produced It
+
+Both the dashboard and the API now stamp results with the version of the code that produced them.
+
+- `/v1/parse` responses carry `metadata.parser_version` for exchange CSVs and `metadata.config_version` for bank statement PDFs.
+- Dashboard insights carry the model, the prompt version, and the effort setting that produced them.
+
+This is for you as much as for us. When a number looks wrong, the version tells us exactly which parser produced it, and when we fix a parser, the version tells you whether your file was affected.
+
+## Python SDK 1.0
+
+The Python SDK is at 1.0 on PyPI:
+
+```bash
+pip install taxformatter
+```
+
+```python
+from taxformatter import TaxFormatter
+
+tf = TaxFormatter("tf_live_your_key_here")
+result = tf.parse("./coinbase_2025.csv")                 # a path, or bytes with filename=
+sources = tf.list_sources()                              # the same registry the site reads
+```
+
+Rate limits are retried for you, and parse failures raise a `ParseError` carrying the same suggestion text the API returns.
+
+The MCP server for AI agents is unchanged and still a one-line install; see the [MCP post](/blog/taxformatter-mcp-registry-launch) if that is your use case.
+
+## What We Are Not Announcing
+
+We are running a newer model alongside the production one on Business-tier files to measure whether it flags the same things at an acceptable cost. It is not serving anyone, and it will not until the measurement says it should. If it ever does, you will read about it here with the engine version bumped.
+
+If you hit a file that parses wrong, the fastest route is the version stamp plus the file's source: tell us those two things and we can reproduce it.
