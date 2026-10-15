@@ -9,10 +9,10 @@ chardet>=7.6.0
 psycopg2-binary>=2.9.13
 
 # AWS SDK (Lambda uses bundled boto3, but useful for local dev)
-boto3>=1.43.108
+boto3>=1.43.111
 
 # AI Providers
-anthropic>=1.11.0
+anthropic>=1.13.0
 google-generativeai>=0.8.6
 
 # Optional: For testing
