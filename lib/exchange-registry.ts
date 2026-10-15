@@ -29,7 +29,7 @@ export const EXCHANGE_SOURCES: readonly ExchangeSource[] = [
   { id: 'bybit', name: 'Bybit', status: 'verified' },
   { id: 'cashapp', name: 'Cash App', status: 'verified' },
   { id: 'robinhood', name: 'Robinhood', status: 'verified' },
-  { id: 'paypal', name: 'PayPal', status: 'verified' },
+  { id: 'paypal', name: 'PayPal', status: 'beta' },
   { id: 'venmo', name: 'Venmo', status: 'beta' },
   { id: 'crypto.com', name: 'Crypto.com', status: 'verified' },
   { id: 'gemini', name: 'Gemini', status: 'verified' },

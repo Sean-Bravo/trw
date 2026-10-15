@@ -67,7 +67,7 @@ Every public supported-source claim is generated from two registries, and drift 
 
 `GET /v1/sources` serves the same lists. Every entry carries a `status`: **verified** means a fixture-backed parse test runs on every change; **beta** means the parser exists but has no fixture yet. A new status is earned by a test, never by editing a registry.
 
-**Exchanges (verified):** Binance · Coinbase · Kraken · KuCoin · Bybit · Cash App · Robinhood · PayPal · Crypto.com · Gemini · FTX · Bitfinex · OKX
+**Exchanges (verified):** Binance · Coinbase · Kraken · KuCoin · Bybit · Cash App · Robinhood · Crypto.com · Gemini · FTX · Bitfinex · OKX
 
 **Exchanges (beta):** Venmo
 
