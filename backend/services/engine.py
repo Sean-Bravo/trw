@@ -641,9 +641,34 @@ class BinanceParser(BaseExchangeParser):
         'type': 'side',                 # Some exports use "Type" instead of "Side"
     }
 
+    # Binance's trade-history export writes the unit into the cell:
+    # Executed "0.5BTC", Amount "22500USDT", Fee "0.0005BTC".
+    _UNIT_CELL = re.compile(r"^\s*([-+]?[0-9][0-9,]*\.?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*([A-Za-z]{2,10})?\s*$")
+
+    @classmethod
+    def split_unit(cls, value: Any) -> Tuple[float, str]:
+        """(number, unit) for a cell like "0.0005BTC"; unit is '' when absent."""
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            return 0.0, ''
+        m = cls._UNIT_CELL.match(str(value))
+        if not m:
+            return parse_float(value), ''
+        return parse_float(m.group(1)), (m.group(2) or '').upper()
+
     def get_required_columns(self) -> List[str]:
         # Return post-mapping column names (what columns look like after normalize_columns)
         return ['date', 'pair']
+
+    def normalize_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Binance has both "Executed" (base quantity) and "Amount" (quote total).
+        COLUMN_MAPPING sends Executed to `amount`, so the original Amount is
+        kept apart as `quote_amount` instead of becoming a duplicate column
+        that pandas silently renames."""
+        df = df.copy()
+        df.columns = [normalize_column(col) for col in df.columns]
+        if 'executed' in df.columns and 'amount' in df.columns:
+            df = df.rename(columns={'amount': 'quote_amount'})
+        return df.rename(columns=self.COLUMN_MAPPING)
     
     def parse(self, df: pd.DataFrame) -> Tuple[List[Dict[str, Any]], List[ParseError]]:
         """Transform Binance CSV to universal schema."""
@@ -668,10 +693,17 @@ class BinanceParser(BaseExchangeParser):
                 base_curr, quote_curr = extract_currency_pair(pair)
                 side = str(row.side).upper().strip()
                 
-                amount = parse_float(row.amount)
-                price = parse_float(row.price)
-                fee = parse_float(row.fee)
-                fee_coin = str(row.fee_currency).upper().strip() or base_curr
+                amount, _ = self.split_unit(row.amount)
+                price, _ = self.split_unit(row.price)
+                fee, fee_unit = self.split_unit(row.fee)
+                # Fee coin: the Fee Coin column, else the unit written in the
+                # Fee cell, else Binance's default — the asset you receive:
+                # the base coin on a buy, the quote coin on a sell.
+                fee_coin = (
+                    str(row.fee_currency).upper().strip()
+                    or fee_unit
+                    or (base_curr if side == "BUY" else quote_curr)
+                )
                 
                 if amount <= 0:
                     raise ValueError(f"Invalid amount: {amount} (must be > 0)")
@@ -746,6 +778,8 @@ class CoinbaseParser(BaseExchangeParser):
         'price_at_transaction': 'price',  # "Price at Transaction" (no "Spot")
         'price_currency': 'quote_currency',  # "Price Currency"
         'total_inclusive_of_fees_and_or_spread_': 'total',  # Full column name normalized
+        'total_inclusive_of_fees_': 'total',  # Legacy export header "Total (inclusive of fees)"
+        'subtotal': 'subtotal',               # Pre-fee fiat amount — the Koinly sent/received side
         # Coinbase Pro mappings
         'created_at': 'date',           # Pro format
         'product': 'pair',              # Pro format
@@ -760,7 +794,7 @@ class CoinbaseParser(BaseExchangeParser):
         """Transform Coinbase CSV to universal schema."""
         df = self.normalize_columns(df)
 
-        for col in ['total', 'fee']:
+        for col in ['total', 'subtotal', 'fee', 'price']:
             if col not in df.columns:
                 df[col] = 0.0
 
@@ -800,6 +834,26 @@ class CoinbaseParser(BaseExchangeParser):
                     raw_fee = raw_fee.replace('$', '').replace(',', '')
                 fee = abs(float(raw_fee)) if raw_fee else 0.0
 
+                subtotal = abs(parse_float(getattr(row, 'subtotal', 0), non_negative=False))
+                price = abs(parse_float(getattr(row, 'price', 0), non_negative=False))
+
+                def fiat_side(is_buy: bool) -> float:
+                    """The fiat amount of a trade with the fee kept separate
+                    (Koinly convention: Sent/Received exclude the fee, Fee
+                    Amount carries it). Subtotal is exactly that. Coinbase's
+                    Total already includes the fee on a buy and deducts it on
+                    a sell, so it is corrected back. Last resort: spot price
+                    × quantity. The crypto quantity is never used as fiat."""
+                    if subtotal:
+                        return subtotal
+                    if total:
+                        return max(total - fee, 0.0) if is_buy else total + fee
+                    if price:
+                        return price * amount
+                    raise ValueError(
+                        "Trade has no fiat amount (Subtotal, Total or Spot Price column missing)"
+                    )
+
                 # Dynamic Currency Detection
                 quote_currency = "USD"
                 if hasattr(row, 'quote_currency') and row.quote_currency:
@@ -827,7 +881,7 @@ class CoinbaseParser(BaseExchangeParser):
                 if tx_type_upper == "BUY" or "BUY" in tx_type_upper:
                     record = UniversalRecord(
                         Date=date,
-                        Sent_Amount=total + fee if total else amount,
+                        Sent_Amount=fiat_side(is_buy=True),
                         Sent_Currency=quote_currency,
                         Received_Amount=amount,
                         Received_Currency=currency,
@@ -841,7 +895,7 @@ class CoinbaseParser(BaseExchangeParser):
                         Date=date,
                         Sent_Amount=amount,
                         Sent_Currency=currency,
-                        Received_Amount=total - fee if total else 0,
+                        Received_Amount=fiat_side(is_buy=False),
                         Received_Currency=quote_currency,
                         Fee_Amount=fee,
                         Fee_Currency=quote_currency,
@@ -1627,7 +1681,13 @@ class PayPalParser(BaseExchangeParser):
         'gross': ['gross', 'amount', 'total', 'gross_amount', 'gross amount', 'transaction amount', 'value'],
         'fee': ['fee', 'fees', 'transaction fee', 'transaction_fee', 'fee_amount', 'charge'],
         'net': ['net', 'net_amount', 'net amount', 'net_total', 'final amount', 'received amount'],
+        # The crypto quantity. PayPal's Activity CSV does not carry it (Gross/Net are
+        # fiat); when an export does, it is honoured, otherwise the quantity is left
+        # unknown — never derived from the fiat amount.
+        'quantity': ['quantity', 'crypto quantity', 'crypto_quantity', 'crypto amount', 'crypto_amount', 'units', 'coin amount'],
     }
+
+    FIAT_CODES = {'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'NZD', 'SGD'}
     
     def normalize_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Fuzzy column matching for PayPal format variations."""
@@ -1681,7 +1741,7 @@ class PayPalParser(BaseExchangeParser):
         df = self.normalize_columns(df)
         
         # Add defaults for optional columns
-        for col,default in [('gross',0.0), ('fee',0.0), ('net',0.0), ('status','completed'), ('currency','')]:
+        for col,default in [('gross',0.0), ('fee',0.0), ('net',0.0), ('status','completed'), ('currency',''), ('quantity',0.0)]:
             if col not in df.columns:
                 df[col] = default
         
@@ -1712,6 +1772,10 @@ class PayPalParser(BaseExchangeParser):
                     raise ValueError("Invalid date")
                 
                 currency = str(getattr(row, 'currency', '')).upper().strip()
+                # In PayPal's own export the Currency column is the fiat the
+                # amounts are in; the coin is named in the Type.
+                if currency in self.FIAT_CODES:
+                    currency = ''
                 
                 # Extract currency from transaction type if missing
                 if not currency:
@@ -1722,19 +1786,31 @@ class PayPalParser(BaseExchangeParser):
                 
                 crypto_currency = crypto_mapping.get(currency, currency)
                 
+                # Gross and Net are fiat (USD): Gross is the value traded, Net is
+                # Gross less the fee. Koinly keeps the fee separate, so the fiat
+                # side is Gross and Fee Amount carries the fee — never Gross + fee.
                 gross = abs(parse_float(getattr(row, 'gross', 0), non_negative=False))
                 fee = abs(parse_float(getattr(row, 'fee', 0)))
-                net = abs(parse_float(getattr(row, 'net', 0), non_negative=False))
-                
-                if net == 0 and gross > 0:
-                    net = gross - fee
+                quantity = abs(parse_float(getattr(row, 'quantity', 0), non_negative=False))
+
+                def unknown_quantity(what: str) -> None:
+                    errors.append(ParseError(
+                        row=idx,
+                        message=(f"PayPal: this export has no crypto quantity for the {what}; "
+                                 f"the {crypto_currency} amount is left blank — add it from the PayPal app"),
+                        severity=ErrorSeverity.WARNING,
+                        data=safe_row_data(row),
+                        suggestion="PayPal's Activity CSV lists fiat only. Fill the crypto quantity in before importing.",
+                    ))
                 
                 if 'buy' in tx_type or 'purchase' in tx_type:
+                    if quantity <= 0:
+                        unknown_quantity("buy")
                     record = UniversalRecord(
                         Date=date,
-                        Sent_Amount=gross + fee,
+                        Sent_Amount=gross,
                         Sent_Currency='USD',
-                        Received_Amount=net if net > 0 else gross * 0.95,
+                        Received_Amount=quantity,
                         Received_Currency=crypto_currency,
                         Fee_Amount=fee,
                         Fee_Currency='USD',
@@ -1743,11 +1819,13 @@ class PayPalParser(BaseExchangeParser):
                     )
                 
                 elif 'sell' in tx_type:
+                    if quantity <= 0:
+                        unknown_quantity("sell")
                     record = UniversalRecord(
                         Date=date,
-                        Sent_Amount=gross,
+                        Sent_Amount=quantity,
                         Sent_Currency=crypto_currency,
-                        Received_Amount=net,
+                        Received_Amount=gross,
                         Received_Currency='USD',
                         Fee_Amount=fee,
                         Fee_Currency='USD',
@@ -1756,9 +1834,12 @@ class PayPalParser(BaseExchangeParser):
                     )
                 
                 elif 'send' in tx_type or 'sent' in tx_type:
+                    if quantity <= 0:
+                        # A transfer with no fiat leg and no quantity is an empty row — an error, not a record.
+                        raise ValueError(f"this export has no crypto quantity for the send of {crypto_currency}")
                     record = UniversalRecord(
                         Date=date,
-                        Sent_Amount=gross,
+                        Sent_Amount=quantity,
                         Sent_Currency=crypto_currency,
                         Received_Amount=0,
                         Received_Currency="",
@@ -1769,11 +1850,13 @@ class PayPalParser(BaseExchangeParser):
                     )
                 
                 elif 'receive' in tx_type or 'received' in tx_type:
+                    if quantity <= 0:
+                        raise ValueError(f"this export has no crypto quantity for the receive of {crypto_currency}")
                     record = UniversalRecord(
                         Date=date,
                         Sent_Amount=0,
                         Sent_Currency="",
-                        Received_Amount=gross,
+                        Received_Amount=quantity,
                         Received_Currency=crypto_currency,
                         Fee_Amount=0,
                         Fee_Currency="",
@@ -1822,7 +1905,7 @@ class CryptoDotComParser(BaseExchangeParser):
         'to_amount': 'to_amount',
         'native_currency': 'native_currency',
         'native_amount': 'native_amount',
-        'native_amount__in_usd_': 'usd_amount',
+        'native_amount_in_usd_': 'usd_amount',   # "Native Amount (in USD)" — normalize_column gives one underscore
         'transaction_kind': 'kind',
         'transaction_hash': 'hash',
     }
@@ -1836,12 +1919,14 @@ class CryptoDotComParser(BaseExchangeParser):
         df = self.normalize_columns(df)
         
         # Add defaults
-        for col,default in [('to_currency',''), ('to_amount',0.0), ('native_currency','USD'), ('usd_amount',0.0)]:
+        for col,default in [('to_currency',''), ('to_amount',0.0), ('native_currency','USD'),
+                            ('native_amount',0.0), ('usd_amount',0.0)]:
             if col not in df.columns:
                 df[col] = default
         
         records = []
         errors = []
+        skipped_lockups = 0
         
         for row in df.itertuples(index=True, name='Row'):
             idx = row.Index
@@ -1857,7 +1942,20 @@ class CryptoDotComParser(BaseExchangeParser):
                 to_currency = str(getattr(row, 'to_currency', '')).upper().strip()
                 to_amount = abs(parse_float(getattr(row, 'to_amount', 0), non_negative=False))
                 native_currency = str(getattr(row, 'native_currency', 'USD')).upper().strip()
+                native_amount = abs(parse_float(getattr(row, 'native_amount', 0), non_negative=False))
                 usd_amount = abs(parse_float(getattr(row, 'usd_amount', 0), non_negative=False))
+
+                # Fiat side of a buy/sell: the USD column first, then the
+                # native-currency amount, then the To Amount when the other
+                # leg is itself fiat. Never zero while one of them is present.
+                if usd_amount > 0:
+                    fiat_amount, fiat_currency = usd_amount, 'USD'
+                elif native_amount > 0:
+                    fiat_amount, fiat_currency = native_amount, native_currency or 'USD'
+                elif to_amount > 0:
+                    fiat_amount, fiat_currency = to_amount, to_currency or 'USD'
+                else:
+                    fiat_amount, fiat_currency = 0.0, native_currency or 'USD'
                 
                 # Determine label based on kind
                 if 'purchase' in kind or 'buy' in kind:
@@ -1869,10 +1967,9 @@ class CryptoDotComParser(BaseExchangeParser):
                 else:
                     label = "other"
                 
-                if kind in ['crypto_purchase', 'buy']:
-                    fiat_amount = usd_amount if usd_amount > 0 else to_amount
-                    fiat_currency = native_currency if usd_amount > 0 else (to_currency if to_amount > 0 else 'USD')
-                    
+                if kind in ['crypto_purchase', 'viban_purchase', 'buy']:
+                    if fiat_amount <= 0:
+                        raise ValueError("Purchase has no fiat amount (Native Amount / To Amount missing)")
                     record = UniversalRecord(
                         Date=date,
                         Sent_Amount=fiat_amount,
@@ -1885,10 +1982,9 @@ class CryptoDotComParser(BaseExchangeParser):
                         Label=label
                     )
                 
-                elif kind in ['crypto_sell', 'sell']:
-                    fiat_amount = usd_amount if usd_amount > 0 else to_amount
-                    fiat_currency = native_currency if usd_amount > 0 else (to_currency if to_amount > 0 else 'USD')
-                    
+                elif kind in ['crypto_sell', 'crypto_sale', 'crypto_viban_exchange', 'sell']:
+                    if fiat_amount <= 0:
+                        raise ValueError("Sale has no fiat amount (Native Amount / To Amount missing)")
                     record = UniversalRecord(
                         Date=date,
                         Sent_Amount=amount,
@@ -1962,6 +2058,9 @@ class CryptoDotComParser(BaseExchangeParser):
                 
                 elif kind in ['lockup_lock', 'lockup_unlock', 'crypto_earn_program_created', 'crypto_earn_program_withdrawn',
                              'crypto_withdrawal_fee', 'fee']:
+                    # Locking/unlocking your own coins is not a taxable event;
+                    # counted and reported once below rather than dropped silently.
+                    skipped_lockups += 1
                     continue
                 
                 else:
@@ -1978,6 +2077,15 @@ class CryptoDotComParser(BaseExchangeParser):
                     data=safe_row_data(row),
                     suggestion="Export from: Crypto.com App → Accounts → Transaction History → Export"
                 ))
+
+        if skipped_lockups:
+            errors.append(ParseError(
+                row=-1,
+                message=(f"Crypto.com: skipped {skipped_lockups} lock/unlock row"
+                         f"{'s' if skipped_lockups != 1 else ''} (staking locks are not taxable events; "
+                         "the interest paid on them is kept)"),
+                severity=ErrorSeverity.WARNING,
+            ))
         
         return records, errors
 

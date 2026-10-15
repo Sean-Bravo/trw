@@ -22,7 +22,7 @@ EXCHANGE_FIXTURES = [
     ("kucoin_valid.csv", "kucoin", 3),
     ("bybit_valid.csv", "bybit", 3),
     ("gemini_valid.csv", "gemini", 1),      # Gemini: complex multi-currency format
-    ("crypto_com_valid.csv", "crypto.com", 1),  # Crypto.com: staking/lockup filtered
+    ("crypto_com_valid.csv", "crypto.com", 2),  # Crypto.com: buy + sale; the lockup row is skipped with a warning
     ("robinhood_valid.csv", "robinhood", 3),
     ("paypal_valid.csv", "paypal", 3),
     ("cashapp_valid.csv", "cashapp", 2),    # CashApp: 1 sale skipped as unknown
