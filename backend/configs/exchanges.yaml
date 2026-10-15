@@ -56,7 +56,10 @@ exchanges:
 
   - id: paypal
     name: PayPal
-    status: verified
+    # beta since 2026-10-14: the fixture is synthetic and PayPal's Activity
+    # CSV carries no crypto quantity (the parser leaves it blank with a
+    # warning). Back to verified only once a real export has been checked.
+    status: beta
     fixture: paypal_valid.csv
 
   - id: venmo

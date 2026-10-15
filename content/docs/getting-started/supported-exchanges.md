@@ -22,7 +22,7 @@ This page mirrors the source registry that the API serves from `GET /v1/sources`
 | **Bybit** | `bybit` | Verified |
 | **Cash App** | `cashapp` | Verified |
 | **Robinhood** | `robinhood` | Verified |
-| **PayPal** | `paypal` | Verified |
+| **PayPal** | `paypal` | Beta |
 | **Venmo** | `venmo` | Beta |
 | **Crypto.com** | `crypto.com` | Verified |
 | **Gemini** | `gemini` | Verified |

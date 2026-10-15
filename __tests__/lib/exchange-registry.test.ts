@@ -93,7 +93,8 @@ describe('exchange registry mirrors backend/configs/exchanges.yaml', () => {
 
   it('splits verified and beta without losing anyone', () => {
     expect(VERIFIED_EXCHANGES.length + BETA_EXCHANGES.length).toBe(EXCHANGE_COUNT);
-    expect(BETA_EXCHANGES.map((e) => e.id)).toEqual(['venmo']);
+    // paypal: beta since 2026-10-14 — synthetic fixture, export carries no crypto quantity.
+    expect(BETA_EXCHANGES.map((e) => e.id)).toEqual(['paypal', 'venmo']);
   });
 });
 
