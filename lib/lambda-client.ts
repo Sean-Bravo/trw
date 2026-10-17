@@ -47,3 +47,30 @@ function resolveGatewayUrl(): string {
 }
 
 export const API_GATEWAY_URL = resolveGatewayUrl();
+
+/**
+ * Server-to-server shared secret for the non-/v1 gateway routes (WS1).
+ *
+ * The gateway routes have no authorizer, so the webhook Lambda checks this
+ * header to tell our own Next.js routes apart from direct callers. Server-only:
+ * INTERNAL_GATEWAY_TOKEN must never be a NEXT_PUBLIC_ var.
+ *
+ * A missing var logs once instead of throwing, so a misconfigured deploy can't
+ * take uploads down while the Lambda is still in GATEWAY_AUTH_MODE=log. Once the
+ * Lambda enforces, a missing var shows up as 401s from the gateway.
+ */
+let warnedMissingInternalToken = false;
+
+export function internalGatewayHeaders(): Record<string, string> {
+  const token = process.env['INTERNAL_GATEWAY_TOKEN'];
+  if (!token) {
+    if (!warnedMissingInternalToken) {
+      warnedMissingInternalToken = true;
+      console.error(
+        'INTERNAL_GATEWAY_TOKEN is not set; gateway calls are sent without X-Internal-Token',
+      );
+    }
+    return {};
+  }
+  return { 'X-Internal-Token': token };
+}

@@ -13,6 +13,7 @@ Routes:
 """
 
 import os
+import hmac
 import json
 import uuid
 import logging
@@ -59,6 +60,75 @@ def get_secrets() -> Dict[str, str]:
     except Exception as e:
         logger.error(f"Failed to fetch secrets: {e}")
         return {}
+
+
+# WS1: server-to-server shared secret for the non-/v1 routes. These routes have
+# no API Gateway authorizer, so without this check anyone can call
+# api.taxformatter.com directly and skip the ownership checks in the Next.js
+# routes. GATEWAY_AUTH_MODE=log only reports missing/wrong tokens (rollout);
+# enforce rejects them with 401. Any value other than "enforce" means log.
+INTERNAL_TOKEN_HEADER = "x-internal-token"  # API Gateway v2 lowercases header names
+GATEWAY_AUTH_MODE = os.environ.get("GATEWAY_AUTH_MODE", "log").strip().lower()
+
+# Cached per container like processor.py's secrets; only a non-empty value is
+# cached so a secret added after cold start is picked up on a later request.
+_internal_gateway_token: str = ""
+
+
+def _get_internal_gateway_token() -> str:
+    global _internal_gateway_token
+    if not _internal_gateway_token:
+        _internal_gateway_token = get_secrets().get("INTERNAL_GATEWAY_TOKEN", "") or ""
+    return _internal_gateway_token
+
+
+def _is_exempt_from_gateway_auth(route_key: str) -> bool:
+    # route_key is "METHOD /path"; /v1/* belongs to the API-key-authenticated
+    # developer API and must stay public.
+    path = route_key.split(" ", 1)[-1]
+    return path == "/v1" or path.startswith("/v1/")
+
+
+def _check_gateway_auth(event: Dict, route_key: str) -> Optional[Dict]:
+    """Return a 401 response to send, or None to let the request proceed."""
+    if _is_exempt_from_gateway_auth(route_key):
+        return None
+
+    headers = {str(k).lower(): v for k, v in (event.get("headers") or {}).items()}
+    provided = headers.get(INTERNAL_TOKEN_HEADER) or ""
+    expected = _get_internal_gateway_token()
+
+    if not expected:
+        reason = "secret_unset"
+    elif not provided:
+        reason = "missing"
+    elif not hmac.compare_digest(provided.encode("utf-8"), expected.encode("utf-8")):
+        reason = "mismatch"
+    else:
+        return None
+
+    enforce = GATEWAY_AUTH_MODE == "enforce"
+    # Never log the token values, only that the check failed and why.
+    logger.warning(json.dumps({
+        "event": "gateway_auth_failed",
+        "route_key": route_key,
+        "reason": reason,
+        "mode": "enforce" if enforce else "log",
+    }))
+    if enforce:
+        return response(401, {"error": "Unauthorized"})
+    return None
+
+
+def _redact_event_for_log(event: Dict) -> Dict:
+    headers = event.get("headers")
+    if not isinstance(headers, dict):
+        return event
+    redacted = {
+        k: ("[redacted]" if str(k).lower() == INTERNAL_TOKEN_HEADER else v)
+        for k, v in headers.items()
+    }
+    return {**event, "headers": redacted}
 
 
 ### H-11: CORS allowlist (mirrors api.py)
@@ -393,7 +463,7 @@ def handle_download(event: Dict) -> Dict:
                 Params={
                     "Bucket": RESULTS_BUCKET,
                     "Key": result_key,
-                    "ResponseContentDisposition": f'attachment; filename="{job_id}_koinly.csv"',
+                    "ResponseContentDisposition": 'attachment; filename="taxformatter_koinly.csv"',
                 },
                 ExpiresIn=DOWNLOAD_EXPIRATION,
             )
@@ -497,7 +567,7 @@ def handle_download(event: Dict) -> Dict:
             Params={
                 "Bucket": RESULTS_BUCKET,
                 "Key": converted_key,
-                "ResponseContentDisposition": f'attachment; filename="{job_id}_{output_format}.csv"',
+                "ResponseContentDisposition": f'attachment; filename="taxformatter_{output_format}.csv"',
             },
             ExpiresIn=DOWNLOAD_EXPIRATION,
         )
@@ -872,7 +942,7 @@ def handle_bank_process(event: Dict) -> Dict:
             Params={
                 "Bucket": BANK_RESULTS_BUCKET,
                 "Key": output_key,
-                "ResponseContentDisposition": f'attachment; filename="bank_{job_id}_{output_format}.csv"',
+                "ResponseContentDisposition": f'attachment; filename="bank_statement_{output_format}.csv"',
                 "ResponseContentType": "text/csv",
             },
             ExpiresIn=DOWNLOAD_EXPIRATION,
@@ -961,10 +1031,15 @@ def handle_bank_download(event: Dict) -> Dict:
     path_params = event.get("pathParameters", {}) or {}
     job_id = path_params.get("jobId")
     query_params = event.get("queryStringParameters", {}) or {}
-    output_format = query_params.get("format", "qbo")
+    output_format = (query_params.get("format") or "qbo").lower().strip()
 
     if not job_id:
         return response(400, {"error": "jobId is required"})
+
+    # Allowlist before the value reaches the S3 key (Oct 16 F27).
+    valid_formats = ["csv", "qbo", "xero", "excel"]
+    if output_format not in valid_formats:
+        return response(400, {"error": f"Invalid format. Valid formats: {valid_formats}"})
 
     try:
         output_key = f"bank/{job_id}/output_{output_format}.csv"
@@ -983,7 +1058,7 @@ def handle_bank_download(event: Dict) -> Dict:
             Params={
                 "Bucket": BANK_RESULTS_BUCKET,
                 "Key": output_key,
-                "ResponseContentDisposition": f'attachment; filename="bank_{job_id}_{output_format}.csv"',
+                "ResponseContentDisposition": f'attachment; filename="bank_statement_{output_format}.csv"',
                 "ResponseContentType": "text/csv",
             },
             ExpiresIn=DOWNLOAD_EXPIRATION,
@@ -1114,7 +1189,7 @@ def handler(event: Dict, context: Any) -> Dict:
     """
     Main Lambda handler - routes requests to appropriate handlers.
     """
-    logger.info(f"Received event: {json.dumps(event)}")
+    logger.info(f"Received event: {json.dumps(_redact_event_for_log(event))}")
     _set_request_origin(event)  # H-11
 
     # Handle OPTIONS preflight
@@ -1124,6 +1199,11 @@ def handler(event: Dict, context: Any) -> Dict:
 
     # Get route from API Gateway v2 format
     route_key = event.get("routeKey", "")
+
+    # WS1: shared-secret check for every non-/v1 route
+    auth_failure = _check_gateway_auth(event, route_key)
+    if auth_failure is not None:
+        return auth_failure
 
     # Route to appropriate handler
     if route_key == "POST /presigned-url":
@@ -1140,9 +1220,6 @@ def handler(event: Dict, context: Any) -> Dict:
         return handle_job_retry(event)
     elif route_key == "DELETE /delete/{jobId}":
         return handle_delete_job(event)
-    elif route_key == "POST /webhook":
-        # Generic webhook endpoint (for future use)
-        return response(200, {"message": "Webhook received"})
     # Bank statement routes
     elif route_key == "POST /bank/presigned-url":
         return handle_bank_presigned_url(event)

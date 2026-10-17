@@ -21,6 +21,8 @@ resource "aws_secretsmanager_secret_version" "app_secrets" {
     NEXTAUTH_SECRET       = var.nextauth_secret
     SES_SENDER_EMAIL      = var.ses_sender_email
     DATABASE_URL          = var.database_url
+    # WS1: shared secret Next.js sends as X-Internal-Token on non-/v1 gateway calls
+    INTERNAL_GATEWAY_TOKEN = var.internal_gateway_token
   })
 }
 
@@ -362,6 +364,7 @@ resource "aws_lambda_function" "webhook" {
       RESULTS_BUCKET      = aws_s3_bucket.results.id
       SECRETS_ARN         = aws_secretsmanager_secret.app_secrets.arn
       PROCESSOR_QUEUE_URL = aws_sqs_queue.processing.url
+      GATEWAY_AUTH_MODE   = var.gateway_auth_mode
     }
   }
 
