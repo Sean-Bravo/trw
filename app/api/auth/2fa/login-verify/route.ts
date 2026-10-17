@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, execute } from '@/lib/db';
 import { verifyBackupCode, verifyToken } from '@/lib/2fa';
-import { verifyPassword } from '@/lib/auth-db';
+import {
+  verifyPassword,
+  recordFailedLogin,
+  createTwoFactorLoginToken,
+} from '@/lib/auth-db';
 import { constantTimeStringEqual } from '@/lib/validation';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 
@@ -93,13 +97,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (!valid) {
+      // F40: a wrong code counts toward the per-account lockout, same as a
+      // wrong password, so the 10^6 TOTP space can't be walked by a holder
+      // of the password.
+      await recordFailedLogin(user.id);
       return NextResponse.json({ error: 'Invalid or expired verification code' }, { status: 401 });
     }
 
-    // Return success - client will complete sign in
+    // F30: the client passes this to signIn('credentials'); authorize()
+    // refuses a 2FA account without it. Single-use, 2-minute expiry.
+    const loginToken = await createTwoFactorLoginToken(user.id);
+
     return NextResponse.json({
       success: true,
-      userId: user.id
+      userId: user.id,
+      loginToken,
     });
   } catch (error) {
     console.error('[2FA Login Verify] Error:', error);

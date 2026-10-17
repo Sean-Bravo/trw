@@ -102,12 +102,13 @@ function TwoFactorForm() {
         return;
       }
 
-      // Complete sign in with NextAuth
+      // Complete sign in with NextAuth. authorize() requires the single-use
+      // token login-verify just returned; without it a 2FA account is refused.
       const result = await signIn('credentials', {
         redirect: false,
         email: credentials.email,
         password: credentials.password,
-        skip2FA: 'true', // Signal to skip 2FA check since we verified it
+        twoFactorToken: verifyData.loginToken,
       });
 
       if (result?.error) {
