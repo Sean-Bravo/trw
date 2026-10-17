@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 import { getJobById } from '@/lib/jobs-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
@@ -41,6 +41,7 @@ export async function GET(
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...internalGatewayHeaders(),
         },
       }
     );

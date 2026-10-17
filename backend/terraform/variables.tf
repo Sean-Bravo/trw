@@ -46,6 +46,23 @@ variable "openai_api_key" {
   default     = ""
 }
 
+variable "internal_gateway_token" {
+  description = "Shared secret Next.js sends as X-Internal-Token to the non-/v1 gateway routes. Must match INTERNAL_GATEWAY_TOKEN in Vercel."
+  type        = string
+  sensitive   = true
+}
+
+variable "gateway_auth_mode" {
+  description = "Webhook Lambda shared-secret check: log (report only) or enforce (401). Flip to enforce only after the logs show every call carries the header."
+  type        = string
+  default     = "log"
+
+  validation {
+    condition     = contains(["log", "enforce"], var.gateway_auth_mode)
+    error_message = "gateway_auth_mode must be \"log\" or \"enforce\"."
+  }
+}
+
 variable "google_gemini_api_key" {
   description = "Google Gemini API key (optional for Starter tier)"
   type        = string

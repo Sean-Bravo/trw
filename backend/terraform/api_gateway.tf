@@ -80,12 +80,6 @@ resource "aws_apigatewayv2_integration" "webhook" {
 }
 
 # Routes
-resource "aws_apigatewayv2_route" "webhook_post" {
-  api_id    = aws_apigatewayv2_api.main.id
-  route_key = "POST /webhook"
-  target    = "integrations/${aws_apigatewayv2_integration.webhook.id}"
-}
-
 resource "aws_apigatewayv2_route" "presigned_url" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "POST /presigned-url"

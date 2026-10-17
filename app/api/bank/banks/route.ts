@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
 
 /**
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     // Call Lambda
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/bank/banks`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...internalGatewayHeaders() },
     });
 
     const data = await lambdaResponse.json();

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { queryOne } from '@/lib/db';
-import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
 
 /**
@@ -39,7 +39,7 @@ export async function GET(
     // Call Lambda
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/bank/job/${jobId}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...internalGatewayHeaders() },
     });
 
     const data = await lambdaResponse.json();
