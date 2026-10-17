@@ -5,13 +5,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import {
-  verifyPassword,
+  authorizeCredentials,
   findOrCreateOAuthUser,
   findUserByEmail,
-  findUserById,
 } from "@/lib/auth-db";
-import { queryOne } from "@/lib/db";
-import { verifyToken, verifyBackupCode } from "@/lib/2fa";
 import { safeRedirect } from "@/lib/safe-redirect";
 
 /**
@@ -48,7 +45,10 @@ export const authOptions: NextAuthOptions = {
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
+        // F30: single-use token from /api/auth/2fa/login-verify; required
+        // when the account has 2FA on. See authorizeCredentials.
+        twoFactorToken: { label: "2FA token", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -70,8 +70,12 @@ export const authOptions: NextAuthOptions = {
         const validatedEmail = emailValidation.data;
 
         try {
-          // Verify credentials directly against Neon DB
-          const user = await verifyPassword(validatedEmail, credentials.password);
+          // Password, lockout, verified email and (when enabled) 2FA proof
+          const user = await authorizeCredentials(
+            validatedEmail,
+            credentials.password,
+            credentials.twoFactorToken || undefined
+          );
 
           if (!user) {
             throw new Error("Invalid credentials");
@@ -150,7 +154,7 @@ export const authOptions: NextAuthOptions = {
 
   // Callbacks
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       // For OAuth providers, create/update user directly in Neon DB
       if (account?.provider === 'google' && user.email) {
         try {
@@ -162,7 +166,9 @@ export const authOptions: NextAuthOptions = {
             account.access_token || undefined,
             account.refresh_token || undefined,
             account.expires_at,
-            await readSignupAttribution()
+            await readSignupAttribution(),
+            // F31: Google's OIDC claim; the NextAuth Profile type omits it.
+            (profile as { email_verified?: boolean } | undefined)?.email_verified === true
           );
           return true;
         } catch (error) {

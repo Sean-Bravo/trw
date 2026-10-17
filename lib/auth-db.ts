@@ -16,8 +16,11 @@ export interface UserWithSubscription {
  * Find user by email (basic - returns DbUser for internal auth use)
  */
 export async function findUserByEmail(email: string): Promise<DbUser | null> {
+  // F40: verifyPassword reads the lockout columns from this row, and F31
+  // reads email_verified — leaving any of them out makes those gates dead code.
   return queryOne<DbUser>(
-    `SELECT id, email, password_hash, name, created_at
+    `SELECT id, email, password_hash, name, email_verified,
+            failed_login_attempts, locked_until, created_at
      FROM users
      WHERE email = $1`,
     [email.toLowerCase()]
@@ -175,9 +178,35 @@ export async function createUser(
  */
 // H-7: per-account brute force protection. After MAX_LOGIN_ATTEMPTS
 // failures the account is locked for LOCKOUT_DURATION_MIN minutes.
-// Counter and lock are reset on successful login.
+// Wrong passwords and wrong 2FA codes both count. The counter is reset
+// only when a session is actually issued (authorizeCredentials), not on a
+// correct password alone — otherwise anyone holding the password could
+// reset it between rounds of 2FA-code guesses (F40).
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MIN = 30;
+
+/** Count one failed login (bad password or bad 2FA code); lock at the threshold. */
+export async function recordFailedLogin(userId: string): Promise<void> {
+  // One atomic UPDATE so concurrent failures cannot bypass the threshold.
+  await execute(
+    `UPDATE users
+     SET failed_login_attempts = failed_login_attempts + 1,
+         locked_until = CASE
+           WHEN failed_login_attempts + 1 >= $2
+           THEN now() + ($3 || ' minutes')::interval
+           ELSE locked_until
+         END
+     WHERE id = $1`,
+    [userId, MAX_LOGIN_ATTEMPTS, String(LOCKOUT_DURATION_MIN)]
+  );
+}
+
+async function clearFailedLogins(userId: string): Promise<void> {
+  await execute(
+    `UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1`,
+    [userId]
+  );
+}
 
 export async function verifyPassword(
   email: string,
@@ -199,29 +228,102 @@ export async function verifyPassword(
   const isValid = await bcrypt.compare(password, user.password_hash);
 
   if (!isValid) {
-    // Increment counter; lock if at threshold. Done in one atomic UPDATE
-    // so concurrent failures cannot bypass the threshold.
-    await execute(
-      `UPDATE users
-       SET failed_login_attempts = failed_login_attempts + 1,
-           locked_until = CASE
-             WHEN failed_login_attempts + 1 >= $2
-             THEN now() + ($3 || ' minutes')::interval
-             ELSE locked_until
-           END
-       WHERE id = $1`,
-      [user.id, MAX_LOGIN_ATTEMPTS, String(LOCKOUT_DURATION_MIN)]
-    );
+    await recordFailedLogin(user.id);
     return null;
   }
 
-  // Successful login — reset counter and clear any prior lock.
+  return findUserById(user.id);
+}
+
+// F30: proof that /api/auth/2fa/login-verify accepted a second factor.
+// Only the SHA-256 is stored; the raw token goes to the browser once and
+// is handed straight to signIn(), so a short expiry is plenty.
+const TWO_FACTOR_LOGIN_TOKEN_TTL_MIN = 2;
+
+async function sha256Hex(value: string): Promise<string> {
+  const crypto = await import('crypto');
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
+/** Mint a single-use 2FA login token (db/migrations/016). Returns the raw token. */
+export async function createTwoFactorLoginToken(userId: string): Promise<string> {
+  const crypto = await import('crypto');
+  const token = crypto.randomBytes(32).toString('hex');
   await execute(
-    `UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1`,
+    `UPDATE users
+     SET two_factor_login_token_hash = $1,
+         two_factor_login_token_expires = now() + ($2 || ' minutes')::interval
+     WHERE id = $3`,
+    [await sha256Hex(token), String(TWO_FACTOR_LOGIN_TOKEN_TTL_MIN), userId]
+  );
+  return token;
+}
+
+/** True once per token: verifies it in constant time, then clears it. */
+export async function consumeTwoFactorLoginToken(
+  userId: string,
+  token: string
+): Promise<boolean> {
+  const row = await queryOne<{
+    two_factor_login_token_hash: string | null;
+    two_factor_login_token_expires: Date | null;
+  }>(
+    `SELECT two_factor_login_token_hash, two_factor_login_token_expires
+     FROM users WHERE id = $1`,
+    [userId]
+  );
+  if (!row?.two_factor_login_token_hash || !row.two_factor_login_token_expires) {
+    return false;
+  }
+
+  const hash = await sha256Hex(token);
+  const valid =
+    constantTimeStringEqual(row.two_factor_login_token_hash, hash) &&
+    new Date(row.two_factor_login_token_expires) > new Date();
+
+  // Clear on any attempt so a token is never tried twice. The hash match in
+  // the WHERE makes two concurrent sign-ins with one token race to a single
+  // winner: only the request whose UPDATE clears the row gets a session.
+  // RETURNING is required: execute() counts returned rows.
+  const cleared = await execute(
+    `UPDATE users
+     SET two_factor_login_token_hash = NULL, two_factor_login_token_expires = NULL
+     WHERE id = $1 AND two_factor_login_token_hash = $2
+     RETURNING id`,
+    [userId, row.two_factor_login_token_hash]
+  );
+  return valid && cleared.rowCount === 1;
+}
+
+/**
+ * The full server-side gate for a credentials sign-in (NextAuth authorize()).
+ * Returns null unless the password is right, the account is not locked, the
+ * email is verified (F31) and, when 2FA is on, a login-verify token is
+ * presented and consumed (F30).
+ */
+export async function authorizeCredentials(
+  email: string,
+  password: string,
+  twoFactorToken?: string
+): Promise<UserWithSubscription | null> {
+  const user = await verifyPassword(email, password);
+  if (!user) return null;
+
+  if (!user.emailVerified) return null;
+
+  const twoFactor = await queryOne<{ two_factor_enabled: boolean }>(
+    `SELECT two_factor_enabled FROM users WHERE id = $1`,
     [user.id]
   );
+  if (!twoFactor) return null;
+  if (twoFactor.two_factor_enabled) {
+    if (!twoFactorToken || !(await consumeTwoFactorLoginToken(user.id, twoFactorToken))) {
+      return null;
+    }
+  }
 
-  return findUserById(user.id);
+  await clearFailedLogins(user.id);
+  return user;
 }
 
 /**
@@ -246,7 +348,8 @@ export async function findOrCreateOAuthUser(
   accessToken?: string,
   refreshToken?: string,
   expiresAt?: number,
-  attribution?: Attribution | null
+  attribution?: Attribution | null,
+  providerEmailVerified = false
 ): Promise<UserWithSubscription> {
   // Check if account already exists
   const existingAccount = await queryOne<{ user_id: string }>(
@@ -279,9 +382,29 @@ export async function findOrCreateOAuthUser(
     return user;
   }
 
+  // F31: from here on the email address alone decides which row this
+  // Google account lands on, so the address has to be proven on both sides.
+  // Google must assert it, or a new row would be marked verified on an
+  // unproven claim.
+  if (!providerEmailVerified) {
+    throw new Error('OAuth provider did not verify the email address');
+  }
+
   // Check if user exists with this email
-  let user = await findUserByEmail(email);
+  const user = await findUserByEmail(email);
   let userId: string;
+
+  // F31 (account pre-hijacking): anyone can register a password account for
+  // an address they do not own; it stays unverified. Linking Google to that
+  // row would hand the real owner's account to whoever chose the password.
+  // Refuse the link rather than adopt the row: the squatter may have used
+  // the row before the verified-login gate shipped (API keys, 2FA secret,
+  // uploads), and clearing just the password would leave those behind. The
+  // owner recovers with "Forgot password" (which replaces the squatter's
+  // password) and the emailed verification code; Google then links.
+  if (user && !user.email_verified) {
+    throw new Error('Refusing to link OAuth account to an unverified user');
+  }
 
   if (!user) {
     // Create new user (OAuth users are verified by default)

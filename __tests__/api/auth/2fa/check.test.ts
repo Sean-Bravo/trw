@@ -29,7 +29,7 @@ describe('POST /api/auth/2fa/check', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (rateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: true });
-    mockVerifyPassword.mockResolvedValue({ id: 'u1', email: 'u@x.com' } as any);
+    mockVerifyPassword.mockResolvedValue({ id: 'u1', email: 'u@x.com', emailVerified: true } as any);
     mockQueryOne.mockResolvedValue({ two_factor_enabled: false, name: 'U' });
     mockExecute.mockResolvedValue(undefined);
     mockSend2FALoginEmail?.mockResolvedValue?.({ success: true });
@@ -70,5 +70,15 @@ describe('POST /api/auth/2fa/check', () => {
     (rateLimit.rateLimiters.auth.check as jest.Mock).mockResolvedValue({ success: false });
     const res = await POST(createMockRequest({ email: 'u@x.com', password: 'P1!' }) as any);
     expect(res.status).toBe(429);
+  });
+
+  it('F31: returns 403 emailNotVerified for an unverified account and sends no 2FA code', async () => {
+    mockVerifyPassword.mockResolvedValue({ id: 'u1', email: 'u@x.com', emailVerified: false } as any);
+    mockQueryOne.mockResolvedValue({ two_factor_enabled: true, name: 'U' });
+    const res = await POST(createMockRequest({ email: 'u@x.com', password: 'P1!' }) as any);
+    const data = await res.json();
+    expect(res.status).toBe(403);
+    expect(data.emailNotVerified).toBe(true);
+    expect(mockSend2FALoginEmail).not.toHaveBeenCalled();
   });
 });
