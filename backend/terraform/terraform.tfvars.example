@@ -14,6 +14,11 @@ anthropic_api_key     = "your-anthropic-api-key-here"
 openai_api_key        = ""  # Optional
 google_gemini_api_key = "your-gemini-api-key-here"
 
+# Shared secret for the non-/v1 gateway routes; same value as Vercel's
+# INTERNAL_GATEWAY_TOKEN. Generate with: openssl rand -hex 32
+internal_gateway_token = "your-internal-gateway-token-here"
+# gateway_auth_mode    = "log"  # flip to "enforce" only after the log-mode soak
+
 # Email configuration
 alert_email      = "alerts@yourdomain.com"
 ses_sender_email = "noreply@taxformatter.com"
