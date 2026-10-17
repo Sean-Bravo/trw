@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getJobById } from '@/lib/jobs-db';
 import { queryOne, execute } from '@/lib/db';
-import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
 // Rate limit: minimum 30 seconds between retries
 const RETRY_COOLDOWN_MS = 30 * 1000;
@@ -120,6 +120,7 @@ export async function POST(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...internalGatewayHeaders(),
       },
       body: JSON.stringify({
         s3Key: dbJob.upload.s3_key,

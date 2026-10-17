@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getClientIdentifier } from '@/lib/rate-limit';
 import { query } from '@/lib/db';
-import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
 
 /**
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Call AWS Lambda to process
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/bank/process`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...internalGatewayHeaders() },
       body: JSON.stringify({
         jobId,
         s3Key,

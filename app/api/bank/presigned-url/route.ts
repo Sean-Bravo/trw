@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
-import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
 
 /**
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Call AWS Lambda
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/bank/presigned-url`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...internalGatewayHeaders() },
       body: JSON.stringify({
         filename,
         contentType: 'application/pdf',

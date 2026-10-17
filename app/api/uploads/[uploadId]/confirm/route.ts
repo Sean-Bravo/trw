@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { createUpload } from '@/lib/uploads-db';
 import { queryOne } from '@/lib/db';
-import { API_GATEWAY_URL } from '@/lib/lambda-client';
+import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 
@@ -48,6 +48,7 @@ export async function POST(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...internalGatewayHeaders(),
       },
       body: JSON.stringify({
         jobId,
