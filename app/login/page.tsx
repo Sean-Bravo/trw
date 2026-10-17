@@ -46,6 +46,18 @@ function LoginForm() {
       const checkData = await checkRes.json();
 
       if (!checkRes.ok) {
+        // Correct password, unverified email: login is refused server-side,
+        // so send a fresh code and hand off to /verify the way signup does.
+        if (checkData.emailNotVerified) {
+          await fetch('/api/auth/resend-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: formData.email }),
+          }).catch(() => undefined);
+          sessionStorage.setItem('temp_password', formData.password);
+          router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
+          return;
+        }
         setError(checkData.error === 'Invalid credentials' ? 'Invalid email or password' : checkData.error);
         setIsLoading(false);
         return;

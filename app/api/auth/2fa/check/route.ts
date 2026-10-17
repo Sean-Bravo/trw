@@ -28,6 +28,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
+    // F31: authorize() refuses unverified accounts; say so here (only after
+    // a correct password) so the login page can send the user to /verify.
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: 'Please verify your email before signing in.', emailNotVerified: true },
+        { status: 403 }
+      );
+    }
+
     // Check if 2FA is enabled
     const user2fa = await queryOne<{ two_factor_enabled: boolean; name: string | null }>(
       'SELECT two_factor_enabled, name FROM users WHERE id = $1',

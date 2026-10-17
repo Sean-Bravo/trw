@@ -20,6 +20,8 @@ import * as lib2fa from '@/lib/2fa';
 import * as rateLimit from '@/lib/rate-limit';
 
 const mockVerifyPassword = authDb.verifyPassword as jest.MockedFunction<typeof authDb.verifyPassword>;
+const mockRecordFailedLogin = authDb.recordFailedLogin as jest.MockedFunction<typeof authDb.recordFailedLogin>;
+const mockCreateToken = authDb.createTwoFactorLoginToken as jest.MockedFunction<typeof authDb.createTwoFactorLoginToken>;
 const mockQueryOne = db.queryOne as jest.MockedFunction<typeof db.queryOne>;
 const mockExecute = db.execute as jest.MockedFunction<typeof db.execute>;
 const mockVerifyToken = lib2fa.verifyToken as jest.MockedFunction<typeof lib2fa.verifyToken>;
@@ -41,6 +43,8 @@ describe('POST /api/auth/2fa/login-verify', () => {
     mockVerifyToken.mockReturnValue(false);
     mockVerifyBackupCode.mockReturnValue({ valid: false, index: -1 });
     mockExecute.mockResolvedValue(undefined);
+    mockRecordFailedLogin.mockResolvedValue(undefined);
+    mockCreateToken.mockResolvedValue('raw-login-token');
   });
 
   it('M-7: returns 429 when rate limit exceeded', async () => {
@@ -57,6 +61,9 @@ describe('POST /api/auth/2fa/login-verify', () => {
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.userId).toBe('u1');
+    // F30: the single-use token authorize() requires.
+    expect(data.loginToken).toBe('raw-login-token');
+    expect(mockCreateToken).toHaveBeenCalledWith('u1');
   });
 
   it('returns success when backup code valid and marks used', async () => {
@@ -91,5 +98,8 @@ describe('POST /api/auth/2fa/login-verify', () => {
     const res = await POST(createMockRequest({ email: 'u@x.com', password: 'P1!', code: '000000' }) as any);
     expect(res.status).toBe(401);
     expect((await res.json()).error).toMatch(/Invalid or expired/i);
+    // F40: a wrong code counts toward the account lockout; no token minted.
+    expect(mockRecordFailedLogin).toHaveBeenCalledWith('u1');
+    expect(mockCreateToken).not.toHaveBeenCalled();
   });
 });
