@@ -490,6 +490,31 @@ describe('rate-limit.ts', () => {
   })
 
   describe('edge cases and security', () => {
+    // Identifiers come from request headers. On a plain-object store,
+    // "__proto__" resolved to Object.prototype and count++ wrote NaN onto
+    // every object in the process while never tripping the limit.
+    it.each(['__proto__', 'constructor', 'prototype'])(
+      'treats %s as an ordinary identifier without polluting Object.prototype',
+      async (identifier) => {
+        const limit = 3
+        const limiter = new RateLimiter({
+          interval: 60000,
+          uniqueTokenPerInterval: limit,
+        })
+
+        const results = []
+        for (let i = 0; i < limit + 1; i++) {
+          results.push(await limiter.check(identifier))
+        }
+
+        expect(({} as Record<string, unknown>)['count']).toBeUndefined()
+        expect(({} as Record<string, unknown>)['resetTime']).toBeUndefined()
+        expect(results.slice(0, limit).every((r) => r.success)).toBe(true)
+        expect(results.map((r) => r.remaining).slice(0, limit)).toEqual([2, 1, 0])
+        expect(results[limit]!.success).toBe(false)
+      }
+    )
+
     it('handles concurrent requests correctly', async () => {
       const limiter = new RateLimiter({
         interval: 60000,

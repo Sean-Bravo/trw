@@ -16,22 +16,22 @@ if (
   );
 }
 
-interface RateLimitStore {
-  [key: string]: {
-    count: number;
-    resetTime: number;
-  };
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
 }
 
-const store: RateLimitStore = {};
+// A Map, not a plain object: identifiers come from request headers, and on a
+// `{}` an identifier of "__proto__" resolves to Object.prototype, so the
+// count++ below would write NaN onto every object in the process.
+const store = new Map<string, RateLimitEntry>();
 
 // Clean up old entries every 5 minutes
 setInterval(() => {
   const now = Date.now();
-  Object.keys(store).forEach((key) => {
-    const entry = store[key];
-    if (entry && entry.resetTime < now) {
-      delete store[key];
+  store.forEach((entry, key) => {
+    if (entry.resetTime < now) {
+      store.delete(key);
     }
   });
 }, 5 * 60 * 1000);
@@ -50,20 +50,21 @@ export class RateLimiter {
 
   async check(identifier: string): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
     const now = Date.now();
-    const tokenData = store[identifier];
+    const tokenData = store.get(identifier);
 
     if (!tokenData || tokenData.resetTime < now) {
       // Reset or initialize
-      store[identifier] = {
+      const entry = {
         count: 1,
         resetTime: now + this.config.interval,
       };
+      store.set(identifier, entry);
 
       return {
         success: true,
         limit: this.config.uniqueTokenPerInterval,
         remaining: this.config.uniqueTokenPerInterval - 1,
-        reset: store[identifier]!.resetTime,
+        reset: entry.resetTime,
       };
     }
 
