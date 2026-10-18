@@ -2,6 +2,7 @@ import { execute, queryOne, query, DbUser, DbAccount, DbSubscription } from './d
 import type { Attribution } from './attribution';
 import bcrypt from 'bcryptjs';
 import { constantTimeStringEqual } from './validation';
+import { verifyBackupCode, verifyToken } from './2fa';
 
 // User response type (without password_hash)
 export interface UserWithSubscription {
@@ -324,6 +325,51 @@ export async function authorizeCredentials(
 
   await clearFailedLogins(user.id);
   return user;
+}
+
+export type TwoFactorReauthResult = 'ok' | 'invalid' | 'locked' | 'not_enabled';
+
+/**
+ * Fresh proof before 2FA is turned off or its backup codes replaced (scan C
+ * F1), so a stolen session alone cannot strip the second factor. Needs the
+ * current password and a TOTP or unused backup code. Accounts with no
+ * password (Google-only) prove with the code alone. A wrong answer counts
+ * toward the same lockout as a failed login. The caller's UPDATE clears or
+ * replaces backup_codes, which uses up a backup code given here.
+ */
+export async function verifyTwoFactorReauth(
+  userId: string,
+  password: string,
+  code: string
+): Promise<TwoFactorReauthResult> {
+  const user = await queryOne<{
+    password_hash: string | null;
+    locked_until: Date | null;
+    two_factor_enabled: boolean;
+    two_factor_secret: string | null;
+    backup_codes: string[] | null;
+  }>(
+    `SELECT password_hash, locked_until, two_factor_enabled, two_factor_secret, backup_codes
+     FROM users WHERE id = $1`,
+    [userId]
+  );
+  if (!user?.two_factor_enabled) return 'not_enabled';
+  if (user.locked_until && new Date(user.locked_until) > new Date()) return 'locked';
+
+  // Check both before deciding, so the result never says which one was wrong.
+  const passwordOk = user.password_hash
+    ? await bcrypt.compare(password, user.password_hash)
+    : true;
+  const totpOk = !!user.two_factor_secret && verifyToken(code, user.two_factor_secret);
+  const backupOk = !!user.backup_codes && verifyBackupCode(code, user.backup_codes).valid;
+
+  if (!passwordOk || !(totpOk || backupOk)) {
+    await recordFailedLogin(userId);
+    return 'invalid';
+  }
+
+  await clearFailedLogins(userId);
+  return 'ok';
 }
 
 /**

@@ -1,0 +1,16 @@
+# Config for the CI secret-scan job (.github/workflows/ci.yml).
+# Keeps gitleaks' default rules; only allowlists obvious placeholders that
+# appear in docs, marketing snippets and tests, so editing those lines does
+# not fail the build. Do not allowlist real values here; rotate them instead.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documentation and test placeholders"
+regexTarget = "secret"
+regexes = [
+  '''\.\.\.$''',              # truncated examples, e.g. tf_live_...
+  '''(?i)^your_api_key$''',
+  '''(?i)your_key_here''',
+  '''(?i)placeholder''',
+]

@@ -121,6 +121,58 @@ jobs:
           pip-audit -r backend/requirements-processor.txt --vulnerability-service osv
           pip-audit -r backend/requirements-webhook.txt --vulnerability-service osv
 
+  # WS8: block new secrets from landing. Scans only the commits a PR adds,
+  # or the commits a push to main adds, not the full history: old keys stay
+  # in history until it is rewritten, and a full scan would fail every build.
+  # Uses the gitleaks binary rather than gitleaks-action, which needs a paid
+  # license on organization-owned repos.
+  secret-scan:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks (pinned, checksum-verified)
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz -C "$RUNNER_TEMP" gitleaks
+          rm gitleaks.tar.gz
+
+      - name: Scan new commits
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            RANGE="${PR_BASE}..${PR_HEAD}"
+          elif [ -n "$PUSH_BEFORE" ] && [ "$PUSH_BEFORE" != "0000000000000000000000000000000000000000" ] \
+            && git merge-base --is-ancestor "$PUSH_BEFORE" "$PUSH_AFTER" 2>/dev/null; then
+            RANGE="${PUSH_BEFORE}..${PUSH_AFTER}"
+          else
+            # New branch, or a force-push whose old tip is not an ancestor
+            # (e.g. after a history rewrite): scan only the pushed tip.
+            RANGE="${PUSH_AFTER}^!"
+          fi
+          echo "Scanning commit range: $RANGE"
+          "$RUNNER_TEMP/gitleaks" git . \
+            --config .gitleaks.toml \
+            --log-opts="$RANGE" \
+            --redact \
+            --no-banner \
+            --exit-code 1
+
   build:
     name: Build
     runs-on: ubuntu-latest

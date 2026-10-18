@@ -814,6 +814,29 @@ def handle_bank_presigned_url(event: Dict) -> Dict:
         return response(500, {"error": "Failed to generate upload URL"})
 
 
+# Caps checked before the PDF reaches the parser (issue #2, also helps #5).
+# The size cap matches the 50MB the upload UI allows; bank statements are
+# rarely more than a few dozen pages.
+MAX_BANK_PDF_SIZE = MAX_FILE_SIZE
+MAX_BANK_PDF_PAGES = 100
+
+
+def _is_canonical_uuid(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        return str(uuid.UUID(value)) == value
+    except ValueError:
+        return False
+
+
+def _count_pdf_pages(pdf_bytes: bytes) -> int:
+    import pdfplumber
+    from io import BytesIO
+    with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
+        return len(pdf.pages)
+
+
 def handle_bank_process(event: Dict) -> Dict:
     """
     Process an uploaded bank statement PDF.
@@ -821,7 +844,8 @@ def handle_bank_process(event: Dict) -> Dict:
     Request body:
     {
         "jobId": "uuid",
-        "s3Key": "bank/uuid/filename.pdf",
+        "s3Key": "bank/uuid/filename.pdf",   // must sit under bank/{jobId}/
+        "userId": "...",                     // must match the object's user-id metadata
         "outputFormat": "qbo"  // or "xero", "excel"
     }
     """
@@ -832,10 +856,18 @@ def handle_bank_process(event: Dict) -> Dict:
 
     job_id = body.get("jobId")
     s3_key = body.get("s3Key")
+    user_id = body.get("userId")
     output_format = body.get("outputFormat", "csv")
 
-    if not job_id or not s3_key:
-        return response(400, {"error": "jobId and s3Key are required"})
+    if not job_id or not s3_key or not user_id:
+        return response(400, {"error": "jobId, s3Key and userId are required"})
+
+    # Issue #2: the key must belong to this job, so a caller can't point a job
+    # they own at another job's upload, or at any other object in the bucket.
+    if not _is_canonical_uuid(job_id):
+        return response(400, {"error": "Invalid jobId"})
+    if not isinstance(s3_key, str) or not s3_key.startswith(f"bank/{job_id}/"):
+        return response(400, {"error": "s3Key does not belong to this job"})
 
     # Validate output format
     valid_formats = ["csv", "qbo", "xero", "excel"]
@@ -843,10 +875,29 @@ def handle_bank_process(event: Dict) -> Dict:
         return response(400, {"error": f"Invalid output format. Valid: {valid_formats}"})
 
     try:
-        # Download PDF from S3
+        # Download PDF from S3. Metadata and length arrive with the response
+        # headers, so both are checked before any of the body is read.
         logger.info(f"Downloading PDF for job {job_id}")
         pdf_response = s3_client.get_object(Bucket=BANK_UPLOADS_BUCKET, Key=s3_key)
-        pdf_bytes = pdf_response["Body"].read()
+        object_owner = (pdf_response.get("Metadata") or {}).get("user-id")
+        if not isinstance(user_id, str) or not object_owner or not hmac.compare_digest(object_owner, user_id):
+            pdf_response["Body"].close()
+            logger.warning(f"Bank job {job_id}: object owner does not match caller")
+            return response(403, {"error": "Forbidden"})
+        if (pdf_response.get("ContentLength") or 0) > MAX_BANK_PDF_SIZE:
+            pdf_response["Body"].close()
+            return response(413, {"error": "PDF is too large"})
+        pdf_bytes = pdf_response["Body"].read(MAX_BANK_PDF_SIZE + 1)
+        if len(pdf_bytes) > MAX_BANK_PDF_SIZE:
+            return response(413, {"error": "PDF is too large"})
+
+        try:
+            page_count = _count_pdf_pages(pdf_bytes)
+        except Exception as e:
+            logger.warning(f"Bank job {job_id}: could not read PDF page count: {e}")
+            return response(400, {"error": "Could not read PDF"})
+        if page_count > MAX_BANK_PDF_PAGES:
+            return response(413, {"error": f"PDF has more than {MAX_BANK_PDF_PAGES} pages"})
 
         # Import processor
         try:
@@ -967,7 +1018,7 @@ def handle_bank_process(event: Dict) -> Dict:
         return response(500, {"error": "Storage error"})
     except Exception as e:
         logger.exception(f"Error processing bank statement: {e}")
-        return response(500, {"error": f"Processing failed: {str(e)}"})
+        return response(500, {"error": "Processing failed"})
 
 
 def handle_bank_job_status(event: Dict) -> Dict:

@@ -71,8 +71,8 @@ All critical secrets rotated across 10+ providers, Vercel environment updated, g
 
 ### AWS Access Keys ✅
 - Found 2 active keys in IAM:
-  - `AKIAVQ37CCG76JE4MD5H` — last used 112 days ago (ses-smtp)
-  - `AKIAVQ37CCG7UIU53GOY` — never used, already inactive
+  - `AKIA***REDACTED***` — last used 112 days ago (ses-smtp)
+  - `AKIA***REDACTED***` — never used, already inactive
 - Deleted inactive key
 - Created new access key (use case: Application running outside AWS)
 - Updated `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in Vercel

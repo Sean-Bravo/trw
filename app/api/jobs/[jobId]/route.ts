@@ -8,7 +8,8 @@ import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
 /**
  * GET /api/jobs/[jobId]
- * Get job status - tries Neon DB first, falls back to Lambda/S3
+ * Get job status - requires an owned Neon row, then reads Lambda/S3 for
+ * non-terminal jobs
  */
 export async function GET(
   request: NextRequest,
@@ -26,45 +27,36 @@ export async function GET(
 
     const { jobId } = await params;
 
-    // 2. Try to get job from Neon DB first
-    let dbJob: Awaited<ReturnType<typeof getJobById>> = null;
-    try {
-      dbJob = await getJobById(jobId);
-
-      if (dbJob) {
-        // Verify user owns this job (via upload)
-        if (dbJob.upload.user_id !== session.user.id) {
-          return NextResponse.json(
-            { error: 'Unauthorized' },
-            { status: 403 }
-          );
-        }
-
-        // If job is in terminal state with result data, return from DB
-        // If succeeded but result is null, fall through to Lambda to get result.json
-        if (['succeeded', 'failed', 'canceled'].includes(dbJob.status)) {
-          if (dbJob.status !== 'succeeded' || dbJob.result !== null) {
-            return NextResponse.json({
-              jobId: dbJob.id,
-              uploadId: dbJob.upload_id,
-              status: dbJob.status,
-              result: dbJob.result,
-              error: dbJob.error,
-              createdAt: dbJob.created_at,
-              startedAt: dbJob.started_at,
-              finishedAt: dbJob.finished_at,
-              filename: dbJob.upload.filename,
-              retryCount: (dbJob as { retry_count?: number }).retry_count || 0,
-              lastRetryAt: (dbJob as { last_retry_at?: string }).last_retry_at || null,
-            });
-          }
-          // succeeded with null result - fall through to Lambda to get result.json
-        }
-        // Non-terminal status (queued/running) - check Lambda for latest status
-      }
-    } catch (dbError) {
-      console.warn('[Job Status] DB lookup failed, trying Lambda:', dbError);
+    // 2. Ownership check. A missing row or a failed lookup must not fall
+    // through to the Lambda: GET /job/{id} returns any job's result to any
+    // caller, so this check is the only boundary. A lookup error throws to
+    // the outer catch (500). Mirrors the download and insights routes.
+    const dbJob = await getJobById(jobId);
+    if (!dbJob || dbJob.upload.user_id !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // If job is in terminal state with result data, return from DB
+    // If succeeded but result is null, fall through to Lambda to get result.json
+    if (['succeeded', 'failed', 'canceled'].includes(dbJob.status)) {
+      if (dbJob.status !== 'succeeded' || dbJob.result !== null) {
+        return NextResponse.json({
+          jobId: dbJob.id,
+          uploadId: dbJob.upload_id,
+          status: dbJob.status,
+          result: dbJob.result,
+          error: dbJob.error,
+          createdAt: dbJob.created_at,
+          startedAt: dbJob.started_at,
+          finishedAt: dbJob.finished_at,
+          filename: dbJob.upload.filename,
+          retryCount: (dbJob as { retry_count?: number }).retry_count || 0,
+          lastRetryAt: (dbJob as { last_retry_at?: string }).last_retry_at || null,
+        });
+      }
+      // succeeded with null result - fall through to Lambda to get result.json
+    }
+    // Non-terminal status (queued/running) - check Lambda for latest status
 
     // 3. Fallback to Lambda/S3 status check
     // Route: GET /job/{jobId} (see backend/handlers/webhook.py)
@@ -118,20 +110,20 @@ export async function GET(
     }
 
     // Transform Lambda response to match expected format
-    // Use DB job data if available for accurate timestamps/filename
+    // Use DB job data for accurate timestamps/filename
     return NextResponse.json({
       jobId: data.jobId,
-      uploadId: dbJob?.upload_id || jobId,
+      uploadId: dbJob.upload_id,
       status: mappedStatus,
       progress: data.progress,
       error: data.error || null,
       result: data.result || null,
-      createdAt: dbJob?.created_at || new Date().toISOString(),
-      startedAt: dbJob?.started_at || null,
+      createdAt: dbJob.created_at,
+      startedAt: dbJob.started_at,
       finishedAt: data.status === 'completed' || data.status === 'failed' ? new Date().toISOString() : null,
-      filename: dbJob?.upload.filename || data.filename || 'Unknown file',
-      retryCount: (dbJob as { retry_count?: number })?.retry_count || 0,
-      lastRetryAt: (dbJob as { last_retry_at?: string })?.last_retry_at || null,
+      filename: dbJob.upload.filename || data.filename || 'Unknown file',
+      retryCount: (dbJob as { retry_count?: number }).retry_count || 0,
+      lastRetryAt: (dbJob as { last_retry_at?: string }).last_retry_at || null,
     });
 
   } catch (error) {
