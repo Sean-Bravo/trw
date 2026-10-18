@@ -19,6 +19,20 @@ jest.mock('@/lib/rate-limit', () => ({
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockCreateUpload = uploadsDb.createUpload as jest.MockedFunction<typeof uploadsDb.createUpload>;
 const mockQueryOne = db.queryOne as jest.MockedFunction<typeof db.queryOne>;
+const mockGetPendingUpload = uploadsDb.getPendingUpload as jest.MockedFunction<typeof uploadsDb.getPendingUpload>;
+const mockDeletePendingUpload = uploadsDb.deletePendingUpload as jest.MockedFunction<typeof uploadsDb.deletePendingUpload>;
+
+// Presign recorded this key for user-1 with Lambda job id `jobId`.
+function pendingFor(s3Key: string, userId = 'user-1', jobId = 'j1') {
+  return {
+    s3_key: s3Key,
+    user_id: userId,
+    job_id: jobId,
+    filename: 'x.csv',
+    created_at: new Date(),
+    expires_at: new Date(Date.now() + 3600_000),
+  };
+}
 
 function ctx(uploadId: string) {
   return { params: Promise.resolve({ uploadId }) };
@@ -35,6 +49,8 @@ describe('POST /api/uploads/[uploadId]/confirm', () => {
     });
     mockCreateUpload.mockResolvedValue({ id: 'up-1', user_id: 'user-1', filename: 'x.csv', s3_key: 'uploads/j1/x.csv', status: 'pending', file_size: null, created_at: new Date(), updated_at: new Date() } as any);
     mockQueryOne.mockResolvedValue({ id: 'j1', upload_id: 'up-1', status: 'queued' } as any);
+    mockGetPendingUpload.mockImplementation(async (s3Key: string) => pendingFor(s3Key));
+    mockDeletePendingUpload.mockResolvedValue(undefined);
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -53,7 +69,8 @@ describe('POST /api/uploads/[uploadId]/confirm', () => {
     expect(data.status).toMatch(/queued|completed/);
   });
 
-  it('calls Lambda /confirm-upload with jobId and key', async () => {
+  it('calls Lambda /confirm-upload with the jobId and key from the pending record', async () => {
+    mockGetPendingUpload.mockResolvedValue(pendingFor('uploads/job-99/file.csv', 'user-1', 'job-99'));
     await POST(createMockRequest({}) as any, ctx('uploads/job-99/file.csv'));
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringMatching(/\/confirm-upload$/),
@@ -64,14 +81,60 @@ describe('POST /api/uploads/[uploadId]/confirm', () => {
     );
   });
 
-  it('extracts jobId from s3Key when path has multiple segments', async () => {
-    await POST(createMockRequest({}) as any, ctx('uploads/abc-123/sub/file.csv'));
+  it('takes jobId from the pending record, not from the URL path', async () => {
+    mockGetPendingUpload.mockResolvedValue(pendingFor('uploads/abc-123/file.csv', 'user-1', 'issued-job'));
+    await POST(createMockRequest({}) as any, ctx('uploads/abc-123/file.csv'));
     expect(global.fetch).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        body: JSON.stringify({ jobId: 'abc-123', key: 'uploads/abc-123/sub/file.csv' }),
+        body: JSON.stringify({ jobId: 'issued-job', key: 'uploads/abc-123/file.csv' }),
       })
     );
+  });
+
+  // Issue #15: the URL's uploadId is only a lookup key. A key presign did
+  // not issue to the caller must not reach Lambda or the DB.
+  describe('issued-key check', () => {
+    it('looks up the pending record by the exact URL key', async () => {
+      await POST(createMockRequest({}) as any, ctx('uploads/j1/x.csv'));
+      expect(mockGetPendingUpload).toHaveBeenCalledWith('uploads/j1/x.csv');
+    });
+
+    it('returns 403 for a key issued to another user', async () => {
+      mockGetPendingUpload.mockResolvedValue(pendingFor('uploads/victim-job/x.csv', 'other-user', 'victim-job'));
+      const res = await POST(createMockRequest({}) as any, ctx('uploads/victim-job/x.csv'));
+      expect(res.status).toBe(403);
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockCreateUpload).not.toHaveBeenCalled();
+      expect(mockQueryOne).not.toHaveBeenCalled();
+    });
+
+    it('returns 403 for a key that was never issued (or has expired)', async () => {
+      mockGetPendingUpload.mockResolvedValue(null);
+      const res = await POST(createMockRequest({}) as any, ctx('uploads/guessed/x.csv'));
+      expect(res.status).toBe(403);
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(mockCreateUpload).not.toHaveBeenCalled();
+    });
+
+    it('returns 500 and does not call Lambda when the pending lookup throws', async () => {
+      mockGetPendingUpload.mockRejectedValue(new Error('Neon down'));
+      const res = await POST(createMockRequest({}) as any, ctx('uploads/j1/x.csv'));
+      expect(res.status).toBe(500);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('deletes the pending record after persisting', async () => {
+      const res = await POST(createMockRequest({}) as any, ctx('uploads/j1/x.csv'));
+      expect(res.status).toBe(200);
+      expect(mockDeletePendingUpload).toHaveBeenCalledWith('uploads/j1/x.csv');
+    });
+
+    it('still returns 200 when deleting the pending record fails', async () => {
+      mockDeletePendingUpload.mockRejectedValue(new Error('DB error'));
+      const res = await POST(createMockRequest({}) as any, ctx('uploads/j1/x.csv'));
+      expect(res.status).toBe(200);
+    });
   });
 
   describe('filename resolution', () => {
@@ -145,17 +208,13 @@ describe('POST /api/uploads/[uploadId]/confirm', () => {
     expect(res.status).toBe(500);
   });
 
-  it('still returns 200 when DB persist fails (logs, does not fail request)', async () => {
+  // The job routes now require the DB row (issue #14), so an unpersisted
+  // job would be invisible to its owner. Fail, and keep the pending record.
+  it('returns 500 and keeps the pending record when DB persist fails', async () => {
     mockCreateUpload.mockRejectedValue(new Error('DB error'));
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve({ jobId: 'j1', uploadId: 'u1', status: 'queued' }),
-    });
     const res = await POST(createMockRequest({}) as any, ctx('uploads/j1/f.csv'));
-    expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data.jobId).toBe('j1');
+    expect(res.status).toBe(500);
+    expect(mockDeletePendingUpload).not.toHaveBeenCalled();
   });
 
   it('returns 500 when request throws', async () => {

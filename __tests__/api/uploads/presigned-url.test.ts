@@ -22,7 +22,13 @@ jest.mock('@/lib/auth-db', () => ({
   getUserTier: jest.fn().mockResolvedValue('free'),
 }));
 
+jest.mock('@/lib/uploads-db', () => ({
+  createPendingUpload: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { getUserTier } from '@/lib/auth-db';
+import { createPendingUpload } from '@/lib/uploads-db';
+const mockCreatePendingUpload = createPendingUpload as jest.MockedFunction<typeof createPendingUpload>;
 const mockGetUserTier = getUserTier as jest.MockedFunction<typeof getUserTier>;
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
@@ -34,6 +40,7 @@ describe('POST /api/uploads/presigned-url', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (mockRateLimit.rateLimiters.fileUpload.check as jest.Mock).mockResolvedValue({ success: true });
+    mockCreatePendingUpload.mockResolvedValue(undefined);
     mockGetServerSession.mockResolvedValue({
       user: { id: 'user-1', email: 't@x.com' },
       expires: '2025-12-31',
@@ -107,11 +114,31 @@ describe('POST /api/uploads/presigned-url', () => {
     expect(res.status).toBe(400);
   });
 
-  it('allows anonymous access (no session)', async () => {
+  it('allows anonymous access (no session) without recording a pending upload', async () => {
     mockGetServerSession.mockResolvedValue(null);
     const res = await POST(createMockRequest({ filename: 'a.csv', fileSize: 1 }) as any);
     expect(res.status).toBe(200);
     expect(global.fetch).toHaveBeenCalled();
+    expect(mockCreatePendingUpload).not.toHaveBeenCalled();
+  });
+
+  // Issue #15: confirm binds only keys recorded here for their owner.
+  it('records the issued key, job id and filename against the session user', async () => {
+    await POST(createMockRequest({ filename: 'data.csv', fileSize: 1024 }) as any);
+    expect(mockCreatePendingUpload).toHaveBeenCalledWith(
+      'user-1',
+      'uploads/job-123/data.csv',
+      'job-123',
+      'data.csv',
+    );
+  });
+
+  it('returns 500 and no upload URL when recording the pending upload fails', async () => {
+    mockCreatePendingUpload.mockRejectedValue(new Error('DB error'));
+    const res = await POST(createMockRequest({ filename: 'data.csv', fileSize: 1024 }) as any);
+    expect(res.status).toBe(500);
+    const data = await res.json();
+    expect(data.presignedPost).toBeUndefined();
   });
 
   it('returns 429 when rate limit exceeded', async () => {
@@ -136,6 +163,7 @@ describe('POST /api/uploads/presigned-url', () => {
     const res = await POST(createMockRequest({ filename: 'a.csv', fileSize: 1 }) as any);
     expect(res.status).toBe(500);
     expect((await res.json()).error).toBe('S3 error');
+    expect(mockCreatePendingUpload).not.toHaveBeenCalled();
   });
 
   it('returns 500 on fetch throw', async () => {

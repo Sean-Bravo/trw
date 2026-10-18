@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 import { getUserTier } from '@/lib/auth-db';
+import { createPendingUpload } from '@/lib/uploads-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
 
@@ -88,9 +89,17 @@ export async function POST(request: NextRequest) {
 
     const data = await lambdaResponse.json();
 
+    // 6. Record the issued key against its owner. Confirm binds only keys
+    // recorded here (issue #15), so a failed write fails the presign rather
+    // than handing out a URL that can never be confirmed. Anonymous presigns
+    // are not recorded: confirm requires a session.
+    if (session?.user?.id) {
+      await createPendingUpload(session.user.id, data.key, data.jobId, filename);
+    }
+
     console.log(`[Presigned URL] Generated for user ${userId}, file ${filename}`);
 
-    // 5. Return presigned URL (transform to match frontend expectations)
+    // 7. Return presigned URL (transform to match frontend expectations)
     // Lambda returns: { uploadUrl, jobId, key, expiresIn }
     return NextResponse.json({
       presignedPost: {
