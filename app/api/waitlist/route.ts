@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { captureException, setContext } from '@/lib/sentry'
-import { addSubscriber, isMailchimpConfigured } from '@/lib/mailchimp'
+import { addSubscriber, describeMailchimpError, isMailchimpConfigured } from '@/lib/mailchimp'
 import { validateEmail } from '@/lib/validation'
 
 // RFC 5321 caps an address at 254 chars. Checked before any regex so an
@@ -61,14 +61,19 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error: any) {
-    console.error('Waitlist error:', error)
+    // Never pass the raw SDK error on: it carries the API key in its request headers
+    const safe = describeMailchimpError(error)
+    console.error('Waitlist error:', safe)
 
     // Send context to Sentry for easier debugging
     setContext('waitlist', {
       endpoint: '/api/waitlist',
       email_attempt: 'hidden-for-privacy'
     })
-    captureException(error)
+    // `detail` is left out: Mailchimp often echoes the submitted email in it
+    captureException(new Error(
+      `Waitlist signup failed: ${[safe.status, safe.title, safe.message].filter(Boolean).join(' ')}`
+    ))
 
     return NextResponse.json(
       { error: 'Failed to join waitlist. Please try again.' },
