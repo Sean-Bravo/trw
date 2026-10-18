@@ -84,8 +84,52 @@ describe('GET /api/jobs/[jobId]', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('falls back to Lambda when DB job not found', async () => {
+  function ownedJob(overrides: Record<string, unknown> = {}) {
+    return {
+      id: 'j1',
+      upload_id: 'u1',
+      status: 'running',
+      result: null,
+      error: null,
+      created_at: new Date(),
+      started_at: new Date(),
+      finished_at: null,
+      upload: { user_id: 'user-1', filename: 'x.csv', s3_key: 'k', status: 'pending', id: 'u1', file_size: null, created_at: new Date(), updated_at: new Date() },
+      ...overrides,
+    } as any;
+  }
+
+  // Issue #14: the Lambda's GET /job/{id} returns any job's result, so a
+  // missing row or failed lookup must never fall through to it.
+  it('returns 403 and does not call Lambda when no DB row exists', async () => {
     mockGetJobById.mockResolvedValue(null);
+
+    const res = await GET(createMockRequest({}) as any, ctx('j1'));
+    expect(res.status).toBe(403);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('returns 500 and does not call Lambda when the DB lookup throws', async () => {
+    mockGetJobById.mockRejectedValue(new Error('Neon down'));
+
+    const res = await GET(createMockRequest({}) as any, ctx('j1'));
+    expect(res.status).toBe(500);
+    expect((await res.json()).error).toBe('Internal server error');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 for another user\'s non-terminal job without calling Lambda', async () => {
+    mockGetJobById.mockResolvedValue(ownedJob({
+      upload: { ...ownedJob().upload, user_id: 'other-user' },
+    }));
+
+    const res = await GET(createMockRequest({}) as any, ctx('j1'));
+    expect(res.status).toBe(403);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('checks Lambda for an owned non-terminal job', async () => {
+    mockGetJobById.mockResolvedValue(ownedJob());
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       status: 200,
@@ -97,10 +141,11 @@ describe('GET /api/jobs/[jobId]', () => {
     expect(res.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledWith(expect.stringMatching(/\/job\/j1$/), expect.any(Object));
     expect(data.status).toBe('running'); // processing -> running
+    expect(data.uploadId).toBe('u1');
   });
 
   it('maps Lambda status: pending->queued, processing->running, completed->succeeded, failed->failed', async () => {
-    mockGetJobById.mockResolvedValue(null);
+    mockGetJobById.mockResolvedValue(ownedJob());
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       status: 200,
@@ -119,7 +164,7 @@ describe('GET /api/jobs/[jobId]', () => {
   });
 
   it('returns 404 when Lambda returns 404', async () => {
-    mockGetJobById.mockResolvedValue(null);
+    mockGetJobById.mockResolvedValue(ownedJob());
     (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 404 });
 
     const res = await GET(createMockRequest({}) as any, ctx('j1'));
@@ -128,7 +173,7 @@ describe('GET /api/jobs/[jobId]', () => {
   });
 
   it('returns 500 when fetch throws', async () => {
-    mockGetJobById.mockResolvedValue(null);
+    mockGetJobById.mockResolvedValue(ownedJob());
     (global.fetch as jest.Mock).mockRejectedValue(new Error('Net'));
 
     const res = await GET(createMockRequest({}) as any, ctx('j1'));
