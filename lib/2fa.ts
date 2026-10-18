@@ -83,8 +83,15 @@ export function verifyBackupCode(code: string, hashedCodes: string[]): { valid: 
     ? `${normalizedCode.slice(0, 4)}-${normalizedCode.slice(4)}`
     : code;
 
-  const hashedInput = crypto.createHash('sha256').update(formattedCode).digest('hex');
-  const index = hashedCodes.findIndex(hashed => hashed === hashedInput);
+  const hashedInput = crypto.createHash('sha256').update(formattedCode).digest();
+  // Constant-time compare against every stored hash, with no early exit.
+  let index = -1;
+  hashedCodes.forEach((hashed, i) => {
+    const stored = Buffer.from(hashed, 'hex');
+    if (stored.length === hashedInput.length && crypto.timingSafeEqual(stored, hashedInput) && index === -1) {
+      index = i;
+    }
+  });
 
   return { valid: index !== -1, index };
 }

@@ -23,6 +23,53 @@ export async function createUpload(
   return result;
 }
 
+export interface DbPendingUpload {
+  s3_key: string;
+  user_id: string;
+  job_id: string;
+  filename: string;
+  created_at: Date;
+  expires_at: Date;
+}
+
+/**
+ * Record an S3 key issued at presign time so confirm can check it was
+ * issued to the caller (issue #15). Also prunes the user's expired rows.
+ */
+export async function createPendingUpload(
+  userId: string,
+  s3Key: string,
+  jobId: string,
+  filename: string
+): Promise<void> {
+  await execute(
+    `DELETE FROM pending_uploads WHERE user_id = $1 AND expires_at < now()`,
+    [userId]
+  );
+  await execute(
+    `INSERT INTO pending_uploads (s3_key, user_id, job_id, filename)
+     VALUES ($1, $2, $3, $4)`,
+    [s3Key, userId, jobId, filename]
+  );
+}
+
+/**
+ * Get an unexpired pending upload by its exact S3 key
+ */
+export async function getPendingUpload(s3Key: string): Promise<DbPendingUpload | null> {
+  return queryOne<DbPendingUpload>(
+    `SELECT * FROM pending_uploads WHERE s3_key = $1 AND expires_at > now()`,
+    [s3Key]
+  );
+}
+
+/**
+ * Remove a pending upload once confirm has persisted it
+ */
+export async function deletePendingUpload(s3Key: string): Promise<void> {
+  await execute(`DELETE FROM pending_uploads WHERE s3_key = $1`, [s3Key]);
+}
+
 /**
  * Get upload by ID
  */

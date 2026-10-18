@@ -26,11 +26,15 @@ A developer API platform for parsing crypto exchange CSVs and bank statement PDF
 ```
 User uploads CSV
        ↓
+/api/uploads/presigned-url → Lambda /presigned-url
+  - Records the issued S3 key + job id for the user (pending_uploads, migration 018)
+       ↓
 Frontend → S3 (presigned URL)
        ↓
 Frontend calls /api/uploads/[uploadId]/confirm
        ↓
 Confirm route:
+  - 403 unless pending_uploads has that exact key for this user
   - Calls Lambda /confirm-upload
   - Persists upload + job to Neon DB (queued status)
   - Returns jobId to frontend

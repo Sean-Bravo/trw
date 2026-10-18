@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { execute, queryOne } from '@/lib/db';
+import { execute } from '@/lib/db';
 import { generateBackupCodes, hashBackupCodes } from '@/lib/2fa';
+import { verifyTwoFactorReauth } from '@/lib/auth-db';
+import { rateLimiters } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,14 +14,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if 2FA is enabled
-    const user = await queryOne<{ two_factor_enabled: boolean }>(
-      'SELECT two_factor_enabled FROM users WHERE id = $1',
-      [session.user.id]
-    );
+    // Keyed by user, not IP: the caller already holds this account's session.
+    const rateLimit = await rateLimiters.auth.check(`2fa-reauth:${session.user.id}`);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Please try again later.' },
+        { status: 429 }
+      );
+    }
 
-    if (!user?.two_factor_enabled) {
+    // F1: fresh backup codes are a working second factor, so a session alone
+    // must not be able to mint them.
+    const { password, code } = await request.json().catch(() => ({}));
+    if (typeof password !== 'string' || typeof code !== 'string' || !code) {
+      return NextResponse.json({ error: 'Password and verification code are required' }, { status: 401 });
+    }
+
+    const reauth = await verifyTwoFactorReauth(session.user.id, password, code);
+    if (reauth === 'not_enabled') {
       return NextResponse.json({ error: '2FA is not enabled' }, { status: 400 });
+    }
+    if (reauth === 'locked') {
+      return NextResponse.json(
+        { error: 'Too many failed attempts. Please try again later.' },
+        { status: 429 }
+      );
+    }
+    if (reauth !== 'ok') {
+      return NextResponse.json({ error: 'Invalid password or verification code' }, { status: 401 });
     }
 
     // Generate new backup codes

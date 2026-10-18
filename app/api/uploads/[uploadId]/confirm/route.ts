@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { createUpload } from '@/lib/uploads-db';
+import { createUpload, getPendingUpload, deletePendingUpload } from '@/lib/uploads-db';
 import { queryOne } from '@/lib/db';
 import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
 
@@ -17,6 +17,11 @@ import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
  * authorization gap (any anon caller could trigger Lambda processing
  * for any guessed uploadId).
  * SECURITY_AUDIT.md §M-12
+ *
+ * Issue #15 (Oct 17 security report): the uploadId in the URL is only a
+ * lookup key. The route binds an upload only when presigned-url recorded
+ * that exact S3 key for this user (pending_uploads), and takes the jobId
+ * from that record rather than parsing it out of the URL.
  */
 export async function POST(
   request: NextRequest,
@@ -37,12 +42,17 @@ export async function POST(
       filename?: unknown;
     };
 
-    // 3. Call AWS Lambda via API Gateway
+    // 3. The key must have been issued to this user at presign time.
+    // A lookup error throws to the outer catch (500).
+    const pending = await getPendingUpload(uploadId);
+    if (!pending || pending.user_id !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const jobId = pending.job_id;
+
+    // 4. Call AWS Lambda via API Gateway
     // Route: POST /confirm-upload (see backend/handlers/webhook.py)
     // Note: uploadId is the s3Key from presigned-url response
-    // Extract jobId from the s3Key: uploads/{jobId}/filename.csv
-    const parts = uploadId.split('/');
-    const jobId = parts.length >= 2 ? parts[1] : uploadId;
 
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/confirm-upload`, {
       method: 'POST',
@@ -52,7 +62,7 @@ export async function POST(
       },
       body: JSON.stringify({
         jobId,
-        key: uploadId, // S3 key
+        key: pending.s3_key,
       }),
     });
 
@@ -80,7 +90,7 @@ export async function POST(
 
     console.log(`[Upload Confirm] Created job ${data.jobId} for user ${userId}`);
 
-    // 4. Persist to Neon database.
+    // 5. Persist to Neon database.
     // Filename resolution: prefer the value the client sent (this is the
     // user's original filename, before our S3-key sanitization). Fall
     // back to parsing it out of the S3 key path. Final fallback to a
@@ -112,11 +122,26 @@ export async function POST(
 
       console.log(`[Upload Confirm] Persisted upload ${upload.id} and job ${data.jobId} to DB`);
     } catch (dbError) {
-      // Log but don't fail the request - Lambda processing will continue
+      // Fail the request: the job status, download and insights routes all
+      // require this row, so an unpersisted job would be invisible to its
+      // owner. The pending record is kept, so a retry can succeed when
+      // nothing was written.
       console.error('[Upload Confirm] Failed to persist to DB:', dbError);
+      return NextResponse.json(
+        { error: 'Failed to confirm upload' },
+        { status: 500 }
+      );
     }
 
-    // 5. Return job details
+    try {
+      await deletePendingUpload(pending.s3_key);
+    } catch (cleanupError) {
+      // Not fatal: the row expires, and uploads.s3_key is UNIQUE, so the
+      // key cannot be bound a second time.
+      console.error('[Upload Confirm] Failed to delete pending upload:', cleanupError);
+    }
+
+    // 6. Return job details
     return NextResponse.json({
       jobId: data.jobId,
       uploadId: data.uploadId,

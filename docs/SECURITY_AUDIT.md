@@ -139,7 +139,7 @@ Any person with read access to the repository (or anyone who has ever cloned it)
 ### Evidence
 
 ```
-anthropic_api_key = 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
+anthropic_api_key = ***REDACTED***
 ```
 
 A `.tfvars.example` file is intended as a template and ships a placeholder, but this one ships the **real** key.
@@ -167,7 +167,7 @@ Pay-as-you-go Anthropic Claude API access on your account. An attacker can run a
 ### Evidence
 
 ```
-GOOGLE_GEMINI_API_KEY=AIzaSyDPyaBK8KCguF1p_GhruvkIVZ5CoOBQqMk
+GOOGLE_GEMINI_API_KEY=***REDACTED***
 ```
 
 ### Impact
