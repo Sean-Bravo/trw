@@ -316,6 +316,80 @@ describe('POST /api/webhooks/stripe', () => {
     );
   });
 
+  // The legacy fixtures above use the pre-basil `invoice.subscription`. From
+  // API 2025-03-31.basil on, Stripe sends parent.subscription_details instead.
+  describe('invoice subscription id (basil/clover payload shape)', () => {
+    const cloverInvoice = (subscription: unknown) => ({
+      id: 'in_1',
+      parent: { type: 'subscription_details', subscription_details: { subscription } },
+    });
+
+    it('invoice.payment_failed disables the key from parent.subscription_details', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_inv_fail_clover',
+        type: 'invoice.payment_failed',
+        data: { object: cloverInvoice('sub_1') },
+      });
+      mockQueryOne.mockResolvedValue({ id: 'key-1' });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+      expect(mockQueryOne).toHaveBeenCalledWith(expect.any(String), ['sub_1']);
+      expect(mockExecute).toHaveBeenCalledWith(
+        expect.stringContaining('is_active = false'),
+        ['key-1']
+      );
+    });
+
+    it('invoice.payment_succeeded re-enables the key from parent.subscription_details', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_inv_ok_clover',
+        type: 'invoice.payment_succeeded',
+        data: { object: cloverInvoice('sub_1') },
+      });
+      mockQueryOne.mockResolvedValue({ id: 'key-1' });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+      expect(mockQueryOne).toHaveBeenCalledWith(expect.any(String), ['sub_1']);
+      expect(mockExecute).toHaveBeenCalledWith(
+        expect.stringContaining('is_active = true'),
+        ['key-1']
+      );
+    });
+
+    it('accepts an expanded Subscription object', async () => {
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_inv_fail_expanded',
+        type: 'invoice.payment_failed',
+        data: { object: cloverInvoice({ id: 'sub_1', object: 'subscription' }) },
+      });
+      mockQueryOne.mockResolvedValue({ id: 'key-1' });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+      expect(mockQueryOne).toHaveBeenCalledWith(expect.any(String), ['sub_1']);
+    });
+
+    it('warns with invoice id and event type when neither field is present', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      mockConstructEvent.mockReturnValue({
+        id: 'evt_inv_fail_nosub',
+        type: 'invoice.payment_failed',
+        data: { object: { id: 'in_nosub', parent: null } },
+      });
+
+      const res = await POST(createRequest('{}', 'sig'));
+      expect(res.status).toBe(200);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('no subscription id'),
+        { invoiceId: 'in_nosub', eventType: 'invoice.payment_failed' }
+      );
+      expect(mockQueryOne).not.toHaveBeenCalled();
+      warn.mockRestore();
+    });
+  });
+
   // Old in-memory dedup test removed — superseded by the M-1
   // describe block below which exercises the Postgres-backed
   // ON CONFLICT DO NOTHING idempotency.
