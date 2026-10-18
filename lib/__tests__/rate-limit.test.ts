@@ -184,6 +184,10 @@ describe('rate-limit.ts', () => {
   })
 
   describe('getClientIdentifier', () => {
+    afterEach(() => {
+      delete process.env['TRUST_CLOUDFLARE_IP']
+    })
+
     it('extracts IP from x-forwarded-for header', () => {
       const request = createMockRequest({
         'x-forwarded-for': '192.168.1.1, 10.0.0.1',
@@ -202,7 +206,8 @@ describe('rate-limit.ts', () => {
       expect(identifier).toBe('192.168.1.1')
     })
 
-    it('extracts IP from cf-connecting-ip header (Cloudflare)', () => {
+    it('extracts IP from cf-connecting-ip header when TRUST_CLOUDFLARE_IP=true', () => {
+      process.env['TRUST_CLOUDFLARE_IP'] = 'true'
       const request = createMockRequest({
         'cf-connecting-ip': '192.168.1.1',
       })
@@ -236,15 +241,58 @@ describe('rate-limit.ts', () => {
       expect(identifier).toBe('unknown')
     })
 
-    it('prioritizes cf-connecting-ip over others', () => {
+    it('prioritizes cf-connecting-ip over others when TRUST_CLOUDFLARE_IP=true', () => {
+      process.env['TRUST_CLOUDFLARE_IP'] = 'true'
       const request = createMockRequest({
         'cf-connecting-ip': '1.1.1.1',
+        'x-vercel-forwarded-for': '4.4.4.4',
         'x-forwarded-for': '2.2.2.2',
         'x-real-ip': '3.3.3.3',
       })
 
       const identifier = getClientIdentifier(request)
       expect(identifier).toBe('1.1.1.1')
+    })
+
+    // Security report #10: without the flag a client-set cf-connecting-ip
+    // must not move the caller into a fresh rate-limit bucket.
+    it('ignores a spoofed cf-connecting-ip when TRUST_CLOUDFLARE_IP is unset', () => {
+      const plain = createMockRequest({ 'x-vercel-forwarded-for': '4.4.4.4' })
+      const spoofed = createMockRequest({
+        'x-vercel-forwarded-for': '4.4.4.4',
+        'cf-connecting-ip': '9.9.9.9',
+      })
+
+      expect(getClientIdentifier(plain)).toBe('4.4.4.4')
+      expect(getClientIdentifier(spoofed)).toBe('4.4.4.4')
+    })
+
+    it('ignores cf-connecting-ip when TRUST_CLOUDFLARE_IP is anything but "true"', () => {
+      process.env['TRUST_CLOUDFLARE_IP'] = '1'
+      const request = createMockRequest({
+        'cf-connecting-ip': '9.9.9.9',
+      })
+
+      expect(getClientIdentifier(request)).toBe('unknown')
+    })
+
+    it('prefers x-vercel-forwarded-for over x-forwarded-for and x-real-ip', () => {
+      const request = createMockRequest({
+        'x-vercel-forwarded-for': '4.4.4.4',
+        'x-forwarded-for': '2.2.2.2',
+        'x-real-ip': '3.3.3.3',
+      })
+
+      expect(getClientIdentifier(request)).toBe('4.4.4.4')
+    })
+
+    it('skips an empty first entry instead of returning ""', () => {
+      const request = createMockRequest({
+        'x-forwarded-for': ' , 2.2.2.2',
+        'x-real-ip': '3.3.3.3',
+      })
+
+      expect(getClientIdentifier(request)).toBe('3.3.3.3')
     })
 
     it('falls back to x-forwarded-for if cf-connecting-ip not present', () => {

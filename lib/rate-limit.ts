@@ -87,16 +87,33 @@ export class RateLimiter {
   }
 }
 
-// Get client identifier (IP address or custom identifier)
+function firstAddress(value: string | null): string | null {
+  const first = value?.split(',')[0]?.trim();
+  return first ? first : null;
+}
+
+// Get client identifier (IP address or custom identifier).
+//
+// Security report #10: only trust headers the platform sets. Vercel
+// overwrites x-forwarded-for and sets x-vercel-forwarded-for / x-real-ip to
+// the connecting client's address, so a client cannot choose them.
+// cf-connecting-ip is just a request header unless traffic really comes
+// through Cloudflare, so it is honoured only when TRUST_CLOUDFLARE_IP=true
+// (set that only if the Vercel origin is reachable solely via Cloudflare).
 export function getClientIdentifier(request: NextRequest): string {
-  // Try to get IP from various headers (for proxies/load balancers)
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  const headers = request.headers;
 
-  const ip = cfConnectingIp || forwardedFor?.split(',')[0] || realIp || 'unknown';
+  if (process.env['TRUST_CLOUDFLARE_IP'] === 'true') {
+    const cfConnectingIp = firstAddress(headers.get('cf-connecting-ip'));
+    if (cfConnectingIp) return cfConnectingIp;
+  }
 
-  return ip.trim();
+  return (
+    firstAddress(headers.get('x-vercel-forwarded-for')) ||
+    firstAddress(headers.get('x-forwarded-for')) ||
+    firstAddress(headers.get('x-real-ip')) ||
+    'unknown'
+  );
 }
 
 // Middleware to apply rate limiting
