@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { captureException, setContext } from '@/lib/sentry'
 import { addSubscriber, isMailchimpConfigured } from '@/lib/mailchimp'
+import { validateEmail } from '@/lib/validation'
+
+// RFC 5321 caps an address at 254 chars. Checked before any regex so an
+// unauthenticated body can't feed the validator a megabyte string.
+const MAX_EMAIL_LENGTH = 254
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,17 +19,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    const validation: ReturnType<typeof validateEmail> =
+      email.length <= MAX_EMAIL_LENGTH ? validateEmail(email) : { success: false }
+    if (!validation.success || !validation.data) {
       return NextResponse.json(
         { error: 'Invalid email address' },
         { status: 400 }
       )
     }
+    const validatedEmail = validation.data
 
     // 2. Check Configuration (Failsafe for dev environment)
     if (!isMailchimpConfigured()) {
-      console.warn('⚠️ Mailchimp not configured in .env. Logging to console:', email)
+      console.warn('⚠️ Mailchimp not configured in .env. Logging to console:', validatedEmail)
       // Return success in dev so the UI doesn't break
       return NextResponse.json({
         success: true,
@@ -33,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Send to Mailchimp
-    const result = await addSubscriber(email, {
+    const result = await addSubscriber(validatedEmail, {
       tags: ['waitlist', 'pre-launch'], 
       mergeFields: {
         SOURCE: 'Footer Waitlist' 
