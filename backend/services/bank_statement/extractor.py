@@ -19,6 +19,21 @@ except ImportError:
     pdfplumber = None
     logger.warning("pdfplumber not installed - PDF extraction will fail")
 
+# ReDoS guard (security report #5). Statement text comes from untrusted PDFs.
+# No real statement line is anywhere near this wide, and the amount regexes
+# only ever look at the end of the line, so they get a bounded tail.
+MAX_TEXT_LINE_LEN = 512
+AMOUNT_TAIL_LEN = 80
+
+# "[\d,]+(?:\.\d*)?" matches the same strings as the old "[\d,]+\.?\d*", but
+# the integer and fraction parts can no longer both claim the same digits.
+_NUM = r"-?[\d,]+(?:\.\d*)?"
+# Two numbers at the end (amount + balance), optionally with a minus between:
+# "20.00 - 55,231.59", "55,000.00- 231.59", "-52.79 554.99"
+_TWO_AMOUNTS_RE = re.compile(rf"({_NUM})(?:\s*-)?\s+({_NUM})$")
+# Single amount at the end, with optional trailing minus
+_ONE_AMOUNT_RE = re.compile(r"(-?[\d,$]+(?:\.\d*)?)\s*-?$")
+
 
 class TransactionExtractor:
     """Extract transactions from PDF bank statements."""
@@ -343,6 +358,12 @@ class TransactionExtractor:
             line = line.strip()
             if not line:
                 continue
+            if len(line) > MAX_TEXT_LINE_LEN:
+                logger.warning(
+                    f"Skipping text line {line_num} on page {page_num}: "
+                    f"{len(line)} chars exceeds {MAX_TEXT_LINE_LEN}"
+                )
+                continue
 
             # Check if line starts with a date
             date_match = self.date_pattern.match(line)
@@ -382,30 +403,32 @@ class TransactionExtractor:
         # Navy Federal: "Wire Fee 20.00 - 55,231.59" or "Withdrawal 55,000.00- 231.59"
         amount = 0.0
 
+        # Only search the end of the line; offsets below are shifted back
+        # into `remainder` coordinates.
+        tail_start = max(0, len(remainder) - AMOUNT_TAIL_LEN)
+        tail = remainder[tail_start:]
+
         # Look for two numbers at the end (amount + balance pattern)
-        # Supports: "20.00 - 55,231.59", "55,000.00- 231.59", "-52.79 554.99"
-        two_amounts_match = re.search(
-            r"(-?[\d,]+\.?\d*)\s*-?\s+(-?[\d,]+\.?\d*)$", remainder
-        )
+        two_amounts_match = _TWO_AMOUNTS_RE.search(tail)
         if two_amounts_match:
             # First number is amount, second is balance
             # Check for trailing minus on amount (e.g., "20.00 -" or "55,000.00-")
             amount_str = two_amounts_match.group(1)
-            pre_match = remainder[: two_amounts_match.end(1)]
-            if pre_match.rstrip().endswith("-") or remainder[two_amounts_match.end(1):two_amounts_match.start(2)].strip() == "-":
+            pre_match = tail[: two_amounts_match.end(1)]
+            if pre_match.rstrip().endswith("-") or tail[two_amounts_match.end(1):two_amounts_match.start(2)].strip() == "-":
                 amount_str = "-" + amount_str
             amount = self._clean_amount(amount_str)
-            description = remainder[: two_amounts_match.start()].strip()
+            description = remainder[: tail_start + two_amounts_match.start()].strip()
             logger.debug(f"Parsed two amounts: amount={amount}, balance={two_amounts_match.group(2)}, desc='{description[:50]}'")
         else:
             # Fall back to single amount at end (with optional trailing minus)
-            amount_match = re.search(r"(-?[\d,$]+\.?\d*)\s*-?$", remainder)
+            amount_match = _ONE_AMOUNT_RE.search(tail)
             if amount_match:
                 amount_str = amount_match.group(1)
-                if remainder[amount_match.end(1):].strip() == "-":
+                if tail[amount_match.end(1):].strip() == "-":
                     amount_str = "-" + amount_str
                 amount = self._clean_amount(amount_str)
-                description = remainder[: amount_match.start()].strip()
+                description = remainder[: tail_start + amount_match.start()].strip()
             else:
                 description = remainder
 

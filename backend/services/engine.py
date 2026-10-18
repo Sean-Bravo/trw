@@ -643,14 +643,21 @@ class BinanceParser(BaseExchangeParser):
 
     # Binance's trade-history export writes the unit into the cell:
     # Executed "0.5BTC", Amount "22500USDT", Fee "0.0005BTC".
-    _UNIT_CELL = re.compile(r"^\s*([-+]?[0-9][0-9,]*\.?[0-9]*(?:[eE][-+]?[0-9]+)?)\s*([A-Za-z]{2,10})?\s*$")
+    # No two quantifiers can claim the same characters (security report #12):
+    # the fraction needs its "." and the trailing whitespace hangs off the unit.
+    _UNIT_CELL = re.compile(r"^\s*([-+]?[0-9][0-9,]*(?:\.[0-9]*)?(?:[eE][-+]?[0-9]+)?)\s*(?:([A-Za-z]{2,10})\s*)?$")
+    # Longer than any real cell; anything past it skips the regex.
+    _UNIT_CELL_MAX_LEN = 64
 
     @classmethod
     def split_unit(cls, value: Any) -> Tuple[float, str]:
         """(number, unit) for a cell like "0.0005BTC"; unit is '' when absent."""
         if value is None or (isinstance(value, float) and pd.isna(value)):
             return 0.0, ''
-        m = cls._UNIT_CELL.match(str(value))
+        text = str(value)
+        if len(text) > cls._UNIT_CELL_MAX_LEN:
+            return parse_float(value), ''
+        m = cls._UNIT_CELL.match(text)
         if not m:
             return parse_float(value), ''
         return parse_float(m.group(1)), (m.group(2) or '').upper()

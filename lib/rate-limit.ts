@@ -16,22 +16,22 @@ if (
   );
 }
 
-interface RateLimitStore {
-  [key: string]: {
-    count: number;
-    resetTime: number;
-  };
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
 }
 
-const store: RateLimitStore = {};
+// A Map, not a plain object: identifiers come from request headers, and on a
+// `{}` an identifier of "__proto__" resolves to Object.prototype, so the
+// count++ below would write NaN onto every object in the process.
+const store = new Map<string, RateLimitEntry>();
 
 // Clean up old entries every 5 minutes
 setInterval(() => {
   const now = Date.now();
-  Object.keys(store).forEach((key) => {
-    const entry = store[key];
-    if (entry && entry.resetTime < now) {
-      delete store[key];
+  store.forEach((entry, key) => {
+    if (entry.resetTime < now) {
+      store.delete(key);
     }
   });
 }, 5 * 60 * 1000);
@@ -50,20 +50,21 @@ export class RateLimiter {
 
   async check(identifier: string): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
     const now = Date.now();
-    const tokenData = store[identifier];
+    const tokenData = store.get(identifier);
 
     if (!tokenData || tokenData.resetTime < now) {
       // Reset or initialize
-      store[identifier] = {
+      const entry = {
         count: 1,
         resetTime: now + this.config.interval,
       };
+      store.set(identifier, entry);
 
       return {
         success: true,
         limit: this.config.uniqueTokenPerInterval,
         remaining: this.config.uniqueTokenPerInterval - 1,
-        reset: store[identifier]!.resetTime,
+        reset: entry.resetTime,
       };
     }
 
@@ -87,16 +88,33 @@ export class RateLimiter {
   }
 }
 
-// Get client identifier (IP address or custom identifier)
+function firstAddress(value: string | null): string | null {
+  const first = value?.split(',')[0]?.trim();
+  return first ? first : null;
+}
+
+// Get client identifier (IP address or custom identifier).
+//
+// Security report #10: only trust headers the platform sets. Vercel
+// overwrites x-forwarded-for and sets x-vercel-forwarded-for / x-real-ip to
+// the connecting client's address, so a client cannot choose them.
+// cf-connecting-ip is just a request header unless traffic really comes
+// through Cloudflare, so it is honoured only when TRUST_CLOUDFLARE_IP=true
+// (set that only if the Vercel origin is reachable solely via Cloudflare).
 export function getClientIdentifier(request: NextRequest): string {
-  // Try to get IP from various headers (for proxies/load balancers)
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  const headers = request.headers;
 
-  const ip = cfConnectingIp || forwardedFor?.split(',')[0] || realIp || 'unknown';
+  if (process.env['TRUST_CLOUDFLARE_IP'] === 'true') {
+    const cfConnectingIp = firstAddress(headers.get('cf-connecting-ip'));
+    if (cfConnectingIp) return cfConnectingIp;
+  }
 
-  return ip.trim();
+  return (
+    firstAddress(headers.get('x-vercel-forwarded-for')) ||
+    firstAddress(headers.get('x-forwarded-for')) ||
+    firstAddress(headers.get('x-real-ip')) ||
+    'unknown'
+  );
 }
 
 // Middleware to apply rate limiting
