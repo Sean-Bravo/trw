@@ -7,6 +7,17 @@ import { API_TIERS, type ApiTier } from '@/lib/api-keys'
 // Disable body parsing for webhooks
 export const runtime = 'nodejs'
 
+// API 2025-03-31.basil moved Invoice.subscription to
+// parent.subscription_details.subscription. Webhook payloads follow the
+// dashboard endpoint's API version, not lib/stripe.ts, so read the new path
+// first and keep the legacy field as a fallback for pre-basil endpoints.
+function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | undefined {
+  const legacy = (invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null }).subscription
+  const sub = invoice.parent?.subscription_details?.subscription ?? legacy
+  if (!sub) return undefined
+  return typeof sub === 'string' ? sub : sub.id
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
@@ -243,8 +254,14 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = (invoice as any).subscription as string | undefined
-        if (subscriptionId) {
+        const subscriptionId = getInvoiceSubscriptionId(invoice)
+        if (!subscriptionId) {
+          // A silent 200 here is what hid the basil field move, so say so.
+          console.warn('[webhook] invoice has no subscription id; skipping', {
+            invoiceId: invoice.id,
+            eventType: event.type,
+          })
+        } else {
           const apiKey = await queryOne<{ id: string }>(
             `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
             [subscriptionId]
@@ -268,8 +285,13 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = (invoice as any).subscription as string | undefined
-        if (subscriptionId) {
+        const subscriptionId = getInvoiceSubscriptionId(invoice)
+        if (!subscriptionId) {
+          console.warn('[webhook] invoice has no subscription id; skipping', {
+            invoiceId: invoice.id,
+            eventType: event.type,
+          })
+        } else {
           const apiKey = await queryOne<{ id: string }>(
             `SELECT id FROM api_keys WHERE stripe_subscription_id = $1`,
             [subscriptionId]

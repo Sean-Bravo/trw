@@ -48,10 +48,12 @@ Use `validateStripeConfig()` from `lib/stripe.ts` to check all vars at once.
 | `checkout.session.completed` | Upgrades API key tier, persists `stripe_customer_id` |
 | `customer.subscription.updated` | Logs past-due status |
 | `customer.subscription.deleted` | Downgrades API key to starter |
-| `invoice.payment_failed` | Disables API key (`is_active = false`) |
-| `invoice.payment_succeeded` | Re-enables API key (`is_active = true`) |
+| `invoice.payment_failed` | Disables API key (`is_active = false`, reason `payment_failed`) |
+| `invoice.payment_succeeded` | Re-enables API key only if it was disabled for `payment_failed` |
 | `payment_intent.succeeded` | Logged |
 | `payment_intent.payment_failed` | Logged |
+
+Invoice events find the subscription at `parent.subscription_details.subscription` (API `2025-03-31.basil` and later), falling back to the legacy top-level `subscription`. The payload shape follows the **endpoint's API version in the Stripe dashboard**, not `apiVersion` in `lib/stripe.ts`. An invoice with neither field logs `[webhook] invoice has no subscription id`.
 
 ### Webhook hardening
 
