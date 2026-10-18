@@ -14,6 +14,31 @@ export function initializeMailchimp() {
   return mailchimp;
 }
 
+// SDK errors carry the superagent response, whose request holds the
+// `Authorization: Basic` header (the API key). Never log the raw error; log this.
+export function describeMailchimpError(error: unknown): {
+  status?: number;
+  title?: string;
+  detail?: string;
+  message?: string;
+} {
+  const err = (error ?? {}) as {
+    status?: unknown;
+    message?: unknown;
+    response?: { status?: unknown; body?: { title?: unknown; detail?: unknown } };
+  };
+  const status = err.status ?? err.response?.status;
+  const title = err.response?.body?.title;
+  const detail = err.response?.body?.detail;
+
+  return {
+    ...(typeof status === 'number' && { status }),
+    ...(typeof title === 'string' && { title }),
+    ...(typeof detail === 'string' && { detail }),
+    ...(typeof err.message === 'string' && { message: err.message }),
+  };
+}
+
 // Check if Mailchimp is properly configured
 export function isMailchimpConfigured(): boolean {
   return !!(

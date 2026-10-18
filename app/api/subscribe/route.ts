@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mailchimp from '@mailchimp/mailchimp_marketing';
 import { validateEmail } from '@/lib/validation';
+import { describeMailchimpError } from '@/lib/mailchimp';
 
 // Configure Mailchimp
 mailchimp.setConfig({
@@ -64,22 +65,22 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Mailchimp subscription error:', error);
+    // Already subscribed: not an error, so nothing to log
+    if (error.response?.status === 400 && error.response?.body?.title === 'Member Exists') {
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'This email is already subscribed',
+        },
+        { status: 200 }
+      );
+    }
+
+    console.error('Mailchimp subscription error:', describeMailchimpError(error));
 
     // Handle specific Mailchimp errors
     if (error.response) {
       const { status, body } = error.response;
-
-      // Already subscribed
-      if (status === 400 && body?.title === 'Member Exists') {
-        return NextResponse.json(
-          {
-            success: true,
-            message: 'This email is already subscribed',
-          },
-          { status: 200 }
-        );
-      }
 
       // Invalid email or other Mailchimp errors
       return NextResponse.json(
