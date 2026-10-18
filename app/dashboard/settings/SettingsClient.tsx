@@ -11,26 +11,51 @@ import { tierName } from '@/lib/tier-registry';
 interface SettingsClientProps {
   user: User;
   tier: UserTier;
+  hasPassword: boolean;
 }
 
-interface ConfirmModalProps {
+interface ReauthModalProps {
   isOpen: boolean;
   title: string;
   message: string;
   confirmText: string;
   confirmVariant?: 'danger' | 'warning';
-  onConfirm: () => void;
+  hasPassword: boolean;
+  loading: boolean;
+  error: string;
+  onConfirm: (password: string, code: string) => void;
   onCancel: () => void;
 }
 
-function ConfirmModal({ isOpen, title, message, confirmText, confirmVariant = 'danger', onConfirm, onCancel }: ConfirmModalProps) {
+// F1: disabling 2FA or regenerating backup codes needs fresh proof, so the
+// server can refuse a hijacked session that has neither.
+function ReauthModal({ isOpen, title, message, confirmText, confirmVariant = 'danger', hasPassword, loading, error, onConfirm, onCancel }: ReauthModalProps) {
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPassword('');
+      setCode('');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const canSubmit = !loading && code.trim().length > 0 && (!hasPassword || password.length > 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (canSubmit) onConfirm(password, code.trim());
+        }}
+        className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+      >
         <button
+          type="button"
           onClick={onCancel}
           className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
         >
@@ -47,30 +72,62 @@ function ConfirmModal({ isOpen, title, message, confirmText, confirmVariant = 'd
           </div>
         </div>
 
+        <div className="space-y-4 mb-6">
+          {hasPassword && (
+            <div>
+              <label htmlFor="reauth-password" className="block text-zinc-400 text-sm mb-1">Current password</label>
+              <input
+                id="reauth-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+          )}
+          <div>
+            <label htmlFor="reauth-code" className="block text-zinc-400 text-sm mb-1">Authenticator code or backup code</label>
+            <input
+              id="reauth-code"
+              type="text"
+              autoComplete="one-time-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="000000"
+              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white font-mono focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+            />
+          </div>
+          {error && <p className="text-red-300 text-sm">{error}</p>}
+        </div>
+
         <div className="flex gap-3 justify-end">
           <button
+            type="button"
             onClick={onCancel}
             className="px-4 py-2 text-zinc-400 hover:text-white transition-colors"
           >
             Cancel
           </button>
           <button
-            onClick={onConfirm}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            type="submit"
+            disabled={!canSubmit}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
               confirmVariant === 'danger'
                 ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
                 : 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20'
             }`}
           >
+            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {confirmText}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
 
-export function SettingsClient({ user, tier }: SettingsClientProps) {
+export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps) {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showRegenerateCodes, setShowRegenerateCodes] = useState(false);
@@ -81,6 +138,7 @@ export function SettingsClient({ user, tier }: SettingsClientProps) {
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [verificationCode, setVerificationCode] = useState('');
   const [error, setError] = useState('');
+  const [reauthError, setReauthError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -146,18 +204,24 @@ export function SettingsClient({ user, tier }: SettingsClientProps) {
     setTimeout(() => setSuccess(''), 5000);
   };
 
-  const disable2FA = async () => {
-    setShowDisableConfirm(false);
+  const disable2FA = async (password: string, code: string) => {
     setLoading(true);
+    setReauthError('');
     try {
-      const res = await fetch('/api/auth/2fa/disable', { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to disable');
+      const res = await fetch('/api/auth/2fa/disable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, code }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to disable');
 
+      setShowDisableConfirm(false);
       setTwoFactorEnabled(false);
       setSuccess('Two-factor authentication disabled');
       setTimeout(() => setSuccess(''), 5000);
     } catch (err: any) {
-      setError(err.message);
+      setReauthError(err.message);
     } finally {
       setLoading(false);
     }
@@ -177,19 +241,23 @@ export function SettingsClient({ user, tier }: SettingsClientProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const regenerateBackupCodes = async () => {
-    setShowRegenerateConfirm(false);
+  const regenerateBackupCodes = async (password: string, code: string) => {
     setLoading(true);
-    setError('');
+    setReauthError('');
     try {
-      const res = await fetch('/api/auth/2fa/regenerate-codes', { method: 'POST' });
-      const data = await res.json();
+      const res = await fetch('/api/auth/2fa/regenerate-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, code }),
+      });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error);
 
+      setShowRegenerateConfirm(false);
       setBackupCodes(data.backupCodes);
       setShowRegenerateCodes(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to regenerate codes');
+      setReauthError(err.message || 'Failed to regenerate codes');
     } finally {
       setLoading(false);
     }
@@ -257,7 +325,7 @@ export function SettingsClient({ user, tier }: SettingsClientProps) {
               {twoFactorEnabled ? (
                 <>
                   <button
-                    onClick={() => setShowRegenerateConfirm(true)}
+                    onClick={() => { setReauthError(''); setShowRegenerateConfirm(true); }}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
                   >
@@ -265,7 +333,7 @@ export function SettingsClient({ user, tier }: SettingsClientProps) {
                     {loading ? 'Generating...' : 'Regenerate Backup Codes'}
                   </button>
                   <button
-                    onClick={() => setShowDisableConfirm(true)}
+                    onClick={() => { setReauthError(''); setShowDisableConfirm(true); }}
                     disabled={loading}
                     className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
                   >
@@ -488,22 +556,28 @@ export function SettingsClient({ user, tier }: SettingsClientProps) {
       </main>
 
       {/* Confirmation Modals */}
-      <ConfirmModal
+      <ReauthModal
         isOpen={showDisableConfirm}
         title="Disable Two-Factor Authentication"
         message="Are you sure you want to disable two-factor authentication? This will make your account less secure."
         confirmText="Disable 2FA"
         confirmVariant="danger"
+        hasPassword={hasPassword}
+        loading={loading}
+        error={reauthError}
         onConfirm={disable2FA}
         onCancel={() => setShowDisableConfirm(false)}
       />
 
-      <ConfirmModal
+      <ReauthModal
         isOpen={showRegenerateConfirm}
         title="Regenerate Backup Codes"
         message="This will invalidate all your existing backup codes. Make sure you save the new codes after regenerating."
         confirmText="Regenerate Codes"
         confirmVariant="warning"
+        hasPassword={hasPassword}
+        loading={loading}
+        error={reauthError}
         onConfirm={regenerateBackupCodes}
         onCancel={() => setShowRegenerateConfirm(false)}
       />
