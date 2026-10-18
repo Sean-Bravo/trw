@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { POST } from '@/app/api/bank/presigned-url/route';
 import { createMockRequest } from '../../utils/mock-request';
 import * as rateLimit from '@/lib/rate-limit';
+import { createHash } from 'crypto';
 
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
@@ -13,6 +14,10 @@ jest.mock('next-auth', () => ({
 
 jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
   authOptions: {},
+}));
+
+jest.mock('@/lib/db', () => ({
+  query: jest.fn().mockResolvedValue([]),
 }));
 
 jest.mock('@/lib/rate-limit', () => ({
@@ -30,10 +35,13 @@ jest.mock('@/lib/rate-limit', () => ({
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockRateLimit = rateLimit as jest.Mocked<typeof rateLimit>;
 
+const JOB_ID = '3f1c2a9e-8b7d-4c6e-9f0a-1b2c3d4e5f60';
+const KEY = `bank/${JOB_ID}/abc.pdf`;
+
 const mockLambdaResponse = (overrides: Partial<{ uploadUrl: string; jobId: string; key: string; expiresIn: number }> = {}) => ({
   uploadUrl: 'https://s3.example.com/presigned',
-  jobId: 'job-123',
-  key: 'bank/user-1/abc.pdf',
+  jobId: JOB_ID,
+  key: KEY,
   expiresIn: 3600,
   ...overrides,
 });
@@ -68,8 +76,8 @@ describe('POST /api/bank/presigned-url', () => {
 
       expect(response.status).toBe(200);
       expect(data.uploadUrl).toBe('https://s3.example.com/presigned');
-      expect(data.jobId).toBe('job-123');
-      expect(data.key).toBe('bank/user-1/abc.pdf');
+      expect(data.jobId).toBe(JOB_ID);
+      expect(data.key).toBe(KEY);
       expect(data.expiresIn).toBe(3600);
     });
 
@@ -100,6 +108,56 @@ describe('POST /api/bank/presigned-url', () => {
       expect(response.status).toBe(200);
     });
 
+  });
+
+  describe('Job ownership record (issue #2)', () => {
+    const { query } = jest.requireMock('@/lib/db') as { query: jest.Mock };
+
+    it('records the job id, user id and exact key for a logged-in user', async () => {
+      const response = await POST(createMockRequest({ filename: 'statement.pdf' }) as any);
+
+      expect(response.status).toBe(200);
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO bank_job_uploads'),
+        [JOB_ID, 'user-1', null, KEY],
+      );
+    });
+
+    it('records a hash of the limiter identity, not the raw IP, for a logged-out user', async () => {
+      mockGetServerSession.mockResolvedValue(null);
+
+      await POST(createMockRequest({ filename: 'statement.pdf' }) as any);
+
+      const hash = createHash('sha256').update('test-ip').digest('hex');
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO bank_job_uploads'),
+        [JOB_ID, null, hash, KEY],
+      );
+      expect(JSON.stringify(query.mock.calls)).not.toContain('test-ip');
+    });
+
+    it('returns no upload URL when the record cannot be written', async () => {
+      query.mockRejectedValueOnce(new Error('relation "bank_job_uploads" does not exist'));
+
+      const response = await POST(createMockRequest({ filename: 'statement.pdf' }) as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(data.uploadUrl).toBeUndefined();
+    });
+
+    it('refuses a Lambda key outside bank/{jobId}/', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockLambdaResponse({ key: 'bank/other-job/abc.pdf' })),
+      });
+
+      const response = await POST(createMockRequest({ filename: 'statement.pdf' }) as any);
+
+      expect(response.status).toBe(502);
+      expect(query).not.toHaveBeenCalled();
+    });
   });
 
   describe('Anonymous access', () => {

@@ -113,18 +113,18 @@ export async function uploadBankPdfToS3(
 }
 
 /**
- * Step 3: Trigger bank statement processing
+ * Step 3: Trigger bank statement processing. Only the jobId identifies the
+ * upload; the server looks up the S3 key it recorded at presign time.
  */
 export async function processBankStatement(
   jobId: string,
-  s3Key: string,
   outputFormat: BankOutputFormat,
   filename: string
 ): Promise<BankProcessResponse> {
   const response = await fetch('/api/bank/process', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jobId, s3Key, outputFormat, filename }),
+    body: JSON.stringify({ jobId, outputFormat, filename }),
   });
 
   if (response.status === 429) {
@@ -158,7 +158,7 @@ export async function uploadBankStatement(
   try {
     // Step 1: Request presigned URL
     onProgress?.('requesting', 10);
-    const { uploadUrl, jobId, key } = await requestBankPresignedUrl(file.name);
+    const { uploadUrl, jobId } = await requestBankPresignedUrl(file.name);
 
     // Step 2: Upload to S3
     onProgress?.('uploading', 20);
@@ -169,7 +169,7 @@ export async function uploadBankStatement(
 
     // Step 3: Process
     onProgress?.('processing', 70);
-    const result = await processBankStatement(jobId, key, outputFormat, file.name);
+    const result = await processBankStatement(jobId, outputFormat, file.name);
     onProgress?.('processing', 100);
 
     return result;

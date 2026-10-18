@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
+import { query } from '@/lib/db';
+import { bankJobOwner, isJobId } from '../_lib/owner';
 
 
 /**
@@ -26,7 +28,8 @@ export async function POST(request: NextRequest) {
 
   try {
     // userId comes from session if available, else derived from request IP.
-    const userId = session?.user?.id || `anon-${identifier}`;
+    const owner = bankJobOwner(session?.user?.id, identifier);
+    const userId = owner.metadataUserId;
 
     // Parse request body
     const body = await request.json();
@@ -62,6 +65,18 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await lambdaResponse.json();
+
+    // Issue #2: record the owner and exact key now, so /api/bank/process can
+    // refuse a jobId or key the caller didn't get from us. No record, no URL.
+    if (!isJobId(data.jobId) || typeof data.key !== 'string' || !data.key.startsWith(`bank/${data.jobId}/`)) {
+      console.error('[Bank Presigned URL] Unexpected Lambda response shape');
+      return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 502 });
+    }
+    await query(
+      `INSERT INTO bank_job_uploads (job_id, user_id, anon_id_hash, s3_key)
+       VALUES ($1, $2, $3, $4)`,
+      [data.jobId, owner.userId, owner.anonIdHash, data.key]
+    );
 
     console.log(`[Bank Presigned URL] Generated for user ${userId}, file ${filename}`);
 
