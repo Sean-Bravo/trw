@@ -1,61 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
 import { Container } from '../layout/Container';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import Link from 'next/link';
-import { Mail, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { CHEAPEST_PAID_TIER, formatMonthlyPrice } from '@/lib/tier-registry';
 
 export function Footer() {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus('loading');
-
-    try {
-      const response = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (response.ok) {
-        setStatus('success');
-        setMessage("Thanks! You're subscribed.");
-        setEmail('');
-      } else {
-        setStatus('error');
-        setMessage('Something went wrong. Please try again.');
-      }
-    } catch {
-      setStatus('error');
-      setMessage('Something went wrong. Please try again.');
-    }
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      setStatus('idle');
-      setMessage('');
-    }, 5000);
-  };
-
   return (
     <footer className="bg-surface-alt text-white">
       {/* CTA Section */}

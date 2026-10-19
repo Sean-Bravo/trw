@@ -374,9 +374,7 @@ Date format: UTC 24hr
 - POST/GET `/api/customer-portal`
 - POST `/api/webhooks/stripe`
 
-### Miscellaneous (3 endpoints)
-- POST `/api/waitlist`
-- POST `/api/subscribe`
+### Miscellaneous (1 endpoint)
 - POST `/monitoring` (Sentry tunnel)
 
 ---
