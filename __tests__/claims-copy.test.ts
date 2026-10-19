@@ -13,7 +13,8 @@
  * instantly reject any key with elevated permissions" (we never take keys)
  * and documented an X-TF-Processing-Time header that doesn't exist; nine
  * unimported components still carried "10,000+ files processed", "99.9%
- * accuracy" and "We trace the blockchain".
+ * accuracy" and "We trace the blockchain". The launch post's FAQ said "All
+ * processing happens client-side. Your CSV is never uploaded to our servers."
  */
 import fs from 'fs';
 import path from 'path';
@@ -68,6 +69,9 @@ const BANNED: Array<[RegExp, string]> = [
   [/trace the blockchain/i, 'blockchain tracing claim'],
   [/within 48 hours/i, '48-hour turnaround promise'],
   [/foundingDate|datePublished: '20/, 'unverified founding/publication date'],
+  // Uploads go to S3 and Lambdas parse them; nothing runs in the browser.
+  [/(processing|processed|parsed|parsing) (happens |runs |entirely |locally )*(client[\s-]side|in your browser)|client[\s-]side (processing|parsing)/i, 'client-side processing claim'],
+  [/never (be )?uploaded|not uploaded to our servers/i, '"never uploaded" claim (files go to S3)'],
 ];
 
 describe('live copy carries no unbacked claim', () => {
