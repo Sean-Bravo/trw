@@ -936,9 +936,13 @@ def handle_bank_process(event: Dict) -> Dict:
 
         # Save CSV result in all formats
         # The PDF extraction is expensive; exporting to different CSV formats is cheap
-        from services.bank_statement.exporter import TransactionExporter
+        try:
+            from services.bank_statement import AccountingExporter
+        except ImportError:
+            # Lambda flat structure
+            from bank_statement import AccountingExporter
         all_formats = ["csv", "qbo", "xero", "excel"]
-        exporter = TransactionExporter()
+        exporter = AccountingExporter()
         normalized_txns = result.get("transactions", [])
 
         # Save requested format first (already generated)
