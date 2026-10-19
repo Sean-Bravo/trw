@@ -71,6 +71,44 @@ Date        Description                              Debits      Credits    Bala
 12/01       Previous Balance                                                $1,800.00
 """
 
+MERCURY_TEXT = """
+Mercury
+Account Statement - October 2026
+
+All Transactions
+Date        Description                              Amount      End of Day Balance
+10/01       Incoming Wire STRIPE                     $4,200.00   $12,400.00
+
+Banking services provided by Choice Financial Group, Member FDIC
+mercury.com
+"""
+
+NAVY_FEDERAL_TEXT = """
+Navy Federal Credit Union
+Statement of Account
+Access No. 1234567
+
+Date        Transaction Detail                       Amount      Balance
+09-03       POS Debit GROCERY OUTLET                 -42.10      1,957.90
+
+Insured by NCUA
+navyfederal.org
+"""
+
+# Reproduces the 2026-10-19 smoke-test statement: a fictional bank whose text
+# has "Card Purchase" (contains "chase") and Chase's "Statement Period" header.
+UNKNOWN_BANK_PURCHASE_TEXT = """
+Riverstone Community Bank
+Checking Account Statement
+Statement Period: 09/01/2026 - 09/30/2026
+Account Number: ****4421
+
+Date          Description                          Amount      Balance
+09/02/2026    Card Purchase GROCERY OUTLET         -42.10      1,957.90
+09/05/2026    Card Purchase SHELL OIL              -38.00      1,919.90
+Total deposits and other credits                   2,000.00
+"""
+
 GENERIC_TEXT = """
 Financial Statement
 Account: 1234567890
@@ -110,6 +148,14 @@ class TestBankDetection:
         """Citibank should be detected."""
         config = fingerprinter.detect_bank(CITI_TEXT)
         assert config["bank"]["name"] == "Citi"
+
+    def test_detect_mercury(self, fingerprinter):
+        config = fingerprinter.detect_bank(MERCURY_TEXT)
+        assert config["bank"]["name"] == "Mercury"
+
+    def test_detect_navy_federal(self, fingerprinter):
+        config = fingerprinter.detect_bank(NAVY_FEDERAL_TEXT)
+        assert config["bank"]["name"] == "Navy Federal"
 
     def test_fallback_to_generic(self, fingerprinter):
         """Unknown bank should fall back to generic config."""
@@ -152,12 +198,47 @@ class TestScoringLogic:
         config = fingerprinter.detect_bank(text_with_logo)
         assert config["bank"]["name"] == "Chase"
 
-    def test_header_patterns_lower_weight(self, fingerprinter):
-        """Header patterns alone should not be enough for definitive match."""
-        # Generic header text
-        text_with_headers = "Account Number Statement Period"
+    def test_header_patterns_alone_do_not_select_a_bank(self, fingerprinter):
+        """Header patterns are common to most statements, so they only add weight."""
+        text_with_headers = "Account Number Statement Period Account Summary"
         config = fingerprinter.detect_bank(text_with_headers)
-        # May or may not match Chase - headers are common
+        assert config["bank"].get("is_generic") is True
+
+
+class TestFalsePositives:
+    """Bank names embedded in ordinary words must not select that bank."""
+
+    @pytest.fixture
+    def fingerprinter(self):
+        config_dir = Path(__file__).parent.parent / "configs" / "banks"
+        return BankFingerprinter(str(config_dir))
+
+    def test_card_purchase_with_statement_period_is_generic(self, fingerprinter):
+        text = "Statement Period: 09/01/2026 - 09/30/2026\n09/02/2026 Card Purchase GROCERY -42.10"
+        config = fingerprinter.detect_bank(text)
+        assert config["bank"].get("is_generic") is True
+
+    def test_unknown_bank_statement_is_generic(self, fingerprinter):
+        config = fingerprinter.detect_bank(UNKNOWN_BANK_PURCHASE_TEXT)
+        assert config["bank"].get("is_generic") is True
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Twin Cities Power utility payment",  # "citi" in "cities"
+            "Citizens Bank transfer",  # "citi" in "citizens"
+            "PURCHASED ITEMS 09/02",  # "chase" in "purchased"
+            "Mercurymart refund",  # "mercury" as a prefix
+        ],
+    )
+    def test_bank_name_inside_word_is_ignored(self, fingerprinter, text):
+        config = fingerprinter.detect_bank(text)
+        assert config["bank"].get("is_generic") is True
+
+    def test_marker_with_trailing_punctuation_still_matches(self, fingerprinter):
+        """Whole-word matching must still work for phrases ending in '.'."""
+        config = fingerprinter.detect_bank("Deposits held at Bank of America, N.A.")
+        assert config["bank"]["name"] == "Bank of America"
 
 
 class TestSupportedBanks:

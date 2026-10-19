@@ -3,12 +3,23 @@ Bank Fingerprinter - Detect bank from PDF text content.
 """
 
 import os
+import re
 import logging
 from typing import Dict, List, Optional
 
 import yaml
 
 logger = logging.getLogger(__name__)
+
+
+def _contains_phrase(phrase: str, text_lower: str) -> bool:
+    """Case-insensitive whole-word match, so "chase" doesn't hit "Purchase".
+
+    Lookarounds instead of \\b because some phrases start or end with
+    punctuation (e.g. "Bank of America, N.A.", "Access No.").
+    """
+    pattern = r"(?<!\w)" + re.escape(phrase.lower()) + r"(?!\w)"
+    return re.search(pattern, text_lower) is not None
 
 
 class BankFingerprinter:
@@ -76,26 +87,31 @@ class BankFingerprinter:
 
         for bank_name, config in self.configs.items():
             score = 0
+            # Header phrases like "Statement Period" appear on most statements,
+            # so a bank can only win if its name/domain or a unique marker matched.
+            anchored = False
             fingerprint = config.get("fingerprint", {})
 
             # Check logo patterns (high weight)
             for pattern in fingerprint.get("logo_patterns", []):
-                if pattern.lower() in text_lower:
+                if _contains_phrase(pattern, text_lower):
                     score += 10
+                    anchored = True
 
             # Check header patterns (medium weight)
             header_patterns = fingerprint.get("header_patterns", [])
             matched_headers = sum(
-                1 for p in header_patterns if p.lower() in text_lower
+                1 for p in header_patterns if _contains_phrase(p, text_lower)
             )
             score += matched_headers * 5
 
             # Check unique markers (highest weight)
             for marker in fingerprint.get("unique_markers", []):
-                if marker.lower() in text_lower:
+                if _contains_phrase(marker, text_lower):
                     score += 20
+                    anchored = True
 
-            if score > 0:
+            if anchored:
                 scores[bank_name] = score
 
         # Return highest scoring bank
