@@ -120,7 +120,6 @@ export default function PrivacyPolicyPage() {
                   <li><strong className="text-white">Stripe:</strong> Payment processing</li>
                   <li><strong className="text-white">AWS:</strong> Cloud infrastructure and file storage</li>
                   <li><strong className="text-white">Google Analytics:</strong> Website analytics</li>
-                  <li><strong className="text-white">Mailchimp:</strong> Email communications</li>
                 </ul>
                 <p className="mt-4">
                   Each of these services has their own privacy policy governing their use of your data.
