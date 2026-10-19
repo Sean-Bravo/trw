@@ -118,9 +118,12 @@ package_lambdas() {
     if [ -f "$SERVICES_DIR/format_converter.py" ]; then
         cp "$SERVICES_DIR/format_converter.py" "$BUILD_DIR/webhook/"
     fi
-    # Copy bank statement service
+    # Copy bank statement service, plus csv_safety.py, which its exporter
+    # imports from the parent directory (M-10). Without it every bank job
+    # fails with "No module named 'csv_safety'".
     if [ -d "$SERVICES_DIR/bank_statement" ]; then
         cp -r "$SERVICES_DIR/bank_statement" "$BUILD_DIR/webhook/"
+        cp "$SERVICES_DIR/csv_safety.py" "$BUILD_DIR/webhook/"
     fi
     # Copy bank configs
     if [ -d "$SCRIPT_DIR/configs" ]; then
