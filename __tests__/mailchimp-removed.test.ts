@@ -53,4 +53,12 @@ describe('Mailchimp stays removed', () => {
     );
     expect(hits).toEqual([]);
   });
+
+  // With no signup route, a "join our waitlist" pitch in content is a promise
+  // the site can't keep.
+  it('blog and docs content does not offer a waitlist', () => {
+    const files = [...walk('content/blog', ['.md', '.mdx']), ...walk('content/docs', ['.md', '.mdx'])];
+    const hits = files.filter((rel) => /waitlist/i.test(fs.readFileSync(path.join(ROOT, rel), 'utf8')));
+    expect(hits).toEqual([]);
+  });
 });
