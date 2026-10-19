@@ -164,17 +164,25 @@ export function BankPDFUploader() {
         return;
       }
 
-      console.log('[Download] Triggering download via anchor element');
-      // Create a hidden anchor and click it - more reliable than window.open
-      // S3 presigned URL with ResponseContentDisposition will force download
+      // Fetch the file and save it from a blob URL, as JobHistoryTable does.
+      // Opening the S3 URL in a new tab after the await above is treated as
+      // a popup (the click's user activation has expired) and silently
+      // blocked; `download` is also ignored on cross-origin URLs. The
+      // results bucket's CORS allows this origin.
+      const fileRes = await fetch(data.downloadUrl);
+      if (!fileRes.ok) {
+        console.error('[Download] File fetch failed:', fileRes.status);
+        setErrorMessage('Download failed');
+        return;
+      }
+      const blobUrl = URL.createObjectURL(await fileRes.blob());
       const link = document.createElement('a');
-      link.href = data.downloadUrl;
+      link.href = blobUrl;
       link.download = `bank_${result.jobId}_${outputFormat}.csv`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error('[Download] Failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Download failed');
