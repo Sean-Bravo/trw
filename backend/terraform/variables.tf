@@ -109,7 +109,7 @@ variable "lambda_runtime" {
 variable "lambda_timeout" {
   description = "Lambda function timeout in seconds"
   type        = number
-  default     = 900  # 15 minutes for processor
+  default     = 900 # 15 minutes for processor
 }
 
 variable "lambda_memory_size" {

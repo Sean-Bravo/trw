@@ -123,6 +123,7 @@ package_lambdas() {
     # fails with "No module named 'csv_safety'".
     if [ -d "$SERVICES_DIR/bank_statement" ]; then
         cp -r "$SERVICES_DIR/bank_statement" "$BUILD_DIR/webhook/"
+        rsync -a --exclude '__pycache__' "$SERVICES_DIR/" "$BUILD_DIR/webhook/services/"
         cp "$SERVICES_DIR/csv_safety.py" "$BUILD_DIR/webhook/"
     fi
     # Copy bank configs
