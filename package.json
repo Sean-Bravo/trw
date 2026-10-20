@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "migrate": "node scripts/migrate.mjs",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
