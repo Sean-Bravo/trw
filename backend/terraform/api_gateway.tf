@@ -209,14 +209,15 @@ resource "aws_lambda_permission" "api_gateway" {
 
 # API Gateway Alarm - 5XX Errors
 resource "aws_cloudwatch_metric_alarm" "api_gateway_5xx" {
+  treat_missing_data  = "notBreaching"
   alarm_name          = "${var.project_name}-${var.environment}-api-gateway-5xx"
-  comparison_operator = "GreaterThanThreshold"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  metric_name         = "5XXError"
+  metric_name         = "5xx"
   namespace           = "AWS/ApiGateway"
   period              = 300
   statistic           = "Sum"
-  threshold           = 10
+  threshold           = 1
   alarm_description   = "Alert when API Gateway has 5XX errors"
   alarm_actions       = [aws_sns_topic.alerts.arn]
 
@@ -230,10 +231,11 @@ resource "aws_cloudwatch_metric_alarm" "api_gateway_5xx" {
 
 # API Gateway Alarm - 4XX Errors (rate limiting)
 resource "aws_cloudwatch_metric_alarm" "api_gateway_4xx" {
+  treat_missing_data  = "notBreaching"
   alarm_name          = "${var.project_name}-${var.environment}-api-gateway-4xx"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
-  metric_name         = "4XXError"
+  metric_name         = "4xx"
   namespace           = "AWS/ApiGateway"
   period              = 300
   statistic           = "Sum"
@@ -272,9 +274,9 @@ output "api_certificate_validation" {
   description = "DNS validation records for ACM certificate"
   value = {
     for dvo in aws_acm_certificate.api.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      type   = dvo.resource_record_type
-      value  = dvo.resource_record_value
+      name  = dvo.resource_record_name
+      type  = dvo.resource_record_type
+      value = dvo.resource_record_value
     }
   }
 }

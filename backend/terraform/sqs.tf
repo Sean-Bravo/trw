@@ -3,7 +3,7 @@
 # Dead Letter Queue (DLQ) for failed messages
 resource "aws_sqs_queue" "processing_dlq" {
   name                       = local.processing_dlq
-  message_retention_seconds  = 1209600  # 14 days
+  message_retention_seconds  = 1209600 # 14 days
   visibility_timeout_seconds = 300
 
   tags = merge(
@@ -18,11 +18,11 @@ resource "aws_sqs_queue" "processing_dlq" {
 # Main Processing Queue
 resource "aws_sqs_queue" "processing" {
   name                       = local.processing_queue
-  message_retention_seconds  = 345600   # 4 days
-  visibility_timeout_seconds = 960      # 16 minutes (slightly more than Lambda timeout)
+  message_retention_seconds  = 345600 # 4 days
+  visibility_timeout_seconds = 960    # 16 minutes (slightly more than Lambda timeout)
   delay_seconds              = 0
-  max_message_size           = 262144   # 256 KB
-  receive_wait_time_seconds  = 20       # Long polling
+  max_message_size           = 262144 # 256 KB
+  receive_wait_time_seconds  = 20     # Long polling
 
   # Redrive policy for DLQ
   redrive_policy = jsonencode({
