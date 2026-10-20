@@ -61,64 +61,7 @@ resource "aws_cloudwatch_metric_alarm" "webhook_throttles" {
 }
 
 # Scanner Lambda Errors
-resource "aws_cloudwatch_metric_alarm" "scanner_errors" {
-  alarm_name          = "${var.project_name}-${var.environment}-scanner-errors"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 1
-  metric_name         = "Errors"
-  namespace           = "AWS/Lambda"
-  period              = 300
-  statistic           = "Sum"
-  threshold           = 10
-  alarm_description   = "Alert when scanner Lambda has errors"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-
-  dimensions = {
-    FunctionName = aws_lambda_function.scanner.function_name
-  }
-
-  tags = local.common_tags
-}
-
 # Processor Lambda Errors
-resource "aws_cloudwatch_metric_alarm" "processor_errors" {
-  alarm_name          = "${var.project_name}-${var.environment}-processor-errors"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 1
-  metric_name         = "Errors"
-  namespace           = "AWS/Lambda"
-  period              = 300
-  statistic           = "Sum"
-  threshold           = 10
-  alarm_description   = "Alert when processor Lambda has errors"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-
-  dimensions = {
-    FunctionName = aws_lambda_function.processor.function_name
-  }
-
-  tags = local.common_tags
-}
-
-resource "aws_cloudwatch_metric_alarm" "processor_duration" {
-  alarm_name          = "${var.project_name}-${var.environment}-processor-duration"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "Duration"
-  namespace           = "AWS/Lambda"
-  period              = 300
-  statistic           = "Average"
-  threshold           = 600000
-  alarm_description   = "Alert when processor Lambda duration is high"
-  alarm_actions       = [aws_sns_topic.alerts.arn]
-
-  dimensions = {
-    FunctionName = aws_lambda_function.processor.function_name
-  }
-
-  tags = local.common_tags
-}
-
 # ===== CLOUDWATCH DASHBOARD =====
 
 resource "aws_cloudwatch_dashboard" "main" {
