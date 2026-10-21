@@ -213,6 +213,29 @@ class TestCheckMonthlyQuota:
         assert usage == 24
         assert is_overage is False
 
+    # --- Issue #8: usage is the user's, not the key's ---
+
+    def test_sums_usage_by_user_not_by_key(self, mock_db):
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": 3}
+        check_monthly_quota("user-1", 25, tier="free")
+        sql, params = mock_cursor.execute.call_args[0]
+        assert "WHERE user_id = %s" in sql
+        assert "api_key_id" not in sql
+        assert params == ("user-1",)
+
+    def test_recreated_key_keeps_the_months_usage(self, mock_db):
+        # The user spent 25 free files on a key, revoked and deleted it, and
+        # created a new free key. Migration 019 keeps the old key's rows with
+        # the user's id, so the sum the new key sees is still 25.
+        _, mock_cursor = mock_db
+        mock_cursor.fetchone.return_value = {"total": 25}
+        allowed, usage, is_overage = check_monthly_quota("user-1", 25, tier="free")
+        assert mock_cursor.execute.call_args[0][1] == ("user-1",)
+        assert allowed is False
+        assert usage == 25
+        assert is_overage is True
+
     def test_starter_explicit_at_quota_still_soft_flags(self, mock_db):
         # Regression: paid-tier behavior unchanged when tier passed explicitly.
         _, mock_cursor = mock_db

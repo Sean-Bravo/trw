@@ -120,11 +120,15 @@ def check_rate_limit(key_id: str, rpm_limit: int) -> Tuple[bool, int]:
 
 
 def check_monthly_quota(
-    key_id: str, monthly_quota: int, tier: str = "starter"
+    user_id: str, monthly_quota: int, tier: str = "starter"
 ) -> Tuple[bool, int, bool]:
     """
-    Check monthly file usage against quota.
+    Check the user's monthly file usage against the key's quota.
     Returns (allowed, current_usage, is_overage).
+
+    Usage is summed across all of the user's keys, including deleted ones
+    (migration 019 keeps their rows), so revoking and re-creating a key does
+    not reset the month (issue #8).
 
     Policy (v3 Phase 2):
     - tier == 'free': hard-block at quota. Returns allowed=False once usage
@@ -137,9 +141,9 @@ def check_monthly_quota(
         cur.execute(
             """SELECT COALESCE(SUM(file_count), 0)::int as total
                FROM api_usage
-               WHERE api_key_id = %s
+               WHERE user_id = %s
                  AND usage_date >= date_trunc('month', CURRENT_DATE)""",
-            (key_id,),
+            (user_id,),
         )
         row = cur.fetchone()
 

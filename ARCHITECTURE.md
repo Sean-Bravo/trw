@@ -45,7 +45,7 @@ S3 trigger → Scanner Lambda
        ↓
 SQS → Processor Lambda
   - Parse CSV (13 exchange formats)
-  - AI categorization (tier-based)
+  - AI categorization (tier from the upload owner's api_keys row in Neon; anonymous = free)
   - Generate fixed CSV (Koinly format internally) or error.json
   - Generate AI insights
        ↓
@@ -79,7 +79,7 @@ API Gateway → API Lambda (120s timeout, 1024MB)
        ↓
 api_auth.py validates key (SHA-256 hash lookup in Neon)
        ↓
-Rate limit check (in-memory RPM) + monthly quota check
+Rate limit check (in-memory RPM) + monthly quota check (summed across all the user's keys)
        ↓
 Detect file type: .csv → engine.py | .pdf → BankStatementProcessor
        ↓
@@ -179,7 +179,7 @@ trw/
 | `ai_cache` | Cached AI categorizations |
 | `downloads` | Free tier download tracking (3/month limit) |
 | `api_keys` | Developer API keys (hash, tier, quota, RPM limit) |
-| `api_usage` | Daily usage rollups per API key |
+| `api_usage` | Daily usage rollups per API key, stamped with the owner's `user_id`; rows outlive a deleted key (migration 019) |
 | `api_requests` | Per-request log for debugging/analytics |
 
 ## Subscription Tiers
@@ -336,6 +336,9 @@ Format conversion happens on-demand at download time (`webhook.py:handle_downloa
 15. **Fable 5.1 runs shadow-only on Business** - after `insights.json` is uploaded, `processor.run_shadow_insights` calls `ai_insights.generate_shadow_insights` (model from `SHADOW_CONFIG`, same normalized bytes, no server-side fallback so refusals are measured) and writes `results/{job}/insights_shadow.json`, which nothing serves. One `insights_shadow` log line per run carries flag Jaccard, taxable-events delta and cost. Kill switch: processor env `INSIGHTS_SHADOW_TIERS=""` (Terraform `insights_shadow_tiers`). Promotion after the Oct 28 review is moving the entry into `TIER_CONFIG` + `lib/insights-engine.ts` + docs/changelog — see `docs/PARKED_UNTIL_REVIEW.md`.
 18. **Non-/v1 gateway routes need `X-Internal-Token`** - API Gateway has no authorizer on the webhook Lambda's routes, so every Next.js route that fetches `API_GATEWAY_URL` adds the header via `internalGatewayHeaders()` in `lib/lambda-client.ts` (server-only env `INTERNAL_GATEWAY_TOKEN`, never `NEXT_PUBLIC_`). `webhook.py:handler` compares it with `INTERNAL_GATEWAY_TOKEN` from app_secrets using `hmac.compare_digest`; OPTIONS and `/v1/*` are exempt. Lambda env `GATEWAY_AUTH_MODE` (Terraform `gateway_auth_mode`) is `log` (logs a `gateway_auth_failed` line with `route_key` and `reason`, request proceeds) or `enforce` (401). Never flip to `enforce` before Vercel sends the header in every environment, or uploads and bank processing break. A new gateway-calling route must use the helper; `__tests__/lib/lambda-client.test.ts` fails if it doesn't.
 19. **Bank jobs are bound to their owner at presign** - `/api/bank/presigned-url` writes `bank_job_uploads` (migration 017: job id, `user_id` or a SHA-256 `anon_id_hash` of the rate-limit identity, and the exact `s3_key`). `/api/bank/process` takes the jobId only, returns 403 unless the caller is the recorded owner, sends the recorded key plus the owner (`userId`) to the Lambda, and scopes its `bank_jobs` UPDATEs by `user_id`. `handle_bank_process` requires a canonical UUID jobId, a key under `bank/{jobId}/`, and an object `user-id` metadata equal to `userId`, then caps the PDF at 50MB and 100 pages before parsing. An anonymous job can only be processed from the same rate-limit identity (IP) that presigned it.
+
+20. **The insights tier is never taken from a request** - `/presigned-url`, the S3 object metadata and the SQS message carry no tier (Oct 17 issue #6). `processor.resolve_job_tier` looks up the owner of the S3 key in `pending_uploads` (before confirm) or `uploads` (after), then that user's highest active `api_keys.tier`. Anonymous uploads have neither row, so they are always free, and any lookup failure is free too. A paid user's tier change applies to jobs processed after it.
+21. **The free API quota is per user, not per key** - `check_monthly_quota` sums `api_usage.file_count` by `user_id` (Oct 17 issue #8). Migration 019 added that column, filled by a BEFORE INSERT trigger from `api_keys` (so `increment_usage` does not send it), and changed the `api_key_id` FK to `ON DELETE SET NULL`, so permanently deleting a key keeps its usage counted. The dashboard (`/api/developer/usage`) and `/v1/usage` still show per-key numbers.
 
 ## Exchange Detection Flow
 

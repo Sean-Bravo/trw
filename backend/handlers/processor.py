@@ -278,13 +278,64 @@ def send_completion_email(job_id: str, user_email: str, success: bool, error: st
         logger.warning(f"Failed to send email: {e}")
 
 
+# Same ranking as getUserTier in lib/auth-db.ts: with several active keys,
+# the highest tier wins.
+JOB_TIER_SQL = """
+    SELECT k.tier FROM api_keys k
+    WHERE k.is_active = true
+      AND k.user_id = (
+        SELECT user_id FROM uploads WHERE s3_key = %s
+        UNION ALL
+        SELECT user_id FROM pending_uploads WHERE s3_key = %s
+        LIMIT 1
+      )
+    ORDER BY CASE k.tier
+      WHEN 'business' THEN 4
+      WHEN 'growth'   THEN 3
+      WHEN 'starter'  THEN 2
+      ELSE 1
+    END DESC
+    LIMIT 1
+"""
+
+KNOWN_TIERS = ("free", "starter", "growth", "business")
+
+
+def resolve_job_tier(s3_key: Optional[str]) -> str:
+    """The insights tier for an upload, from its owner's row in Neon.
+
+    The owner is whoever presign recorded the key for (pending_uploads,
+    migration 018) or confirm bound it to (uploads). Anonymous uploads have
+    neither row, so they are always free. Any lookup failure is also free:
+    a paying user loses the better model for one job, which beats spending
+    Opus on a job nobody paid for.
+    """
+    if not s3_key:
+        return "free"
+    try:
+        from storage import get_db_connection
+
+        with get_db_connection() as conn:
+            if conn is None:
+                logger.warning("job_tier_lookup_failed reason=no_database")
+                return "free"
+            with conn.cursor() as cur:
+                cur.execute(JOB_TIER_SQL, (s3_key, s3_key))
+                row = cur.fetchone()
+    except Exception as e:
+        logger.warning("job_tier_lookup_failed error_class=%s", type(e).__name__)
+        return "free"
+    tier = row[0] if row else "free"
+    return tier if tier in KNOWN_TIERS else "free"
+
+
 def generate_ai_insights(records: List[Dict], user_tier: str) -> Dict[str, Any]:
     """
     Generate AI insights for processed records.
 
     Args:
         records: List of transaction records
-        user_tier: User's subscription tier (free, pro, premium)
+        user_tier: The owner's tier from resolve_job_tier (free, starter, growth, business)
 
     Returns:
         Dictionary with AI insights or error
@@ -454,16 +505,19 @@ def process_message(message: Dict) -> Dict[str, Any]:
     s3_key = message.get("s3_key")
     filename = message.get("filename")
     user_id = message.get("user_id", "anonymous")
-    user_tier = message.get("user_tier", "free")  # Default to free tier
     exchange_name = message.get("exchangeName")  # Optional manual exchange override
+
+    # Ensure secrets are loaded (sets DATABASE_URL)
+    get_secrets()
+
+    # Issue #6: never the message's user_tier — anyone who could shape the
+    # message could pick Business. The owner's api_keys row decides.
+    user_tier = resolve_job_tier(s3_key)
 
     if exchange_name:
         logger.info(f"Processing job {job_id}: s3://{s3_bucket}/{s3_key} (tier: {user_tier}, exchange: {exchange_name})")
     else:
         logger.info(f"Processing job {job_id}: s3://{s3_bucket}/{s3_key} (tier: {user_tier})")
-
-    # Ensure secrets are loaded (sets DATABASE_URL)
-    get_secrets()
 
     try:
         # Download file from S3

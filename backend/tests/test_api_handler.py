@@ -552,6 +552,8 @@ class TestV1Parse:
         assert resp["headers"]["X-Api-Quota"] == "25"
         # Hard-block before processing — usage not incremented.
         mock_incr.assert_not_called()
+        # Issue #8: the quota is the user's, so a new key cannot reset it.
+        assert mock_quota.call_args.args[0] == "user-1"
 
     @patch.dict(os.environ, {"APP_URL": "http://localhost:3000"})
     @patch("services.api_auth.check_monthly_quota", return_value=(True, 0, False))

@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { rateLimiters, getClientIdentifier } from '@/lib/rate-limit';
 import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
-import { getUserTier } from '@/lib/auth-db';
 import { createPendingUpload } from '@/lib/uploads-db';
 
 // Custom domain doesn't need /prod prefix - it's mapped directly
@@ -57,12 +56,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Resolve consumer tier server-side. Anonymous uploads get 'free'.
-    // Tier rides S3 object metadata so the processor Lambda can route
-    // AI insights generation to the right model.
-    const userTier = session?.user?.id ? await getUserTier(session.user.id) : 'free';
-
-    // 5. Call AWS Lambda via API Gateway
+    // 4. Call AWS Lambda via API Gateway. No tier goes with it (issue #6):
+    // the processor Lambda resolves it from the upload's owner in Neon.
     // Route: POST /presigned-url (see backend/handlers/webhook.py)
     const lambdaResponse = await fetch(`${API_GATEWAY_URL}/presigned-url`, {
       method: 'POST',
@@ -74,7 +69,6 @@ export async function POST(request: NextRequest) {
         filename,
         contentType: 'text/csv',
         userId,
-        userTier,
       }),
     });
 
@@ -89,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     const data = await lambdaResponse.json();
 
-    // 6. Record the issued key against its owner. Confirm binds only keys
+    // 5. Record the issued key against its owner. Confirm binds only keys
     // recorded here (issue #15), so a failed write fails the presign rather
     // than handing out a URL that can never be confirmed. Anonymous presigns
     // are not recorded: confirm requires a session.
@@ -99,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Presigned URL] Generated for user ${userId}, file ${filename}`);
 
-    // 7. Return presigned URL (transform to match frontend expectations)
+    // 6. Return presigned URL (transform to match frontend expectations)
     // Lambda returns: { uploadUrl, jobId, key, expiresIn }
     return NextResponse.json({
       presignedPost: {

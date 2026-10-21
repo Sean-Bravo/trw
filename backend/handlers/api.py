@@ -286,7 +286,7 @@ def handle_v1_parse(event: Dict, key_record: Dict, request_id: str = "") -> Dict
     # Run before processing to avoid wasting compute on quota-exceeded free users.
     tier = key_record.get("tier", "starter")
     allowed, usage, is_overage = check_monthly_quota(
-        key_record["id"], key_record["monthly_quota"], tier
+        key_record["user_id"], key_record["monthly_quota"], tier
     )
     if not allowed:
         return error_response(
