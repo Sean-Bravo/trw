@@ -306,12 +306,13 @@ class TestProcessMessageShadowOrder:
     and a shadow failure cannot fail the job."""
 
     MESSAGE = {"job_id": "job-9", "s3_bucket": "uploads", "s3_key": "uploads/job-9/f.csv",
-               "filename": "f.csv", "user_id": "u", "user_tier": "business"}
+               "filename": "f.csv", "user_id": "u"}
 
     def _run(self, shadow_side_effect=None):
         order = []
         insights_result = {"success": True, "quick_stats": {"total_transactions": 1}, "ai_insights": {"summary": "ok"}}
         with patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "resolve_job_tier", return_value="business"), \
              patch.object(processor_module, "download_file", return_value=b"csv"), \
              patch.object(processor_module, "process_csv", return_value={
                  "success": True, "csv_output": "Date,Description\n2024-01-01,buy\n", "record_count": 1, "exchange": "coinbase",
@@ -333,6 +334,111 @@ class TestProcessMessageShadowOrder:
         assert args[1] == "business" and args[2] == "job-9"
         assert args[0] == [{"Date": "2024-01-01", "Description": "buy"}]
         assert args[3]["ai_insights"] == {"summary": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Tier resolved from the job owner's row in Neon (issue #6)
+# ---------------------------------------------------------------------------
+
+class _FakeDb:
+    """Stands in for storage.get_db_connection: one cursor, one canned row."""
+
+    def __init__(self, row=None, error=None, no_database=False):
+        self.row, self.error, self.no_database = row, error, no_database
+        self.cursor = MagicMock()
+        self.cursor.fetchone.return_value = row
+        if error:
+            self.cursor.execute.side_effect = error
+
+    def __call__(self):
+        from contextlib import contextmanager
+
+        @contextmanager
+        def connection():
+            if self.no_database:
+                yield None
+                return
+            conn = MagicMock()
+            conn.cursor.return_value.__enter__ = MagicMock(return_value=self.cursor)
+            conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+            yield conn
+        return connection()
+
+
+class TestJobTierFromNeon:
+
+    KEY = "uploads/job-5/f.csv"
+
+    def test_owner_with_a_business_key_gets_business(self):
+        db = _FakeDb(row=("business",))
+        with patch("storage.get_db_connection", db):
+            assert processor_module.resolve_job_tier(self.KEY) == "business"
+        sql, params = db.cursor.execute.call_args.args
+        assert params == (self.KEY, self.KEY)
+        assert "pending_uploads" in sql and "uploads" in sql and "api_keys" in sql
+
+    def test_no_owner_row_is_free(self):
+        with patch("storage.get_db_connection", _FakeDb(row=None)):
+            assert processor_module.resolve_job_tier(self.KEY) == "free"
+
+    def test_lookup_failure_is_free(self):
+        with patch("storage.get_db_connection", _FakeDb(error=RuntimeError("neon down"))):
+            assert processor_module.resolve_job_tier(self.KEY) == "free"
+
+    def test_no_database_is_free(self):
+        with patch("storage.get_db_connection", _FakeDb(no_database=True)):
+            assert processor_module.resolve_job_tier(self.KEY) == "free"
+
+    def test_unknown_tier_value_is_free(self):
+        with patch("storage.get_db_connection", _FakeDb(row=("platinum",))):
+            assert processor_module.resolve_job_tier(self.KEY) == "free"
+
+    def test_missing_key_is_free_without_a_query(self):
+        db = _FakeDb(row=("business",))
+        with patch("storage.get_db_connection", db):
+            assert processor_module.resolve_job_tier(None) == "free"
+        db.cursor.execute.assert_not_called()
+
+    def test_anonymous_message_claiming_business_gets_the_free_model(self):
+        """An anonymous upload has no pending_uploads or uploads row. Whatever
+        the message says, insights run on the free model and no shadow runs."""
+        from ai_insights import TIER_CONFIG
+
+        message = {"job_id": "job-5", "s3_bucket": "uploads", "s3_key": self.KEY,
+                   "filename": "f.csv", "user_id": "anon-203.0.113.9", "user_tier": "business"}
+        insights_tiers, shadow_tiers = [], []
+
+        def fake_generate_insights(records, tier, secrets):
+            insights_tiers.append(tier)
+            return {"success": True, "insights": {"summary": "ok"},
+                    "model": TIER_CONFIG[tier]["model"], "provider": TIER_CONFIG[tier]["provider"]}
+
+        def fake_shadow(records, tier, secrets, production_insights=None):
+            shadow_tiers.append(tier)
+            return None
+
+        with patch("storage.get_db_connection", _FakeDb(row=None)), \
+             patch.object(processor_module, "get_secrets", return_value={}), \
+             patch.object(processor_module, "download_file", return_value=b"csv"), \
+             patch.object(processor_module, "process_csv", return_value={
+                 "success": True, "csv_output": "Date,Description\n2024-01-01,buy\n", "record_count": 1,
+                 "exchange": "coinbase",
+             }), \
+             patch.object(processor_module, "upload_result"), \
+             patch.object(processor_module, "upload_result_json"), \
+             patch.object(processor_module, "upload_insights") as upload_insights, \
+             patch("ai_insights.generate_quick_stats", return_value={"total_transactions": 1}), \
+             patch("ai_insights.generate_insights", side_effect=fake_generate_insights), \
+             patch("ai_insights.generate_shadow_insights", side_effect=fake_shadow):
+            result = process_message(message)
+
+        assert result["success"] is True
+        assert insights_tiers == ["free"]
+        stored = upload_insights.call_args.args[2]
+        assert stored["tier"] == "free"
+        assert stored["model"] == TIER_CONFIG["free"]["model"]
+        assert stored["model"] != TIER_CONFIG["business"]["model"]
+        assert shadow_tiers == ["free"]   # generate_shadow_insights returns None for free
 
 
 # ---------------------------------------------------------------------------

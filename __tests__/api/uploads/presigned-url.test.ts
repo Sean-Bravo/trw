@@ -16,20 +16,12 @@ jest.mock('@/lib/rate-limit', () => ({
   },
   getClientIdentifier: jest.fn().mockReturnValue('test-ip'),
 }));
-// Tiered AI Insights wire-up: route now calls getUserTier server-side and
-// forwards the resolved tier to the Lambda. Default mock to 'free'.
-jest.mock('@/lib/auth-db', () => ({
-  getUserTier: jest.fn().mockResolvedValue('free'),
-}));
-
 jest.mock('@/lib/uploads-db', () => ({
   createPendingUpload: jest.fn().mockResolvedValue(undefined),
 }));
 
-import { getUserTier } from '@/lib/auth-db';
 import { createPendingUpload } from '@/lib/uploads-db';
 const mockCreatePendingUpload = createPendingUpload as jest.MockedFunction<typeof createPendingUpload>;
-const mockGetUserTier = getUserTier as jest.MockedFunction<typeof getUserTier>;
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockRateLimit = rateLimit as jest.Mocked<typeof rateLimit>;
@@ -70,26 +62,22 @@ describe('POST /api/uploads/presigned-url', () => {
     expect(data.s3Key).toBe('uploads/job-123/data.csv');
   });
 
-  it('calls Lambda with filename, contentType text/csv, userId, userTier', async () => {
+  it('calls Lambda with filename, contentType text/csv and userId only', async () => {
     await POST(createMockRequest({ filename: 'x.csv', fileSize: 100 }) as any);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringMatching(/\/presigned-url$/),
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ filename: 'x.csv', contentType: 'text/csv', userId: 'user-1', userTier: 'free' }),
+        body: JSON.stringify({ filename: 'x.csv', contentType: 'text/csv', userId: 'user-1' }),
       })
     );
   });
 
-  it('forwards real user tier (growth) when key is upgraded', async () => {
-    mockGetUserTier.mockResolvedValueOnce('growth');
-    await POST(createMockRequest({ filename: 'x.csv', fileSize: 100 }) as any);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/\/presigned-url$/),
-      expect.objectContaining({
-        body: expect.stringContaining('"userTier":"growth"'),
-      })
-    );
+  // Issue #6: the tier is resolved by the processor from Neon, never sent.
+  it('never forwards a tier, even when the client body names one', async () => {
+    await POST(createMockRequest({ filename: 'x.csv', fileSize: 100, userTier: 'business' }) as any);
+    const sent = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(sent).not.toHaveProperty('userTier');
   });
 
   it('validates filename: rejects missing', async () => {
