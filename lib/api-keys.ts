@@ -26,7 +26,9 @@ export interface DbApiKey {
 
 export interface DbApiUsage {
   id: string;
-  api_key_id: string;
+  /** NULL once the key is permanently deleted (migration 019). */
+  api_key_id: string | null;
+  user_id: string;
   usage_date: Date;
   request_count: number;
   file_count: number;
@@ -129,6 +131,11 @@ export async function revokeApiKey(userId: string, keyId: string): Promise<boole
   return result.rowCount > 0;
 }
 
+/**
+ * Permanently delete a revoked key. Its api_usage rows are kept, detached
+ * (migration 019), so the month's usage still counts toward the user's
+ * quota and a re-created key does not start from zero (issue #8).
+ */
 export async function deleteApiKey(userId: string, keyId: string): Promise<boolean> {
   const result = await execute(
     'DELETE FROM api_keys WHERE id = $1 AND user_id = $2 AND is_active = false RETURNING id',
