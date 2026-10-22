@@ -519,3 +519,16 @@ class TestParseOutcomeRecording:
         assert result["success"] is False
         payload = upload_error.call_args.args[2]
         assert payload["reason"] == "exception"
+
+
+def test_result_json_writes_nan_as_null():
+    # Blank pandas cells in the diff rows are float NaN; bare NaN in
+    # result.json broke the dashboard's JSON.parse (job stuck on "Processing").
+    s3 = MagicMock()
+    with patch.object(processor_module, "s3_client", s3):
+        processor_module.upload_result_json("results", "job-1", {
+            "original": [{" Amount": float("nan"), "Fee": float("inf"), "Asset": "BTC"}],
+        })
+    written = s3.put_object.call_args.kwargs["Body"].decode("utf-8")
+    assert "NaN" not in written and "Infinity" not in written
+    assert json.loads(written)["original"] == [{" Amount": None, "Fee": None, "Asset": "BTC"}]

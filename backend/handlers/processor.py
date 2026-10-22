@@ -13,6 +13,7 @@ import os
 import sys
 import json
 import logging
+import math
 import traceback
 import tempfile
 import boto3
@@ -481,6 +482,18 @@ def upload_insights(bucket: str, job_id: str, insights: Dict):
         return None
 
 
+def _json_safe(value: Any) -> Any:
+    """NaN/Infinity -> None, so result.json is valid JSON (blank pandas cells
+    in the diff rows are float NaN, which json.dumps writes as bare NaN)."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(v) for v in value]
+    return value
+
+
 def upload_result_json(bucket: str, job_id: str, result_data: Dict):
     """Upload result metadata (including diff data) to S3."""
     key = f"results/{job_id}/result.json"
@@ -488,7 +501,7 @@ def upload_result_json(bucket: str, job_id: str, result_data: Dict):
         s3_client.put_object(
             Bucket=bucket,
             Key=key,
-            Body=json.dumps(result_data, default=str).encode("utf-8"),
+            Body=json.dumps(_json_safe(result_data), default=str).encode("utf-8"),
             ContentType="application/json",
         )
         logger.info(f"Uploaded result.json to s3://{bucket}/{key}")

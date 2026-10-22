@@ -88,3 +88,24 @@ class TestFailedJobOutcome:
     def test_result_never_contains_diff_rows_the_job_page_would_render(self):
         body = _status({"error": "x", "reason": "parse_failed", "exchange": "kraken", "parser_version": "2.3.1"})
         assert not ({"original", "processed", "columns"} & set(body["result"]))
+
+
+class TestCompletedJobNaN:
+
+    def test_nan_in_result_json_comes_back_as_null(self):
+        # Python's json.dumps writes a blank pandas cell as bare NaN; the
+        # dashboard's JSON.parse rejected it and the job stuck on "Processing".
+        s3 = MagicMock()
+        s3.list_objects_v2.return_value = {"KeyCount": 1, "Contents": [{"Key": "uploads/job-1/f.csv"}]}
+        body = MagicMock()
+        body.read.return_value = b'{"record_count": 1, "original": [{" Amount": NaN, "Fee": Infinity}]}'
+        s3.get_object.return_value = {"Body": body}
+        with patch.object(webhook, "s3_client", s3), \
+             patch.object(webhook, "UPLOADS_BUCKET", "uploads"), \
+             patch.object(webhook, "RESULTS_BUCKET", "results"):
+            resp = webhook.handle_job_status({"pathParameters": {"jobId": "job-1"}})
+
+        assert "NaN" not in resp["body"] and "Infinity" not in resp["body"]
+        parsed = json.loads(resp["body"], parse_constant=lambda c: (_ for _ in ()).throw(ValueError(c)))
+        assert parsed["status"] == "completed"
+        assert parsed["result"]["original"] == [{" Amount": None, "Fee": None}]
