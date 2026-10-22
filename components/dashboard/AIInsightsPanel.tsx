@@ -10,6 +10,15 @@ import { TaxSoftwareSelector } from './TaxSoftwareSelector';
 import { ProcessingTerminal } from './ProcessingTerminal';
 import { insightsLabel, tierName } from '@/lib/tier-registry';
 import { engineLabel } from '@/lib/insights-engine';
+import { EXCHANGE_SOURCES } from '@/lib/exchange-registry';
+
+// The processor's result.json names the exchange `exchange` (an id such as
+// "coinbase"); `exchangeDetected` is the older name this panel was built on.
+function detectedExchangeName(result: Record<string, unknown> | null): string | undefined {
+  const id = (result?.['exchange'] ?? result?.['exchangeDetected']) as string | undefined;
+  if (!id) return undefined;
+  return EXCHANGE_SOURCES.find((e) => e.id === id)?.name ?? id;
+}
 
 export type InsightStatus = 'idle' | 'detecting' | 'analyzing' | 'complete' | 'error';
 
@@ -136,7 +145,7 @@ export function AIInsightsPanel() {
 
     return {
       status,
-      exchange: result?.['exchangeDetected'] as string | undefined,
+      exchange: detectedExchangeName(result),
       exchangeDetails: result?.['exchangeDetails'] as AIInsightsState['exchangeDetails'],
       transactionsFound: quickStats?.total_transactions || (result?.['transactionCount'] as number) || 0,
       transactionsAnalyzed: status === 'complete' ? (quickStats?.total_transactions || (result?.['transactionCount'] as number) || 0) : 0,
