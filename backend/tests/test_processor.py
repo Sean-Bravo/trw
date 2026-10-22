@@ -317,8 +317,9 @@ class TestProcessMessageShadowOrder:
              patch.object(processor_module, "process_csv", return_value={
                  "success": True, "csv_output": "Date,Description\n2024-01-01,buy\n", "record_count": 1, "exchange": "coinbase",
              }), \
-             patch.object(processor_module, "upload_result", return_value="results/job-9/output.csv"), \
-             patch.object(processor_module, "upload_result_json"), \
+             patch.object(processor_module, "upload_result",
+                          side_effect=lambda *a: order.append("upload_result") or "results/job-9/output.csv"), \
+             patch.object(processor_module, "upload_result_json", side_effect=lambda *a: order.append("upload_result_json")), \
              patch.object(processor_module, "generate_ai_insights", return_value=insights_result), \
              patch.object(processor_module, "upload_insights", side_effect=lambda *a: order.append("upload_insights")), \
              patch.object(processor_module, "run_shadow_insights",
@@ -329,11 +330,20 @@ class TestProcessMessageShadowOrder:
     def test_shadow_runs_after_the_users_insights_are_stored(self):
         result, order, shadow = self._run()
         assert result["success"] is True and result["has_insights"] is True
-        assert order == ["upload_insights", "run_shadow_insights"]
+        assert order == ["upload_insights", "upload_result_json", "upload_result", "run_shadow_insights"]
         args = shadow.call_args.args
         assert args[1] == "business" and args[2] == "job-9"
         assert args[0] == [{"Date": "2024-01-01", "Description": "buy"}]
         assert args[3]["ai_insights"] == {"summary": "ok"}
+
+    def test_output_csv_is_uploaded_last(self):
+        # The webhook reports "completed" once output.csv exists and the
+        # dashboard saves result.json as it is then; output.csv first meant
+        # jobs were saved with no diff data or exchange.
+        result, order, _ = self._run()
+        assert result["result_key"] == "results/job-9/output.csv"
+        assert order.index("upload_result") > order.index("upload_result_json")
+        assert order.index("upload_result") > order.index("upload_insights")
 
 
 # ---------------------------------------------------------------------------
