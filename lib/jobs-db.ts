@@ -88,17 +88,20 @@ export async function updateJobStatus(
   const resultJson = result !== undefined ? JSON.stringify(result) : null;
   const errorParam = error !== undefined ? error : null;
 
+  // $2 is both assigned to the job_status column and compared to literals;
+  // without the casts Postgres rejects it ("inconsistent types deduced for
+  // parameter $2") and finished jobs stayed "queued" in the history list.
   await execute(
     `UPDATE jobs
      SET
-       status = $2,
-       started_at = CASE WHEN $2 = 'running' THEN now() ELSE started_at END,
+       status = $2::job_status,
+       started_at = CASE WHEN $2::job_status = 'running' THEN now() ELSE started_at END,
        finished_at = CASE
-         WHEN $2 IN ('succeeded', 'failed', 'canceled') THEN now()
+         WHEN $2::job_status IN ('succeeded', 'failed', 'canceled') THEN now()
          ELSE finished_at
        END,
-       result = COALESCE($3, result),
-       error  = COALESCE($4, error)
+       result = COALESCE($3::jsonb, result),
+       error  = COALESCE($4::text, error)
      WHERE id = $1`,
     [jobId, status, resultJson, errorParam]
   );
