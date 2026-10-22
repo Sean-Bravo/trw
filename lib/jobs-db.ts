@@ -108,6 +108,22 @@ export async function updateJobStatus(
 }
 
 /**
+ * Cancel a job that hasn't finished. The status check is in the UPDATE itself
+ * so a job that finishes at the same moment isn't overwritten. Returns false
+ * when the job was already succeeded/failed/canceled.
+ */
+export async function cancelJob(jobId: string): Promise<boolean> {
+  const row = await queryOne<{ id: string }>(
+    `UPDATE jobs
+     SET status = 'canceled', finished_at = now(), error = 'Canceled by user'
+     WHERE id = $1 AND status IN ('queued', 'running')
+     RETURNING id`,
+    [jobId]
+  );
+  return row !== null;
+}
+
+/**
  * Get user stats (upload count, completed, processing)
  */
 export async function getUserStats(userId: string): Promise<{

@@ -5,7 +5,7 @@
  * finished crypto job "queued" in the history list from April to October 2026.
  */
 
-import { updateJobStatus } from '@/lib/jobs-db';
+import { updateJobStatus, cancelJob } from '@/lib/jobs-db';
 
 jest.mock('@/lib/db', () => ({
   query: jest.fn(),
@@ -13,9 +13,10 @@ jest.mock('@/lib/db', () => ({
   execute: jest.fn(),
 }));
 
-import { execute } from '@/lib/db';
+import { execute, queryOne } from '@/lib/db';
 
 const mockExecute = execute as jest.Mock;
+const mockQueryOne = queryOne as jest.Mock;
 
 describe('updateJobStatus', () => {
   beforeEach(() => {
@@ -38,5 +39,25 @@ describe('updateJobStatus', () => {
     expect(sql).toContain('COALESCE($3::jsonb, result)');
     expect(sql).toContain('COALESCE($4::text, error)');
     expect(params).toEqual(['job-1', 'failed', null, 'boom']);
+  });
+});
+
+describe('cancelJob', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('only updates jobs that are still queued or running', async () => {
+    mockQueryOne.mockResolvedValue({ id: 'job-1' });
+
+    await expect(cancelJob('job-1')).resolves.toBe(true);
+    const [sql, params] = mockQueryOne.mock.calls[0];
+    expect(sql).toContain("status IN ('queued', 'running')");
+    expect(params).toEqual(['job-1']);
+  });
+
+  it('returns false when no unfinished job matched', async () => {
+    mockQueryOne.mockResolvedValue(null);
+    await expect(cancelJob('job-1')).resolves.toBe(false);
   });
 });

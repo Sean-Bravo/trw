@@ -160,9 +160,10 @@ describe('useJobPolling', () => {
     });
   });
 
-  it('should call onError callback when fetch fails', async () => {
+  it('should give up at once on a permanent error (404)', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
+      status: 404,
       json: () => Promise.resolve({ error: 'Job not found' }),
     });
 
@@ -172,27 +173,92 @@ describe('useJobPolling', () => {
     );
 
     await waitFor(() => {
-      expect(onError).toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledTimes(1);
     });
 
-    expect(result.current.error).toBeTruthy();
+    expect(result.current.error?.message).toBe('Job not found');
     expect(result.current.isPolling).toBe(false);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle network errors', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+  it('should keep polling through a transient error and recover', async () => {
+    // A 500 for a job that had finished used to stop polling for good and
+    // leave the dashboard on "Processing".
+    const done = createSucceededJob({ jobId: 'job-123' });
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, status: 500, json: () => Promise.resolve({ error: 'Internal server error' }) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(done) });
 
     const onError = jest.fn();
     const { result } = renderHook(() =>
-      useJobPolling('job-123', { onError })
+      useJobPolling('job-123', { interval: 1000, onError })
     );
 
     await waitFor(() => {
       expect(result.current.error).toBeTruthy();
     });
+    expect(result.current.isPolling).toBe(true);
 
-    expect(onError).toHaveBeenCalled();
+    // First retry backs off to 2x the interval.
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    await waitFor(() => {
+      expect(result.current.job).toEqual(done);
+    });
+    expect(result.current.error).toBeNull();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('should give up after maxRetries consecutive network errors', async () => {
+    mockFetch.mockRejectedValue(new Error('Network error'));
+
+    const onError = jest.fn();
+    const { result } = renderHook(() =>
+      useJobPolling('job-123', { interval: 1000, maxRetries: 2, onError })
+    );
+
+    // 1 initial try + 2 retries (backoff 2s, then 4s).
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+    });
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      jest.advanceTimersByTime(4000);
+    });
+
+    await waitFor(() => {
+      expect(onError).toHaveBeenCalledTimes(1);
+    });
     expect(result.current.isPolling).toBe(false);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('should start polling again when retry() is called after giving up', async () => {
+    const running = createRunningJob({ jobId: 'job-123' });
+    mockFetch
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(running) });
+
+    const { result } = renderHook(() =>
+      useJobPolling('job-123', { maxRetries: 0 })
+    );
+
+    await waitFor(() => {
+      expect(result.current.isPolling).toBe(false);
+    });
+
+    act(() => {
+      result.current.retry();
+    });
+
+    await waitFor(() => {
+      expect(result.current.job).toEqual(running);
+    });
+    expect(result.current.error).toBeNull();
+    expect(result.current.isPolling).toBe(true);
   });
 
   it('should clean up on unmount', async () => {

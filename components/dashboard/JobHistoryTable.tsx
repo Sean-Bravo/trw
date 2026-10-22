@@ -334,7 +334,7 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
               </button>
             </>
           )}
-          {(job.status === 'queued' || job.status === 'canceled' || job.status === 'failed') && !isDeleted && (
+          {(job.status === 'queued' || job.status === 'processing' || job.status === 'canceled' || job.status === 'failed') && !isDeleted && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -382,7 +382,7 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
             </button>
           </>
         )}
-        {(job.status === 'queued' || job.status === 'canceled' || job.status === 'failed') && !isDeleted && (
+        {(job.status === 'queued' || job.status === 'processing' || job.status === 'canceled' || job.status === 'failed') && !isDeleted && (
           <button
             onClick={(e) => {
               e.stopPropagation();
