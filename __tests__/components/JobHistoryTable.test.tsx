@@ -180,6 +180,19 @@ describe('JobHistoryTable', () => {
     expect(deleteButtons.length).toBeGreaterThan(0);
   });
 
+  it('should show Delete button for processing jobs so a stuck one can be cleared', () => {
+    const job = createRunningJob({ filename: 'test.csv' });
+
+    render(
+      <JobProvider userId="test-user" initialJobs={[job]}>
+        <JobHistoryTable />
+      </JobProvider>
+    );
+
+    expect(screen.getByText('Processing')).toBeInTheDocument();
+    expect(screen.getAllByText('Delete').length).toBeGreaterThan(0);
+  });
+
   it('should show tabs for filtering', () => {
     const job = createSucceededJob({ filename: 'test.csv' });
 
