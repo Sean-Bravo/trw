@@ -541,15 +541,15 @@ def process_message(message: Dict) -> Dict[str, Any]:
         result = process_csv(file_data, filename, exchange_name)
 
         if result["success"]:
-            # Upload result
-            result_key = upload_result(
-                RESULTS_BUCKET,
-                job_id,
-                result["csv_output"],
-            )
+            # output.csv is uploaded last: the webhook reports the job
+            # completed as soon as it exists, and the dashboard saves whatever
+            # result.json holds at that moment. Uploaded first, it beat the
+            # insights call and result.json by ~5s, so jobs were saved with
+            # no diff data or exchange.
 
             # Generate and upload AI insights
             insights = None
+            insights_result = None
             # Parse the CSV output back to records for AI analysis
             import csv
             from io import StringIO
@@ -561,9 +561,6 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 if insights_result.get("success") or insights_result.get("quick_stats"):
                     upload_insights(RESULTS_BUCKET, job_id, insights_result)
                     insights = insights_result
-                # Shadow candidate (Fable 5.1 on Business) — after the user's
-                # result is stored, never before, never in its place.
-                run_shadow_insights(records, user_tier, job_id, insights_result)
 
             # Upload result.json with diff data for frontend. The outcome
             # fields (parser version, insights model/prompt/request type)
@@ -578,6 +575,17 @@ def process_message(message: Dict) -> Dict[str, Any]:
                 "processed": result.get("processed", []),
                 "columns": result.get("columns", []),
             })
+
+            result_key = upload_result(
+                RESULTS_BUCKET,
+                job_id,
+                result["csv_output"],
+            )
+
+            # Shadow candidate (Fable 5.1 on Business) — after the user's
+            # result is stored, never before, never in its place.
+            if records:
+                run_shadow_insights(records, user_tier, job_id, insights_result)
 
             logger.info(f"Job {job_id} completed successfully. {result['record_count']} records.")
 
