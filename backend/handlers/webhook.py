@@ -15,6 +15,7 @@ Routes:
 import os
 import hmac
 import json
+import math
 import uuid
 import logging
 import boto3
@@ -157,6 +158,19 @@ def _allowed_origin() -> str:
     return DEFAULT_ORIGIN
 
 
+def _json_safe(value: Any) -> Any:
+    """NaN/Infinity -> None. Python's json.dumps writes them as bare NaN, which
+    JSON.parse in the dashboard's status route rejects, so a job whose
+    result.json holds a blank pandas cell never leaves "Processing"."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(v) for v in value]
+    return value
+
+
 def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dict:
     """Generate API Gateway response."""
     default_headers = {
@@ -172,7 +186,7 @@ def response(status_code: int, body: Any, headers: Optional[Dict] = None) -> Dic
     return {
         "statusCode": status_code,
         "headers": default_headers,
-        "body": json.dumps(body) if isinstance(body, dict) else body,
+        "body": json.dumps(_json_safe(body)) if isinstance(body, dict) else body,
     }
 
 
