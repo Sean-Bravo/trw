@@ -618,6 +618,10 @@ class GoogleProvider(AIProvider):
                     "maxOutputTokens": self.max_tokens,
                     "temperature": 0.7,
                     "responseMimeType": "application/json",
+                    # 2.5 Flash thinks by default and thinking tokens count
+                    # against maxOutputTokens: at 1024 it hit MAX_TOKENS with
+                    # 28 tokens of answer. 0 turns thinking off for Flash.
+                    "thinkingConfig": {"thinkingBudget": 0},
                 }
             }
 

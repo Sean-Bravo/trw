@@ -258,6 +258,27 @@ class TestOutputShape:
         assert result["success"] is True
         assert result["insights"]["transaction_types"] == {"buy": 2, "sell": 1, "staking": 1}
 
+    def test_gemini_request_turns_thinking_off(self):
+        # 2.5 Flash thinking tokens count against maxOutputTokens; with
+        # thinking on, the Free tier's 1024 hit MAX_TOKENS after 28 tokens.
+        gemini_body = json.dumps({
+            "candidates": [{"content": {"parts": [{"text": json.dumps(SAMPLE_INSIGHTS)}]}}],
+        }).encode("utf-8")
+
+        class _Resp(io.BytesIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        with patch("urllib.request.urlopen", return_value=_Resp(gemini_body)) as urlopen:
+            GoogleProvider("AIzaTest", "gemini-2.5-flash", 1024).analyze("prompt", "data")
+
+        sent = json.loads(urlopen.call_args.args[0].data.decode("utf-8"))
+        assert sent["generationConfig"]["thinkingConfig"] == {"thinkingBudget": 0}
+        assert sent["generationConfig"]["maxOutputTokens"] == 1024
+
 
 # ---------------------------------------------------------------------------
 # Refusal branch: never emit partial flags
