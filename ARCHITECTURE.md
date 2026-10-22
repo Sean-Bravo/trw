@@ -52,9 +52,13 @@ SQS → Processor Lambda
 Result → S3 (output.csv + insights.json OR error.json)
        ↓
 Frontend polls /api/jobs/[jobId] every 2.5s
-  - Checks Neon DB first (terminal states: succeeded/failed)
+  - Checks Neon DB first (terminal states: succeeded/failed/canceled)
   - Falls back to Lambda for live status
   - Syncs terminal status back to DB
+  - Failed polls retry with backoff (up to 5; 401/403/404 stop at once),
+    then the dashboard shows "Lost connection" + Try again
+  - Cancel → POST /api/jobs/[jobId]/cancel marks a queued/running job
+    canceled (the Lambda isn't interrupted; the job stays canceled)
        ↓
 User sees real-time updates:
   - "Scanning file for viruses..."

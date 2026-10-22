@@ -9,8 +9,13 @@ interface JobContextValue {
   bankJobs: BankJobData[];
   unifiedHistory: UnifiedJob[];
   isPolling: boolean;
+  /** Set once polling has given up; the panel offers retryPolling. */
+  pollError: Error | null;
+  retryPolling: () => void;
   setActiveJob: (jobId: string) => void;
   clearActiveJob: () => void;
+  /** Marks the active job canceled and clears the panel. Throws on failure. */
+  cancelActiveJob: () => Promise<void>;
   refreshJobHistory: () => Promise<void>;
   refreshBankJobs: () => Promise<void>;
   refreshAll: () => Promise<void>;
@@ -30,7 +35,7 @@ export function JobProvider({ userId, initialJobs = [], children }: JobProviderP
   const [bankJobs, setBankJobs] = useState<BankJobData[]>([]);
 
   // Poll the active job
-  const { job: polledJob, isPolling } = useJobPolling(activeJobId, {
+  const { job: polledJob, isPolling, error: pollError, retry: retryPolling } = useJobPolling(activeJobId, {
     onSuccess: (job) => {
       // Update job in history when poll returns
       setJobHistory((prev) => {
@@ -78,6 +83,22 @@ export function JobProvider({ userId, initialJobs = [], children }: JobProviderP
       console.error('[JobContext] Failed to refresh job history:', err);
     }
   }, []);
+
+  const cancelActiveJob = useCallback(async () => {
+    if (!activeJobId) return;
+    const response = await fetch(`/api/jobs/${activeJobId}/cancel`, { method: 'POST' });
+    if (response.status === 409) {
+      // Finished before the cancel landed: poll once more to show the result.
+      retryPolling();
+      return;
+    }
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to cancel job');
+    }
+    setActiveJobId(null);
+    await refreshJobHistory();
+  }, [activeJobId, retryPolling, refreshJobHistory]);
 
   const refreshBankJobs = useCallback(async () => {
     try {
@@ -142,8 +163,11 @@ export function JobProvider({ userId, initialJobs = [], children }: JobProviderP
     bankJobs,
     unifiedHistory,
     isPolling,
+    pollError: isPolling ? null : pollError,
+    retryPolling,
     setActiveJob,
     clearActiveJob,
+    cancelActiveJob,
     refreshJobHistory,
     refreshBankJobs,
     refreshAll,
