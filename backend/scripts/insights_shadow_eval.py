@@ -83,11 +83,13 @@ def _percentile(values: List[float], pct: float) -> Optional[float]:
 
 
 def _summarize(rows: List[Dict[str, Any]], role: str) -> Dict[str, Any]:
+    # A failed call carries "usage": None, so `or {}` rather than a .get default:
+    # a run where every call 401s must still write its report.
     calls = [r[role] for r in rows if r.get(role)]
-    costs = [c.get("usage", {}).get("cost_usd") for c in calls]
-    latencies = [c.get("usage", {}).get("latency_ms") for c in calls]
-    cache_reads = [c.get("usage", {}).get("cache_read_tokens", 0) for c in calls]
-    cache_writes = [c.get("usage", {}).get("cache_creation_tokens", 0) for c in calls]
+    costs = [(c.get("usage") or {}).get("cost_usd") for c in calls]
+    latencies = [(c.get("usage") or {}).get("latency_ms") for c in calls]
+    cache_reads = [(c.get("usage") or {}).get("cache_read_tokens", 0) for c in calls]
+    cache_writes = [(c.get("usage") or {}).get("cache_creation_tokens", 0) for c in calls]
     return {
         "calls": len(calls),
         "model": calls[0].get("model") if calls else None,
@@ -105,7 +107,7 @@ def _summarize(rows: List[Dict[str, Any]], role: str) -> Dict[str, Any]:
 
 
 def _agreement_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
-    agreements = [r["shadow"]["agreement"] for r in rows if r.get("shadow") and r["shadow"].get("agreement", {}).get("comparable")]
+    agreements = [r["shadow"]["agreement"] for r in rows if r.get("shadow") and (r["shadow"].get("agreement") or {}).get("comparable")]
     jaccards = [a["flag_jaccard"] for a in agreements]
     deltas = [a["taxable_events_delta"] for a in agreements if a.get("taxable_events_delta") is not None]
     return {
