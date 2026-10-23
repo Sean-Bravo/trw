@@ -17,6 +17,7 @@ NEW FEATURES:
 """
 
 import io
+import math
 import re
 import csv
 import logging
@@ -146,9 +147,9 @@ class UniversalRecord:
     when converted to dict.
     """
     Date: str
-    Sent_Amount: float
+    Sent_Amount: Optional[float]      # None = unknown; written blank, never 0.0
     Sent_Currency: str
-    Received_Amount: float
+    Received_Amount: Optional[float]
     Received_Currency: str
     Fee_Amount: float
     Fee_Currency: str
@@ -504,6 +505,27 @@ def normalize_kraken_asset(asset: str) -> str:
         asset = asset[1:]
 
     return asset
+
+_AMOUNT_SIDES = (("Sent Amount", "Sent Currency"), ("Received Amount", "Received Currency"))
+
+
+def blank_unknown_amounts(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """An amount nobody knows is None (blank in the CSV, null in JSON), never 0.0.
+
+    Runs after dedup, which goes through pandas and turns None into NaN.
+    Unknown means None/NaN (e.g. a PayPal quantity the export lacks) or a 0 on
+    a side with no currency (the empty side of a transfer). A 0.0 there read as
+    "received 0.0 BTC" in tax software and as missing data to the insights model.
+    """
+    for record in records:
+        for amount_key, currency_key in _AMOUNT_SIDES:
+            value = record.get(amount_key)
+            if value is None or (isinstance(value, float) and math.isnan(value)):
+                record[amount_key] = None
+            elif not record.get(currency_key) and value == 0:
+                record[amount_key] = None
+    return records
+
 
 def sanitize_csv_value(value: Any) -> str:
     """
@@ -1817,7 +1839,7 @@ class PayPalParser(BaseExchangeParser):
                         Date=date,
                         Sent_Amount=gross,
                         Sent_Currency='USD',
-                        Received_Amount=quantity,
+                        Received_Amount=quantity if quantity > 0 else None,
                         Received_Currency=crypto_currency,
                         Fee_Amount=fee,
                         Fee_Currency='USD',
@@ -1830,7 +1852,7 @@ class PayPalParser(BaseExchangeParser):
                         unknown_quantity("sell")
                     record = UniversalRecord(
                         Date=date,
-                        Sent_Amount=quantity,
+                        Sent_Amount=quantity if quantity > 0 else None,
                         Sent_Currency=crypto_currency,
                         Received_Amount=gross,
                         Received_Currency='USD',
@@ -3441,6 +3463,8 @@ def process_file(
             duplicates_removed = original_count - len(records)
             if duplicates_removed > 0:
                 warnings.append(f"✓ Removed {duplicates_removed} duplicate transactions")
+
+        records = blank_unknown_amounts(records)
 
         # Progress callback
         if progress_callback:
