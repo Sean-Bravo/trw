@@ -232,6 +232,24 @@ class TestOutputShape:
         })
         assert out["transaction_types"] == {"buy": 5}
 
+    def test_normalize_drops_flags_that_found_nothing(self):
+        # Oct 23 eval: Opus returned missing_fields, count 0, "No sampled row
+        # is missing a date, amount or currency" — a non-issue shown as a flag.
+        out = _normalize_insights({"flags": [
+            {"category": "missing_fields", "count": 0, "detail": "No sampled row is missing a date, amount or currency."},
+            {"category": "internal_transfer", "count": 48, "detail": "48 sends with no counterparty."},
+            {"category": "unknown_type", "count": -1, "detail": "nonsense"},
+        ]})
+        assert [f["category"] for f in out["flags"]] == ["internal_transfer"]
+
+    def test_anthropic_path_drops_zero_count_flags(self):
+        body = dict(SAMPLE_INSIGHTS, flags=[
+            {"category": "missing_fields", "count": 0, "detail": "None missing."},
+            {"category": "staking_income", "count": 1, "detail": "1 staking reward."},
+        ])
+        result, _ = _analyze(_opus(), _message(json.dumps(body)))
+        assert [f["category"] for f in result["insights"]["flags"]] == ["staking_income"]
+
     def test_normalize_leaves_dict_and_non_dict_untouched(self):
         assert _normalize_insights({"transaction_types": {"buy": 1}}) == {"transaction_types": {"buy": 1}}
         assert _normalize_insights({"summary": "x"}) == {"summary": "x"}

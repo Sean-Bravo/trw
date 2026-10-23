@@ -232,6 +232,16 @@ def _normalize_insights(parsed: Any) -> Any:
             key = str(item["type"])
             folded[key] = folded.get(key, 0) + count
         parsed["transaction_types"] = folded
+    # A flag counts rows with an issue, so count 0 says "nothing found" — not a
+    # flag. Opus returned missing_fields, count 0, "No sampled row is missing a
+    # date, amount or currency" (Oct 23 eval); kept, it reads as a finding and
+    # skews shadow agreement.
+    flags = parsed.get("flags")
+    if isinstance(flags, list):
+        parsed["flags"] = [
+            f for f in flags
+            if not (isinstance(f, dict) and isinstance(f.get("count"), int) and f["count"] <= 0)
+        ]
     return parsed
 
 
