@@ -84,3 +84,7 @@ outbound_prospects.*
 
 # Python virtualenvs
 .venv/
+
+# Shadow eval output (backend/scripts/insights_shadow_eval.py): one timestamped
+# report per run. The Oct 13 baseline stays tracked; results go in the PR/Notion.
+backend/reports/
