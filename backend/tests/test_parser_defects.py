@@ -147,9 +147,9 @@ class TestPayPal:
         assert len(records) == 3
         for r in records:
             fiat = float(r["Sent Amount"]) if r["Sent Currency"] == "USD" else float(r["Received Amount"])
-            crypto = float(r["Received Amount"]) if r["Sent Currency"] == "USD" else float(r["Sent Amount"])
-            assert crypto == 0.0, r                      # unknown — never the USD figure
-            assert crypto != fiat
+            crypto = r["Received Amount"] if r["Sent Currency"] == "USD" else r["Sent Amount"]
+            assert crypto is None, r                     # unknown is blank — never 0.0, never the USD figure
+            assert fiat > 0
 
         buy1, sell, buy2 = records
         assert float(buy1["Sent Amount"]) == 100.0 and buy1["Received Currency"] == "BTC"

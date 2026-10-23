@@ -61,8 +61,12 @@ def convert_to_turbotax(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     for record in records:
         # Convert string values to floats
         sent_amount = safe_float(record.get("Sent Amount"))
+        # Unknown quantity (blank in the record) is left out, never written as
+        # "0.0 BTC": TurboTax then flags the row for the user to complete.
+        sent_known = record.get("Sent Amount") not in (None, "")
         received_amount = safe_float(record.get("Received Amount"))
         sent_currency = (record.get("Sent Currency", "") or "").strip()
+        currency_name = f"{sent_amount} {sent_currency}" if sent_known else sent_currency
         received_currency = (record.get("Received Currency", "") or "").strip()
         date = record.get("Date", "") or ""
         fee_amount = safe_float(record.get("Fee Amount"))
@@ -94,7 +98,7 @@ def convert_to_turbotax(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             # SELL transaction - crypto to fiat (taxable event)
             proceeds = received_amount - fee_amount if fee_currency.upper() in FIAT_CURRENCIES else received_amount
             turbotax_records.append({
-                "Currency Name": f"{sent_amount} {sent_currency}",
+                "Currency Name": currency_name,
                 "Purchase Date": "",  # User needs to fill from cost basis records
                 "Cost Basis": "",     # User needs to fill from cost basis records
                 "Date Sold": date_only,
@@ -103,7 +107,7 @@ def convert_to_turbotax(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         elif is_crypto_to_crypto:
             # Crypto-to-crypto trade (taxable event - disposal of sent asset)
             turbotax_records.append({
-                "Currency Name": f"{sent_amount} {sent_currency}",
+                "Currency Name": currency_name,
                 "Purchase Date": "",
                 "Cost Basis": "",
                 "Date Sold": date_only,
