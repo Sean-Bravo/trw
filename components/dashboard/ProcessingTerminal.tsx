@@ -9,91 +9,69 @@ export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  details?: string;
 }
+
+export type TerminalStage = 'idle' | 'detecting' | 'analyzing' | 'complete' | 'error';
 
 interface ProcessingTerminalProps {
-  isProcessing: boolean;
+  /** Logs reset when this changes. */
+  jobId?: string;
+  stage: TerminalStage;
   exchange?: string;
   transactionCount?: number;
-  warnings?: string[];
-  fixes?: string[];
-  errors?: string[];
-  onComplete?: () => void;
+  error?: string;
+  insightsReady?: boolean;
+  insightsError?: string | null;
 }
 
-// Simulated processing log messages based on actual parsing operations
-const generateProcessingLogs = (
-  exchange?: string,
-  transactionCount?: number,
-  warnings?: string[],
-  fixes?: string[],
-): LogEntry[] => {
-  const logs: LogEntry[] = [];
-  let time = 0;
+interface LogEvent {
+  key: string;
+  level: LogLevel;
+  message: string;
+}
 
-  const addLog = (level: LogLevel, message: string, details?: string) => {
-    const seconds = Math.floor(time / 100);
-    const centiseconds = time % 100;
-    logs.push({
-      timestamp: `00:${seconds.toString().padStart(2, '0')}`,
-      level,
-      message,
-      details,
-    });
-    time += Math.floor(Math.random() * 150) + 50; // 50-200 "time units"
-  };
-
-  // Initial startup
-  addLog('INFO', 'Initializing CSV parser engine...');
-
-  // Header detection
-  const headers = exchange
-    ? getExchangeHeaders(exchange)
-    : ['Date', 'Type', 'Amount', 'Currency', 'Fee'];
-  addLog('INFO', `Detecting headers: [${headers.join(', ')}]`);
-
-  // Simulated warnings and fixes
-  const warningMessages = warnings?.length ? warnings : [
-    { row: 42, issue: 'Timestamp format mismatch (ISO-8601 vs Unix)', fix: 'Normalized to UTC standard' },
-    { row: 105, issue: 'Missing "Fee Currency" value', fix: 'Inferred "USD" from context' },
-    { row: 312, issue: 'Duplicate Transaction ID detected', fix: null },
-  ];
-
-  warningMessages.forEach((w: any, i) => {
-    if (typeof w === 'string') {
-      addLog('WARN', w);
-    } else {
-      addLog('WARN', `Row ${w.row}: ${w.issue}`);
-      if (w.fix) {
-        addLog('FIX', `>> FIXED: ${w.fix}`);
-      }
-    }
-  });
-
-  // Processing transactions
-  if (transactionCount && transactionCount > 0) {
-    addLog('INFO', `Processing ${transactionCount} transactions...`);
-    addLog('INFO', 'Validating transaction types...');
-    addLog('INFO', 'Calculating fee totals...');
+// Every line is something the dashboard actually observed for this job.
+// This used to replay a fixed script, including sample warnings ("Row 312:
+// Duplicate Transaction ID") that were shown as if found in the user's file.
+export function eventsFor(props: ProcessingTerminalProps): LogEvent[] {
+  const { stage, exchange, transactionCount, error, insightsReady, insightsError } = props;
+  const events: LogEvent[] = [];
+  if (stage === 'detecting') {
+    events.push({ key: 'queued', level: 'INFO', message: 'Upload received, queued for processing' });
   }
+  if (stage === 'analyzing') {
+    events.push({ key: 'running', level: 'INFO', message: 'Scanning and parsing file...' });
+  }
+  if (exchange) {
+    events.push({ key: 'exchange', level: 'INFO', message: `Detected exchange: ${exchange}` });
+  }
+  if (stage === 'complete') {
+    events.push({
+      key: 'complete',
+      level: 'SUCCESS',
+      message: transactionCount && transactionCount > 0
+        ? `Converted ${transactionCount} transactions`
+        : 'Conversion complete',
+    });
+  }
+  if (insightsReady) {
+    events.push({ key: 'insights', level: 'INFO', message: 'AI insights ready' });
+  }
+  if (insightsError) {
+    events.push({ key: 'insights-error', level: 'WARN', message: `AI insights unavailable: ${insightsError}` });
+  }
+  if (stage === 'error') {
+    events.push({ key: 'error', level: 'ERROR', message: `Processing failed: ${error || 'Unknown error'}` });
+  }
+  return events;
+}
 
-  // Completion
-  addLog('SUCCESS', `Analysis complete. ${transactionCount || 0} transactions processed.`);
-
-  return logs;
-};
-
-const getExchangeHeaders = (exchange: string): string[] => {
-  const headerMap: Record<string, string[]> = {
-    'Binance': ['Date(UTC)', 'Pair', 'Side', 'Price', 'Executed', 'Amount', 'Fee'],
-    'Coinbase': ['Timestamp', 'Transaction Type', 'Asset', 'Quantity', 'Spot Price', 'Total'],
-    'Kraken': ['txid', 'time', 'type', 'asset', 'amount', 'fee', 'balance'],
-    'Gemini': ['Date', 'Time', 'Type', 'Symbol', 'Amount', 'Fee', 'Balance'],
-    'Crypto.com': ['Timestamp', 'Transaction Description', 'Currency', 'Amount', 'Native Amount'],
-  };
-  return headerMap[exchange] || ['Date', 'Type', 'Sent', 'Received', 'Fee'];
-};
+function elapsed(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
 
 const levelColors: Record<LogLevel, string> = {
   INFO: 'text-blue-400',
@@ -111,50 +89,35 @@ const levelBrackets: Record<LogLevel, string> = {
   SUCCESS: 'text-emerald-500',
 };
 
-export function ProcessingTerminal({
-  isProcessing,
-  exchange,
-  transactionCount,
-  warnings,
-  fixes,
-  errors,
-  onComplete,
-}: ProcessingTerminalProps) {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [allLogs, setAllLogs] = useState<LogEntry[]>([]);
+export function ProcessingTerminal(props: ProcessingTerminalProps) {
+  const { jobId, stage } = props;
+  const [logs, setLogs] = useState<(LogEntry & { key: string })[]>([]);
+  const startedAt = useRef<number | null>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
-  const hasStarted = useRef(false);
 
-  // Generate logs when processing starts
+  // New job, new log.
   useEffect(() => {
-    if (isProcessing && !hasStarted.current) {
-      hasStarted.current = true;
-      const generatedLogs = generateProcessingLogs(exchange, transactionCount, warnings, fixes);
-      setAllLogs(generatedLogs);
-      setLogs([]);
-      setCurrentIndex(0);
-    }
-    // Don't reset hasStarted when processing stops - keep the logs visible
-  }, [isProcessing, exchange, transactionCount, warnings, fixes]);
+    setLogs([]);
+    startedAt.current = null;
+  }, [jobId]);
 
-  // Animate log entries appearing one by one
+  // Append each event the first time it is observed, stamped with real elapsed time.
+  const events = eventsFor(props);
+  const eventKeys = events.map((e) => e.key).join('|');
   useEffect(() => {
-    if (currentIndex < allLogs.length) {
-      const delay = currentIndex === 0 ? 500 : Math.random() * 400 + 200; // 200-600ms between entries
-      const timer = setTimeout(() => {
-        const logEntry = allLogs[currentIndex];
-        if (logEntry) {
-          setLogs(prev => [...prev, logEntry]);
-        }
-        setCurrentIndex(prev => prev + 1);
-      }, delay);
-      return () => clearTimeout(timer);
-    } else if (currentIndex > 0 && currentIndex === allLogs.length) {
-      // All logs shown
-      onComplete?.();
-    }
-  }, [currentIndex, allLogs, onComplete]);
+    setLogs((prev) => {
+      const seen = new Set(prev.map((l) => l.key));
+      const fresh = events.filter((e) => !seen.has(e.key));
+      if (fresh.length === 0) return prev;
+      const now = Date.now();
+      if (startedAt.current === null) startedAt.current = now;
+      const timestamp = elapsed(now - startedAt.current);
+      return [...prev, ...fresh.map((e) => ({ key: e.key, level: e.level, message: e.message, timestamp }))];
+    });
+    // eventKeys captures every change in `events`; jobId re-runs this after
+    // the reset above even when the new job's events match the old one's.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventKeys, jobId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -163,7 +126,9 @@ export function ProcessingTerminal({
     }
   }, [logs]);
 
-  if (!isProcessing && logs.length === 0) {
+  const isProcessing = stage === 'detecting' || stage === 'analyzing';
+
+  if (logs.length === 0) {
     return null;
   }
 
@@ -180,20 +145,20 @@ export function ProcessingTerminal({
         ref={terminalRef}
         className="p-3 sm:p-4 font-mono text-xs sm:text-sm max-h-48 sm:max-h-64 overflow-y-auto scrollbar-thin"
       >
-        {logs.map((log, i) => (
-          <div key={i} className="flex gap-4 py-0.5 animate-fadeIn">
+        {logs.map((log) => (
+          <div key={log.key} className="flex gap-4 py-0.5 animate-fadeIn">
             <span className="text-slate-500 w-12 flex-shrink-0">{log.timestamp}</span>
             <span className={`${levelBrackets[log.level]} flex-shrink-0`}>
               [{log.level}]
             </span>
-            <span className={`${levelColors[log.level]} ${log.level === 'FIX' ? 'pl-4' : ''}`}>
+            <span className={levelColors[log.level]}>
               {log.message}
             </span>
           </div>
         ))}
 
         {/* Blinking cursor */}
-        {isProcessing && currentIndex < allLogs.length && (
+        {isProcessing && (
           <div className="flex gap-4 py-0.5">
             <span className="text-slate-500 w-12 flex-shrink-0"></span>
             <span className="text-emerald-400 animate-pulse">{'>'}</span>

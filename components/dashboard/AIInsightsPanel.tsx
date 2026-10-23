@@ -315,12 +315,16 @@ export function AIInsightsPanel() {
       )}
 
       {/* Processing Terminal - Shows during analysis and after completion */}
-      {(isProcessing || isComplete) && (
+      {(isProcessing || isComplete || hasError) && (
         <div className="mb-5 relative">
           <ProcessingTerminal
-            isProcessing={isProcessing}
+            jobId={activeJob?.jobId}
+            stage={status}
             exchange={exchange}
             transactionCount={transactionsFound}
+            error={error}
+            insightsReady={!!aiInsights?.ai_insights}
+            insightsError={insightsError || (aiInsights?.ai_error ? 'the analysis service did not respond' : null)}
           />
         </div>
       )}
