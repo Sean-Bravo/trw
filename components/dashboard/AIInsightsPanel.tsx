@@ -370,9 +370,13 @@ export function AIInsightsPanel() {
             <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
               {(() => {
                 const details = exchangeDetails || defaultExchangeDetails;
+                // The processor sends no detection confidence today; a default
+                // 0% read as "no idea", so the tile shows only a real value.
+                const confidence = exchangeDetails?.confidence;
+                const hasConfidence = typeof confidence === 'number' && Number.isFinite(confidence);
                 return (
                   <>
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    <div className={`grid ${hasConfidence ? 'grid-cols-3' : 'grid-cols-2'} gap-2 sm:gap-3`}>
                       <div className="bg-slate-50 rounded-lg p-3 text-center">
                         <p className="text-xs text-slate-500 mb-1">Format</p>
                         <p className="text-sm font-semibold text-slate-800">{details.format}</p>
@@ -381,10 +385,12 @@ export function AIInsightsPanel() {
                         <p className="text-xs text-slate-500 mb-1">Date Format</p>
                         <p className="text-xs font-mono text-slate-800">{details.dateFormat}</p>
                       </div>
-                      <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                        <p className="text-xs text-slate-500 mb-1">Confidence</p>
-                        <p className="text-sm font-bold text-emerald-600">{details.confidence}%</p>
-                      </div>
+                      {hasConfidence && (
+                        <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-slate-500 mb-1">Confidence</p>
+                          <p className="text-sm font-bold text-emerald-600">{confidence}%</p>
+                        </div>
+                      )}
                     </div>
                     {details.columns.length > 0 && (
                       <div className="text-sm">

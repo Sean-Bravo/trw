@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { AIInsightsPanel } from '@/components/dashboard/AIInsightsPanel';
 import { JobProvider } from '@/contexts/JobContext';
 import { createSucceededJob } from '../../factories/jobs';
@@ -55,5 +55,24 @@ describe('AIInsightsPanel', () => {
     mockPolledJob = createSucceededJob({ result: { exchange: 'some_new_exchange' } });
     renderWithProvider();
     expect(screen.getByText('some_new_exchange')).toBeInTheDocument();
+  });
+
+  it('hides the confidence tile when there is no real confidence value', () => {
+    mockPolledJob = createSucceededJob({ result: { exchange: 'coinbase' } });
+    renderWithProvider();
+    fireEvent.click(screen.getByText('Exchange Detected'));
+    expect(screen.getByText('Format')).toBeInTheDocument();
+    expect(screen.queryByText('Confidence')).not.toBeInTheDocument();
+    expect(screen.queryByText('0%')).not.toBeInTheDocument();
+  });
+
+  it('shows the confidence tile when the result carries a real value', () => {
+    mockPolledJob = createSucceededJob({
+      result: { exchange: 'coinbase', exchangeDetails: { format: 'CSV', dateFormat: 'ISO-8601', columns: [], confidence: 92 } },
+    });
+    renderWithProvider();
+    fireEvent.click(screen.getByText('Exchange Detected'));
+    expect(screen.getByText('Confidence')).toBeInTheDocument();
+    expect(screen.getByText('92%')).toBeInTheDocument();
   });
 });
