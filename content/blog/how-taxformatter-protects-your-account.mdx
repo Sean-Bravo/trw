@@ -1,0 +1,165 @@
+---
+title: "Five Ways TaxFormatter Protects Your Account"
+description: "Your TaxFormatter account holds your transaction history and statements. Here's how two-factor authentication, automatic sign-out, sign-in alerts, signing out everywhere and account deletion keep it yours."
+date: 2026-10-24
+author: "TaxFormatter Team"
+category: "updates"
+tags: ["security", "two-factor authentication", "2FA", "account", "product"]
+published: false
+featured: false
+---
+
+Your TaxFormatter account isn't just a login. Behind it are the exchange CSVs and bank statements you uploaded, and the cleaned files you downloaded: your transaction history, your balances, the shape of your financial year. That's worth protecting, so we built five features for it:
+
+- **[Two-factor authentication](#two-factor-authentication)** keeps someone with your password from signing in.
+- **[Automatic sign-out](#automatic-sign-out)** keeps someone with your device from walking into a session you left open.
+- **[New sign-in alerts](#new-sign-in-alerts)** tell you when your account is opened somewhere new.
+- **[Sign out everywhere](#sign-out-everywhere)** ends every session at once if something looks wrong.
+- **[Delete my account](#delete-my-account)** lets you remove your account and your files whenever you want.
+
+Here's what each one does, why it matters, and how to use it.
+
+## Two-factor authentication
+
+### What it does
+
+With 2FA on, signing in takes two things: your password **and** a 6-digit code that changes every 30 seconds. The code comes from an authenticator app on your phone, such as Google Authenticator, Authy or 1Password.
+
+At sign-in you can enter:
+- **the code from your authenticator app**, or
+- **a code we email you**, which works for 10 minutes, or
+- **one of your backup codes**, if you've lost your phone.
+
+### Why it's useful
+
+Passwords leak. They get reused across sites, caught by phishing pages, and exposed in other companies' data breaches. When that happens, a password is all an attacker needs for most accounts.
+
+With 2FA, a leaked password isn't enough. The attacker also needs your phone or your inbox, which is much harder to steal from the other side of the world.
+
+Guessing doesn't work either. Wrong codes count as failed sign-ins, and after 5 failed attempts the account is locked for 30 minutes. A 6-digit code can't be brute-forced at five tries per half hour.
+
+### Backup codes
+
+When you turn 2FA on, we show you **8 backup codes**. Each one works once, in place of an authenticator code.
+
+- **Save them somewhere safe,** like a password manager or a printed copy. This is the only time we show them; we store them hashed, so even we can't read them back.
+- **Ran out, or think they've been seen?** Generate a fresh set in Settings. The old ones stop working.
+
+### How to turn it on
+
+1. Go to **Settings → Two-Factor Authentication** and click **Set Up 2FA**.
+2. Scan the QR code with your authenticator app.
+3. Enter the 6-digit code the app shows.
+4. Save your backup codes.
+
+**Signing in with Google?** Then Google handles your sign-in, and your Google account's own 2-Step Verification is what protects it. Make sure that's turned on in your Google account settings.
+
+## Automatic sign-out
+
+### What it does
+
+If you stop using TaxFormatter for a while, we sign you out. By default that's after **30 minutes** of inactivity, and you can change it.
+
+Two minutes before the limit, a **"Still there?"** box appears with a countdown. Click **Stay signed in** and you carry on where you were. Walk away, and you're signed out. The next time you open the page, you'll see a note saying why.
+
+### Why it's useful
+
+2FA protects the front door. Automatic sign-out protects the open one.
+
+Most account access isn't a hacker guessing passwords. It's a laptop left open at a coffee shop, a shared family computer, a work machine someone else uses after you, or a phone that got picked up. If you were still signed in, nobody needs your password or your code. They just need your screen.
+
+Before this feature, a TaxFormatter session lasted up to 7 days. Now an unattended session ends on its own, and a device you forgot about stops being a way into your files.
+
+We chose 30 minutes as the default because it's the inactivity limit that NIST's digital identity guidelines (SP 800-63B) set for accounts protected at this level. It's long enough that you won't be signed out while reading a report, and short enough that a forgotten tab doesn't stay open all afternoon.
+
+### Built so it doesn't get in your way
+
+- **Only real activity counts.** Typing, clicking, scrolling and tapping keep you signed in. Background updates, like the progress of a conversion, don't.
+- **Uploads hold the timer.** Nobody gets signed out halfway through a large upload or while a file is still converting.
+- **All your tabs count.** Working in one TaxFormatter tab keeps your other tabs signed in too.
+- **Our servers make the call.** The limit is checked on our side, not just in your browser. A tab that was asleep, closed or tampered with can't keep a session alive.
+
+### Choosing your limit
+
+Go to **Settings → Automatic sign-out** and pick:
+
+| Setting | Good for |
+|---|---|
+| **15 minutes** | Shared or public computers |
+| **30 minutes (default)** | Most people |
+| **1 hour** | Long sessions at your own desk |
+| **4 hours** | Your own device at home |
+| **Never** (not recommended) | A private device only you use |
+
+**About "Never":** turning automatic sign-out off means anyone with access to your device can open your uploads and download your tax files. So we make sure it's really you:
+- You'll see a warning first.
+- You'll need to have signed in within the last 5 minutes. If it's been longer, we ask you to sign in again.
+- We email you to confirm the change, so you'll know if someone else did it.
+
+Even with "Never", you're still signed out after 7 days.
+
+## New sign-in alerts
+
+### What it does
+
+When your account is signed into from a browser or device we haven't seen before, we email you. The email says which browser and device it was and when, with a link to act if it wasn't you.
+
+Signing in again on a device you already use doesn't send an email, so the alerts stay rare enough to mean something.
+
+### Why it's useful
+
+The features above stop most unwanted sign-ins. This one tells you if one gets through anyway, for example if someone has both your password and access to your email.
+
+Without an alert, you'd find out only if you noticed something odd in your dashboard, if ever. With one, you know within minutes and can lock the account down while it matters.
+
+### If it wasn't you
+
+The email links straight to the two things to do:
+1. **Reset your password.** This also signs out every device (see the next section), so the other person is out.
+2. **Turn on two-factor authentication**, if it isn't on already.
+
+## Sign out everywhere
+
+### What it does
+
+**Settings → Sign out of all devices** ends every TaxFormatter session on every browser and device, including ones you've forgotten about. Anywhere you were signed in, you'll need to sign in again.
+
+It also happens automatically **whenever your password is reset or changed**.
+
+### Why it's useful
+
+Signing out only works on the device in front of you. Think of the laptop you sold, the library computer, or the phone that was stolen. None of those are in front of you, and a session left open on any of them could stay open for days.
+
+Sign out everywhere closes all of them in one click. And because a password reset does the same, changing your password after a scare does what you'd expect: whoever had your old password, or a session from it, loses access straight away.
+
+## Delete my account
+
+### What it does
+
+**Settings → Delete account** permanently removes your account, your uploads and your converted files. Because it can't be undone, we ask you to confirm, and to sign in again if your last sign-in wasn't recent, the same check that protects turning off automatic sign-out.
+
+### Why it's useful
+
+Your data should stay only as long as you want it. We already delete every file within 30 days. Deleting your account goes further: there's no account left to sign into, and nothing left for anyone to find, whether you're done with tax season or just don't want an account sitting around.
+
+You don't have to email us or wait for a reply. It's your account; removing it is your call.
+
+## How they fit together
+
+| Feature | Protects against | You need to |
+|---|---|---|
+| **Two-factor authentication** | Someone who has your password | Turn it on (about 2 minutes) |
+| **Automatic sign-out** | Someone who has your device | Nothing, it's on at 30 minutes |
+| **New sign-in alerts** | A sign-in you didn't make going unnoticed | Nothing, it's on for everyone |
+| **Sign out everywhere** | Sessions left open on other devices | Use it when something looks wrong |
+| **Delete my account** | Data you no longer want kept | Use it whenever you're done |
+
+Most of this works without you doing anything. The one step worth taking today is turning on two-factor authentication.
+
+And remember that the files themselves don't stay with us forever: everything you upload is deleted within 30 days, or sooner if you delete it from your dashboard.
+
+**[Open your Settings →](/dashboard/settings)**
+
+---
+
+Questions about your account's security? Email support@taxformatter.com.
