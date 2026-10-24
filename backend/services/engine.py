@@ -524,6 +524,35 @@ def blank_unknown_amounts(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]
                 record[amount_key] = None
             elif not record.get(currency_key) and value == 0:
                 record[amount_key] = None
+        # A blank fee cell reaches here as NaN too; written out it was a
+        # literal "nan" in the CSV and bare NaN (invalid JSON) from /v1/parse.
+        fee = record.get("Fee Amount")
+        if isinstance(fee, float) and math.isnan(fee):
+            record["Fee Amount"] = None
+    return records
+
+
+_NAN_WORD = re.compile(r"\bnan\b", re.IGNORECASE)
+_MISSING_TEXT = {"nan", "none", "null"}
+
+
+def clean_missing_text(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Text built from a blank cell says so, instead of carrying Python's "nan".
+
+    Parsers format descriptions as f"Coinbase {tx_type}", and a blank type
+    column is NaN, so the record read "Coinbase nan" in the dashboard and in
+    the CSV users import. A field that is nothing but nan/None/null becomes
+    empty; a description with "nan" in it says "(type missing)" so the gap
+    stays visible rather than silently dropped.
+    """
+    for record in records:
+        for key, value in record.items():
+            if not isinstance(value, str):
+                continue
+            if value.strip().lower() in _MISSING_TEXT:
+                record[key] = ""
+            elif key == "Description" and _NAN_WORD.search(value):
+                record[key] = _NAN_WORD.sub("(type missing)", value)
     return records
 
 
@@ -3464,7 +3493,7 @@ def process_file(
             if duplicates_removed > 0:
                 warnings.append(f"✓ Removed {duplicates_removed} duplicate transactions")
 
-        records = blank_unknown_amounts(records)
+        records = clean_missing_text(blank_unknown_amounts(records))
 
         # Progress callback
         if progress_callback:
