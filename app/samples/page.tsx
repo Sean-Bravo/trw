@@ -151,7 +151,7 @@ export default function SamplesPage() {
           {/* Crypto Section */}
           <div className="mb-16">
             <div className="flex items-center gap-3 mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
-              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <div className="p-2 rounded-lg bg-primary-400/10 text-primary-500 dark:text-primary-300">
                 <FileText className="w-6 h-6" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">

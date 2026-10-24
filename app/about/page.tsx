@@ -25,7 +25,7 @@ export default function AboutPage() {
       <main className="min-h-screen bg-[#020617] text-slate-300 relative overflow-hidden">
         {/* Background ambient glows */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[100px]" />
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-[100px]" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-cyan-600/5 rounded-full blur-[100px]" />
         </div>
 
@@ -144,7 +144,7 @@ export default function AboutPage() {
                 </p>
                 <a
                   href="mailto:sean@taxformatter.com"
-                  className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
+                  className="inline-flex items-center gap-2 text-primary-300 hover:text-primary-300 transition-colors"
                 >
                   <Mail className="w-4 h-4" />
                   <span>sean@taxformatter.com</span>
@@ -164,7 +164,7 @@ export default function AboutPage() {
               <div className="flex items-center justify-center gap-4">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-xl transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary-400 hover:bg-primary-500 text-white font-medium rounded-xl transition-colors"
                 >
                   Get Started
                   <ArrowRight className="w-4 h-4" />

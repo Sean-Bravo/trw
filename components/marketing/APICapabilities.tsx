@@ -65,7 +65,7 @@ export function APICapabilities() {
   return (
     <section className="py-20 bg-surface-alt relative overflow-hidden" id="capabilities">
       {/* Subtle gradient */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-225 h-125 bg-[#635bff]/3 rounded-[100%] blur-[150px]" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-225 h-125 bg-primary-400/3 rounded-[100%] blur-[150px]" />
 
       <Container>
         <div className="relative z-10">
@@ -89,23 +89,23 @@ export function APICapabilities() {
                 {/* Exchanges */}
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-[#635bff]" />
+                    <div className="w-2 h-2 rounded-full bg-primary-400" />
                     <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Crypto Exchanges</h3>
                     <span className="text-[11px] text-slate-400 font-mono">{exchanges.length}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mb-3 flex items-center gap-1.5">
-                    <span className="text-[#635bff] font-bold">✓</span>
+                    <span className="text-primary-400 font-bold">✓</span>
                     verified by a fixture-backed parse test in CI &mdash; <span className="font-semibold uppercase text-[9px] tracking-wider">beta</span> exchanges parse but have no fixture yet
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     {exchanges.map((ex) => (
                       <div
                         key={ex.id}
-                        className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-[#635bff]/20 hover:bg-[#635bff]/4 transition-all group min-w-0"
+                        className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/2 border border-white/5 hover:border-primary-400/20 hover:bg-primary-400/4 transition-all group min-w-0"
                       >
                         <span className="text-[13px] text-slate-300 font-medium group-hover:text-white transition-colors truncate">{ex.name}</span>
                         {ex.status === 'verified' ? (
-                          <span className="text-[9px] text-[#635bff] font-bold uppercase tracking-wider shrink-0" title="Verified by a fixture-backed parse test">✓</span>
+                          <span className="text-[9px] text-primary-400 font-bold uppercase tracking-wider shrink-0" title="Verified by a fixture-backed parse test">✓</span>
                         ) : (
                           <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider shrink-0" title="Parser exists but has no fixture-backed test yet">beta</span>
                         )}

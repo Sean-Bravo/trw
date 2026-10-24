@@ -24,17 +24,20 @@
 }
 
 @theme {
-  /* Primary Colors - Stripe-inspired indigo/purple */
-  --color-primary-50: #f0f4ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #635bff;
-  --color-primary-600: #5851ea;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* Primary Colors - the logo blue (#3b82f6, public/logo-icon.svg) is 400.
+     Buttons use 500: white text on 400 is only 3.7:1, on 500 it is 5.2:1 (AA).
+     Text on the dark surfaces uses 400 or lighter. Was Stripe-style indigo
+     (#635bff), which clashed with the blue logo. */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #3b82f6;
+  --color-primary-500: #2563eb;
+  --color-primary-600: #1d4ed8;
+  --color-primary-700: #1e40af;
+  --color-primary-800: #1e3a8a;
+  --color-primary-900: #172554;
 
   /* Accent Colors - Teal for success/growth */
   --color-accent-50: #f0fdfa;
@@ -50,11 +53,11 @@
 
   /* Legacy Brand Colors (for backwards compatibility) */
   --color-brand-navy: #0f172a;
-  --color-brand-blue: #635bff;
-  --color-brand-blue-dark: #5851ea;
-  --color-brand-blue-darker: #4338ca;
-  --color-brand-blue-light: #a5b4fc;
-  --color-brand-blue-lighter: #e0e7ff;
+  --color-brand-blue: #2563eb;
+  --color-brand-blue-dark: #1d4ed8;
+  --color-brand-blue-darker: #1e40af;
+  --color-brand-blue-light: #93c5fd;
+  --color-brand-blue-lighter: #dbeafe;
   --color-brand-green: #00d4aa;
   --color-brand-green-dark: #00b894;
   --color-brand-green-darker: #0f9488;
@@ -91,10 +94,12 @@
   /* Dark Mode Colors */
   /* Marketing page surfaces. The homepage previously used four unrelated
      blacks (#0b1121, #0d1425, #020617, #0a0a0a) on a single scroll; these are
-     the two page levels it alternates between, plus the card surface. */
-  --color-surface-base: #0b1121;
-  --color-surface-alt: #0d1425;
-  --color-surface-card: #111b2e;
+     the two page levels it alternates between, plus the card surface.
+     Lifted one step (Oct 2026, matches the dashboard redesign): base and alt
+     were 1% apart, so long scrolls read as one dark mass. */
+  --color-surface-base: #111827;
+  --color-surface-alt: #172033;
+  --color-surface-card: #1a2335;
 
   --color-dark-bg: #020617;
   --color-dark-bg-secondary: #0f172a;
@@ -112,9 +117,9 @@
   --color-error: #ef4444;
   --color-error-light: #fee2e2;
   --color-error-dark: #7f1d1d;
-  --color-info: #635bff;
-  --color-info-light: #e0e7ff;
-  --color-info-dark: #4338ca;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+  --color-info-dark: #1e40af;
 
   /* Fonts - now using CSS variables from next/font */
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;

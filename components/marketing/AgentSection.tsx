@@ -21,9 +21,9 @@ const tools = [
     name: 'parse_crypto_csv',
     desc: 'Parse any exchange CSV — auto-detects Coinbase, Binance, Kraken, and 11 more. Returns structured transactions in your chosen tax format.',
     icon: FileText,
-    accent: 'from-indigo-500/20 to-indigo-500/5',
-    border: 'border-indigo-500/10',
-    iconColor: 'text-indigo-400',
+    accent: 'from-primary-400/20 to-primary-400/5',
+    border: 'border-primary-400/10',
+    iconColor: 'text-primary-400',
   },
   {
     name: 'parse_bank_statement',
@@ -48,7 +48,7 @@ export function AgentSection() {
     <section className="py-20 bg-surface-alt relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-[#635bff]/3 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-primary-400/3 rounded-full blur-[150px]" />
       </div>
 
       <Container>
@@ -56,13 +56,13 @@ export function AgentSection() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-white/4 border border-white/6">
-              <Bot className="w-4 h-4 text-[#635bff]" />
+              <Bot className="w-4 h-4 text-primary-400" />
               <span className="text-[13px] font-medium text-slate-400">Model Context Protocol</span>
             </div>
             <h2 className="font-poppins text-3xl md:text-[2.75rem] font-bold text-white mb-5 tracking-tight leading-tight">
               Give your AI agent
               <br />
-              <span className="bg-gradient-to-r from-[#635bff] to-[#00d4aa] bg-clip-text text-transparent">
+              <span className="text-primary-400">
                 financial sight.
               </span>
             </h2>
@@ -91,13 +91,13 @@ export function AgentSection() {
             {/* Left: MCP Config */}
             <div>
               <div className="mb-4 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#635bff]/10 border border-[#635bff]/20 flex items-center justify-center">
-                  <span className="text-[13px] font-bold text-[#635bff]">1</span>
+                <div className="w-8 h-8 rounded-lg bg-primary-400/10 border border-primary-400/20 flex items-center justify-center">
+                  <span className="text-[13px] font-bold text-primary-400">1</span>
                 </div>
                 <h3 className="text-white font-semibold text-lg">Add to your MCP config</h3>
               </div>
               <div className="relative">
-                <div className="absolute -inset-px bg-gradient-to-b from-[#635bff]/10 to-transparent rounded-xl" />
+                <div className="absolute -inset-px bg-gradient-to-b from-primary-400/10 to-transparent rounded-xl" />
                 <div className="relative bg-surface-card rounded-xl border border-white/5 overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-3 border-b border-white/4 bg-white/1.5">
                     <span className="text-[11px] font-mono text-slate-400">claude_desktop_config.json</span>
@@ -115,7 +115,7 @@ export function AgentSection() {
               </div>
               <div className="mt-4 bg-white/2 rounded-xl border border-white/5 p-5">
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#635bff] to-[#818cf8] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center shrink-0">
                     <MessageSquare className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -155,7 +155,7 @@ export function AgentSection() {
                 href="https://www.npmjs.com/package/@taxformatter/mcp-server"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-2 text-[14px] text-[#635bff] hover:text-[#818cf8] transition-colors font-medium"
+                className="inline-flex items-center gap-2 mt-2 text-[14px] text-primary-400 hover:text-primary-300 transition-colors font-medium"
               >
                 View on npm
                 <ArrowRight className="w-4 h-4" />

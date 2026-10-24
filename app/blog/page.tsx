@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 // Visual Mapping Config
 // This assigns specific colors and icons to your categories automatically
 const CATEGORY_STYLES: Record<string, { color: string; bg: string; icon: React.ComponentType<{ className?: string }> }> = {
-  'crypto-tax': { color: 'text-indigo-400', bg: 'bg-indigo-500/10', icon: TrendingUp },
+  'crypto-tax': { color: 'text-primary-300', bg: 'bg-primary-400/10', icon: TrendingUp },
   'guides': { color: 'text-blue-400', bg: 'bg-blue-500/10', icon: BookOpen },
   'tax-tips': { color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: FileText },
   'updates': { color: 'text-slate-400', bg: 'bg-slate-500/10', icon: Terminal },

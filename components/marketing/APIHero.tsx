@@ -96,7 +96,7 @@ export function APIHero() {
             {/* Headline */}
             <h1 className="font-poppins text-[2.75rem] sm:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.08] tracking-[-0.02em] text-balance mb-6 animate-fade-in-up" style={{ animationDelay: '80ms' }}>
               Parse any crypto CSV or bank PDF.
-              <span className="block mt-3 bg-gradient-to-r from-[#635bff] via-[#818cf8] to-[#00d4aa] bg-clip-text text-transparent">
+              <span className="block mt-3 text-primary-400">
                 One API call.
               </span>
             </h1>
@@ -146,7 +146,7 @@ export function APIHero() {
           <div className="animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             <div className="relative">
               {/* Glow behind */}
-              <div className="absolute -inset-3 bg-gradient-to-br from-[#635bff]/15 via-transparent to-[#00d4aa]/10 rounded-2xl blur-xl" />
+              <div className="absolute -inset-3 bg-gradient-to-br from-primary-400/15 via-transparent to-[#00d4aa]/10 rounded-2xl blur-xl" />
 
               <div className="relative bg-surface-card rounded-xl border border-white/6 overflow-hidden shadow-2xl">
                 {/* Terminal chrome */}
