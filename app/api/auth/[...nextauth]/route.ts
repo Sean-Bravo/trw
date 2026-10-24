@@ -8,7 +8,9 @@ import {
   authorizeCredentials,
   findOrCreateOAuthUser,
   findUserByEmail,
+  getIdleTimeoutMinutes,
 } from "@/lib/auth-db";
+import { DEFAULT_IDLE_TIMEOUT_MINUTES, isIdleExpired } from "@/lib/idle-timeout";
 import { safeRedirect } from "@/lib/safe-redirect";
 
 /**
@@ -185,7 +187,9 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account, trigger, session }) {
+      const now = Date.now();
+
       // Initial sign-in
       if (user && user.email) {
         // For OAuth, look up the user by email to get our database ID
@@ -211,10 +215,56 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
 
+      // Automatic sign-out (docs/AUTO_LOGOUT_PLAN.md). A sign-in starts the
+      // clock and is the "recent sign-in" that turning the limit off needs.
+      if (user) {
+        token.authTime = now;
+        token.lastActivity = now;
+        token.idleExpired = false;
+        token.idleTimeoutMin = token.id ? await getIdleTimeoutMinutes(token.id) : DEFAULT_IDLE_TIMEOUT_MINUTES;
+        return token;
+      }
+
+      // Tokens issued before this feature: start their clock now rather than
+      // signing everyone out on deploy.
+      if (typeof token.lastActivity !== 'number') token.lastActivity = now;
+      if (typeof token.idleTimeoutMin !== 'number') token.idleTimeoutMin = DEFAULT_IDLE_TIMEOUT_MINUTES;
+
+      // Checked against the PREVIOUS activity first, so a ping sent after the
+      // limit can't revive an expired session.
+      if (token.idleExpired || isIdleExpired(token.lastActivity, token.idleTimeoutMin, now)) {
+        token.idleExpired = true;
+        return token;
+      }
+
+      // Only the browser's explicit activity ping (useSession().update) moves
+      // the clock. Page loads and getServerSession in API routes, including
+      // the dashboard's job polling every 2.5 s, never do.
+      if (trigger === 'update' && session && typeof session === 'object') {
+        const update = session as { activity?: unknown; idleTimeoutChanged?: unknown };
+        if (update.activity === true) token.lastActivity = now;
+        // The new limit is read from the database, never taken from the client.
+        if (update.idleTimeoutChanged === true && token.id) {
+          token.idleTimeoutMin = await getIdleTimeoutMinutes(token.id);
+        }
+      }
+
       return token;
     },
 
     async session({ session, token }) {
+      // Idle past the limit: no user, which every page (redirect to /login)
+      // and API route (401) already treats as signed out.
+      if (token?.idleExpired) {
+        return { expires: session.expires, idleExpired: true } as unknown as typeof session;
+      }
+
+      if (token) {
+        session.idleTimeoutMin = token.idleTimeoutMin;
+        session.lastActivity = token.lastActivity;
+        session.authTime = token.authTime;
+      }
+
       // Add user data to session
       if (session.user && token) {
         session.user.id = token.id as string;

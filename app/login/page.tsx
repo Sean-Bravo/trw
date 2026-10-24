@@ -26,6 +26,11 @@ function LoginForm() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Return address after a requested re-sign-in (e.g. Settings → turn off
+  // automatic sign-out). Only paths inside the signed-in app are honoured.
+  const nextParam = searchParams.get('next');
+  const nextPath = nextParam && /^\/dashboard(\/[A-Za-z0-9/_-]*)?$/.test(nextParam) ? nextParam : null;
+  const destination = apiTier ? '/dashboard/developer' : (nextPath ?? '/dashboard');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +92,7 @@ function LoginForm() {
         if (apiTier) {
           document.cookie = `pending_api_tier=${apiTier};path=/;max-age=3600;samesite=lax`;
         }
-        router.push(apiTier ? '/dashboard/developer' : '/dashboard');
+        router.push(destination);
       }
     } catch {
       setError('Something went wrong');
@@ -121,7 +126,7 @@ function LoginForm() {
               if (apiTier) {
                 document.cookie = `pending_api_tier=${apiTier};path=/;max-age=3600;samesite=lax`;
               }
-              signIn('google', { callbackUrl: apiTier ? '/dashboard/developer' : '/dashboard' });
+              signIn('google', { callbackUrl: destination });
             }}
             className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
@@ -159,6 +164,20 @@ function LoginForm() {
 
           {/* Email/Password Form */}
           <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+            {searchParams.get('reason') === 'reauth' && !error && (
+              <div role="status" className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  For your security, sign in again to change this setting.
+                </p>
+              </div>
+            )}
+            {searchParams.get('reason') === 'idle' && !error && (
+              <div role="status" className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  You were signed out after a period of inactivity. Sign in again to continue.
+                </p>
+              </div>
+            )}
             {error && (
               <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
                 <p className="text-sm text-red-800 dark:text-red-200">{error}</p>

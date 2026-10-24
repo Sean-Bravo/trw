@@ -12,6 +12,7 @@ import {
   Building2
 } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
+import { useIdleHold } from '@/lib/idle-hold';
 
 interface ProcessResult {
   success: boolean;
@@ -34,6 +35,8 @@ export function BankPDFUploader() {
   const { refreshBankJobs } = useJobContext();
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'complete' | 'error'>('idle');
+  // No automatic sign-out while a statement uploads or converts
+  useIdleHold(status === 'uploading' || status === 'processing');
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ProcessResult | null>(null);
   const [errorMessage, setErrorMessage] = useState('');

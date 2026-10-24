@@ -7,11 +7,14 @@ import { Shield, ShieldCheck, Smartphone, Key, Copy, Check, Loader2, X, AlertTri
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import type { UserTier } from '@/lib/auth-db';
 import { tierName } from '@/lib/tier-registry';
+import { IdleTimeoutSettings } from '@/components/dashboard/IdleTimeoutSettings';
+import type { IdleTimeoutMinutes } from '@/lib/idle-timeout';
 
 interface SettingsClientProps {
   user: User;
   tier: UserTier;
   hasPassword: boolean;
+  idleTimeoutMinutes: IdleTimeoutMinutes;
 }
 
 interface ReauthModalProps {
@@ -127,7 +130,7 @@ function ReauthModal({ isOpen, title, message, confirmText, confirmVariant = 'da
   );
 }
 
-export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps) {
+export function SettingsClient({ user, tier, hasPassword, idleTimeoutMinutes }: SettingsClientProps) {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showRegenerateCodes, setShowRegenerateCodes] = useState(false);
@@ -538,6 +541,8 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
             </div>
           ) : null}
         </div>
+
+        <IdleTimeoutSettings initialMinutes={idleTimeoutMinutes} />
 
         {/* Account Info */}
         <div className="mt-6 bg-app-raised border border-app-border rounded-2xl p-6">
