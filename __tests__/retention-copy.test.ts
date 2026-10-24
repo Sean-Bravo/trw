@@ -25,6 +25,7 @@ const SURFACES = [
   'content/docs/api/index.md',
   'content/blog/taxformatter-launch-announcement.mdx',
   'content/blog/bank-statement-pdf-to-excel-converter.mdx',
+  'content/blog/launch-week-updates-october-2026.mdx',
   'ARCHITECTURE.md',
   'README.md',
 ];
