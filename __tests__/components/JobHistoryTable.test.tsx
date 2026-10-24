@@ -167,7 +167,7 @@ describe('JobHistoryTable', () => {
     expect(downloadButtons.length).toBeGreaterThan(0);
   });
 
-  it('should show Delete button for failed jobs', () => {
+  it('should offer Delete for failed jobs in the actions menu', async () => {
     const job = createFailedJob({ filename: 'test.csv' });
 
     render(
@@ -176,11 +176,11 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
-    const deleteButtons = screen.getAllByText('Delete');
-    expect(deleteButtons.length).toBeGreaterThan(0);
+    await userEvent.click(screen.getByRole('button', { name: 'More actions for test.csv' }));
+    expect(screen.getByRole('menuitem', { name: /Delete/ })).toBeInTheDocument();
   });
 
-  it('should show Delete button for processing jobs so a stuck one can be cleared', () => {
+  it('should offer Delete for processing jobs so a stuck one can be cleared', async () => {
     const job = createRunningJob({ filename: 'test.csv' });
 
     render(
@@ -190,7 +190,8 @@ describe('JobHistoryTable', () => {
     );
 
     expect(screen.getByText('Processing')).toBeInTheDocument();
-    expect(screen.getAllByText('Delete').length).toBeGreaterThan(0);
+    await userEvent.click(screen.getByRole('button', { name: 'More actions for test.csv' }));
+    expect(screen.getByRole('menuitem', { name: /Delete/ })).toBeInTheDocument();
   });
 
   it('should show tabs for filtering', () => {
@@ -202,9 +203,9 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
-    expect(screen.getAllByText('All').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Crypto').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Bank').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'All · 1' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Crypto · 1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Bank · 0' })).toBeInTheDocument();
   });
 
   it('should render multiple jobs', () => {
@@ -225,10 +226,11 @@ describe('JobHistoryTable', () => {
     expect(screen.getByText('file3.csv')).toBeInTheDocument();
   });
 
-  it('should show transaction count for completed jobs with results', () => {
+  it('should show exchange and transaction count from what the processor writes', () => {
+    // record_count, not the transactionCount nothing ever wrote
     const job = createSucceededJob({
       filename: 'test.csv',
-      result: { transactionCount: 150 },
+      result: { exchange: 'coinbase', record_count: 150 },
     });
 
     render(
@@ -237,6 +239,50 @@ describe('JobHistoryTable', () => {
       </JobProvider>
     );
 
-    expect(screen.getByText('150 transactions')).toBeInTheDocument();
+    expect(screen.getByText('Coinbase · 150 transactions')).toBeInTheDocument();
+  });
+
+  it('shows a job stuck past 30 minutes as Timed out, with Retry', () => {
+    const job = createQueuedJob({ filename: 'stuck.csv', createdAt: new Date(Date.now() - 31 * 60 * 1000).toISOString() });
+
+    render(
+      <JobProvider userId="test-user" initialJobs={[job]}>
+        <JobHistoryTable />
+      </JobProvider>
+    );
+
+    expect(screen.getByText('Timed out')).toBeInTheDocument();
+    expect(screen.getByText('No result after 30 minutes')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+  });
+
+  it('shows a failed job with its reason and Retry', () => {
+    const job = createFailedJob({ filename: 'bad.csv', error: 'Could not auto-detect exchange format' });
+
+    render(
+      <JobProvider userId="test-user" initialJobs={[job]}>
+        <JobHistoryTable />
+      </JobProvider>
+    );
+
+    expect(screen.getByText('Could not auto-detect exchange format')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Download' })).not.toBeInTheDocument();
+  });
+
+  it('shows 7 rows, then all of them on request', async () => {
+    const jobs = Array.from({ length: 9 }, (_, i) => createSucceededJob({ filename: `file${i}.csv` }));
+
+    render(
+      <JobProvider userId="test-user" initialJobs={jobs}>
+        <JobHistoryTable />
+      </JobProvider>
+    );
+
+    expect(screen.getByText('Showing 7 of 9')).toBeInTheDocument();
+    expect(screen.queryByText('file8.csv')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }));
+    expect(screen.getByText('Showing 9 of 9')).toBeInTheDocument();
+    expect(screen.getByText('file8.csv')).toBeInTheDocument();
   });
 });

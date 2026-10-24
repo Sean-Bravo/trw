@@ -60,36 +60,36 @@ const STATUS_CONFIG = {
   queued: {
     icon: Clock,
     label: 'Queued',
-    color: 'text-slate-400',
-    bg: 'bg-slate-500/10',
+    color: 'text-app-muted',
+    bg: 'bg-app-raised',
     animate: false,
   },
   running: {
     icon: Loader2,
     label: 'Processing',
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
+    color: 'text-app-warn',
+    bg: 'bg-app-warn-bg',
     animate: true,
   },
   succeeded: {
     icon: CheckCircle,
     label: 'Completed',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
+    color: 'text-app-success',
+    bg: 'bg-app-success-bg',
     animate: false,
   },
   failed: {
     icon: XCircle,
     label: 'Failed',
-    color: 'text-red-400',
-    bg: 'bg-red-500/10',
+    color: 'text-app-error',
+    bg: 'bg-app-error-bg',
     animate: false,
   },
   canceled: {
     icon: XCircle,
     label: 'Canceled',
-    color: 'text-slate-400',
-    bg: 'bg-slate-500/10',
+    color: 'text-app-muted',
+    bg: 'bg-app-raised',
     animate: false,
   },
 };
@@ -169,7 +169,7 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
       <div className="mb-8">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6"
+          className="inline-flex items-center gap-2 text-app-muted hover:text-app-text transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
@@ -177,17 +177,17 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-800/50 border border-white/10">
-              <FileText className="w-6 h-6 text-slate-400" />
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-app-raised border border-app-border">
+              <FileText className="w-6 h-6 text-app-muted" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{job.filename}</h1>
+              <h1 className="text-2xl font-bold text-app-text">{job.filename}</h1>
               <div className="flex items-center gap-3 mt-1">
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.bg} ${statusConfig.color}`}>
                   <StatusIcon className={`w-3.5 h-3.5 ${statusConfig.animate ? 'animate-spin' : ''}`} />
                   {statusConfig.label}
                 </span>
-                <span className="text-slate-400 text-sm">
+                <span className="text-app-muted text-sm">
                   {new Date(job.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -207,28 +207,28 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
                 <>
                   <button
                     onClick={() => handleDownload('formatted')}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors text-sm font-medium"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-app-success-bg text-app-success hover:bg-emerald-100 transition-colors text-sm font-medium"
                   >
                     <Download className="w-4 h-4" />
                     Download CSV
                   </button>
                   <button
                     onClick={() => handleDownload('flagged')}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 transition-colors text-sm font-medium border border-white/10"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-app-raised text-app-text hover:bg-app-border transition-colors text-sm font-medium border border-app-border"
                   >
                     <AlertTriangle className="w-4 h-4" />
                     Flagged Issues
                   </button>
                   <button
                     onClick={() => setShowDeleteModal(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium border border-red-500/20"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-app-error-bg text-app-error hover:bg-red-100 transition-colors text-sm font-medium border border-app-error/30"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
                   </button>
                 </>
               ) : (
-                <div className="flex items-center gap-2 text-sm text-emerald-400 px-4 py-2">
+                <div className="flex items-center gap-2 text-sm text-app-success px-4 py-2">
                   <CheckCircle className="w-4 h-4" />
                   File deleted successfully
                 </div>
@@ -240,12 +240,12 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
 
       {/* Error message */}
       {job.status === 'failed' && job.error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+        <div className="mb-6 p-4 rounded-xl bg-app-error-bg border border-app-error/30">
           <div className="flex items-start gap-3">
-            <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <XCircle className="w-5 h-5 text-app-error shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-medium text-red-400">Processing Failed</h3>
-              <p className="text-red-300/70 text-sm mt-1">{job.error}</p>
+              <h3 className="font-medium text-app-error">Processing Failed</h3>
+              <p className="text-app-error/70 text-sm mt-1">{job.error}</p>
             </div>
           </div>
         </div>
@@ -254,11 +254,11 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
       {/* Processing state */}
       {(job.status === 'queued' || job.status === 'running') && (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">
+          <Loader2 className="w-12 h-12 text-primary-600 animate-spin mb-4" />
+          <h3 className="text-lg font-medium text-app-text mb-2">
             {job.status === 'queued' ? 'Waiting in queue...' : 'Processing your file...'}
           </h3>
-          <p className="text-slate-400 text-sm">
+          <p className="text-app-muted text-sm">
             This page will update automatically when processing completes.
           </p>
         </div>
@@ -266,10 +266,10 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
 
       {/* Data table */}
       {job.status === 'succeeded' && (
-        <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+        <div className="bg-app-raised border border-app-border rounded-2xl overflow-hidden">
           {/* View toggle header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-            <h2 className="text-lg font-semibold text-white">Data Preview</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-app-border">
+            <h2 className="text-lg font-semibold text-app-text">Data Preview</h2>
 
             <PremiumFeatureGuard
               requiredTier="pro"
@@ -289,11 +289,11 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
             <SmartDiffTable diffData={diffData} viewMode={isPaidUser ? viewMode : 'clean'} />
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <FileText className="w-12 h-12 text-slate-400 mb-4" />
-              <h3 className="text-lg font-medium text-slate-400 mb-2">
+              <FileText className="w-12 h-12 text-app-muted mb-4" />
+              <h3 className="text-lg font-medium text-app-muted mb-2">
                 Preview not available
               </h3>
-              <p className="text-slate-400 text-sm max-w-md">
+              <p className="text-app-muted text-sm max-w-md">
                 This job was processed before the diff view feature was added.
                 Download the CSV to see results.
               </p>
@@ -315,22 +315,22 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 "
             onClick={() => setShowDeleteModal(false)}
           />
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+          <div className="relative bg-app-raised border border-app-border rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
             <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10">
-                <Trash2 className="w-6 h-6 text-red-400" />
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-app-error-bg">
+                <Trash2 className="w-6 h-6 text-app-error" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Delete File</h3>
-                <p className="text-sm text-slate-400">This action cannot be undone</p>
+                <h3 className="text-lg font-semibold text-app-text">Delete File</h3>
+                <p className="text-sm text-app-muted">This action cannot be undone</p>
               </div>
             </div>
 
-            <p className="text-slate-300 mb-6">
-              Are you sure you want to permanently delete <span className="font-medium text-white">{job.filename}</span>?
+            <p className="text-app-text mb-6">
+              Are you sure you want to permanently delete <span className="font-medium text-app-text">{job.filename}</span>?
               This will remove your uploaded file and processed results forever.
             </p>
 
@@ -338,14 +338,14 @@ export function JobDetailClient({ job, userId, userTier, userName }: JobDetailCl
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-app-text hover:text-app-text hover:bg-app-border transition-colors text-sm font-medium disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-app-error text-white hover:bg-red-800 transition-colors text-sm font-medium disabled:opacity-50"
               >
                 {isDeleting ? (
                   <>

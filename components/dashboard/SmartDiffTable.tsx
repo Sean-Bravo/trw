@@ -40,15 +40,15 @@ export function SmartDiffTable({
     <div className="flex flex-col">
       {/* Summary stats */}
       {viewMode === 'diff' && (
-        <div className="flex items-center gap-4 px-4 py-3 bg-slate-800/30 border-b border-white/5 text-sm">
-          <span className="text-slate-400">
-            <span className="font-medium text-white">{summary.totalRows}</span> rows
+        <div className="flex items-center gap-4 px-4 py-3 bg-app-raised border-b border-app-border text-sm">
+          <span className="text-app-muted">
+            <span className="font-medium text-app-text">{summary.totalRows}</span> rows
           </span>
-          <span className="text-slate-400">
-            <span className="font-medium text-amber-400">{summary.changedRows}</span> changed
+          <span className="text-app-muted">
+            <span className="font-medium text-app-warn">{summary.changedRows}</span> changed
           </span>
-          <span className="text-slate-400">
-            <span className="font-medium text-emerald-400">{summary.totalCellChanges}</span> cell fixes
+          <span className="text-app-muted">
+            <span className="font-medium text-app-success">{summary.totalCellChanges}</span> cell fixes
           </span>
         </div>
       )}
@@ -57,15 +57,15 @@ export function SmartDiffTable({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[800px]">
           {/* Header */}
-          <thead className="bg-slate-800/50 sticky top-0 z-10">
+          <thead className="bg-app-raised sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider w-16">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-app-muted uppercase tracking-wider w-16">
                 #
               </th>
               {columns.map((col) => (
                 <th
                   key={col}
-                  className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                  className="px-4 py-3 text-left text-xs font-semibold text-app-muted uppercase tracking-wider"
                 >
                   {col}
                 </th>
@@ -74,7 +74,7 @@ export function SmartDiffTable({
           </thead>
 
           {/* Body */}
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-app-border">
             {rows.map((row) => {
               const isHighlighted = highlightedRow === row.rowIndex;
               const hasChanges = row.hasChanges;
@@ -86,13 +86,13 @@ export function SmartDiffTable({
                   className={`
                     transition-colors
                     ${onRowClick ? 'cursor-pointer' : ''}
-                    ${isHighlighted ? 'bg-cyan-500/10 ring-1 ring-inset ring-cyan-500/30' : ''}
-                    ${hasChanges && viewMode === 'diff' ? 'bg-amber-500/5 border-l-2 border-l-amber-500' : ''}
-                    ${!isHighlighted && !hasChanges ? 'hover:bg-white/[0.02]' : ''}
+                    ${isHighlighted ? 'bg-primary-50 ring-1 ring-inset ring-cyan-500/30' : ''}
+                    ${hasChanges && viewMode === 'diff' ? 'bg-app-warn-bg border-l-2 border-l-amber-500' : ''}
+                    ${!isHighlighted && !hasChanges ? 'hover:bg-app-raised' : ''}
                   `}
                 >
                   {/* Row number */}
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400">
+                  <td className="px-4 py-3 text-xs font-mono text-app-muted">
                     {row.rowIndex + 1}
                   </td>
 
@@ -101,7 +101,7 @@ export function SmartDiffTable({
                     const cell = row.cells[col];
                     if (!cell) {
                       return (
-                        <td key={col} className="px-4 py-3 text-slate-400">—</td>
+                        <td key={col} className="px-4 py-3 text-app-muted">—</td>
                       );
                     }
 
@@ -110,7 +110,7 @@ export function SmartDiffTable({
                         {viewMode === 'diff' ? (
                           <DiffCell cell={cell} />
                         ) : (
-                          <span className="text-slate-300">
+                          <span className="text-app-text">
                             {cell.fixed ?? cell.original ?? '—'}
                           </span>
                         )}
@@ -126,8 +126,8 @@ export function SmartDiffTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-800/30 border-t border-white/5">
-          <span className="text-sm text-slate-400">
+        <div className="flex items-center justify-between px-4 py-3 bg-app-raised border-t border-app-border">
+          <span className="text-sm text-app-muted">
             Page {currentPage} of {totalPages}
           </span>
 
@@ -138,8 +138,8 @@ export function SmartDiffTable({
               className={`
                 p-2 rounded-lg transition-colors
                 ${hasPrev
-                  ? 'text-slate-300 hover:bg-white/5'
-                  : 'text-slate-400 cursor-not-allowed'
+                  ? 'text-app-text hover:bg-app-raised'
+                  : 'text-app-muted cursor-not-allowed'
                 }
               `}
             >
@@ -152,8 +152,8 @@ export function SmartDiffTable({
               className={`
                 p-2 rounded-lg transition-colors
                 ${hasNext
-                  ? 'text-slate-300 hover:bg-white/5'
-                  : 'text-slate-400 cursor-not-allowed'
+                  ? 'text-app-text hover:bg-app-raised'
+                  : 'text-app-muted cursor-not-allowed'
                 }
               `}
             >

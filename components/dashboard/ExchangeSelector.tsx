@@ -62,12 +62,12 @@ export function ExchangeSelector({
     <div className={`space-y-4 ${className}`}>
       {/* Header */}
       <div className="flex items-start gap-2">
-        <HelpCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+        <HelpCircle className="w-5 h-5 text-app-warn flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium text-slate-800">
             Auto-detection failed
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-app-subtle mt-1">
             We couldn&apos;t identify your CSV format automatically. Select your exchange below to retry processing.
           </p>
         </div>
@@ -76,7 +76,7 @@ export function ExchangeSelector({
       {/* Column Analysis */}
       {analysis && (
         <div className="bg-slate-50 rounded-lg p-3 space-y-2">
-          <p className="text-xs font-medium text-slate-500">Column analysis:</p>
+          <p className="text-xs font-medium text-app-subtle">Column analysis:</p>
           <div className="flex flex-wrap gap-2">
             <span className={`px-2 py-1 text-xs rounded-full ${
               analysis.has_date_column
@@ -101,7 +101,7 @@ export function ExchangeSelector({
             </span>
           </div>
           {suggestion && (
-            <p className="text-xs text-slate-500 mt-2">{suggestion}</p>
+            <p className="text-xs text-app-subtle mt-2">{suggestion}</p>
           )}
         </div>
       )}
@@ -109,18 +109,18 @@ export function ExchangeSelector({
       {/* Detected columns hint */}
       {detectedColumns.length > 0 && (
         <div className="bg-slate-50 rounded-lg p-3">
-          <p className="text-xs font-medium text-slate-500 mb-2">Columns found in your file:</p>
+          <p className="text-xs font-medium text-app-subtle mb-2">Columns found in your file:</p>
           <div className="flex flex-wrap gap-1">
             {detectedColumns.slice(0, 10).map((col, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 bg-white border border-slate-200 text-slate-600 text-xs rounded"
+                className="px-2 py-0.5 bg-white border border-slate-200 text-app-subtle text-xs rounded"
               >
                 {col}
               </span>
             ))}
             {detectedColumns.length > 10 && (
-              <span className="px-2 py-0.5 text-slate-400 text-xs">
+              <span className="px-2 py-0.5 text-app-muted text-xs">
                 +{detectedColumns.length - 10} more
               </span>
             )}
@@ -136,11 +136,11 @@ export function ExchangeSelector({
           disabled={isRetrying}
           className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-lg text-left hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
-          <span className={selectedExchange ? 'text-slate-800' : 'text-slate-400'}>
+          <span className={selectedExchange ? 'text-slate-800' : 'text-app-muted'}>
             {selectedLabel}
           </span>
           <ChevronDown
-            className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 text-app-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}
           />
         </button>
 
@@ -149,7 +149,7 @@ export function ExchangeSelector({
           <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
             {EXCHANGE_OPTIONS.map((tier) => (
               <div key={tier.tier}>
-                <div className="px-3 py-2 bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wide sticky top-0">
+                <div className="px-3 py-2 bg-slate-50 text-xs font-semibold text-app-subtle uppercase tracking-wide sticky top-0">
                   {tier.tier}
                 </div>
                 {tier.exchanges.map((exchange) => (
@@ -180,7 +180,7 @@ export function ExchangeSelector({
         type="button"
         onClick={handleRetry}
         disabled={!selectedExchange || isRetrying}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium rounded-lg hover:from-blue-400 hover:to-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20"
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg "
       >
         {isRetrying ? (
           <>
@@ -196,7 +196,7 @@ export function ExchangeSelector({
       </button>
 
       {/* Help text */}
-      <p className="text-xs text-slate-400 text-center">
+      <p className="text-xs text-app-muted text-center">
         Not sure which exchange? Check where you downloaded the CSV file from.
       </p>
     </div>

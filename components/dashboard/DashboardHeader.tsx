@@ -25,11 +25,11 @@ export function DashboardHeader({ user, tier = 'free' }: DashboardHeaderProps) {
   const tierLabel = tierName(tier);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#030712]/80 backdrop-blur-xl border-b border-zinc-800/50">
+    <header className="sticky top-0 z-50 bg-app-card/90 backdrop-blur-xl border-b border-app-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Logo className="h-8 w-auto" />
+          <Logo className="h-8 w-auto" variant="dark" />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
@@ -44,35 +44,38 @@ export function DashboardHeader({ user, tier = 'free' }: DashboardHeaderProps) {
             {/* User Info - Desktop */}
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-right">
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-app-text">
                   {user.email}
                 </p>
-                <p className="text-xs text-zinc-500 capitalize">
-                  {tierLabel} Plan
+                <p className="text-xs text-app-muted">
+                  <span className="capitalize">{tierLabel}</span> plan
+                  {tier === 'free' && (
+                    <>
+                      {' · '}
+                      <Link href="/#pricing" className="font-semibold text-app-link hover:underline">Upgrade</Link>
+                    </>
+                  )}
                 </p>
               </div>
               {/* Avatar */}
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-linear-to-r from-emerald-500 to-cyan-500 rounded-full opacity-50 group-hover:opacity-100 transition-opacity blur-sm" />
-                <div className="relative h-9 w-9 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-emerald-400 font-semibold text-sm">
-                  {initial}
-                </div>
+              <div aria-hidden="true" className="h-9 w-9 rounded-full bg-app-raised border border-app-border-strong flex items-center justify-center text-app-text font-semibold text-sm">
+                {initial}
               </div>
             </div>
 
             {/* Sign Out - Desktop */}
             <button
               onClick={() => setShowSignOutConfirm(true)}
-              className="hidden md:block text-sm text-zinc-500 hover:text-white transition-colors"
+              className="hidden md:block text-sm text-app-muted hover:text-app-text transition-colors px-2 py-2.5"
             >
-              Sign Out
+              Sign out
             </button>
 
             {/* Mobile Menu Button */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors rounded-lg hover:bg-zinc-800"
+              className="md:hidden p-2 text-app-muted hover:text-app-text transition-colors rounded-lg hover:bg-app-raised"
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? (
@@ -87,34 +90,31 @@ export function DashboardHeader({ user, tier = 'free' }: DashboardHeaderProps) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-800/50 bg-[#030712]/95 backdrop-blur-xl">
+        <div className="md:hidden border-t border-app-border bg-app-card">
           <nav className="flex flex-col px-4 py-4 space-y-1">
             <MobileNavLink href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</MobileNavLink>
             <MobileNavLink href="/dashboard/developer" onClick={() => setMobileMenuOpen(false)}>Developer</MobileNavLink>
             <MobileNavLink href="/dashboard/settings" onClick={() => setMobileMenuOpen(false)}>Settings</MobileNavLink>
             <MobileNavLink href="/docs" onClick={() => setMobileMenuOpen(false)}>Docs</MobileNavLink>
-            <div className="pt-4 border-t border-zinc-800 mt-2">
+            <div className="pt-4 border-t border-app-border mt-2">
               <div className="flex items-center gap-3 px-3 py-2 mb-3">
-                <div className="relative">
-                  <div className="absolute -inset-0.5 bg-linear-to-r from-emerald-500 to-cyan-500 rounded-full opacity-50 blur-sm" />
-                  <div className="relative h-8 w-8 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-emerald-400 font-semibold text-sm">
-                    {initial}
-                  </div>
+                <div aria-hidden="true" className="h-8 w-8 rounded-full bg-app-raised border border-app-border-strong flex items-center justify-center text-app-text font-semibold text-sm">
+                  {initial}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white truncate max-w-45">
+                  <p className="text-sm font-medium text-app-text truncate max-w-45">
                     {user.email}
                   </p>
-                  <p className="text-xs text-zinc-500 capitalize">
-                    {tierLabel} Plan
+                  <p className="text-xs text-app-muted">
+                    <span className="capitalize">{tierLabel}</span> plan
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowSignOutConfirm(true)}
-                className="w-full text-left px-3 py-3 text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors text-base font-medium rounded-lg"
+                className="w-full text-left px-3 py-3 text-app-muted hover:text-app-text hover:bg-app-raised transition-colors text-base font-medium rounded-lg"
               >
-                Sign Out
+                Sign out
               </button>
             </div>
           </nav>
@@ -137,10 +137,11 @@ function NavLink({ href, children, active }: { href: string; children: React.Rea
   return (
     <Link
       href={href}
-      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+      aria-current={active ? 'page' : undefined}
+      className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 ${
         active
-          ? 'text-emerald-400 bg-emerald-500/10'
-          : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+          ? 'text-app-text border-primary-500'
+          : 'text-app-muted border-transparent hover:text-app-text'
       }`}
     >
       {children}
@@ -153,7 +154,7 @@ function MobileNavLink({ href, children, onClick }: { href: string; children: Re
     <Link
       href={href}
       onClick={onClick}
-      className="text-zinc-200 hover:text-emerald-400 hover:bg-zinc-800/50 transition-colors text-base font-medium py-3 px-3 rounded-lg"
+      className="text-app-text hover:bg-app-raised transition-colors text-base font-medium py-3 px-3 rounded-lg"
     >
       {children}
     </Link>

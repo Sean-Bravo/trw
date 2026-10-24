@@ -3,14 +3,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UploadSection } from '@/components/dashboard/UploadSection';
 import { useJobContext } from '@/contexts/JobContext';
-import { createRunningJob, createSucceededJob } from '../factories/jobs';
+import { createQueuedJob, createRunningJob, createSucceededJob } from '../factories/jobs';
 
 jest.mock('@/contexts/JobContext', () => ({ useJobContext: jest.fn() }));
 jest.mock('@/components/dashboard/FileUploader', () => ({ FileUploader: () => <div>uploader</div> }));
 jest.mock('@/components/dashboard/BankPDFUploader', () => ({ BankPDFUploader: () => <div>bank</div> }));
-jest.mock('@/components/dashboard/AnalysisAnimation', () => ({
-  AnalysisAnimation: ({ statusText }: { statusText: string }) => <div>{statusText}</div>,
-}));
 
 const mockUseJobContext = useJobContext as jest.Mock;
 
@@ -32,15 +29,38 @@ describe('UploadSection', () => {
     jest.clearAllMocks();
   });
 
-  it('offers Cancel while a job is running and calls cancelActiveJob', async () => {
-    const ctx = withContext({ activeJob: createRunningJob() });
+  it('is the "New conversion" card with a crypto/bank toggle', async () => {
+    withContext({});
     render(<UploadSection />);
 
-    expect(screen.getByText('AI Analysis Running...')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'New conversion' })).toBeInTheDocument();
+    const crypto = screen.getByRole('button', { name: 'Crypto CSV → tax software' });
+    const bank = screen.getByRole('button', { name: 'Bank PDF → CSV' });
+    expect(crypto).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('uploader')).toBeInTheDocument();
+
+    await userEvent.click(bank);
+    expect(bank).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('bank')).toBeInTheDocument();
+  });
+
+  it('shows a status line with Cancel while a job is running', async () => {
+    const ctx = withContext({ activeJob: createRunningJob({ filename: 'trades.csv' }) });
+    render(<UploadSection />);
+
+    expect(screen.getByText('Converting your file…')).toBeInTheDocument();
+    expect(screen.getByText('trades.csv')).toBeInTheDocument();
+    expect(screen.queryByText('uploader')).not.toBeInTheDocument();
     expect(screen.queryByText('Try again')).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
     expect(ctx.cancelActiveJob).toHaveBeenCalledTimes(1);
+  });
+
+  it('says the upload is waiting while the job is queued', () => {
+    withContext({ activeJob: createQueuedJob() });
+    render(<UploadSection />);
+    expect(screen.getByText('Upload received, waiting to start…')).toBeInTheDocument();
   });
 
   it('shows the cancel error when canceling fails', async () => {
@@ -63,11 +83,11 @@ describe('UploadSection', () => {
     expect(ctx.retryPolling).toHaveBeenCalledTimes(1);
   });
 
-  it('does not offer Cancel once the job is complete', () => {
+  it('keeps the uploader on screen once the job is complete', () => {
     withContext({ activeJob: createSucceededJob() });
     render(<UploadSection />);
 
+    expect(screen.getByText('uploader')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^cancel$/i })).not.toBeInTheDocument();
-    expect(screen.getByText('Upload Another File')).toBeInTheDocument();
   });
 });

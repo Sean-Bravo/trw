@@ -7,36 +7,31 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { TaxSoftwareSelector } from '@/components/dashboard/TaxSoftwareSelector';
 
 describe('TaxSoftwareSelector', () => {
-  it('renders all 4 format options in dropdown', async () => {
-    const onDownload = jest.fn();
-    render(<TaxSoftwareSelector onDownload={onDownload} isDownloading={false} />);
+  it('offers all 4 formats in a labelled select', () => {
+    render(<TaxSoftwareSelector onDownload={jest.fn()} isDownloading={false} />);
 
-    expect(screen.getByText(/Choose your tax software/i)).toBeInTheDocument();
-    expect(screen.getByText('TurboTax')).toBeInTheDocument();
-
-    const dropdownTrigger = screen.getAllByRole('button').find((b) => b.textContent?.includes('TurboTax') && !b.textContent?.includes('Download'));
-    fireEvent.click(dropdownTrigger!);
-    expect(screen.getByText('Koinly')).toBeInTheDocument();
-    expect(screen.getByText('CoinLedger')).toBeInTheDocument();
-    expect(screen.getByText('ZenLedger')).toBeInTheDocument();
+    const select = screen.getByLabelText('Export for') as HTMLSelectElement;
+    expect(select.value).toBe('turbotax');
+    expect([...select.options].map((o) => o.textContent)).toEqual(['TurboTax', 'Koinly', 'CoinLedger', 'ZenLedger']);
   });
 
-  it('shows format descriptions', () => {
+  it('never claims the TurboTax export includes cost basis', () => {
+    // The converter leaves Date Acquired and Cost Basis blank.
     render(<TaxSoftwareSelector onDownload={jest.fn()} isDownloading={false} />);
-    expect(screen.getByText(/Formatted for TurboTax import. Includes Date Sold/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Cost Basis/i)).not.toBeInTheDocument();
   });
 
   it('calls onDownload with selected format when download clicked', () => {
     const onDownload = jest.fn();
     render(<TaxSoftwareSelector onDownload={onDownload} isDownloading={false} />);
-    fireEvent.click(screen.getByRole('button', { name: /Download for TurboTax/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Download CSV for TurboTax/i }));
     expect(onDownload).toHaveBeenCalledWith('turbotax');
   });
 
   it('does not call onDownload when isDownloading', () => {
     const onDownload = jest.fn();
     render(<TaxSoftwareSelector onDownload={onDownload} isDownloading={true} />);
-    const btn = screen.getByRole('button', { name: /Preparing download|Download/i });
+    const btn = screen.getByRole('button', { name: /Preparing download/i });
     expect(btn).toBeDisabled();
     fireEvent.click(btn);
     expect(onDownload).not.toHaveBeenCalled();
@@ -50,10 +45,8 @@ describe('TaxSoftwareSelector', () => {
   it('handles format selection change', () => {
     const onDownload = jest.fn();
     render(<TaxSoftwareSelector onDownload={onDownload} isDownloading={false} />);
-    const trigger = screen.getAllByRole('button').find((b) => b.textContent?.includes('TurboTax') && !b.textContent?.includes('Download'));
-    fireEvent.click(trigger!);
-    fireEvent.click(screen.getByText('Koinly'));
-    fireEvent.click(screen.getByRole('button', { name: /Download for Koinly/i }));
+    fireEvent.change(screen.getByLabelText('Export for'), { target: { value: 'koinly' } });
+    fireEvent.click(screen.getByRole('button', { name: /Download CSV for Koinly/i }));
     expect(onDownload).toHaveBeenCalledWith('koinly');
   });
 });
