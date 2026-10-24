@@ -4,6 +4,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getJobById } from '@/lib/jobs-db';
 import { queryOne, execute } from '@/lib/db';
 import { API_GATEWAY_URL, internalGatewayHeaders } from '@/lib/lambda-client';
+import { STALE_AFTER_MS } from '@/lib/job-staleness';
 
 // Rate limit: minimum 30 seconds between retries
 const RETRY_COOLDOWN_MS = 30 * 1000;
@@ -61,10 +62,15 @@ export async function POST(
       );
     }
 
-    // 4. Only allow retry on failed jobs
-    if (dbJob.status !== 'failed') {
+    // 4. Only allow retry on failed jobs, or ones stuck queued/running past
+    // the dashboard's "Timed out" cutoff (they never finished, so a fresh
+    // run is the only way forward)
+    const timedOut =
+      (dbJob.status === 'queued' || dbJob.status === 'running') &&
+      Date.now() - new Date(dbJob.created_at).getTime() > STALE_AFTER_MS;
+    if (dbJob.status !== 'failed' && !timedOut) {
       return NextResponse.json(
-        { error: 'Only failed jobs can be retried' },
+        { error: 'Only failed or timed-out jobs can be retried' },
         { status: 400 }
       );
     }
