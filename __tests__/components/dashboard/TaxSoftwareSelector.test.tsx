@@ -3,16 +3,16 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { TaxSoftwareSelector } from '@/components/dashboard/TaxSoftwareSelector';
 
 describe('TaxSoftwareSelector', () => {
   it('offers all 4 formats in a labelled select', () => {
     render(<TaxSoftwareSelector onDownload={jest.fn()} isDownloading={false} />);
 
-    const select = screen.getByLabelText('Export for') as HTMLSelectElement;
-    expect(select.value).toBe('turbotax');
-    expect([...select.options].map((o) => o.textContent)).toEqual(['TurboTax', 'Koinly', 'CoinLedger', 'ZenLedger']);
+    const select = screen.getByLabelText('Export for');
+    expect(select).toHaveValue('turbotax');
+    expect(within(select).getAllByRole('option').map((o) => o.textContent)).toEqual(['TurboTax', 'Koinly', 'CoinLedger', 'ZenLedger']);
   });
 
   it('never claims the TurboTax export includes cost basis', () => {
