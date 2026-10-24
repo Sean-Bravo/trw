@@ -89,3 +89,51 @@ class TestEndToEnd:
     def test_turbotax_keeps_known_quantities(self):
         converted, _ = convert_records(_records("coinbase_legacy_valid.csv"), "turbotax")
         assert [r["Currency Name"] for r in converted] == ["1.5 ETH"]
+
+
+# Oct 24: a real upload had a blank Transaction Type ("Coinbase nan" in the
+# dashboard and CSV) and a sell with blank fee/total columns (Fee Amount NaN,
+# written as "nan" in the CSV and bare NaN in /v1/parse JSON).
+MESSY_COINBASE = b"""Transactions
+"User,Test User,test-0000-0000-uuid"
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+m001,2024-01-03T14:05:00Z,Buy,BTC,0.1,USD,44000.00,4400.00,4444.00,44.00,
+m002,2024-02-05T00:00:00Z,,ETH,0.5,USD,2380.00,1190.00,1201.90,11.90,Missing type
+m005,2024-03-18T09:30:00Z,Sell,BTC,0.05,USD,,,,,Missing price and totals
+"""
+
+
+class TestMissingText:
+
+    def _records(self):
+        result = process_file(MESSY_COINBASE)
+        assert result["success"], result.get("errors")
+        return result["records"]
+
+    def test_blank_type_says_type_missing_not_nan(self):
+        descriptions = [r["Description"] for r in self._records()]
+        assert "Coinbase (type missing)" in descriptions
+        assert not any("nan" in d.lower() for d in descriptions)
+
+    def test_blank_fee_is_none_not_nan(self):
+        sell = [r for r in self._records() if r["Description"] == "Coinbase sell"][0]
+        assert sell["Fee Amount"] is None
+
+    def test_messy_file_serializes_as_strict_json_and_clean_csv(self):
+        records = self._records()
+        json.dumps(records, allow_nan=False)
+        out = StringIO()
+        writer = csv.DictWriter(out, fieldnames=list(records[0].keys()))
+        writer.writeheader()
+        writer.writerows(records)
+        assert "nan" not in out.getvalue().lower()
+
+    def test_text_fields_that_are_only_nan_become_empty(self):
+        from services.engine import clean_missing_text
+        records = clean_missing_text([{"Description": "Kraken nan", "TxHash": "nan", "Label": "None", "Fee Currency": "USD"}])
+        assert records[0] == {"Description": "Kraken (type missing)", "TxHash": "", "Label": "", "Fee Currency": "USD"}
+
+    def test_words_containing_nan_are_left_alone(self):
+        from services.engine import clean_missing_text
+        records = clean_missing_text([{"Description": "Binance financing fee"}])
+        assert records[0]["Description"] == "Binance financing fee"
