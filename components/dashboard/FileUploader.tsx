@@ -6,6 +6,7 @@ import { Upload, FileText, AlertCircle, CheckCircle, RefreshCw, X } from 'lucide
 import { uploadCSVFile, validateFile, formatFileSize, UploadError } from '@/lib/upload-client';
 import { trackEvent } from '@/lib/analytics';
 import { useJobContext } from '@/contexts/JobContext';
+import { useIdleHold } from '@/lib/idle-hold';
 
 interface FileWithProgress {
   file: File;
@@ -20,6 +21,8 @@ export function FileUploader() {
   const { setActiveJob, refreshJobHistory, jobHistory } = useJobContext();
   const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [uploading, setUploading] = useState(false);
+  // No automatic sign-out in the middle of an upload
+  useIdleHold(uploading);
   const [error, setError] = useState<string | null>(null);
   const [successCount, setSuccessCount] = useState(0);
 

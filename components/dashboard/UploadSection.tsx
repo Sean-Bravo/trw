@@ -6,6 +6,7 @@ import { ModeSelector, ProcessingMode } from './ModeSelector';
 import { FileUploader } from './FileUploader';
 import { BankPDFUploader } from './BankPDFUploader';
 import { useJobContext } from '@/contexts/JobContext';
+import { useIdleHold } from '@/lib/idle-hold';
 
 export function UploadSection() {
   const [mode, setMode] = useState<ProcessingMode>('crypto');
@@ -28,6 +29,8 @@ export function UploadSection() {
   // A finished job keeps the uploader on screen (its results are in the
   // Insights card); only a running job replaces it with a status line.
   const isProcessing = activeJob?.status === 'queued' || activeJob?.status === 'running';
+  // No automatic sign-out while a conversion runs
+  useIdleHold(isProcessing);
 
   return (
     <section aria-labelledby="new-conversion-title" className="bg-app-card border border-app-border rounded-2xl p-6">

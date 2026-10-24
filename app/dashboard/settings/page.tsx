@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { getUserTier } from '@/lib/auth-db';
+import { getUserTier, getIdleTimeoutMinutes } from '@/lib/auth-db';
 import { queryOne } from '@/lib/db';
 import { SettingsClient } from './SettingsClient';
 
@@ -24,5 +24,14 @@ export default async function SettingsPage() {
     [session.user.id]
   );
 
-  return <SettingsClient user={session.user} tier={tier} hasPassword={row?.has_password ?? true} />;
+  const idleTimeoutMinutes = await getIdleTimeoutMinutes(session.user.id);
+
+  return (
+    <SettingsClient
+      user={session.user}
+      tier={tier}
+      hasPassword={row?.has_password ?? true}
+      idleTimeoutMinutes={idleTimeoutMinutes}
+    />
+  );
 }
