@@ -5,7 +5,7 @@
 -- Created:        2026-10-24
 -- Companion code: lib/idle-timeout.ts, lib/auth-db.ts (idle timeout getters),
 --                 app/api/auth/[...nextauth]/route.ts (jwt/session callbacks),
---                 app/api/account/idle-timeout/route.ts
+--                 app/api/user/idle-timeout/route.ts
 -- Affected tables: users
 -- Estimated runtime: <1 second on current data volume
 -- Reversible: yes (see ROLLBACK section at bottom)
