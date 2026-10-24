@@ -30,7 +30,7 @@ export default function ContactPage() {
       <main className="min-h-screen bg-[#020617] text-slate-300 relative overflow-hidden">
         {/* Background ambient glows - keeping these for page depth, but kept away from cards */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[100px]" />
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-[100px]" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[100px]" />
         </div>
 
@@ -51,22 +51,22 @@ export default function ContactPage() {
               {/* Main Support Options - Left Column (2/3 width) */}
               <div className="lg:col-span-2 space-y-6">
                 <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-indigo-400" />
+                  <MessageSquare className="w-5 h-5 text-primary-300" />
                   Contact Channels
                 </h2>
                 
                 <div className="grid sm:grid-cols-2 gap-4">
                   {/* Technical Support */}
                   <a href="mailto:support@taxformatter.com" className="group h-full">
-                    <Card className="h-full border-slate-800 bg-gradient-to-br from-indigo-500/10 via-slate-900 to-slate-900 hover:from-indigo-500/20 hover:border-indigo-500/50 transition-all cursor-pointer">
-                      <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-colors">
-                        <Mail className="w-5 h-5 text-indigo-400" />
+                    <Card className="h-full border-slate-800 bg-gradient-to-br from-primary-400/10 via-slate-900 to-slate-900 hover:from-primary-400/20 hover:border-primary-400/50 transition-all cursor-pointer">
+                      <div className="w-10 h-10 bg-primary-400/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary-400/20 transition-colors">
+                        <Mail className="w-5 h-5 text-primary-300" />
                       </div>
                       <h3 className="text-lg font-medium text-white mb-2">Technical Support</h3>
                       <p className="text-slate-400 text-sm mb-4">
                         Issues with CSV uploads, formatting errors, or account access.
                       </p>
-                      <span className="text-indigo-400 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                      <span className="text-primary-300 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                         support@taxformatter.com <ArrowRight className="w-3 h-3" />
                       </span>
                     </Card>
@@ -127,7 +127,7 @@ export default function ContactPage() {
                 {/* Response Times Card */}
                 <div className="p-6 rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-800/40 to-slate-900/80">
                   <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-indigo-400" />
+                    <Clock className="w-4 h-4 text-primary-300" />
                     Expected Response Times
                   </h3>
                   <div className="space-y-4">
@@ -137,7 +137,7 @@ export default function ContactPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400">Pro Users</span>
-                      <span className="text-indigo-400 font-medium bg-indigo-500/10 px-2 py-0.5 rounded text-xs">&lt; 24 hours</span>
+                      <span className="text-primary-300 font-medium bg-primary-400/10 px-2 py-0.5 rounded text-xs">&lt; 24 hours</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400">Free Users</span>

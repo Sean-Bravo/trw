@@ -92,7 +92,7 @@ const vibeIcons: Record<VibeType, LucideIcon> = {
 // One accent for every vibe. Six competing colours (orange, purple, yellow,
 // emerald, blue, pink) carried no meaning the vibe icon doesn't already carry,
 // and made the FAQ read as a different site. The icons still differentiate.
-const ANSWER_ACCENT = 'border-[#635bff]/50 text-primary-400 shadow-[#635bff]/20';
+const ANSWER_ACCENT = 'border-primary-400/50 text-primary-400 shadow-primary-400/20';
 const ANSWER_ACCENT_TEXT = 'text-primary-400';
 
 export function FAQ() {

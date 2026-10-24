@@ -41,8 +41,8 @@ const CARD_COPY: Record<
     extras: ['Bank PDF parsing', INSIGHTS_LABELS[TIER_BY_ID.growth.insights], 'All output formats', 'Priority support'],
     cta: 'Start Building',
     highlight: true,
-    style: 'bg-surface-card border-[#635bff]/30',
-    checkColor: 'text-[#635bff]',
+    style: 'bg-surface-card border-primary-400/30',
+    checkColor: 'text-primary-400',
   },
   business: {
     description: 'High-volume processing, deepest insights.',
@@ -89,7 +89,7 @@ export function APIPricing() {
   return (
     <section className="py-20 bg-surface-base relative overflow-hidden" id="pricing">
       {/* Background */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-225 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-225 h-100 bg-primary-400/5 rounded-[100%] blur-[120px]" />
 
       <Container>
         <div className="relative z-10">
@@ -114,7 +114,7 @@ export function APIPricing() {
                 }`}
               >
                 {tier.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-linear-to-r from-[#635bff] to-primary-400 text-[11px] font-bold text-white tracking-wide shadow-lg">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary-500 text-[11px] font-bold text-white tracking-wide shadow-lg">
                     {tier.badge}
                   </div>
                 )}
@@ -142,7 +142,7 @@ export function APIPricing() {
                   onClick={() => handleTierClick(tier.tier)}
                   className={`block w-full py-3.5 px-4 text-center font-semibold rounded-xl text-[14px] transition-all ${
                     tier.highlight
-                      ? 'bg-linear-to-r from-[#635bff] to-primary-400 text-white hover:opacity-90 shadow-lg shadow-[#635bff]/20'
+                      ? 'bg-primary-500 text-white hover:bg-primary-600 shadow-lg shadow-primary-500/20'
                       : 'bg-white/4 text-slate-300 border border-white/8 hover:bg-white/6 hover:border-white/12'
                   }`}
                 >

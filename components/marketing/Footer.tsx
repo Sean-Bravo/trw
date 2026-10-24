@@ -53,7 +53,7 @@ export function Footer() {
                 className="inline-block mt-4"
               >
                 <img
-                  src="https://img.shields.io/npm/dm/@taxformatter/mcp-server?style=flat-square&color=635bff&label=npm%20downloads"
+                  src="https://img.shields.io/npm/dm/@taxformatter/mcp-server?style=flat-square&color=3b82f6&label=npm%20downloads"
                   alt="Monthly downloads of the @taxformatter/mcp-server npm package"
                   width={168}
                   height={20}

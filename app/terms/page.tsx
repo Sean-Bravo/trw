@@ -68,7 +68,7 @@ export default function TermsOfServicePage() {
 
                 <h3 className="text-xl font-medium text-slate-200 mb-3">Pricing</h3>
                 <p className="mb-4">
-                  Our current pricing tiers are displayed on our <Link href="/pricing" className="text-indigo-400 hover:text-indigo-300 underline">pricing page</Link>.
+                  Our current pricing tiers are displayed on our <Link href="/pricing" className="text-primary-300 hover:text-primary-300 underline">pricing page</Link>.
                   Prices are subject to change with notice to existing subscribers.
                 </p>
 
@@ -116,7 +116,7 @@ export default function TermsOfServicePage() {
               <section>
                 <h2 className="text-2xl font-semibold text-white mb-4">7. Data Handling</h2>
                 <p className="mb-4">
-                  We take data security seriously. Please review our <Link href="/privacy" className="text-indigo-400 hover:text-indigo-300 underline">Privacy Policy</Link> for
+                  We take data security seriously. Please review our <Link href="/privacy" className="text-primary-300 hover:text-primary-300 underline">Privacy Policy</Link> for
                   details on how we handle your data. Key points:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">

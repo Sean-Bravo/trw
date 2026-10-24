@@ -4,7 +4,7 @@
 
 ## What This Is
 
-A developer API platform for parsing crypto exchange CSVs and bank statement PDFs into structured, tax-ready data. The core engine supports 14 exchanges and 7+ banks with auto-detection, date normalization, and format conversion. Exposed via REST API and MCP server for AI agents. Also available as a consumer dashboard for individual uploads.
+A developer API platform for parsing crypto exchange CSVs and bank statement PDFs into structured, tax-ready data. The core engine supports 14 exchanges and 6 banks (3 verified, 3 beta — `lib/bank-registry.ts`) with auto-detection, date normalization, and format conversion. Exposed via REST API and MCP server for AI agents. Also available as a consumer dashboard for individual uploads.
 
 ## Tech Stack
 

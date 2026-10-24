@@ -82,7 +82,7 @@ export function APIDemo() {
   return (
     <section id="features" className="py-20 bg-surface-base relative overflow-hidden">
       {/* Subtle radial accent */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-100 bg-[#635bff]/5 rounded-[100%] blur-[120px]" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-100 bg-primary-400/5 rounded-[100%] blur-[120px]" />
 
       <Container>
         <div className="relative z-10 max-w-4xl mx-auto">
@@ -121,7 +121,7 @@ export function APIDemo() {
                         {lang.name}
                       </span>
                       {activeTab === i && (
-                        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#635bff] rounded-full" />
+                        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary-400 rounded-full" />
                       )}
                     </button>
                   ))}
