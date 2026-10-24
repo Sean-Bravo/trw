@@ -3,6 +3,7 @@ import type { Attribution } from './attribution';
 import bcrypt from 'bcryptjs';
 import { constantTimeStringEqual } from './validation';
 import { verifyBackupCode, verifyToken } from './2fa';
+import { DEFAULT_IDLE_TIMEOUT_MINUTES, isIdleTimeoutOption, type IdleTimeoutMinutes } from './idle-timeout';
 
 // User response type (without password_hash)
 export interface UserWithSubscription {
@@ -712,4 +713,26 @@ export async function resetPassword(
   );
 
   return { success: true };
+}
+
+/**
+ * The user's automatic sign-out limit in minutes (0 = never). Falls back to
+ * the default when the row is missing or the column isn't there yet
+ * (migration 020 not applied), so sign-in never fails on it.
+ */
+export async function getIdleTimeoutMinutes(userId: string): Promise<IdleTimeoutMinutes> {
+  try {
+    const row = await queryOne<{ idle_timeout_minutes: number }>(
+      'SELECT idle_timeout_minutes FROM users WHERE id = $1',
+      [userId]
+    );
+    return isIdleTimeoutOption(row?.idle_timeout_minutes) ? row!.idle_timeout_minutes as IdleTimeoutMinutes : DEFAULT_IDLE_TIMEOUT_MINUTES;
+  } catch (error) {
+    console.error('[Auth] idle timeout lookup failed, using default:', error);
+    return DEFAULT_IDLE_TIMEOUT_MINUTES;
+  }
+}
+
+export async function setIdleTimeoutMinutes(userId: string, minutes: IdleTimeoutMinutes): Promise<void> {
+  await execute('UPDATE users SET idle_timeout_minutes = $2 WHERE id = $1', [userId, minutes]);
 }

@@ -321,6 +321,86 @@ If you didn't request a password reset, you can safely ignore this email.
 }
 
 /**
+ * Tell the account owner that automatic sign-out was turned off, so a change
+ * made by someone else at an unlocked device doesn't go unnoticed.
+ */
+export async function sendIdleTimeoutDisabledEmail(
+  email: string,
+  name?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const transporter = getTransporter();
+    const fromEmail = process.env['EMAIL_FROM'] || 'noreply@taxformatter.com';
+    const siteName = process.env['NEXT_PUBLIC_SITE_NAME'] || 'TaxFormatter';
+    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] || 'https://www.taxformatter.com';
+    const settingsUrl = `${appUrl}/dashboard/settings`;
+    const greeting = name ? `Hi ${name},` : 'Hi there,';
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automatic sign-out was turned off</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
+  <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;">
+    <div style="background: #2563eb; padding: 32px; text-align: center;">
+      <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">${siteName}</h1>
+    </div>
+    <div style="padding: 32px;">
+      <h2 style="color: #0f172a; margin: 0 0 16px; font-size: 20px;">Automatic sign-out was turned off</h2>
+      <p style="color: #475569; margin: 0 0 24px; line-height: 1.6;">
+        ${greeting}<br><br>
+        Your account will no longer sign out after a period of inactivity. Anyone using a device where you're signed in can open your uploads and tax files, for up to 7 days.<br><br>
+        If this wasn't you, turn it back on and change your password.
+      </p>
+      <div style="text-align: center; margin-bottom: 24px;">
+        <a href="${settingsUrl}" style="display: inline-block; background: #2563eb; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Review settings</a>
+      </div>
+    </div>
+    <div style="background: #f8fafc; padding: 20px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+      <p style="color: #64748b; font-size: 12px; margin: 0;">
+        &copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+
+    const textContent = `
+${siteName} - Automatic sign-out was turned off
+
+${greeting}
+
+Your account will no longer sign out after a period of inactivity. Anyone using a device where you're signed in can open your uploads and tax files, for up to 7 days.
+
+If this wasn't you, turn it back on and change your password: ${settingsUrl}
+
+© ${new Date().getFullYear()} ${siteName}
+    `.trim();
+
+    await transporter.sendMail({
+      from: `"${siteName}" <${fromEmail}>`,
+      to: email,
+      subject: `Automatic sign-out was turned off on your ${siteName} account`,
+      text: textContent,
+      html: htmlContent,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[Email] Failed to send idle-timeout notice:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send email',
+    };
+  }
+}
+
+/**
  * Send welcome email after successful registration
  */
 export async function sendWelcomeEmail(
