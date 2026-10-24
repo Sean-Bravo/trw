@@ -36,12 +36,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
   const userTier = await getUserTier(session.user.id);
 
   return (
-    <div className="min-h-screen bg-[#0a1628] relative">
-      {/* Gradient orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-1/4 w-150 h-150 bg-blue-500/8 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-cyan-500/6 rounded-full blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-app-bg relative">
 
       <JobDetailClient
         job={{

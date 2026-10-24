@@ -203,7 +203,7 @@ export function BankPDFUploader() {
     <div className="space-y-6">
       {/* Format Selector */}
       <div>
-        <label className="block text-sm font-medium text-slate-300 mb-2">
+        <label className="block text-sm font-medium text-app-text mb-2">
           Output Format
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -214,12 +214,12 @@ export function BankPDFUploader() {
               disabled={status !== 'idle'}
               className={`p-3 rounded-lg border text-left transition-all ${
                 outputFormat === format.id
-                  ? 'border-emerald-500 bg-emerald-500/10 text-white'
-                  : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600'
+                  ? 'border-primary-500 bg-primary-50 text-app-text'
+                  : 'border-app-border bg-app-raised text-app-muted hover:border-app-border-strong'
               } ${status !== 'idle' ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <div className="font-medium text-sm">{format.name}</div>
-              <div className="text-xs text-slate-500 mt-0.5">{format.description}</div>
+              <div className="text-xs text-app-subtle mt-0.5">{format.description}</div>
             </button>
           ))}
         </div>
@@ -230,36 +230,36 @@ export function BankPDFUploader() {
         {...getRootProps()}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
           isDragActive
-            ? 'border-emerald-500 bg-emerald-500/10'
+            ? 'border-primary-500 bg-primary-50'
             : file
-            ? 'border-slate-600 bg-slate-800/50'
-            : 'border-slate-700 hover:border-slate-600 bg-slate-900/50'
+            ? 'border-app-border-strong bg-app-raised'
+            : 'border-app-border hover:border-app-border-strong bg-app-raised'
         }`}
       >
         <input {...getInputProps()} />
 
         {file ? (
           <div className="flex items-center justify-center gap-4">
-            <div className="w-12 h-14 bg-red-500/20 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-red-400" />
+            <div className="w-12 h-14 bg-app-error-bg rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-app-error" />
             </div>
             <div className="text-left">
-              <p className="font-medium text-white">{file.name}</p>
-              <p className="text-sm text-slate-400">
+              <p className="font-medium text-app-text">{file.name}</p>
+              <p className="text-sm text-app-muted">
                 {(file.size / 1024 / 1024).toFixed(2)} MB
               </p>
             </div>
           </div>
         ) : (
           <>
-            <FileUp className="w-12 h-12 mx-auto mb-4 text-emerald-400" />
-            <p className="text-lg text-white">
+            <FileUp className="w-12 h-12 mx-auto mb-4 text-primary-500" />
+            <p className="text-lg text-app-text">
               {isDragActive ? 'Drop your PDF here' : 'Drop your bank statement PDF here'}
             </p>
-            <p className="text-sm text-slate-400 mt-2">
+            <p className="text-sm text-app-muted mt-2">
               or click to browse. Max 10MB.
             </p>
-            <p className="text-xs text-slate-500 mt-4">
+            <p className="text-xs text-app-subtle mt-4">
               Supported: Chase, Bank of America, Wells Fargo, Citi + Generic
             </p>
           </>
@@ -270,14 +270,14 @@ export function BankPDFUploader() {
       {(status === 'uploading' || status === 'processing') && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">
+            <span className="text-app-muted">
               {status === 'uploading' ? 'Uploading...' : 'Processing PDF...'}
             </span>
-            <span className="text-emerald-400">{progress}%</span>
+            <span className="text-primary-600">{progress}%</span>
           </div>
-          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-2 bg-app-raised rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300"
+              className="h-full bg-primary-500 transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -286,25 +286,25 @@ export function BankPDFUploader() {
 
       {/* Result */}
       {status === 'complete' && result && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6">
+        <div className="bg-app-success-bg border border-app-success/30 rounded-xl p-6">
           <div className="flex items-start gap-4">
-            <CheckCircle2 className="w-6 h-6 text-emerald-400 mt-0.5" />
+            <CheckCircle2 className="w-6 h-6 text-app-success mt-0.5" />
             <div className="flex-1">
-              <h4 className="font-medium text-white">Processing Complete</h4>
-              <div className="mt-2 space-y-1 text-sm text-slate-300">
+              <h4 className="font-medium text-app-text">Processing Complete</h4>
+              <div className="mt-2 space-y-1 text-sm text-app-text">
                 {result.detectedBank && (
                   <p className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-slate-400" />
-                    Detected: <span className="text-emerald-400">{result.detectedBank}</span>
+                    <Building2 className="w-4 h-4 text-app-muted" />
+                    Detected: <span className="text-app-success">{result.detectedBank}</span>
                   </p>
                 )}
                 <p>
-                  Extracted <span className="text-emerald-400">{result.transactionCount}</span> transactions
+                  Extracted <span className="text-app-success">{result.transactionCount}</span> transactions
                 </p>
               </div>
 
               {result.warnings && result.warnings.length > 0 && (
-                <div className="mt-3 text-sm text-amber-400">
+                <div className="mt-3 text-sm text-app-warn">
                   {result.warnings.map((warning, i) => (
                     <p key={i} className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
@@ -318,7 +318,7 @@ export function BankPDFUploader() {
                 <button
                   onClick={downloadResult}
                   disabled={isDownloading}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 disabled:cursor-wait text-white rounded-lg font-medium text-sm transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 disabled:cursor-wait text-white rounded-lg font-medium text-sm transition-colors"
                 >
                   {isDownloading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -329,7 +329,7 @@ export function BankPDFUploader() {
                 </button>
                 <button
                   onClick={reset}
-                  className="px-4 py-2 text-slate-400 hover:text-white transition-colors text-sm"
+                  className="px-4 py-2 text-app-muted hover:text-app-text transition-colors text-sm"
                 >
                   Process Another
                 </button>
@@ -341,15 +341,15 @@ export function BankPDFUploader() {
 
       {/* Error */}
       {status === 'error' && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+        <div className="bg-app-error-bg border border-app-error/30 rounded-xl p-6">
           <div className="flex items-start gap-4">
-            <AlertCircle className="w-6 h-6 text-red-400 mt-0.5" />
+            <AlertCircle className="w-6 h-6 text-app-error mt-0.5" />
             <div className="flex-1">
-              <h4 className="font-medium text-white">Processing Failed</h4>
-              <p className="mt-1 text-sm text-red-300">{errorMessage}</p>
+              <h4 className="font-medium text-app-text">Processing Failed</h4>
+              <p className="mt-1 text-sm text-app-error">{errorMessage}</p>
 
               {result?.warnings && result.warnings.length > 0 && (
-                <div className="mt-2 text-sm text-slate-400">
+                <div className="mt-2 text-sm text-app-muted">
                   {result.warnings.map((warning, i) => (
                     <p key={i}>{warning}</p>
                   ))}
@@ -358,7 +358,7 @@ export function BankPDFUploader() {
 
               <button
                 onClick={reset}
-                className="mt-4 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition-colors"
+                className="mt-4 px-4 py-2 bg-app-raised hover:bg-app-border text-app-text rounded-lg text-sm transition-colors"
               >
                 Try Again
               </button>
@@ -371,7 +371,7 @@ export function BankPDFUploader() {
       {file && status === 'idle' && (
         <button
           onClick={processFile}
-          className="w-full py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white rounded-xl font-semibold transition-all"
+          className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-all"
         >
           Process Bank Statement
         </button>

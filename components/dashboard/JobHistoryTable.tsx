@@ -1,22 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Download, Clock, CheckCircle, XCircle, Loader2, FileText, Eye, RotateCcw, Trash2, BarChart3, Building2 } from 'lucide-react';
+import { FileText, Loader2, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
-import { UnifiedJob, JobType } from '@/hooks/useJobPolling';
+import { UnifiedJob } from '@/hooks/useJobPolling';
+import { EXCHANGE_SOURCES } from '@/lib/exchange-registry';
+import { isTimedOut } from '@/lib/job-staleness';
 
 type TabFilter = 'all' | 'crypto' | 'bank';
 
-export function JobHistoryTable() {
-  const { unifiedHistory, activeJob, setActiveJob, clearActiveJob, refreshAll, refreshBankJobs } = useJobContext();
-  const [activeTab, setActiveTab] = useState<TabFilter>('all');
+const PAGE_SIZE = 7;
 
-  const filteredJobs = unifiedHistory.filter((job) => {
-    if (activeTab === 'all') return true;
-    return job.type === activeTab;
-  });
+export function JobHistoryTable() {
+  const { unifiedHistory, activeJob, setActiveJob, clearActiveJob, refreshAll } = useJobContext();
+  const [activeTab, setActiveTab] = useState<TabFilter>('all');
+  const [showAll, setShowAll] = useState(false);
+
+  const filteredJobs = unifiedHistory.filter((job) => activeTab === 'all' || job.type === activeTab);
+  const visibleJobs = showAll ? filteredJobs : filteredJobs.slice(0, PAGE_SIZE);
 
   const counts = {
     all: unifiedHistory.length,
@@ -24,137 +27,181 @@ export function JobHistoryTable() {
     bank: unifiedHistory.filter((j) => j.type === 'bank').length,
   };
 
-  if (unifiedHistory.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-center">
-          <FileText className="h-8 w-8 text-zinc-600" />
-        </div>
-        <h3 className="text-lg font-medium text-white mb-2">
-          No uploads yet
-        </h3>
-        <p className="text-sm text-zinc-500 max-w-sm mx-auto">
-          Upload a CSV or bank statement to start processing
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      {/* Tabs */}
-      <div className="flex items-center gap-2">
-        <TabButton
-          active={activeTab === 'all'}
-          onClick={() => setActiveTab('all')}
-          icon={null}
-          label="All"
-          count={counts.all}
-        />
-        <TabButton
-          active={activeTab === 'crypto'}
-          onClick={() => setActiveTab('crypto')}
-          icon={<BarChart3 className="h-3.5 w-3.5" />}
-          label="Crypto"
-          count={counts.crypto}
-        />
-        <TabButton
-          active={activeTab === 'bank'}
-          onClick={() => setActiveTab('bank')}
-          icon={<Building2 className="h-3.5 w-3.5" />}
-          label="Bank"
-          count={counts.bank}
-        />
-      </div>
-
-      {/* Job List */}
-      <div className="space-y-3">
-        {filteredJobs.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-zinc-500">
-              No {activeTab === 'all' ? '' : activeTab} jobs yet
-            </p>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold text-app-text">History</h2>
+        {unifiedHistory.length > 0 && (
+          <div role="group" aria-label="Filter history" className="flex gap-1 p-1 rounded-xl bg-app-raised border border-app-border">
+            <TabButton active={activeTab === 'all'} onClick={() => setActiveTab('all')} label="All" count={counts.all} />
+            <TabButton active={activeTab === 'crypto'} onClick={() => setActiveTab('crypto')} label="Crypto" count={counts.crypto} />
+            <TabButton active={activeTab === 'bank'} onClick={() => setActiveTab('bank')} label="Bank" count={counts.bank} />
           </div>
-        ) : (
-          filteredJobs.map((job) => (
-            <UnifiedJobRow
-              key={job.id}
-              job={job}
-              isActive={activeJob?.jobId === job.id}
-              onSelect={() => job.type === 'crypto' && setActiveJob(job.id)}
-              onDeleteSuccess={() => {
-                if (activeJob?.jobId === job.id) {
-                  clearActiveJob();
-                }
-                refreshAll();
-              }}
-              onBankRefresh={refreshBankJobs}
-            />
-          ))
         )}
       </div>
+
+      {unifiedHistory.length === 0 ? (
+        <div className="text-center py-14">
+          <FileText className="h-8 w-8 text-app-subtle mx-auto mb-3" aria-hidden="true" />
+          <p className="font-semibold text-app-text">No uploads yet</p>
+          <p className="text-sm text-app-muted mt-1">Upload a CSV or bank statement to start processing</p>
+        </div>
+      ) : filteredJobs.length === 0 ? (
+        <p className="text-sm text-app-muted text-center py-8">No {activeTab} jobs yet</p>
+      ) : (
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-205 text-sm">
+              <thead>
+                <tr className="text-left text-app-muted border-b border-app-border">
+                  <th scope="col" className="px-3 py-2.5 font-medium">File</th>
+                  <th scope="col" className="px-3 py-2.5 font-medium">Source</th>
+                  <th scope="col" className="px-3 py-2.5 font-medium">Uploaded</th>
+                  <th scope="col" className="px-3 py-2.5 font-medium">Status</th>
+                  <th scope="col" className="px-3 py-2.5 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleJobs.map((job) => (
+                  <JobRow
+                    key={job.id}
+                    job={job}
+                    isActive={activeJob?.jobId === job.id}
+                    onSelect={() => job.type === 'crypto' && setActiveJob(job.id)}
+                    onChanged={() => {
+                      if (activeJob?.jobId === job.id) clearActiveJob();
+                      refreshAll();
+                    }}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-app-muted">
+            <span>Showing {visibleJobs.length} of {filteredJobs.length}</span>
+            {filteredJobs.length > PAGE_SIZE && (
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="min-h-11 font-semibold text-app-link hover:underline"
+              >
+                {showAll ? 'Show fewer' : 'Show all'}
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-interface TabButtonProps {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  count: number;
-}
-
-function TabButton({ active, onClick, icon, label, count }: TabButtonProps) {
+function TabButton({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number }) {
   return (
     <button
+      type="button"
+      aria-pressed={active}
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+      className={`min-h-9 px-3.5 rounded-lg text-sm tabular-nums transition-colors ${
         active
-          ? 'bg-zinc-700 text-white'
-          : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
+          ? 'bg-app-card text-app-text font-semibold shadow-sm border border-app-border'
+          : 'text-app-muted hover:text-app-text'
       }`}
     >
-      {icon}
-      {label}
-      <span className={`text-xs ${active ? 'text-zinc-300' : 'text-zinc-500'}`}>
-        ({count})
-      </span>
+      {label} · {count}
     </button>
   );
 }
 
-interface UnifiedJobRowProps {
+type RowStatus = 'completed' | 'failed' | 'timed_out' | 'processing' | 'queued' | 'canceled';
+
+const STATUS_PILL: Record<RowStatus, { label: string; className: string }> = {
+  completed: { label: 'Completed', className: 'text-app-success bg-app-success-bg' },
+  failed: { label: 'Failed', className: 'text-app-error bg-app-error-bg' },
+  timed_out: { label: 'Timed out', className: 'text-app-warn bg-app-warn-bg' },
+  processing: { label: 'Processing', className: 'text-primary-700 bg-primary-50' },
+  queued: { label: 'Queued', className: 'text-app-muted bg-app-raised' },
+  canceled: { label: 'Canceled', className: 'text-app-muted bg-app-raised' },
+};
+
+function exchangeName(id: unknown): string | undefined {
+  if (typeof id !== 'string' || !id) return undefined;
+  return EXCHANGE_SOURCES.find((e) => e.id === id)?.name ?? id;
+}
+
+/** "Coinbase · 20 transactions", or the file kind when nothing is known yet. */
+export function sourceLabel(job: UnifiedJob): string {
+  if (job.type === 'crypto') {
+    // record_count is what the processor writes; transactionCount was never written.
+    const count = (job.result?.['record_count'] ?? job.result?.['transactionCount']) as number | undefined;
+    const name = exchangeName(job.result?.['exchange']);
+    if (name && count) return `${name} · ${count} transactions`;
+    return name ?? 'Crypto CSV';
+  }
+  if (job.detectedBank && job.transactionCount) return `${job.detectedBank} · ${job.transactionCount} transactions`;
+  return job.detectedBank ?? 'Bank PDF';
+}
+
+function formatUploaded(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+}
+
+function JobRow({
+  job,
+  isActive,
+  onSelect,
+  onChanged,
+}: {
   job: UnifiedJob;
   isActive: boolean;
   onSelect: () => void;
-  onDeleteSuccess: () => void;
-  onBankRefresh: () => void;
-}
-
-function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh }: UnifiedJobRowProps) {
+  onChanged: () => void;
+}) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Close the ⋯ menu on an outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [menuOpen]);
+
+  // A deleted row leaves the table at once instead of an empty, padded row
+  if (isDeleted) return null;
+
+  const timedOut = isTimedOut(job);
+  const rowStatus: RowStatus = timedOut ? 'timed_out' : job.status;
+  const pill = STATUS_PILL[rowStatus] ?? STATUS_PILL.queued;
+  const note = timedOut ? 'No result after 30 minutes' : job.status === 'failed' ? job.error : null;
+  // Retry exists for crypto jobs only (POST /api/jobs/[jobId]/retry).
+  const canRetry = job.type === 'crypto' && (job.status === 'failed' || timedOut);
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const endpoint = job.type === 'crypto'
-        ? `/api/uploads/${job.uploadId}`
-        : `/api/bank/jobs/${job.id}`;
-
+      const endpoint = job.type === 'crypto' ? `/api/uploads/${job.uploadId}` : `/api/bank/jobs/${job.id}`;
       const response = await fetch(endpoint, { method: 'DELETE' });
       if (response.ok) {
         setIsDeleted(true);
         setShowDeleteModal(false);
-        onDeleteSuccess();
+        onChanged();
       }
     } catch (error) {
       console.error('Delete error:', error);
@@ -163,9 +210,26 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
     }
   };
 
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    setActionError(null);
+    try {
+      const response = await fetch(`/api/jobs/${job.id}/retry`, { method: 'POST' });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Retry failed');
+      }
+      onSelect();
+      onChanged();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Retry failed');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
   const handleDownload = async () => {
     if (job.type === 'crypto') {
-      // Crypto download
       try {
         const response = await fetch(`/api/jobs/${job.id}/download?type=formatted`);
         if (!response.ok) throw new Error('Download failed');
@@ -201,256 +265,118 @@ function UnifiedJobRow({ job, isActive, onSelect, onDeleteSuccess, onBankRefresh
     }
   };
 
-  const statusConfig = {
-    queued: {
-      icon: <Clock className="h-4 w-4 text-zinc-500" />,
-      text: 'Queued',
-      color: 'text-zinc-400',
-      bg: 'bg-zinc-800/50',
-    },
-    processing: {
-      icon: <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />,
-      text: 'Processing',
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/10',
-    },
-    completed: {
-      icon: <CheckCircle className="h-4 w-4 text-emerald-400" />,
-      text: 'Completed',
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/10',
-    },
-    failed: {
-      icon: <XCircle className="h-4 w-4 text-red-400" />,
-      text: 'Failed',
-      color: 'text-red-400',
-      bg: 'bg-red-500/10',
-    },
-    canceled: {
-      icon: <XCircle className="h-4 w-4 text-zinc-400" />,
-      text: 'Canceled',
-      color: 'text-zinc-400',
-      bg: 'bg-zinc-800/50',
-    },
-  };
-
-  const status = statusConfig[job.status] || statusConfig.queued;
-
-  // Type indicator
-  const TypeIcon = job.type === 'crypto' ? BarChart3 : Building2;
-  const typeLabel = job.type === 'crypto' ? 'Crypto' : (job.detectedBank || 'Bank');
-
-  // Transaction count for display
-  const transactionCount = job.type === 'crypto'
-    ? (job.result?.['transactionCount'] as number | undefined)
-    : job.transactionCount;
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  const secondaryButton =
+    'inline-flex items-center gap-1.5 min-h-9 px-3 rounded-lg border border-app-border-strong bg-app-card text-app-text font-medium hover:bg-app-raised transition-colors disabled:opacity-50';
 
   return (
-    <div
-      onClick={onSelect}
-      className={`p-4 rounded-xl transition-all duration-200 border cursor-pointer ${
-        isActive
-          ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/15'
-          : 'bg-zinc-800/30 hover:bg-zinc-800/50 border-zinc-800/50 hover:border-zinc-700/50'
-      } group`}
-    >
-      {/* Top row: Icon + Details + Actions */}
-      <div className="flex items-center gap-4">
-        {/* Type + Status Icon */}
-        <div className="flex items-center gap-2">
-          <div className={`p-2 rounded-lg ${job.type === 'crypto' ? 'bg-cyan-500/10' : 'bg-emerald-500/10'}`}>
-            <TypeIcon className={`h-4 w-4 ${job.type === 'crypto' ? 'text-cyan-400' : 'text-emerald-400'}`} />
-          </div>
-          <div className={`${status.bg} p-2.5 rounded-lg border border-zinc-700/50 shrink-0`}>
-            {status.icon}
-          </div>
-        </div>
-
-        {/* Job Details */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white truncate">
+    <tr className={`border-b border-app-border ${isActive ? 'bg-primary-50/60' : ''}`}>
+      <td className="px-3 py-3 align-top">
+        {job.type === 'crypto' ? (
+          <button
+            type="button"
+            onClick={onSelect}
+            className="font-medium text-app-text text-left hover:text-app-link break-all"
+            aria-label={`Show ${job.filename || 'this file'} in Insights`}
+          >
             {job.filename || 'Unnamed file'}
-          </p>
-          <div className="flex items-center gap-2 sm:gap-4 mt-1 flex-wrap">
-            <span className={`text-xs font-medium ${status.color}`}>
-              {status.text}
-            </span>
-            <span className="text-xs text-zinc-500">
-              {formatDate(job.createdAt)}
-            </span>
-            <span className={`text-xs ${job.type === 'crypto' ? 'text-cyan-400' : 'text-emerald-400'}`}>
-              {typeLabel}
-            </span>
-            {transactionCount != null && transactionCount > 0 && (
-              <span className="text-xs text-zinc-500 hidden sm:inline">
-                {transactionCount} transactions
-              </span>
-            )}
-          </div>
-          {/* Error message */}
-          {job.status === 'failed' && job.error && (
-            <p className="text-xs text-red-400/80 mt-1.5 truncate" title={job.error}>
-              {job.error}
-            </p>
-          )}
-        </div>
-
-        {/* Actions - Desktop */}
-        <div className="hidden sm:flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-          {job.status === 'completed' && !isDeleted && (
+          </button>
+        ) : (
+          <span className="font-medium text-app-text break-all">{job.filename || 'Unnamed file'}</span>
+        )}
+        {note && <p className="text-[13px] text-app-muted mt-0.5">{note}</p>}
+        {actionError && <p role="alert" className="text-[13px] text-app-error mt-0.5">{actionError}</p>}
+      </td>
+      <td className="px-3 py-3 align-top text-app-muted">{sourceLabel(job)}</td>
+      <td className="px-3 py-3 align-top text-app-muted whitespace-nowrap tabular-nums">{formatUploaded(job.createdAt)}</td>
+      <td className="px-3 py-3 align-top">
+        <span className={`inline-block text-[13px] font-semibold rounded-full px-2.5 py-0.5 whitespace-nowrap ${pill.className}`}>
+          {pill.label}
+        </span>
+      </td>
+      <td className="px-3 py-2 align-top">
+        <div className="flex items-center justify-end gap-1.5">
+          {job.status === 'completed' && (
             <>
               {job.type === 'crypto' && (
-                <Link
-                  href={`/dashboard/jobs/${job.id}`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg hover:bg-cyan-500/20 hover:border-cyan-500/30 transition-all"
-                >
-                  <Eye className="h-4 w-4" />
+                <Link href={`/dashboard/jobs/${job.id}`} className="min-h-9 inline-flex items-center px-3 font-semibold text-app-link hover:underline">
                   View
                 </Link>
               )}
-              <button
-                onClick={handleDownload}
-                disabled={isDownloading}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 hover:border-zinc-600 transition-all disabled:opacity-50"
-              >
-                {isDownloading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
+              <button type="button" onClick={handleDownload} disabled={isDownloading} className={secondaryButton}>
+                {isDownloading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 Download
-              </button>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
               </button>
             </>
           )}
-          {(job.status === 'queued' || job.status === 'processing' || job.status === 'canceled' || job.status === 'failed') && !isDeleted && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDeleteModal(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg hover:bg-red-500/20 hover:border-red-500/30 transition-all"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete
+          {canRetry && (
+            <button type="button" onClick={handleRetry} disabled={isRetrying} className={secondaryButton}>
+              {isRetrying && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+              Retry
             </button>
           )}
-        </div>
-      </div>
-
-      {/* Actions - Mobile */}
-      <div className="flex sm:hidden items-center gap-2 mt-3 pt-3 border-t border-zinc-700/50" onClick={(e) => e.stopPropagation()}>
-        {job.status === 'completed' && !isDeleted && (
-          <>
-            {job.type === 'crypto' && (
-              <Link
-                href={`/dashboard/jobs/${job.id}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-lg"
-              >
-                <Eye className="h-4 w-4" />
-                View
-              </Link>
+          <div ref={menuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label={`More actions for ${job.filename || 'this file'}`}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              className="w-9 h-9 inline-flex items-center justify-center rounded-lg text-app-muted hover:bg-app-raised hover:text-app-text"
+            >
+              <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+            </button>
+            {menuOpen && (
+              <div role="menu" className="absolute right-0 top-full mt-1 z-20 min-w-36 rounded-lg border border-app-border bg-app-card shadow-lg py-1">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowDeleteModal(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-app-error hover:bg-app-error-bg"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Delete
+                </button>
+              </div>
             )}
-            <button
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 border border-zinc-700 rounded-lg disabled:opacity-50"
-            >
-              {isDownloading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              Download
-            </button>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </>
-        )}
-        {(job.status === 'queued' || job.status === 'processing' || job.status === 'canceled' || job.status === 'failed') && !isDeleted && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowDeleteModal(true);
-            }}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </button>
-        )}
-      </div>
-
-      {/* Delete Modal */}
-      {mounted && showDeleteModal && createPortal(
-        <div
-          className="fixed inset-0 z-9999 flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowDeleteModal(false)}
-          />
-          <div className="relative bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10">
-                <Trash2 className="w-6 h-6 text-red-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Delete {job.type === 'crypto' ? 'Job' : 'Bank Job'}</h3>
-                <p className="text-sm text-slate-400">This action cannot be undone</p>
-              </div>
-            </div>
-
-            <p className="text-slate-300 mb-6">
-              Are you sure you want to permanently delete <span className="font-medium text-white">{job.filename}</span>?
-            </p>
-
-            <div className="flex items-center gap-3 justify-end">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                disabled={isDeleting}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium disabled:opacity-50"
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Delete Forever
-                  </>
-                )}
-              </button>
-            </div>
           </div>
-        </div>,
-        document.body
-      )}
-    </div>
+        </div>
+
+        {/* Delete confirmation */}
+        {mounted && showDeleteModal && createPortal(
+          <div className="fixed inset-0 z-9999 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby={`delete-title-${job.id}`}>
+            <div className="absolute inset-0 bg-slate-900/40" onClick={() => setShowDeleteModal(false)} />
+            <div className="relative bg-app-card border border-app-border rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+              <h3 id={`delete-title-${job.id}`} className="text-lg font-semibold text-app-text">Delete this file?</h3>
+              <p className="text-app-muted mt-2 mb-6">
+                <span className="font-medium text-app-text break-all">{job.filename}</span> and its results will be removed. This can&apos;t be undone.
+              </p>
+              <div className="flex items-center gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={isDeleting}
+                  className="min-h-11 px-4 rounded-lg text-app-muted hover:text-app-text hover:bg-app-raised text-sm font-medium disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="inline-flex items-center gap-2 min-h-11 px-4 rounded-lg bg-app-error text-white hover:bg-red-800 text-sm font-semibold disabled:opacity-50"
+                >
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Trash2 className="w-4 h-4" aria-hidden="true" />}
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+      </td>
+    </tr>
   );
 }

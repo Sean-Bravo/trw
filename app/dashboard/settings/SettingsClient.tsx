@@ -46,48 +46,48 @@ function ReauthModal({ isOpen, title, message, confirmText, confirmVariant = 'da
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+      <div className="absolute inset-0 bg-black/60 " onClick={onCancel} />
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (canSubmit) onConfirm(password, code.trim());
         }}
-        className="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+        className="relative bg-app-raised border border-app-border rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
       >
         <button
           type="button"
           onClick={onCancel}
-          className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-app-subtle hover:text-app-text transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-start gap-4 mb-6">
-          <div className={`p-3 rounded-xl ${confirmVariant === 'danger' ? 'bg-red-500/10' : 'bg-amber-500/10'}`}>
-            <AlertTriangle className={`w-6 h-6 ${confirmVariant === 'danger' ? 'text-red-400' : 'text-amber-400'}`} />
+          <div className={`p-3 rounded-xl ${confirmVariant === 'danger' ? 'bg-app-error-bg' : 'bg-app-warn-bg'}`}>
+            <AlertTriangle className={`w-6 h-6 ${confirmVariant === 'danger' ? 'text-app-error' : 'text-app-warn'}`} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">{title}</h3>
-            <p className="text-zinc-400 mt-1">{message}</p>
+            <h3 className="text-lg font-semibold text-app-text">{title}</h3>
+            <p className="text-app-muted mt-1">{message}</p>
           </div>
         </div>
 
         <div className="space-y-4 mb-6">
           {hasPassword && (
             <div>
-              <label htmlFor="reauth-password" className="block text-zinc-400 text-sm mb-1">Current password</label>
+              <label htmlFor="reauth-password" className="block text-app-muted text-sm mb-1">Current password</label>
               <input
                 id="reauth-password"
                 type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                className="w-full px-4 py-2 bg-app-raised border border-app-border rounded-lg text-app-text focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
               />
             </div>
           )}
           <div>
-            <label htmlFor="reauth-code" className="block text-zinc-400 text-sm mb-1">Authenticator code or backup code</label>
+            <label htmlFor="reauth-code" className="block text-app-muted text-sm mb-1">Authenticator code or backup code</label>
             <input
               id="reauth-code"
               type="text"
@@ -95,17 +95,17 @@ function ReauthModal({ isOpen, title, message, confirmText, confirmVariant = 'da
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="000000"
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white font-mono focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+              className="w-full px-4 py-2 bg-app-raised border border-app-border rounded-lg text-app-text font-mono focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
             />
           </div>
-          {error && <p className="text-red-300 text-sm">{error}</p>}
+          {error && <p className="text-app-error text-sm">{error}</p>}
         </div>
 
         <div className="flex gap-3 justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-zinc-400 hover:text-white transition-colors"
+            className="px-4 py-2 text-app-muted hover:text-app-text transition-colors"
           >
             Cancel
           </button>
@@ -114,8 +114,8 @@ function ReauthModal({ isOpen, title, message, confirmText, confirmVariant = 'da
             disabled={!canSubmit}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
               confirmVariant === 'danger'
-                ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
-                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20'
+                ? 'bg-app-error-bg text-app-error border border-app-error/30 hover:bg-red-100'
+                : 'bg-app-warn-bg text-app-warn border border-app-warn/30 hover:bg-amber-100'
             }`}
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -271,50 +271,50 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
   };
 
   return (
-    <div className="min-h-screen bg-[#0a1628]">
+    <div className="min-h-screen bg-app-bg">
       <DashboardHeader user={user} tier={tier} />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-        <p className="text-zinc-500 mb-10">Manage your account security</p>
+        <h1 className="text-3xl font-bold text-app-text mb-2">Settings</h1>
+        <p className="text-app-subtle mb-10">Manage your account security</p>
 
         {/* Success Message */}
         {success && (
-          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3">
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <p className="text-emerald-300">{success}</p>
+          <div className="mb-6 p-4 bg-app-success-bg border border-app-success/30 rounded-xl flex items-center gap-3">
+            <ShieldCheck className="w-5 h-5 text-app-success" />
+            <p className="text-app-success">{success}</p>
           </div>
         )}
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-            <p className="text-red-300">{error}</p>
+          <div className="mb-6 p-4 bg-app-error-bg border border-app-error/30 rounded-xl">
+            <p className="text-app-error">{error}</p>
           </div>
         )}
 
         {/* 2FA Section */}
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
+        <div className="bg-app-raised border border-app-border rounded-2xl p-6">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-start gap-4">
-              <div className={`p-3 rounded-xl ${twoFactorEnabled ? 'bg-emerald-500/10' : 'bg-zinc-800'}`}>
+              <div className={`p-3 rounded-xl ${twoFactorEnabled ? 'bg-app-success-bg' : 'bg-app-raised'}`}>
                 {twoFactorEnabled ? (
-                  <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                  <ShieldCheck className="w-6 h-6 text-app-success" />
                 ) : (
-                  <Shield className="w-6 h-6 text-zinc-500" />
+                  <Shield className="w-6 h-6 text-app-subtle" />
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">Two-Factor Authentication</h2>
-                <p className="text-zinc-500 mt-1">
+                <h2 className="text-xl font-semibold text-app-text">Two-Factor Authentication</h2>
+                <p className="text-app-subtle mt-1">
                   Add an extra layer of security to your account using an authenticator app
                 </p>
               </div>
             </div>
             <div className={`px-3 py-1 rounded-full text-xs font-medium ${
               twoFactorEnabled
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                : 'bg-zinc-800 text-zinc-400'
+                ? 'bg-app-success-bg text-app-success border border-app-success/30'
+                : 'bg-app-raised text-app-muted'
             }`}>
               {twoFactorEnabled ? 'Enabled' : 'Disabled'}
             </div>
@@ -327,7 +327,7 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                   <button
                     onClick={() => { setReauthError(''); setShowRegenerateConfirm(true); }}
                     disabled={loading}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-app-raised text-app-text border border-app-border rounded-lg hover:bg-app-border transition-colors disabled:opacity-50"
                   >
                     <Key className="w-4 h-4" />
                     {loading ? 'Generating...' : 'Regenerate Backup Codes'}
@@ -335,7 +335,7 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                   <button
                     onClick={() => { setReauthError(''); setShowDisableConfirm(true); }}
                     disabled={loading}
-                    className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 bg-app-error-bg text-app-error border border-app-error/30 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
                   >
                     {loading ? 'Disabling...' : 'Disable 2FA'}
                   </button>
@@ -344,7 +344,7 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                 <button
                   onClick={startSetup}
                   disabled={loading}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-all disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -356,14 +356,14 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
               )}
             </div>
           ) : showSetup ? (
-            <div className="mt-6 pt-6 border-t border-zinc-800">
+            <div className="mt-6 pt-6 border-t border-app-border">
               {step === 'setup' && (
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">1</div>
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center text-sm font-bold">1</div>
                     <div>
-                      <h3 className="font-medium text-white mb-2">Scan QR Code</h3>
-                      <p className="text-zinc-500 text-sm mb-4">
+                      <h3 className="font-medium text-app-text mb-2">Scan QR Code</h3>
+                      <p className="text-app-subtle text-sm mb-4">
                         Open your authenticator app (Google Authenticator, Authy, 1Password) and scan this QR code
                       </p>
                       {qrCode && (
@@ -375,21 +375,21 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-zinc-700 text-white flex items-center justify-center text-sm font-bold">2</div>
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-app-raised text-app-text flex items-center justify-center text-sm font-bold">2</div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-white mb-2">Or Enter Code Manually</h3>
-                      <p className="text-zinc-500 text-sm mb-3">
+                      <h3 className="font-medium text-app-text mb-2">Or Enter Code Manually</h3>
+                      <p className="text-app-subtle text-sm mb-3">
                         If you can't scan the QR code, enter this secret key manually
                       </p>
                       <div className="flex items-center gap-2">
-                        <code className="flex-1 px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-emerald-400 font-mono text-sm break-all">
+                        <code className="flex-1 px-4 py-3 bg-app-raised border border-app-border rounded-lg text-app-success font-mono text-sm break-all">
                           {secret}
                         </code>
                         <button
                           onClick={copySecret}
-                          className="p-3 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-zinc-700 transition-colors"
+                          className="p-3 bg-app-raised border border-app-border rounded-lg hover:bg-app-border transition-colors"
                         >
-                          {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-zinc-400" />}
+                          {copied ? <Check className="w-4 h-4 text-app-success" /> : <Copy className="w-4 h-4 text-app-muted" />}
                         </button>
                       </div>
                     </div>
@@ -398,7 +398,7 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                   <div className="flex justify-end">
                     <button
                       onClick={() => setStep('verify')}
-                      className="px-5 py-2.5 bg-white text-zinc-900 font-medium rounded-lg hover:bg-zinc-100 transition-colors"
+                      className="px-5 py-2.5 bg-app-card border border-app-border-strong text-app-text font-medium rounded-lg hover:bg-app-raised transition-colors"
                     >
                       Continue
                     </button>
@@ -409,10 +409,10 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
               {step === 'verify' && (
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">3</div>
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center text-sm font-bold">3</div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-white mb-2">Enter Verification Code</h3>
-                      <p className="text-zinc-500 text-sm mb-4">
+                      <h3 className="font-medium text-app-text mb-2">Enter Verification Code</h3>
+                      <p className="text-app-subtle text-sm mb-4">
                         Enter the 6-digit code from your authenticator app to verify setup
                       </p>
                       <input
@@ -422,7 +422,7 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
                         placeholder="000000"
-                        className="w-full max-w-xs px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-center text-2xl font-mono tracking-[0.5em] focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                        className="w-full max-w-xs px-4 py-3 bg-app-raised border border-app-border rounded-lg text-app-text text-center text-2xl font-mono tracking-[0.5em] focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
                       />
                     </div>
                   </div>
@@ -430,14 +430,14 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                   <div className="flex justify-between">
                     <button
                       onClick={() => setStep('setup')}
-                      className="px-4 py-2 text-zinc-400 hover:text-white transition-colors"
+                      className="px-4 py-2 text-app-muted hover:text-app-text transition-colors"
                     >
                       Back
                     </button>
                     <button
                       onClick={verifyAndEnable}
                       disabled={loading || verificationCode.length !== 6}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all disabled:opacity-50"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-all disabled:opacity-50"
                     >
                       {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                       Verify & Enable
@@ -449,31 +449,31 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
               {step === 'backup' && (
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                    <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center">
                       <Key className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-white mb-2">Save Your Backup Codes</h3>
-                      <p className="text-zinc-500 text-sm mb-4">
+                      <h3 className="font-medium text-app-text mb-2">Save Your Backup Codes</h3>
+                      <p className="text-app-subtle text-sm mb-4">
                         Store these codes somewhere safe. You can use each code once if you lose access to your authenticator.
                       </p>
-                      <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
+                      <div className="bg-app-raised border border-app-border rounded-xl p-4">
                         <div className="grid grid-cols-2 gap-2 mb-4">
                           {backupCodes.map((code, i) => (
-                            <code key={i} className="px-3 py-2 bg-zinc-900 rounded-lg text-emerald-400 font-mono text-sm text-center">
+                            <code key={i} className="px-3 py-2 bg-app-raised rounded-lg text-app-success font-mono text-sm text-center">
                               {code}
                             </code>
                           ))}
                         </div>
                         <button
                           onClick={copyBackupCodes}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 rounded-lg hover:bg-zinc-600 transition-colors text-sm"
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-app-raised rounded-lg hover:bg-app-border transition-colors text-sm"
                         >
-                          {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          {copied ? <Check className="w-4 h-4 text-app-success" /> : <Copy className="w-4 h-4" />}
                           {copied ? 'Copied!' : 'Copy All Codes'}
                         </button>
                       </div>
-                      <p className="text-amber-400 text-sm mt-4 flex items-start gap-2">
+                      <p className="text-app-warn text-sm mt-4 flex items-start gap-2">
                         <span className="text-lg">&#x26a0;&#xfe0f;</span>
                         These codes will only be shown once. Save them now!
                       </p>
@@ -483,7 +483,7 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                   <div className="flex justify-end">
                     <button
                       onClick={finishSetup}
-                      className="px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all"
+                      className="px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-all"
                     >
                       I've Saved My Codes
                     </button>
@@ -492,34 +492,34 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
               )}
             </div>
           ) : showRegenerateCodes ? (
-            <div className="mt-6 pt-6 border-t border-zinc-800">
+            <div className="mt-6 pt-6 border-t border-app-border">
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center">
                     <Key className="w-4 h-4" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-white mb-2">Your New Backup Codes</h3>
-                    <p className="text-zinc-500 text-sm mb-4">
+                    <h3 className="font-medium text-app-text mb-2">Your New Backup Codes</h3>
+                    <p className="text-app-subtle text-sm mb-4">
                       Your old codes have been invalidated. Save these new codes somewhere safe.
                     </p>
-                    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
+                    <div className="bg-app-raised border border-app-border rounded-xl p-4">
                       <div className="grid grid-cols-2 gap-2 mb-4">
                         {backupCodes.map((code, i) => (
-                          <code key={i} className="px-3 py-2 bg-zinc-900 rounded-lg text-emerald-400 font-mono text-sm text-center">
+                          <code key={i} className="px-3 py-2 bg-app-raised rounded-lg text-app-success font-mono text-sm text-center">
                             {code}
                           </code>
                         ))}
                       </div>
                       <button
                         onClick={copyBackupCodes}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-700 rounded-lg hover:bg-zinc-600 transition-colors text-sm"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-app-raised rounded-lg hover:bg-app-border transition-colors text-sm"
                       >
-                        {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        {copied ? <Check className="w-4 h-4 text-app-success" /> : <Copy className="w-4 h-4" />}
                         {copied ? 'Copied!' : 'Copy All Codes'}
                       </button>
                     </div>
-                    <p className="text-amber-400 text-sm mt-4 flex items-start gap-2">
+                    <p className="text-app-warn text-sm mt-4 flex items-start gap-2">
                       <span className="text-lg">&#x26a0;&#xfe0f;</span>
                       These codes will only be shown once. Save them now!
                     </p>
@@ -529,7 +529,7 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
                 <div className="flex justify-end">
                   <button
                     onClick={closeRegenerateCodes}
-                    className="px-5 py-2.5 bg-linear-to-r from-emerald-500 to-cyan-500 text-white font-medium rounded-lg hover:from-emerald-400 hover:to-cyan-400 transition-all"
+                    className="px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition-all"
                   >
                     I've Saved My Codes
                   </button>
@@ -540,16 +540,16 @@ export function SettingsClient({ user, tier, hasPassword }: SettingsClientProps)
         </div>
 
         {/* Account Info */}
-        <div className="mt-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Account</h2>
+        <div className="mt-6 bg-app-raised border border-app-border rounded-2xl p-6">
+          <h2 className="text-xl font-semibold text-app-text mb-4">Account</h2>
           <div className="space-y-4">
             <div>
-              <label className="text-zinc-500 text-sm">Email</label>
-              <p className="text-white">{user.email}</p>
+              <label className="text-app-subtle text-sm">Email</label>
+              <p className="text-app-text">{user.email}</p>
             </div>
             <div>
-              <label className="text-zinc-500 text-sm">Plan</label>
-              <p className="text-white">{tierName(tier)}</p>
+              <label className="text-app-subtle text-sm">Plan</label>
+              <p className="text-app-text">{tierName(tier)}</p>
             </div>
           </div>
         </div>

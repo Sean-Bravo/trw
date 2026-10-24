@@ -101,6 +101,25 @@
   --color-surface-alt: #172033;
   --color-surface-card: #1a2335;
 
+  /* Signed-in app (/dashboard/*) is light: finance users read a light screen
+     as calmer and more trustworthy; the marketing site stays dark. Every
+     text pair passes WCAG AA on app-card and app-bg. */
+  --color-app-bg: #f5f7fb;
+  --color-app-card: #ffffff;
+  --color-app-raised: #f1f5f9;
+  --color-app-border: #e3e8f0;
+  --color-app-border-strong: #cbd5e1;
+  --color-app-text: #0f172a;
+  --color-app-muted: #475569;
+  --color-app-subtle: #64748b;
+  --color-app-link: #1d4ed8;
+  --color-app-success: #047857;
+  --color-app-success-bg: #ecfdf5;
+  --color-app-error: #b91c1c;
+  --color-app-error-bg: #fef2f2;
+  --color-app-warn: #b45309;
+  --color-app-warn-bg: #fffbeb;
+
   --color-dark-bg: #020617;
   --color-dark-bg-secondary: #0f172a;
   --color-dark-text: #f1f5f9;

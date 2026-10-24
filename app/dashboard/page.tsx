@@ -30,22 +30,23 @@ export default async function DashboardPage() {
   const tier = await getUserTier(session.user.id);
 
   return (
-    <div className="min-h-screen bg-[#0a1628] relative">
-      {/* Gradient orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-1/4 w-150 h-150 bg-blue-500/8 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-cyan-500/6 rounded-full blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-app-bg text-app-text relative">
 
       <DashboardHeader user={session.user} tier={tier} />
 
       <DashboardClient userId={session.user.id}>
         <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {/* Stats Row */}
-          <DashboardStats />
+          {/* Title + stats row */}
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-[28px] font-bold tracking-tight text-app-text">Dashboard</h1>
+              <p className="text-app-muted mt-1">Convert exchange CSVs and bank statements into tax-ready files.</p>
+            </div>
+            <DashboardStats />
+          </div>
 
           {/* Main Grid: Upload + AI Insights - Side by Side */}
-          <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid lg:grid-cols-2 gap-6 mb-6 items-start">
             {/* Upload Section with Mode Selector */}
             <UploadSection />
 
@@ -53,19 +54,13 @@ export default async function DashboardPage() {
             <AIInsightsPanel />
           </div>
 
-          {/* Diff Viewer */}
-          <div className="mb-8">
+          {/* What changed: renders only for a finished job */}
+          <div className="mb-6 empty:hidden">
             <DiffViewer />
           </div>
 
           {/* Processing History */}
-          <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-lg font-semibold text-white mb-1">Processing History</h2>
-                <p className="text-slate-400 text-sm">Track uploads and download results</p>
-              </div>
-            </div>
+          <div className="bg-app-card border border-app-border rounded-2xl p-6">
             <JobHistoryTable />
           </div>
         </main>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Terminal } from 'lucide-react';
 
 export type LogLevel = 'INFO' | 'WARN' | 'FIX' | 'ERROR' | 'SUCCESS';
 
@@ -74,19 +73,11 @@ function elapsed(ms: number): string {
 }
 
 const levelColors: Record<LogLevel, string> = {
-  INFO: 'text-blue-400',
-  WARN: 'text-yellow-400',
-  FIX: 'text-emerald-400',
-  ERROR: 'text-red-400',
-  SUCCESS: 'text-emerald-400',
-};
-
-const levelBrackets: Record<LogLevel, string> = {
-  INFO: 'text-blue-500',
-  WARN: 'text-yellow-500',
-  FIX: 'text-emerald-500',
-  ERROR: 'text-red-500',
-  SUCCESS: 'text-emerald-500',
+  INFO: 'text-app-muted',
+  WARN: 'text-app-warn',
+  FIX: 'text-app-success',
+  ERROR: 'text-app-error',
+  SUCCESS: 'text-app-success',
 };
 
 export function ProcessingTerminal(props: ProcessingTerminalProps) {
@@ -133,39 +124,21 @@ export function ProcessingTerminal(props: ProcessingTerminalProps) {
   }
 
   return (
-    <div className="bg-[#0a1628] rounded-xl border border-slate-700/50 overflow-hidden">
-      {/* Terminal Header */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border-b border-slate-700/50">
-        <Terminal className="w-4 h-4 text-slate-400" />
-        <span className="text-sm font-mono text-slate-300">taxformatter_engine_v2.0.exe</span>
-      </div>
-
-      {/* Terminal Content */}
+    <details open={isProcessing || undefined} className="border-t border-app-border pt-3 text-sm text-app-muted">
+      <summary className="cursor-pointer py-1.5 select-none hover:text-app-text">
+        Processing log · {logs.length} {logs.length === 1 ? 'event' : 'events'}
+      </summary>
       <div
         ref={terminalRef}
-        className="p-3 sm:p-4 font-mono text-xs sm:text-sm max-h-48 sm:max-h-64 overflow-y-auto scrollbar-thin"
+        className="mt-2 font-mono text-[13px] max-h-48 overflow-y-auto flex flex-col gap-1"
       >
         {logs.map((log) => (
-          <div key={log.key} className="flex gap-4 py-0.5 animate-fadeIn">
-            <span className="text-slate-500 w-12 flex-shrink-0">{log.timestamp}</span>
-            <span className={`${levelBrackets[log.level]} flex-shrink-0`}>
-              [{log.level}]
-            </span>
-            <span className={levelColors[log.level]}>
-              {log.message}
-            </span>
+          <div key={log.key} className="flex gap-3">
+            <span className="text-app-subtle w-11 shrink-0 tabular-nums">{log.timestamp}</span>
+            <span className={levelColors[log.level]}>{log.message}</span>
           </div>
         ))}
-
-        {/* Blinking cursor */}
-        {isProcessing && (
-          <div className="flex gap-4 py-0.5">
-            <span className="text-slate-500 w-12 flex-shrink-0"></span>
-            <span className="text-emerald-400 animate-pulse">{'>'}</span>
-            <span className="w-2 h-4 bg-emerald-400 animate-blink"></span>
-          </div>
-        )}
       </div>
-    </div>
+    </details>
   );
 }

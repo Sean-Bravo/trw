@@ -60,7 +60,7 @@ const createMockCSVFile = (name = 'test.csv', size = 1024) => {
 
 // Helper to find and interact with dropzone
 const getDropzone = async () => {
-  const dropzoneText = await screen.findByText(/Drag and drop your CSV/i);
+  const dropzoneText = await screen.findByText(/Drop exchange CSVs here/i);
   return dropzoneText.closest('div');
 };
 
@@ -94,9 +94,9 @@ describe('FileUploader', () => {
   it('should render dropzone with correct text', async () => {
     await renderWithProvider(<FileUploader />);
 
-    expect(await screen.findByText(/Drag and drop your CSV/i)).toBeInTheDocument();
-    expect(await screen.findByText(/or click to browse/i)).toBeInTheDocument();
-    expect(await screen.findByText(/CSV files only/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Drop exchange CSVs here/i)).toBeInTheDocument();
+    expect(await screen.findByText('browse')).toBeInTheDocument();
+    expect(await screen.findByText(/Up to 10 files · 50 MB each/i)).toBeInTheDocument();
   });
 
   it('should accept dropped CSV file', async () => {

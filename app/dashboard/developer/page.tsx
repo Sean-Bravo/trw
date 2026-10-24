@@ -20,19 +20,14 @@ export default async function DeveloperPage() {
   const tier = await getUserTier(session.user.id);
 
   return (
-    <div className="min-h-screen bg-[#0a1628] relative">
-      {/* Gradient orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-1/4 w-150 h-150 bg-blue-500/8 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-125 h-125 bg-cyan-500/6 rounded-full blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-app-bg relative">
 
       <DashboardHeader user={session.user} tier={tier} />
 
       <main className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-white">Developer API</h1>
-          <p className="text-gray-400 mt-1">
+          <h1 className="text-2xl font-semibold text-app-text">Developer API</h1>
+          <p className="text-app-muted mt-1">
             Manage your API keys and monitor usage. Parse crypto CSVs and bank statement PDFs programmatically.
           </p>
         </div>

@@ -15,7 +15,7 @@ interface ViewToggleProps {
  */
 export function ViewToggle({ mode, onChange, disabled = false }: ViewToggleProps) {
   return (
-    <div className="inline-flex rounded-lg bg-slate-800/50 p-1 border border-white/5">
+    <div className="inline-flex rounded-lg bg-app-raised p-1 border border-app-border">
       <button
         type="button"
         onClick={() => onChange('clean')}
@@ -23,8 +23,8 @@ export function ViewToggle({ mode, onChange, disabled = false }: ViewToggleProps
         className={`
           flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all
           ${mode === 'clean'
-            ? 'bg-slate-700 text-white shadow-sm'
-            : 'text-slate-400 hover:text-slate-200'
+            ? 'bg-app-raised text-app-text shadow-sm'
+            : 'text-app-muted hover:text-app-text'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
@@ -40,8 +40,8 @@ export function ViewToggle({ mode, onChange, disabled = false }: ViewToggleProps
         className={`
           flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all
           ${mode === 'diff'
-            ? 'bg-slate-700 text-white shadow-sm'
-            : 'text-slate-400 hover:text-slate-200'
+            ? 'bg-app-raised text-app-text shadow-sm'
+            : 'text-app-muted hover:text-app-text'
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}

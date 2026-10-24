@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DiffViewer } from '@/components/dashboard/DiffViewer';
 import { JobProvider } from '@/contexts/JobContext';
-import { createQueuedJob, createRunningJob, createSucceededJob } from '../factories/jobs';
+import { createQueuedJob, createRunningJob, createSucceededJob, createFailedJob } from '../factories/jobs';
 
 // Mock useJobPolling
 const mockUseJobPolling = jest.fn();
@@ -19,251 +19,85 @@ global.fetch = jest.fn(() =>
   })
 ) as jest.Mock;
 
-// Helper to render with providers
-const renderWithProvider = (ui: React.ReactElement) => {
-  return render(
+const renderWithProvider = (ui: React.ReactElement) =>
+  render(
     <JobProvider userId="test-user" initialJobs={[]}>
       {ui}
     </JobProvider>
   );
-};
 
-describe('DiffViewer', () => {
+function withJob(job: unknown) {
+  mockUseJobPolling.mockReturnValue({ job, isPolling: false, error: null, retry: jest.fn() });
+}
+
+const processedRow = (i: number) => ({
+  Date: `2024-01-0${i + 1} 14:05:00`,
+  'Sent Amount': 8800,
+  'Sent Currency': 'USD',
+  'Received Amount': 0.2,
+  'Received Currency': 'BTC',
+  Description: 'Coinbase buy',
+});
+
+describe('DiffViewer ("What changed")', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseJobPolling.mockReturnValue({
-      job: null,
-      isPolling: false,
-      error: null,
-    });
+    withJob(null);
   });
 
-  it('should render empty state when no job is active', () => {
-    renderWithProvider(<DiffViewer />);
-
-    expect(screen.getByText('Changes Preview')).toBeInTheDocument();
-    expect(
-      screen.getByText('Upload a file to see the diff preview')
-    ).toBeInTheDocument();
+  it('renders nothing without a finished job', () => {
+    const { container } = renderWithProvider(<DiffViewer />);
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it('should show processing state when job is queued', () => {
-    const queuedJob = createQueuedJob();
-    mockUseJobPolling.mockReturnValue({
-      job: queuedJob,
-      isPolling: true,
-      error: null,
-    });
-
-    renderWithProvider(<DiffViewer />);
-
-    expect(screen.getByText('Changes Preview')).toBeInTheDocument();
-    expect(screen.getByText(/Virus scan in progress/)).toBeInTheDocument();
+  it.each([
+    ['queued', createQueuedJob()],
+    ['running', createRunningJob()],
+    ['failed', createFailedJob()],
+  ])('renders nothing while the job is %s (Insights covers those states)', (_, job) => {
+    withJob(job);
+    const { container } = renderWithProvider(<DiffViewer />);
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it('should show processing state when job is running', () => {
-    const runningJob = createRunningJob();
-    mockUseJobPolling.mockReturnValue({
-      job: runningJob,
-      isPolling: true,
-      error: null,
-    });
-
+  it('shows the converted rows of a finished job', () => {
+    withJob(createSucceededJob({ result: { exchange: 'coinbase', record_count: 2, processed: [processedRow(0), processedRow(1)] } }));
     renderWithProvider(<DiffViewer />);
 
-    expect(screen.getByText(/Detecting exchange format/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'What changed' })).toBeInTheDocument();
+    expect(screen.getByText(/Coinbase export → tax-ready rows · 2 of 2 shown/)).toBeInTheDocument();
+    expect(screen.getAllByText('8,800 USD')).toHaveLength(2);
+    expect(screen.getAllByText('0.2 BTC')).toHaveLength(2);
+    expect(screen.getByText('Jan 1, 2024 14:05')).toBeInTheDocument();
   });
 
-  it('should show diff data when job succeeds', () => {
-    const succeededJob = createSucceededJob({
-      result: {
-        original: [
-          { date: '2024-01-01', type: 'buy', amount: '1.5' },
-          { date: '2024-01-02', type: 'sell', amount: '0.5' },
-        ],
-        processed: [
-          { Date: '01/01/2024', 'Sent Amount': '1.50', 'Sent Currency': 'BTC' },
-          { Date: '01/02/2024', 'Sent Amount': '0.50', 'Sent Currency': 'ETH' },
-        ],
-        columns: ['date', 'type', 'amount'],
-        transactionCount: 2,
-      },
-    });
-
-    mockUseJobPolling.mockReturnValue({
-      job: succeededJob,
-      isPolling: false,
-      error: null,
-    });
-
+  it('writes a blank amount as a dash, never 0', () => {
+    withJob(createSucceededJob({
+      result: { processed: [{ Date: '2024-01-10', 'Sent Amount': 0.05, 'Sent Currency': 'BTC', 'Received Amount': null, 'Received Currency': '', Description: 'Coinbase send' }] },
+    }));
     renderWithProvider(<DiffViewer />);
-
-    // Should show the transformation header
-    expect(screen.getByText('Transformation Preview')).toBeInTheDocument();
-
-    // Should show Original and Converted labels
-    expect(screen.getByText('Original (Exchange Format)')).toBeInTheDocument();
-    expect(screen.getByText('Converted (Koinly Format)')).toBeInTheDocument();
+    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getByText('Jan 10, 2024')).toBeInTheDocument();
   });
 
-  it('should show legend for diff colors', () => {
-    const succeededJob = createSucceededJob();
-    mockUseJobPolling.mockReturnValue({
-      job: succeededJob,
-      isPolling: false,
-      error: null,
-    });
-
+  it('shows 3 rows and expands to all of them', async () => {
+    const rows = [0, 1, 2, 3, 4].map(processedRow);
+    withJob(createSucceededJob({ result: { exchange: 'coinbase', record_count: 20, processed: rows } }));
     renderWithProvider(<DiffViewer />);
 
-    expect(screen.getByText('Original exchange data')).toBeInTheDocument();
-    expect(screen.getByText('Tax-ready Koinly format')).toBeInTheDocument();
+    expect(screen.getAllByText('Coinbase buy')).toHaveLength(3);
+    expect(screen.getByText(/3 of 20 shown/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show all 5 rows' }));
+    expect(screen.getAllByText('Coinbase buy')).toHaveLength(5);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Show fewer rows' }));
+    expect(screen.getAllByText('Coinbase buy')).toHaveLength(3);
   });
 
-  it('should be collapsible', async () => {
-    const user = userEvent.setup();
-    const succeededJob = createSucceededJob();
-    mockUseJobPolling.mockReturnValue({
-      job: succeededJob,
-      isPolling: false,
-      error: null,
-    });
-
-    renderWithProvider(<DiffViewer />);
-
-    // Initially expanded
-    expect(screen.getByText('Original (Exchange Format)')).toBeInTheDocument();
-
-    // Find the collapse button
-    const collapseButton = screen.getByRole('button');
-    await user.click(collapseButton);
-
-    // After collapse, tables should not be visible
-    await waitFor(() => {
-      expect(screen.queryByText('Original exchange data')).not.toBeInTheDocument();
-    });
-
-    // Click again to expand
-    await user.click(collapseButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Original exchange data')).toBeInTheDocument();
-    });
-  });
-
-  it('should show "Show more rows" button when there are more than 3 rows', () => {
-    const succeededJob = createSucceededJob({
-      result: {
-        original: Array.from({ length: 10 }, (_, i) => ({
-          date: `2024-01-${String(i + 1).padStart(2, '0')}`,
-          type: 'buy',
-          amount: String(i + 1),
-        })),
-        processed: Array.from({ length: 10 }, (_, i) => ({
-          Date: `01/${String(i + 1).padStart(2, '0')}/2024`,
-          'Sent Amount': String(i + 1) + '.00',
-          'Sent Currency': 'BTC',
-        })),
-        columns: ['date', 'type', 'amount'],
-        transactionCount: 10,
-      },
-    });
-
-    mockUseJobPolling.mockReturnValue({
-      job: succeededJob,
-      isPolling: false,
-      error: null,
-    });
-
-    renderWithProvider(<DiffViewer />);
-
-    expect(screen.getByText('Show more rows')).toBeInTheDocument();
-  });
-
-  it('should toggle showing all rows', async () => {
-    const user = userEvent.setup();
-    const succeededJob = createSucceededJob({
-      result: {
-        original: Array.from({ length: 10 }, (_, i) => ({
-          date: `2024-01-${String(i + 1).padStart(2, '0')}`,
-          type: 'buy',
-          amount: String(i + 1),
-        })),
-        processed: Array.from({ length: 10 }, (_, i) => ({
-          Date: `01/${String(i + 1).padStart(2, '0')}/2024`,
-          'Sent Amount': String(i + 1) + '.00',
-          'Sent Currency': 'BTC',
-        })),
-        columns: ['date', 'type', 'amount'],
-        transactionCount: 10,
-      },
-    });
-
-    mockUseJobPolling.mockReturnValue({
-      job: succeededJob,
-      isPolling: false,
-      error: null,
-    });
-
-    renderWithProvider(<DiffViewer />);
-
-    const showMoreButton = screen.getByText('Show more rows');
-    await user.click(showMoreButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Show less')).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByText('Show less'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Show more rows')).toBeInTheDocument();
-    });
-  });
-
-  it('should handle empty result gracefully', () => {
-    const succeededJob = createSucceededJob({
-      result: {
-        original: [],
-        processed: [],
-        columns: ['date', 'type', 'amount'],
-        transactionCount: 0,
-      },
-    });
-
-    mockUseJobPolling.mockReturnValue({
-      job: succeededJob,
-      isPolling: false,
-      error: null,
-    });
-
-    renderWithProvider(<DiffViewer />);
-
-    // Should show empty state since no data
-    expect(
-      screen.getByText('Upload a file to see the diff preview')
-    ).toBeInTheDocument();
-  });
-
-  it('should handle missing columns gracefully', () => {
-    const succeededJob = createSucceededJob({
-      result: {
-        original: [{ date: '2024-01-01' }],
-        processed: [{ date: '01/01/2024' }],
-        // Missing columns array
-        transactionCount: 1,
-      },
-    });
-
-    mockUseJobPolling.mockReturnValue({
-      job: succeededJob,
-      isPolling: false,
-      error: null,
-    });
-
-    renderWithProvider(<DiffViewer />);
-
-    // Should still render (uses Object.keys fallback for columns)
-    expect(screen.getByText('Transformation Preview')).toBeInTheDocument();
+  it('renders nothing for a finished job without converted rows', () => {
+    withJob(createSucceededJob({ result: { processed: [] } }));
+    const { container } = renderWithProvider(<DiffViewer />);
+    expect(container).toBeEmptyDOMElement();
   });
 });

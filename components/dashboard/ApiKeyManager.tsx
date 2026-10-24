@@ -182,8 +182,8 @@ export function ApiKeyManager() {
 
   if (loading) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
-        <div className="animate-pulse text-gray-400">Loading API keys...</div>
+      <div className="bg-app-raised border border-app-border rounded-xl p-8 text-center">
+        <div className="animate-pulse text-app-muted">Loading API keys...</div>
       </div>
     );
   }
@@ -192,16 +192,16 @@ export function ApiKeyManager() {
     <div className="space-y-6">
       {/* Upgrade success banner */}
       {showUpgradeBanner && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-app-success-bg border border-app-success/30 rounded-xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-            <p className="text-emerald-300 text-sm font-medium">
+            <CheckCircle className="w-5 h-5 text-app-success shrink-0" />
+            <p className="text-app-success text-sm font-medium">
               Subscription activated! Your API key has been upgraded.
             </p>
           </div>
           <button
             onClick={() => setShowUpgradeBanner(false)}
-            className="text-emerald-400/60 hover:text-emerald-300 text-sm"
+            className="text-app-success/60 hover:text-primary-700 text-sm"
           >
             Dismiss
           </button>
@@ -210,16 +210,16 @@ export function ApiKeyManager() {
 
       {/* Checkout cancelled notice */}
       {showCancelledNotice && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-app-warn-bg border border-app-warn/30 rounded-xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
-            <p className="text-amber-300 text-sm font-medium">
+            <AlertCircle className="w-5 h-5 text-app-warn shrink-0" />
+            <p className="text-app-warn text-sm font-medium">
               Checkout cancelled. No charge was made and your plan is unchanged.
             </p>
           </div>
           <button
             onClick={() => setShowCancelledNotice(false)}
-            className="text-amber-400/60 hover:text-amber-300 text-sm"
+            className="text-app-warn hover:underline text-sm"
           >
             Dismiss
           </button>
@@ -228,32 +228,32 @@ export function ApiKeyManager() {
 
       {/* Created key banner */}
       {createdKey && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+        <div className="bg-app-success-bg border border-app-success/30 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
+            <AlertCircle className="w-5 h-5 text-app-success mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-emerald-300 text-sm font-medium mb-2">
+              <p className="text-app-success text-sm font-medium mb-2">
                 API key created. Copy it now — it won&apos;t be shown again.
               </p>
               <div className="flex items-center gap-2">
-                <code className="bg-black/30 px-3 py-1.5 rounded text-sm text-emerald-200 font-mono truncate">
+                <code className="bg-app-card border border-app-border px-3 py-1.5 rounded text-sm text-app-text font-mono truncate">
                   {createdKey}
                 </code>
                 <button
                   onClick={copyKey}
-                  className="shrink-0 p-1.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 transition-colors"
+                  className="shrink-0 p-1.5 rounded bg-app-success-bg hover:bg-emerald-100 transition-colors"
                 >
                   {copied ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
+                    <Check className="w-4 h-4 text-app-success" />
                   ) : (
-                    <Copy className="w-4 h-4 text-emerald-400" />
+                    <Copy className="w-4 h-4 text-app-success" />
                   )}
                 </button>
               </div>
             </div>
             <button
               onClick={() => setCreatedKey(null)}
-              className="text-emerald-400/60 hover:text-emerald-400 text-sm"
+              className="text-app-success/60 hover:text-primary-700 text-sm"
             >
               Dismiss
             </button>
@@ -263,27 +263,27 @@ export function ApiKeyManager() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-300 text-sm">
+        <div className="bg-app-error-bg border border-app-error/30 rounded-xl p-4 text-app-error text-sm">
           {error}
         </div>
       )}
 
       {/* Create new key */}
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <h2 className="text-lg font-medium text-white mb-4">Create API Key</h2>
+      <div className="bg-app-raised border border-app-border rounded-xl p-6">
+        <h2 className="text-lg font-medium text-app-text mb-4">Create API Key</h2>
         <div className="flex gap-3">
           <input
             type="text"
             value={newKeyName}
             onChange={(e) => setNewKeyName(e.target.value)}
             placeholder="Key name (e.g., Production, Testing)"
-            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
+            className="flex-1 bg-app-raised border border-app-border rounded-lg px-4 py-2.5 text-app-text placeholder:text-app-subtle focus:outline-none focus:border-primary-400"
             onKeyDown={(e) => e.key === 'Enter' && createKey()}
           />
           <button
             onClick={createKey}
             disabled={creating || !newKeyName.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
             {creating ? 'Creating...' : 'Create'}
@@ -292,17 +292,17 @@ export function ApiKeyManager() {
       </div>
 
       {/* Key list */}
-      <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+      <div className="bg-app-raised border border-app-border rounded-xl overflow-hidden">
         <div className="p-6 pb-4">
-          <h2 className="text-lg font-medium text-white">Your API Keys</h2>
+          <h2 className="text-lg font-medium text-app-text">Your API Keys</h2>
         </div>
 
         {keys.length === 0 ? (
-          <div className="px-6 pb-6 text-gray-400 text-sm">
+          <div className="px-6 pb-6 text-app-muted text-sm">
             No API keys yet. Create one above to get started.
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-app-border">
             {keys.map((key) => {
               const keyUsage = getUsageForKey(key.id);
               const usagePercent = keyUsage
@@ -311,28 +311,28 @@ export function ApiKeyManager() {
 
               return (
                 <div key={key.id} className="px-6 py-4 flex items-center gap-4">
-                  <Key className="w-5 h-5 text-gray-500 shrink-0" />
+                  <Key className="w-5 h-5 text-app-subtle shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-medium text-sm">{key.name}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-400 uppercase">
+                      <span className="text-app-text font-medium text-sm">{key.name}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-app-raised text-app-muted uppercase">
                         {key.tier}
                       </span>
                       {!key.isActive && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-app-error-bg text-app-error">
                           Revoked
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-4 mt-1">
-                      <code className="text-xs text-gray-500 font-mono">{key.keyPrefix}</code>
+                      <code className="text-xs text-app-subtle font-mono">{key.keyPrefix}</code>
                       {keyUsage && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-app-subtle">
                           {keyUsage.currentMonth.fileCount} / {key.monthlyQuota} files this month
                         </span>
                       )}
                       {key.lastUsedAt && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-app-subtle">
                           Last used {new Date(key.lastUsedAt).toLocaleDateString()}
                         </span>
                       )}
@@ -343,9 +343,9 @@ export function ApiKeyManager() {
                       const replacingId = key.deactivatedReason.slice(DOWNGRADE_REASON_PREFIX.length);
                       const replacingKey = keys.find((k) => k.id === replacingId);
                       return (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-app-subtle mt-1">
                           Deactivated {formatDeactivatedDate(key.deactivatedAt)} when{' '}
-                          <span className="font-medium text-gray-400">
+                          <span className="font-medium text-app-muted">
                             {replacingKey?.name ?? 'a paid key'}
                           </span>{' '}
                           was downgraded to Free.
@@ -354,10 +354,10 @@ export function ApiKeyManager() {
                     })()}
                     {/* Usage bar */}
                     {keyUsage && (
-                      <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden w-48">
+                      <div className="mt-2 h-1.5 bg-app-raised rounded-full overflow-hidden w-48">
                         <div
                           className={`h-full rounded-full transition-all ${
-                            usagePercent > 90 ? 'bg-red-500' : usagePercent > 70 ? 'bg-yellow-500' : 'bg-blue-500'
+                            usagePercent > 90 ? 'bg-red-500' : usagePercent > 70 ? 'bg-yellow-500' : 'bg-primary-500'
                           }`}
                           style={{ width: `${usagePercent}%` }}
                         />
@@ -367,7 +367,7 @@ export function ApiKeyManager() {
                   {key.isActive ? (
                     <button
                       onClick={() => revokeKey(key.id)}
-                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      className="p-2 text-app-subtle hover:text-app-error hover:bg-app-error-bg rounded-lg transition-colors"
                       title="Revoke key"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -375,7 +375,7 @@ export function ApiKeyManager() {
                   ) : (
                     <button
                       onClick={() => setConfirmDeleteId(key.id)}
-                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      className="p-2 text-app-subtle hover:text-app-error hover:bg-app-error-bg rounded-lg transition-colors"
                       title="Delete permanently"
                     >
                       <X className="w-4 h-4" />
@@ -389,17 +389,17 @@ export function ApiKeyManager() {
       </div>
 
       {/* Quick start */}
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="bg-app-raised border border-app-border rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-white">Quick Start</h2>
+          <h2 className="text-lg font-medium text-app-text">Quick Start</h2>
           <a
             href="/docs/api"
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-sm text-primary-600 hover:text-primary-700 transition-colors"
           >
             Full API docs →
           </a>
         </div>
-        <pre className="bg-black/30 rounded-lg p-4 text-sm text-gray-300 font-mono overflow-x-auto">
+        <pre className="bg-black/30 rounded-lg p-4 text-sm text-app-text font-mono overflow-x-auto">
 {`curl -X POST https://api.taxformatter.com/v1/parse \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -409,8 +409,8 @@ export function ApiKeyManager() {
     "output_format": "koinly"
   }'`}
         </pre>
-        <p className="text-xs text-gray-500 mt-3">
-          Replace <code className="text-gray-400">YOUR_API_KEY</code> with the key you created above.
+        <p className="text-xs text-app-subtle mt-3">
+          Replace <code className="text-app-muted">YOUR_API_KEY</code> with the key you created above.
         </p>
       </div>
 

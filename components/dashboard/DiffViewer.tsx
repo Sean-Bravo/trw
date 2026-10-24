@@ -1,284 +1,95 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { GitCompare, ChevronDown, ChevronUp, Loader2, ArrowRight } from 'lucide-react';
 import { useJobContext } from '@/contexts/JobContext';
 
-// Koinly output columns (what we transform TO)
-const KOINLY_COLUMNS = [
-  'Date',
-  'Sent Amount',
-  'Sent Currency',
-  'Received Amount',
-  'Received Currency',
-  'Fee Amount',
-  'Fee Currency',
-  'Description',
-];
+const PREVIEW_ROWS = 3;
 
+type Row = Record<string, unknown>;
+
+function formatAmount(amount: unknown, currency: unknown): string {
+  if (amount === null || amount === undefined || amount === '') return '—';
+  const n = typeof amount === 'number' ? amount : Number(amount);
+  const text = Number.isFinite(n) ? n.toLocaleString('en-US', { maximumFractionDigits: 8 }) : String(amount);
+  return currency ? `${text} ${currency}` : text;
+}
+
+// "2024-01-03 14:05:00" -> "Jan 3, 2024 14:05"; midnight drops the time
+function formatDate(value: unknown): string {
+  if (!value) return '—';
+  const raw = String(value);
+  // A bare "YYYY-MM-DD" parses as UTC midnight and shows as the day before
+  // in US time zones; read it as a local date.
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw.replace(' ', 'T'));
+  if (Number.isNaN(d.getTime())) return raw;
+  const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const hhmm = raw.match(/[T ](\d{2}:\d{2})/)?.[1];
+  return hhmm && hhmm !== '00:00' ? `${date} ${hhmm}` : date;
+}
+
+/**
+ * "What changed": the converted (tax-ready) rows of the finished job. Hidden
+ * until a job has succeeded; the Insights card covers the in-progress states.
+ */
 export function DiffViewer() {
   const { activeJob } = useJobContext();
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [showAllRows, setShowAllRows] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
-  // Extract original and processed data from job result
-  const diffData = useMemo(() => {
-    if (!activeJob?.result) return null;
+  const data = useMemo(() => {
+    if (activeJob?.status !== 'succeeded' || !activeJob.result) return null;
+    const result = activeJob.result as Row;
+    const processed = result['processed'] as Row[] | undefined;
+    if (!processed || processed.length === 0) return null;
+    const total = (result['record_count'] as number) || processed.length;
+    return { processed, total, exchange: result['exchange'] as string | undefined };
+  }, [activeJob?.status, activeJob?.result]);
 
-    const result = activeJob.result as Record<string, unknown>;
-    const original = result['original'] as Record<string, unknown>[] | undefined;
-    const processed = result['processed'] as Record<string, unknown>[] | undefined;
-    const originalColumns = result['columns'] as string[] | undefined;
+  if (!data) return null;
 
-    if (!original || !processed || original.length === 0 || processed.length === 0) {
-      return null;
-    }
-
-    return {
-      original,
-      processed,
-      originalColumns: originalColumns || Object.keys(original[0] || {}),
-      processedColumns: KOINLY_COLUMNS,
-      recordCount: processed.length,
-    };
-  }, [activeJob?.result]);
-
-  // Get detailed status message
-  const getStatusMessage = () => {
-    if (!activeJob) return null;
-    switch (activeJob.status) {
-      case 'queued':
-        return { icon: 'spin', text: 'Virus scan in progress • Validating file format...' };
-      case 'running':
-        return { icon: 'spin', text: 'Detecting exchange format • Analyzing transactions...' };
-      case 'failed':
-        return { icon: 'error', text: activeJob.error || 'Processing failed' };
-      default:
-        return null;
-    }
-  };
-
-  // Show empty state if no job or job not succeeded
-  if (!activeJob || activeJob.status !== 'succeeded' || !diffData) {
-    const statusMsg = getStatusMessage();
-
-    // Show processing or error state
-    if (activeJob && statusMsg) {
-      const isError = activeJob.status === 'failed';
-      return (
-        <div className={`bg-white/3 backdrop-blur-sm border rounded-2xl p-6 ${
-          isError ? 'border-red-500/30' : 'border-white/10'
-        }`}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`p-2 rounded-lg ${isError ? 'bg-red-500/10' : 'bg-indigo-500/10'}`}>
-              <GitCompare className={`w-5 h-5 ${isError ? 'text-red-400' : 'text-indigo-400'}`} />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-white">Changes Preview</h2>
-              <p className="text-slate-400 text-sm">See what was fixed in your CSV</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-center py-12 gap-3">
-            {statusMsg.icon === 'spin' ? (
-              <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                <span className="text-red-400 text-xl">!</span>
-              </div>
-            )}
-            <p className={`text-sm text-center max-w-md ${isError ? 'text-red-400' : 'text-slate-500'}`}>
-              {statusMsg.text}
-            </p>
-            {!isError && (
-              <p className="text-xs text-slate-600">Checking status every 2.5 seconds...</p>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Empty state - no job selected
-    return (
-      <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-indigo-500/10">
-            <GitCompare className="w-5 h-5 text-indigo-400" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-white">Changes Preview</h2>
-            <p className="text-slate-400 text-sm">See what was fixed in your CSV</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-center py-12 text-slate-500">
-          <p className="text-sm">Upload a file to see the diff preview</p>
-        </div>
-      </div>
-    );
-  }
-
-  const { original, processed, originalColumns, processedColumns, recordCount } = diffData;
-  const displayCount = showAllRows ? Math.min(original.length, processed.length, 10) : 3;
-  const hasMoreRows = Math.min(original.length, processed.length) > 3;
+  const rows = showAll ? data.processed : data.processed.slice(0, PREVIEW_ROWS);
+  const source = data.exchange ? `${data.exchange.charAt(0).toUpperCase()}${data.exchange.slice(1)} export` : 'Your file';
 
   return (
-    <div className="bg-white/3 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-indigo-500/10">
-            <GitCompare className="w-5 h-5 text-indigo-400" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-white">Transformation Preview</h2>
-            <p className="text-slate-400 text-sm">
-              <span className="text-emerald-400 font-medium">{recordCount} transactions</span> converted to Koinly format
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="p-2 hover:bg-white/5 rounded-lg transition-colors"
-        >
-          {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-slate-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-slate-400" />
-          )}
-        </button>
+    <section aria-labelledby="what-changed-title" className="bg-app-card border border-app-border rounded-2xl p-6 flex flex-col gap-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="what-changed-title" className="text-lg font-semibold text-app-text">What changed</h2>
+        <p className="text-sm text-app-muted">
+          {source} → tax-ready rows · {rows.length} of {data.total} shown
+        </p>
       </div>
 
-      {isExpanded && (
-        <>
-          {/* Side by Side Tables */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Original */}
-            <div>
-              <div className="flex items-center gap-2 mb-2 px-2">
-                <div className="text-xs font-medium text-amber-400 uppercase tracking-wide">
-                  Original (Exchange Format)
-                </div>
-              </div>
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto max-h-64">
-                  <table className="w-full text-xs">
-                    <thead className="sticky top-0 bg-slate-900/90">
-                      <tr className="border-b border-amber-500/20">
-                        {originalColumns.slice(0, 6).map((header, i) => (
-                          <th
-                            key={i}
-                            className="px-3 py-2 text-left text-slate-400 font-medium whitespace-nowrap"
-                          >
-                            {header}
-                          </th>
-                        ))}
-                        {originalColumns.length > 6 && (
-                          <th className="px-3 py-2 text-left text-slate-500 font-medium">
-                            +{originalColumns.length - 6}
-                          </th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {original.slice(0, displayCount).map((row, rowIdx) => (
-                        <tr key={rowIdx} className="border-b border-amber-500/10 last:border-0">
-                          {originalColumns.slice(0, 6).map((col, cellIdx) => (
-                            <td
-                              key={cellIdx}
-                              className="px-3 py-2 whitespace-nowrap text-slate-300 max-w-32 truncate"
-                              title={String(row[col] ?? '')}
-                            >
-                              {String(row[col] ?? '') || <span className="text-slate-600 italic">—</span>}
-                            </td>
-                          ))}
-                          {originalColumns.length > 6 && (
-                            <td className="px-3 py-2 text-slate-500">...</td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+      <div className="overflow-x-auto border border-app-border rounded-xl">
+        <table className="w-full min-w-170 text-sm">
+          <thead>
+            <tr className="bg-app-raised text-left text-app-muted">
+              <th scope="col" className="px-3.5 py-2.5 font-medium">Date</th>
+              <th scope="col" className="px-3.5 py-2.5 font-medium">Original</th>
+              <th scope="col" className="px-3.5 py-2.5 font-medium">Sent</th>
+              <th scope="col" className="px-3.5 py-2.5 font-medium">Received</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i} className="border-t border-app-border tabular-nums">
+                <td className="px-3.5 py-2.5 text-app-text whitespace-nowrap">{formatDate(row['Date'])}</td>
+                <td className="px-3.5 py-2.5 text-app-muted">{String(row['Description'] ?? row['Label'] ?? '—')}</td>
+                <td className="px-3.5 py-2.5 text-app-text">{formatAmount(row['Sent Amount'], row['Sent Currency'])}</td>
+                <td className="px-3.5 py-2.5 text-app-text">{formatAmount(row['Received Amount'], row['Received Currency'])}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-            {/* Arrow indicator for desktop */}
-            <div className="hidden lg:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-              <div className="bg-indigo-500/20 rounded-full p-2">
-                <ArrowRight className="w-4 h-4 text-indigo-400" />
-              </div>
-            </div>
-
-            {/* Formatted (Koinly) */}
-            <div>
-              <div className="flex items-center gap-2 mb-2 px-2">
-                <div className="text-xs font-medium text-emerald-400 uppercase tracking-wide">
-                  Converted (Koinly Format)
-                </div>
-              </div>
-              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto max-h-64">
-                  <table className="w-full text-xs">
-                    <thead className="sticky top-0 bg-slate-900/90">
-                      <tr className="border-b border-emerald-500/20">
-                        {processedColumns.map((header, i) => (
-                          <th
-                            key={i}
-                            className="px-3 py-2 text-left text-slate-400 font-medium whitespace-nowrap"
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {processed.slice(0, displayCount).map((row, rowIdx) => (
-                        <tr key={rowIdx} className="border-b border-emerald-500/10 last:border-0">
-                          {processedColumns.map((col, cellIdx) => (
-                            <td
-                              key={cellIdx}
-                              className="px-3 py-2 whitespace-nowrap text-emerald-300 max-w-32 truncate"
-                              title={String(row[col] ?? '')}
-                            >
-                              {String(row[col] ?? '') || <span className="text-slate-600 italic">—</span>}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Show More */}
-          {hasMoreRows && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setShowAllRows(!showAllRows)}
-                className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                {showAllRows ? 'Show less' : `Show more rows`}
-              </button>
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="mt-4 flex items-center justify-center gap-6 text-xs text-slate-500">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-amber-500/20 border border-amber-500/40" />
-              <span>Original exchange data</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ArrowRight className="w-3 h-3 text-slate-500" />
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/40" />
-              <span>Tax-ready Koinly format</span>
-            </div>
-          </div>
-        </>
+      {data.processed.length > PREVIEW_ROWS && (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="self-start min-h-11 text-sm font-semibold text-app-link hover:underline"
+        >
+          {showAll ? 'Show fewer rows' : `Show all ${data.processed.length} rows`}
+        </button>
       )}
-    </div>
+    </section>
   );
 }
